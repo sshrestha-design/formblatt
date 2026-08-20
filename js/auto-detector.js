@@ -381,7 +381,10 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        if (canvasY >= (pageHeight * 0.02) && canvasY <= (pageHeight * 0.93) && boxW >= 20 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
+                        if (canvasY >= (pageHeight * 0.02) && canvasY <= (pageHeight * 0.93) && boxW >= 22 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
+                            // Skip small decorative icon boxes (bullet points, contact icons)
+                            if (boxW < 22 && boxH < 22) continue;
+
                             vectorElements.push({
                                 type: "text_box",
                                 x: Math.max(10, Math.round(canvasX)),
@@ -400,7 +403,9 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                 const canvasY = pageHeight - ty - boxH;
                 const canvasX = tx;
 
-                if (canvasY >= (pageHeight * 0.16) && boxW >= 45 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
+                if (canvasY >= (pageHeight * 0.16) && boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
+                    if (boxW < 22 && boxH < 22) continue;
+
                     vectorElements.push({
                         type: "text_box",
                         x: Math.max(10, Math.round(canvasX)),
@@ -446,13 +451,34 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
             for (let i = 0; i < uniqueLines.length; i++) {
                 if (!usedIndices.has(i)) {
                     const l = uniqueLines[i];
-                    vectorElements.push({
-                        type: "line",
-                        x: l.x,
-                        y: Math.max(10, l.y - 24),
-                        width: l.width,
-                        height: 24
+
+                    // Find static text label sitting on or directly left of this line
+                    const lineMidY = l.y;
+                    const leftLabel = rawBlocks.find(tb => {
+                        const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 16 || (tb.y < l.y && (l.y - tb.y) <= 25);
+                        const isLeft = tb.x <= (l.x + l.width * 0.6) && (tb.x + tb.width) >= (l.x - 12);
+                        return isNearY && isLeft;
                     });
+
+                    // Skip lines sitting under section headings (e.g. "JOB", "CONTRACT", "LOCATION")
+                    if (leftLabel && isHeadingLabel(leftLabel.str)) continue;
+
+                    // If text label exists on the left, start field AFTER the label text!
+                    let startX = l.x;
+                    if (leftLabel && leftLabel.x < (l.x + l.width - 30)) {
+                        startX = Math.max(l.x, Math.round(leftLabel.x + leftLabel.width + 6));
+                    }
+                    const fieldW = Math.max(50, Math.round((l.x + l.width) - startX));
+
+                    if (fieldW >= 35 && startX < (pageWidth - 30)) {
+                        vectorElements.push({
+                            type: "line",
+                            x: Math.max(10, startX),
+                            y: Math.max(10, l.y - 24),
+                            width: Math.min(fieldW, pageWidth - startX - 15),
+                            height: 24
+                        });
+                    }
                 }
             }
         }
@@ -877,7 +903,7 @@ function overlapsAnyText(box, rawBlocks) {
         const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
         const overlapArea = xOverlap * yOverlap;
         const tbArea = tb.width * tb.height;
-        return tbArea > 0 && (overlapArea / tbArea) > 0.35;
+        return tbArea > 0 && (overlapArea / tbArea) > 0.12;
     });
 }
 
