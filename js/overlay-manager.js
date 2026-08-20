@@ -1,0 +1,422 @@
+// ── Canvas Overlay Rendering & Visual Elements (js/overlay-manager.js) ─
+import { state, getFieldsForCurrentPage } from "./state.js";
+import { FIELD_TYPE_LABELS } from "./constants.js";
+import { openSignatureModal } from "./signature-pad.js";
+import { makeScrubbableAndScrollable } from "./properties-panel.js";
+import { saveHistory } from "./storage-manager.js";
+
+export function formatFieldDisplayName(f) {
+    if (!f) return "Field";
+    const raw = f.name || FIELD_TYPE_LABELS[f.type] || "Text Field";
+    return raw
+        .replace(/_input$/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+}
+
+export function renderOverlays(handlers) {
+    const container = document.getElementById("overlayContainer");
+    if (!container) return;
+    container.innerHTML = "";
+
+    const pageFields = getFieldsForCurrentPage();
+
+    pageFields.forEach(f => {
+        const div = document.createElement("div");
+        div.className = "field-overlay" + (state.selectedFieldIds.has(f.id) ? " selected" : "");
+        div.id = `overlay_${f.id}`;
+        div.style.left = f.x + "px";
+        div.style.top = f.y + "px";
+        div.style.width = f.width + "px";
+        div.style.height = f.height + "px";
+
+        // Border & fill styles
+        if (f.borderStyle === "none") {
+            div.style.border = "1.5px dashed #cbd5e1";
+            div.style.background = "rgba(255,255,255,0.85)";
+        } else {
+            div.style.border = "1.5px solid #94a3b8";
+        }
+
+        if (f.fillStyle === "tint") {
+            div.style.background = "#eff6ff";
+        } else if (f.fillStyle === "yellow") {
+            div.style.background = "#fefce8";
+        } else if (f.fillStyle === "transparent") {
+            div.style.background = "transparent";
+        }
+
+        // Alignment and typography
+        if (f.textAlignment === "center") {
+            div.style.justifyContent = "center";
+        } else if (f.textAlignment === "right") {
+            div.style.justifyContent = "flex-end";
+        } else {
+            div.style.justifyContent = "flex-start";
+        }
+
+        // Special render for signature fields
+        if (f.type === "signature") {
+            if (f.signatureImage) {
+                div.innerHTML = `
+                    <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                        <img src="${f.signatureImage}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
+                    </div>
+                `;
+            } else {
+                div.innerHTML = `
+                    <div class="sig-prompt-badge" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; color:#0284c7; gap:3px; cursor:pointer;">
+                        <span style="font-size:12px; font-weight:700; font-family:'Caveat', cursive, sans-serif; letter-spacing:0.5px; background:#e0f2fe; padding:2px 8px; border-radius:4px; border:1px solid #bae6fd;">✍ ${f.name || "Click to Sign"}</span>
+                        <div style="width:85%; height:1px; background:#cbd5e1;"></div>
+                    </div>
+                `;
+            }
+
+            const triggerSign = e => {
+                e.stopPropagation();
+                openSignatureModal(f, () => {
+                    renderOverlays(handlers);
+                    if (handlers.onUpdated) handlers.onUpdated(f);
+                });
+            };
+
+            div.addEventListener("dblclick", triggerSign);
+            const badge = div.querySelector(".sig-prompt-badge");
+            if (badge) badge.addEventListener("click", triggerSign);
+        } else if (f.type === "checkBox") {
+            div.innerHTML = `<span style="font-size:12px; color:#0284c7; font-weight:bold;">${f.defaultChecked ? "✓" : ""}</span>`;
+        } else if (f.type === "radioGroup") {
+            div.innerHTML = f.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#0284c7;"></div>` : "";
+        } else {
+            const label = document.createElement("span");
+            label.className = "overlay-label";
+            label.style.width = "100%";
+            label.style.textAlign = f.textAlignment || "left";
+
+            let fam = "'Carlito', Calibri, 'Inter', sans-serif";
+            let weight = "500";
+            let style = "normal";
+            let letterSpacing = "normal";
+
+            if (f.fontFamily === "times") {
+                fam = "'Times New Roman', Times, Georgia, serif";
+            } else if (f.fontFamily === "courier") {
+                fam = "'Courier New', Courier, 'Roboto Mono', monospace";
+                letterSpacing = "0.5px";
+            } else if (f.fontFamily === "helvetica-bold") {
+                fam = "'Carlito', Calibri, 'Inter', sans-serif";
+                weight = "800";
+            } else if (f.fontFamily === "times-italic") {
+                fam = "'Times New Roman', Times, Georgia, serif";
+                style = "italic";
+            }
+
+            label.style.fontFamily = fam;
+            label.style.fontWeight = weight;
+            label.style.fontStyle = style;
+            label.style.letterSpacing = letterSpacing;
+            const targetFontSize = (f.fontSize && f.fontSize >= 6) ? f.fontSize : 11;
+            const responsiveSize = f.width < 80 ? Math.min(targetFontSize, 9.5) : Math.min(targetFontSize, Math.max(9, f.height - 6));
+            label.style.fontSize = responsiveSize + "px";
+            label.style.lineHeight = "1.2";
+            label.style.boxSizing = "border-box";
+            label.style.padding = f.width < 70 ? "0 3px" : "0 6px";
+            label.style.whiteSpace = "nowrap";
+            label.style.overflow = "hidden";
+            label.style.textOverflow = "ellipsis";
+
+            if (f.type === "dropdown") {
+                const displayText = f.defaultValue || (f.options && f.options.length ? f.options[0] : formatFieldDisplayName(f));
+                label.textContent = displayText;
+                label.style.color = f.defaultValue ? "#0f172a" : "#475569";
+                
+                const arrow = document.createElement("span");
+                arrow.style.cssText = "font-size:8.5px; color:#64748b; margin-left:auto; padding-right:4px; flex-shrink:0; pointer-events:none; user-select:none;";
+                arrow.textContent = "▼";
+                div.style.display = "flex";
+                div.style.alignItems = "center";
+                div.style.justifyContent = "space-between";
+                div.appendChild(label);
+                div.appendChild(arrow);
+            } else {
+                if (f.defaultValue) {
+                    label.textContent = f.defaultValue;
+                    label.style.color = "#0f172a";
+                } else {
+                    label.textContent = formatFieldDisplayName(f);
+                    label.style.color = "#64748b";
+                }
+                div.appendChild(label);
+            }
+        }
+
+        // Resize handle
+        if (state.selectedFieldIds.has(f.id) && state.selectedFieldIds.size === 1) {
+            const handle = document.createElement("div");
+            handle.className = "resize-handle";
+            handle.addEventListener("mousedown", e => {
+                e.stopPropagation();
+                if (handlers.onResizeStart) handlers.onResizeStart(e, f);
+            });
+            div.appendChild(handle);
+        }
+
+        // Double-click for In-Place Quick Dimension & Setup HUD
+        div.addEventListener("dblclick", e => {
+            e.stopPropagation();
+            if (f.type === "signature" && !f.signatureImage) {
+                openSignatureModal(f, () => {
+                    renderOverlays(handlers);
+                    if (handlers.onUpdated) handlers.onUpdated(f);
+                });
+            } else {
+                openFieldQuickDimensionHUD(f, div, handlers);
+            }
+        });
+
+        div.addEventListener("mousedown", e => {
+            if (handlers.onFieldMouseDown) handlers.onFieldMouseDown(e, f);
+        });
+
+        container.appendChild(div);
+    });
+}
+
+export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
+    document.querySelectorAll(".canvas-quick-dimension-hud").forEach(h => h.remove());
+
+    const container = document.getElementById("canvasContainer");
+    if (!container) return;
+
+    overlayEl = document.getElementById(`overlay_${field.id}`) || overlayEl;
+
+    const hud = document.createElement("div");
+    hud.className = "canvas-quick-dimension-hud";
+    hud.id = "canvasQuickDimensionHUD";
+
+    const TYPE_LABELS = {
+        textField: "Text",
+        dropdown: "Dropdown",
+        checkBox: "Checkbox",
+        radioGroup: "Radio",
+        dateField: "Date",
+        signature: "Signature"
+    };
+
+    const typeLabel = TYPE_LABELS[field.type] || "Field";
+
+    let valueControlHtml = "";
+    if (field.type === "textField" || field.type === "dateField") {
+        valueControlHtml = `<input type="text" class="hud-val-input" id="hudValueInput" value="${field.defaultValue || ''}" placeholder="Enter value...">`;
+    } else if (field.type === "dropdown") {
+        const opts = field.options && field.options.length ? field.options : ["Option 1", "Option 2", "Option 3"];
+        const optHtml = opts.map(o => `<option value="${o}" ${field.defaultValue === o ? "selected" : ""}>${o}</option>`).join("");
+        valueControlHtml = `<select class="hud-val-select" id="hudDropdownSelect">${optHtml}</select>`;
+    } else if (field.type === "checkBox" || field.type === "radioGroup") {
+        valueControlHtml = `
+            <label style="display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:#475569; margin:0; cursor:pointer; font-weight:500; height:28px; padding:0 4px;">
+                <input type="checkbox" id="hudDefaultCheckedInput" ${field.defaultChecked ? "checked" : ""} style="cursor:pointer; accent-color:#0284c7;">
+                Checked
+            </label>
+        `;
+    } else if (field.type === "signature") {
+        valueControlHtml = `
+            <button type="button" id="hudSignBtn" style="background:#0284c7; color:#fff; font-weight:600; border:none; border-radius:6px; font-size:11.5px; padding:0 10px; height:28px; cursor:pointer;">
+                ${field.signatureImage ? "Redraw Signature" : "Pre-sign"}
+            </button>
+        `;
+    }
+
+    const showFontSize = (field.type === "textField" || field.type === "dropdown" || field.type === "dateField");
+
+    hud.innerHTML = `
+        <span class="hud-type-badge">${typeLabel}</span>
+        <span class="hud-divider"></span>
+        <div class="hud-val-container">
+            ${valueControlHtml}
+        </div>
+        <span class="hud-divider"></span>
+        <div class="hud-input-badge">
+            <span class="hud-badge-label" id="hudWidthLabel" title="Click & drag or scroll width">W</span>
+            <input type="number" id="hudWidthInput" class="hud-badge-input" min="16" max="2000" value="${field.width}">
+            <span class="hud-badge-unit">px</span>
+        </div>
+        <div class="hud-input-badge">
+            <span class="hud-badge-label" id="hudHeightLabel" title="Click & drag or scroll height">H</span>
+            <input type="number" id="hudHeightInput" class="hud-badge-input" min="16" max="1000" value="${field.height}">
+            <span class="hud-badge-unit">px</span>
+        </div>
+        ${showFontSize ? `
+        <div class="hud-input-badge" id="hudFontSizeGroup">
+            <span class="hud-badge-label" id="hudFontSizeLabel" title="Click & drag or scroll font size">Size</span>
+            <input type="number" id="hudFontSizeInput" class="hud-badge-input" min="6" max="120" value="${field.fontSize || 11}">
+            <span class="hud-badge-unit">pt</span>
+        </div>
+        ` : ''}
+        <span class="hud-divider"></span>
+        <button type="button" class="hud-confirm-btn" id="hudCloseBtn" title="Done (Enter or Esc)">Done</button>
+    `;
+
+    container.appendChild(hud);
+
+    // Dynamic positioning based on actual rendered size:
+    const realW = hud.offsetWidth || 330;
+    const realH = hud.offsetHeight || 38;
+    const contW = container.offsetWidth || 800;
+    const contH = container.offsetHeight || 1000;
+
+    let hudX = Math.max(8, Math.min(contW - realW - 8, field.x + (field.width / 2) - (realW / 2)));
+    let hudY = field.y >= (realH + 10) ? (field.y - realH - 8) : (field.y + field.height + 8);
+    hudY = Math.max(8, Math.min(contH - realH - 8, hudY));
+
+    hud.style.left = `${hudX}px`;
+    hud.style.top = `${hudY}px`;
+
+    const wInput = hud.querySelector("#hudWidthInput");
+    const hInput = hud.querySelector("#hudHeightInput");
+    const fsInput = hud.querySelector("#hudFontSizeInput");
+    const valInput = hud.querySelector("#hudValueInput");
+    const ddSelect = hud.querySelector("#hudDropdownSelect");
+    const chkInput = hud.querySelector("#hudDefaultCheckedInput");
+    const signBtn = hud.querySelector("#hudSignBtn");
+    const wLabel = hud.querySelector("#hudWidthLabel");
+    const hLabel = hud.querySelector("#hudHeightLabel");
+    const fsLabel = hud.querySelector("#hudFontSizeLabel");
+    const closeBtn = hud.querySelector("#hudCloseBtn");
+
+    const refreshOverlayVisuals = () => {
+        overlayEl.style.width = `${field.width}px`;
+        overlayEl.style.height = `${field.height}px`;
+
+        const label = overlayEl.querySelector(".overlay-label");
+        if (label) {
+            if (field.type === "dropdown") {
+                label.textContent = field.defaultValue || (field.options && field.options[0]) || formatFieldDisplayName(field);
+                label.style.color = field.defaultValue ? "#0f172a" : "#475569";
+            } else {
+                if (field.defaultValue) {
+                    label.textContent = field.defaultValue;
+                    label.style.color = "#0f172a";
+                } else {
+                    label.textContent = formatFieldDisplayName(field);
+                    label.style.color = "#64748b";
+                }
+            }
+            if (field.fontSize) {
+                label.style.fontSize = `${field.fontSize}px`;
+            }
+        }
+
+        if (field.type === "checkBox") {
+            overlayEl.innerHTML = `<span style="font-size:12px; color:#0284c7; font-weight:bold;">${field.defaultChecked ? "✓" : ""}</span>`;
+        } else if (field.type === "radioGroup") {
+            overlayEl.innerHTML = field.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#0284c7;"></div>` : "";
+        }
+
+        // Sync right properties panel
+        const propW = document.getElementById("width");
+        const propH = document.getElementById("height");
+        const propName = document.getElementById("fieldName");
+        const propVal = document.getElementById("fieldDefaultValue");
+        const propFs = document.getElementById("fontSize");
+        const propChk = document.getElementById("fieldDefaultChecked");
+
+        if (propW) propW.value = field.width;
+        if (propH) propH.value = field.height;
+        if (propName) propName.value = field.name || "";
+        if (propVal) propVal.value = field.defaultValue || "";
+        if (propFs && field.fontSize) propFs.value = field.fontSize;
+        if (propChk) propChk.checked = !!field.defaultChecked;
+    };
+
+    const syncFieldDim = () => {
+        field.width = Math.max(16, parseInt(wInput?.value) || field.width);
+        field.height = Math.max(16, parseInt(hInput?.value) || field.height);
+        refreshOverlayVisuals();
+    };
+
+    const syncFontSize = () => {
+        if (fsInput) {
+            const raw = fsInput.value.trim();
+            const val = raw === "" ? null : parseInt(raw);
+            if (val === null || (val >= 6 && val <= 120)) {
+                field.fontSize = val;
+                refreshOverlayVisuals();
+            }
+        }
+    };
+
+    // Scrubbing and Scrolling on HUD inputs
+    makeScrubbableAndScrollable(wInput, wLabel, { min: 16, max: 2000, step: 1, onUpdate: syncFieldDim });
+    makeScrubbableAndScrollable(hInput, hLabel, { min: 16, max: 1000, step: 1, onUpdate: syncFieldDim });
+    if (fsInput) {
+        makeScrubbableAndScrollable(fsInput, fsLabel, { min: 6, max: 120, step: 1, onUpdate: syncFontSize });
+    }
+
+    wInput?.addEventListener("input", syncFieldDim);
+    hInput?.addEventListener("input", syncFieldDim);
+    fsInput?.addEventListener("input", syncFontSize);
+
+    valInput?.addEventListener("input", e => {
+        field.defaultValue = e.target.value;
+        refreshOverlayVisuals();
+    });
+
+    ddSelect?.addEventListener("change", e => {
+        field.defaultValue = e.target.value;
+        refreshOverlayVisuals();
+    });
+
+    chkInput?.addEventListener("change", e => {
+        field.defaultChecked = e.target.checked;
+        refreshOverlayVisuals();
+    });
+
+    signBtn?.addEventListener("click", () => {
+        closeHUD();
+        openSignatureModal(field, () => {
+            renderOverlays(handlers);
+            if (handlers.onUpdated) handlers.onUpdated(field);
+        });
+    });
+
+    const closeHUD = () => {
+        hud.remove();
+        saveHistory();
+        if (handlers.onUpdated) handlers.onUpdated(field);
+    };
+
+    closeBtn?.addEventListener("click", e => {
+        e.stopPropagation();
+        closeHUD();
+    });
+
+    hud.addEventListener("mousedown", e => e.stopPropagation());
+    hud.addEventListener("click", e => e.stopPropagation());
+
+    const onKeyDown = ev => {
+        if (ev.key === "Enter" || ev.key === "Escape") {
+            window.removeEventListener("keydown", onKeyDown);
+            closeHUD();
+        }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    const onDocClick = ev => {
+        if (!hud.contains(ev.target) && ev.target !== overlayEl) {
+            window.removeEventListener("mousedown", onDocClick);
+            window.removeEventListener("keydown", onKeyDown);
+            closeHUD();
+        }
+    };
+    setTimeout(() => window.addEventListener("mousedown", onDocClick), 50);
+
+    // Focus Value input first if present, otherwise Width input
+    if (valInput) {
+        valInput.focus();
+        valInput.select();
+    } else if (wInput) {
+        wInput.focus();
+        wInput.select();
+    }
+}

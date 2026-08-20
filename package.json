@@ -1,0 +1,16 @@
+{
+  "name": "pdf_form_builder_web",
+  "version": "1.0.0",
+  "description": "> **Designed by Sagar Shrestha © 2026. All rights reserved.**   > Live Production URL: **[https://justforms.vercel.app](https://justforms.vercel.app)**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Sagar Shrestha",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
