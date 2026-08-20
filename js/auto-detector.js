@@ -349,7 +349,7 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                             const canvasX = tx;
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
-                            if (lineCanvasY >= (pageHeight * 0.02) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
+                            if (lineCanvasY >= (pageHeight * 0.02) && lineCanvasY <= (pageHeight * 0.93) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
                                 // Skip decorative full-width section divider lines (line width >= 65% of page width without prompt label)
                                 const isDecorativeDivider = canvasW >= (pageWidth * 0.65) || canvasW >= 380;
                                 const hasPromptLabel = rawBlocks.some(tb => {
@@ -381,7 +381,7 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        if (canvasY >= (pageHeight * 0.02) && boxW >= 20 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
+                        if (canvasY >= (pageHeight * 0.02) && canvasY <= (pageHeight * 0.93) && boxW >= 20 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
                             vectorElements.push({
                                 type: "text_box",
                                 x: Math.max(10, Math.round(canvasX)),
@@ -594,11 +594,14 @@ function isArtifactString(str) {
     if (!str || str.length < 2) return true;
     if (/^\d+(_\d+)*$/.test(str) || (str.replace(/[^0-9]/g, "").length / str.length) > 0.35) return true;
     
+    // Subset font encoded character artifacts like "ilhogb46", "llhogb37", "abcde12"
+    if (/^[a-zA-Z]{3,}\d+$/.test(str)) return true;
+
     const lettersOnly = str.replace(/[^a-zA-Z]/g, "");
     if (lettersOnly.length >= 4) {
         const vowels = lettersOnly.match(/[aeiouyAEIOUY]/g) || [];
         const vowelRatio = vowels.length / lettersOnly.length;
-        if (vowelRatio < 0.18 || /[^aeiouyAEIOUY\s]{6,}/.test(lettersOnly)) {
+        if (vowelRatio < 0.25 || /[^aeiouyAEIOUY\s]{5,}/.test(lettersOnly)) {
             return true;
         }
     }
