@@ -267,7 +267,7 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         
                         const dx = Math.abs(curX - lastX);
                         const dy = Math.abs(curY - lastY);
-                        if (dx >= 45 && dy <= 3 && dx < (pageWidth * 0.90)) {
+                        if (dx >= 20 && dy <= 3.5 && dx < (pageWidth * 0.95)) {
                             const minX = Math.min(lastX, curX);
                             const minY = Math.min(lastY, curY);
                             const [tx, ty] = applyMatrix(minX, minY, currentMatrix);
@@ -275,7 +275,7 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                             const canvasX = tx;
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
-                            if (lineCanvasY >= (pageHeight * 0.16) && canvasX >= 5 && canvasX <= (pageWidth - 30) && canvasW >= 40) {
+                            if (lineCanvasY >= (pageHeight * 0.02) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
                                 rawLines.push({
                                     x: Math.max(10, Math.round(canvasX)),
                                     y: Math.round(lineCanvasY),
@@ -297,7 +297,7 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        if (canvasY >= (pageHeight * 0.16) && boxW >= 45 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
+                        if (canvasY >= (pageHeight * 0.02) && boxW >= 20 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
                             vectorElements.push({
                                 type: "text_box",
                                 x: Math.max(10, Math.round(canvasX)),
@@ -400,12 +400,12 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
     for (let line of lines) {
         const text = line.str.trim();
 
-        // Skip banner headers, headings, and section titles
-        if (line.height > (medianFontHeight * 1.25)) continue;
+        // Skip giant banner headers (font height > 2.2x median) and section titles
+        if (line.height > (medianFontHeight * 2.2)) continue;
         if (isHeadingLabel(text)) continue;
 
-        // Skip top banner areas (top 16% of page) unless there is an explicit colon or underline
-        if (line.y < (viewport.height * 0.16) && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
+        // Skip top margin areas (top 2% of page) unless there is an explicit colon or underline
+        if (line.y < (viewport.height * 0.02) && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
 
         // Skip contact rows (emails, phones, locations, social links, headers)
         if (CONTACT_OR_RESUME_KEYWORDS.test(text) && !text.includes(":")) continue;
@@ -688,8 +688,8 @@ function fuseDetections(vectorElements, textResult, rawBlocks, viewport, pageNum
         });
         if (isHeadingVector) continue;
 
-        const rawLabel = findNearbyLabelForBox(ve, rawBlocks) || "";
-        if (!rawLabel || isHeadingLabel(rawLabel)) continue;
+        const rawLabel = findNearbyLabelForBox(ve, rawBlocks) || `field_${usedNames.size + 1}`;
+        if (isHeadingLabel(rawLabel)) continue;
 
         const sem = resolveSemanticProperties(rawLabel, "textField", usedNames);
 
@@ -721,8 +721,8 @@ function fuseDetections(vectorElements, textResult, rawBlocks, viewport, pageNum
         });
 
         if (!isCovered) {
-            const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (findNearbyLabelForBox(td, rawBlocks) || "");
-            if (!rawLabel || isHeadingLabel(rawLabel)) continue;
+            const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (findNearbyLabelForBox(td, rawBlocks) || `field_${usedNames.size + 1}`);
+            if (isHeadingLabel(rawLabel)) continue;
             const sem = resolveSemanticProperties(rawLabel, td.type, usedNames);
 
             fused.push({
