@@ -260,24 +260,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("nextPageBtn")?.addEventListener("click", () => goToPage(state.currentPageNum + 1, refreshUI));
 
     // Floating Notice Toast Notification Helper
-    function showNoticeToast(msg, icon = "sparkles") {
+    function showNoticeToast(msg) {
         const existing = document.querySelector(".notice-toast");
         if (existing) existing.remove();
 
         const toast = document.createElement("div");
         toast.className = "notice-toast";
-        toast.innerHTML = `
-            <i data-lucide="${icon}" style="width: 15px; height: 15px; color: #38bdf8;"></i>
-            <span>${msg}</span>
-        `;
+        toast.innerHTML = `<span>${msg}</span>`;
         document.body.appendChild(toast);
-        if (typeof lucide !== "undefined") lucide.createIcons();
 
         setTimeout(() => {
             toast.style.opacity = "0";
             toast.style.transform = "translate(-50%, 15px) scale(0.94)";
             setTimeout(() => toast.remove(), 350);
-        }, 3500);
+        }, 3000);
     }
 
     // Auto-Detect Fields Action
@@ -340,12 +336,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                     });
                 }
 
-                showNoticeToast(`✨ Detected and labeled ${count} interactive form field${count > 1 ? 's' : ''}!`);
+                showNoticeToast(`Detected ${count} form field${count > 1 ? 's' : ''}`);
                 if (window.va) {
                     window.va("event", { name: "auto_detect_completed", data: { count } });
                 }
             } else {
-                showNoticeToast("No new form fields or underlines detected on this page.", "info");
+                showNoticeToast("No new form fields detected on this page");
             }
         } catch(err) {
             clearTimeout(t1);
