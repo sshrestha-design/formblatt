@@ -115,32 +115,39 @@ const HEADING_PATTERNS = /^(?:section|part|chapter|header|heading|overview|instr
 function isHeadingLabel(text) {
     if (!text) return false;
     const clean = text.trim().replace(/[:_.\s-]+$/, "");
-    if (!clean || clean.length < 3) return false;
+    if (!clean || clean.length < 2) return false;
 
     // Never classify invoice fields as headings
     if (/(?:invoice\s*n|inv\s*#|bill\s*to|ship\s*to|due\s*date|po\s*number|p\.o\.\s*#|subtotal|amount\s*due|balance\s*due|total\s*amount|payment\s*terms)/i.test(clean)) {
         return false;
     }
 
-    // Explicit heading keywords
-    if (/^(?:pdf\s*form\s*example|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms\s*and\s*conditions|general\s*information|personal\s*information|employment\s*history|contact\s*details|applicant\s*information|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy\s*policy|terms\s*of\s*service|scope\s*of\s*work|part\s*[ivx\d]+|section\s*[\dabc]+|appendix|exhibit|attachment|form\s*\d+)\b/i.test(clean)) {
+    // Explicit heading & title keywords without colons or underlines
+    if (/(?:pdf|form|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|general|personal|employment|contact|applicant|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document|summary|description|profile|record|details|information|page)/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
+        const isFieldKeyword = /^(?:first\s*name|last\s*name|full\s*name|name|email|phone|address|city|state|zip|date|dob|ssn|ein|title|company|country)$/i.test(clean);
+        if (!isFieldKeyword) {
+            return true;
+        }
+    }
+
+    // Numbered headings like "1. Personal Information" or "2) Employment Details"
+    if (/^\d+[\.\)]\s*/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         return true;
     }
+
     // Roman numerals or section numbering like "PART I", "PART 1", "SECTION A", "CHAPTER 2"
     if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) {
         return true;
     }
-    // Numbered headings like "1. Personal Information" or "2) Employment Details"
-    if (/^\d+[\.\)]\s*(?:pdf|form|example|sample|personal|employment|general|financial|education|contact|applicant|client|medical|legal|instructions|certification)\b/i.test(clean)) {
-        return true;
-    }
-    // ALL CAPS section headings without trailing colons (e.g. "TAXPAYER IDENTIFICATION NUMBER", "PDF FORM EXAMPLE")
-    if (/^[A-Z0-9\s\-\/\&]{6,}$/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
+
+    // ALL CAPS text without colons or underlines (e.g. "PDF FORM EXAMPLE", "TAXPAYER IDENTIFICATION NUMBER")
+    if (/^[A-Z0-9\s\-\/\&]{5,}$/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         const isShortFieldLabel = /^(?:SSN|EIN|DOB|NAME|CITY|ZIP|DATE|STATE|PHONE|EMAIL|TITLE|AGE|FAX|ID|QTY|PRICE|TAX|TOTAL|SUBTOTAL|INVOICE)$/i.test(clean);
-        if (!isShortFieldLabel && clean.length >= 8) {
+        if (!isShortFieldLabel) {
             return true;
         }
     }
+
     return false;
 }
 
