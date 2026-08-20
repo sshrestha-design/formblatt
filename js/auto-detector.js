@@ -177,6 +177,9 @@ export async function autoDetectFields(scope = "current") {
                 return { x, y, width, height, str };
             }).filter(tb => tb.str.length > 0);
 
+            // Engine 0: Native AcroForm Annotation Reader
+            const acroFormFields = await extractExistingAnnotations(page, viewport, pageNum, usedNames);
+
             // Engine 1: Vector Drawing Path Detection
             const vectorElements = await extractVectorPaths(page, viewport, rawBlocks);
 
@@ -184,7 +187,7 @@ export async function autoDetectFields(scope = "current") {
             const textElements = scanTextLayout(rawBlocks, viewport, pageNum);
 
             // Engine 3: Fusion & Semantic AcroForm ID Resolution
-            const merged = fuseDetections(vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames);
+            const merged = fuseDetections(acroFormFields, vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames);
             newFields.push(...merged);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
@@ -213,6 +216,70 @@ export async function autoDetectFields(scope = "current") {
     }
 
     return totalDetected;
+}
+
+// ── Engine 0: Native AcroForm Annotation Extraction ─────────────────
+async function extractExistingAnnotations(page, viewport, pageNum, usedNames) {
+    const fields = [];
+    try {
+        const annotations = await page.getAnnotations();
+        if (!annotations || annotations.length === 0) return fields;
+
+        for (let annot of annotations) {
+            if (annot.subtype !== "Widget" && !annot.fieldName) continue;
+
+            const rect = annot.rect;
+            if (!rect || rect.length < 4) continue;
+
+            const pdfX = rect[0];
+            const pdfY = rect[1];
+            const pdfW = Math.abs(rect[2] - rect[0]);
+            const pdfH = Math.abs(rect[3] - rect[1]);
+
+            const canvasX = Math.round(pdfX);
+            const canvasY = Math.round(viewport.height - pdfY - pdfH);
+            const canvasW = Math.round(pdfW);
+            const canvasH = Math.round(pdfH);
+
+            if (canvasW < 10 || canvasH < 8) continue;
+
+            let type = "textField";
+            let multiline = false;
+
+            if (annot.fieldType === "Btn") {
+                type = "checkBox";
+            } else if (annot.fieldType === "Sig") {
+                type = "signature";
+            } else if (annot.fieldType === "Ch") {
+                type = "dropdown";
+            } else if (annot.fieldType === "Tx") {
+                type = "textField";
+                multiline = canvasH >= 40 || !!annot.multiLine;
+            }
+
+            const rawName = annot.fieldName || annot.alternativeText || `acro_${fields.length + 1}`;
+            const sem = resolveSemanticProperties(rawName, type, usedNames);
+
+            fields.push({
+                id: Date.now() + Math.random(),
+                type: sem.type || type,
+                name: sem.name,
+                x: Math.max(10, canvasX),
+                y: Math.max(10, canvasY),
+                width: Math.max(20, canvasW),
+                height: Math.max(16, canvasH),
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: multiline || sem.multiline || false,
+                autofill: sem.autofill || "",
+                ...(annot.fieldValue ? { defaultValue: String(annot.fieldValue) } : {})
+            });
+        }
+    } catch(err) {
+        console.warn("AcroForm annotation extraction warning:", err);
+    }
+    return fields;
 }
 
 // ── Engine 1: Vector Drawing Path Extraction ─────────────────────────
@@ -672,8 +739,8 @@ function findNearbyLabelForBox(box, rawBlocks) {
 }
 
 // ── Engine 3: Fusion & Semantic AcroForm ID Resolution ───────────────
-function fuseDetections(vectorElements, textResult, rawBlocks, viewport, pageNum, usedNames) {
-    const fused = [];
+function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, viewport, pageNum, usedNames) {
+    const fused = [...acroFormFields];
     const { detected: textDetections, lines } = textResult;
 
     // 1. Process Vector Elements and pair with closest text labels
