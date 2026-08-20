@@ -87,9 +87,9 @@ export function exportProjectJson(customFileName) {
     if (!baseName) {
         baseName = (state.fileName || "interactive_form").replace(/\.pdf$/i, "");
     }
-    baseName = baseName.replace(/\.justforms$/i, "");
+    baseName = baseName.replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
 
-    a.download = `${baseName}.justforms`;
+    a.download = `${baseName}.jform`;
     a.click();
     URL.revokeObjectURL(url);
 }

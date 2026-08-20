@@ -153,7 +153,7 @@ export function showEditorScreen(onReady) {
 export async function loadPdfFile(file, onLoaded) {
     if (!file) return;
 
-    if (file.name.endsWith(".json") || file.name.endsWith(".justforms")) {
+    if (file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms")) {
         import("./storage-manager.js").then(mod => {
             mod.importProjectJson(file, onLoaded);
         });
@@ -281,10 +281,10 @@ export function initLandingController(onLoaded) {
         });
         heroDropzone.addEventListener("drop", async e => {
             const file = e.dataTransfer?.files[0];
-            if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".justforms"))) {
+            if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
                 await loadPdfFile(file, onLoaded);
             } else if (file) {
-                alert("Supported Formats: PDF documents (.pdf) or JustForms project files (.justforms).");
+                alert("Supported Formats: PDF documents (.pdf) or JustForms project files (.jform).");
             }
         });
     }
