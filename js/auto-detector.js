@@ -123,21 +123,21 @@ function isHeadingLabel(text) {
     }
 
     // Explicit heading keywords
-    if (/^(?:section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms\s*and\s*conditions|general\s*information|personal\s*information|employment\s*history|contact\s*details|applicant\s*information|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy\s*policy|terms\s*of\s*service|scope\s*of\s*work|part\s*[ivx\d]+|section\s*[\dabc]+)\b/i.test(clean)) {
+    if (/^(?:pdf\s*form\s*example|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms\s*and\s*conditions|general\s*information|personal\s*information|employment\s*history|contact\s*details|applicant\s*information|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy\s*policy|terms\s*of\s*service|scope\s*of\s*work|part\s*[ivx\d]+|section\s*[\dabc]+|appendix|exhibit|attachment|form\s*\d+)\b/i.test(clean)) {
         return true;
     }
     // Roman numerals or section numbering like "PART I", "PART 1", "SECTION A", "CHAPTER 2"
-    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE)\s*[\dABCDEFIVX]+/i.test(clean)) {
+    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) {
         return true;
     }
     // Numbered headings like "1. Personal Information" or "2) Employment Details"
-    if (/^\d+[\.\)]\s*(?:personal|employment|general|financial|education|contact|applicant|client|medical|legal|instructions|certification)\b/i.test(clean)) {
+    if (/^\d+[\.\)]\s*(?:pdf|form|example|sample|personal|employment|general|financial|education|contact|applicant|client|medical|legal|instructions|certification)\b/i.test(clean)) {
         return true;
     }
-    // ALL CAPS section headings without trailing colons (e.g. "TAXPAYER IDENTIFICATION NUMBER", "EMPLOYER IDENTIFICATION NUMBER")
-    if (/^[A-Z0-9\s\-\/\&]{8,}$/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
+    // ALL CAPS section headings without trailing colons (e.g. "TAXPAYER IDENTIFICATION NUMBER", "PDF FORM EXAMPLE")
+    if (/^[A-Z0-9\s\-\/\&]{6,}$/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         const isShortFieldLabel = /^(?:SSN|EIN|DOB|NAME|CITY|ZIP|DATE|STATE|PHONE|EMAIL|TITLE|AGE|FAX|ID|QTY|PRICE|TAX|TOTAL|SUBTOTAL|INVOICE)$/i.test(clean);
-        if (!isShortFieldLabel && clean.length >= 10) {
+        if (!isShortFieldLabel && clean.length >= 8) {
             return true;
         }
     }
@@ -343,11 +343,21 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
                             if (lineCanvasY >= (pageHeight * 0.02) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
-                                rawLines.push({
-                                    x: Math.max(10, Math.round(canvasX)),
-                                    y: Math.round(lineCanvasY),
-                                    width: Math.round(Math.min(canvasW, pageWidth - canvasX - 15))
+                                // Skip decorative full-width section divider lines (line width >= 65% of page width without prompt label)
+                                const isDecorativeDivider = canvasW >= (pageWidth * 0.65) || canvasW >= 380;
+                                const hasPromptLabel = rawBlocks.some(tb => {
+                                    const isNearY = Math.abs((tb.y + tb.height / 2) - lineCanvasY) <= 18;
+                                    const isNearX = Math.abs(tb.x - canvasX) <= 120;
+                                    return isNearY && isNearX && (tb.str.includes(":") || /[_]{3,}/.test(tb.str));
                                 });
+
+                                if (!isDecorativeDivider || hasPromptLabel) {
+                                    rawLines.push({
+                                        x: Math.max(10, Math.round(canvasX)),
+                                        y: Math.round(lineCanvasY),
+                                        width: Math.round(Math.min(canvasW, pageWidth - canvasX - 15))
+                                    });
+                                }
                             }
                         }
                         lastX = curX;
