@@ -508,10 +508,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function openSaveProjectModal() {
         if (!saveProjectModal) return;
-        const currentBase = (state.fileName || "interactive_form").replace(/\.pdf$/i, "").replace(/\.justforms$/i, "");
+        const currentBase = (state.fileName || "interactive_form").replace(/\.pdf$/i, "").replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
         
         if (saveReplaceNameDisplay) {
-            saveReplaceNameDisplay.textContent = `${currentBase}.justforms`;
+            saveReplaceNameDisplay.textContent = `${currentBase}.jform`;
         }
         if (saveNewCopyFilenameInput) {
             saveNewCopyFilenameInput.value = `${currentBase}_copy`;
@@ -563,7 +563,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         exportProjectJson(targetName);
         closeSaveProjectModal();
-        showExportToast(`${targetName}.justforms`);
+        showExportToast(`${targetName}.jform`);
     });
 
     // Close Modals on ESC Key or Save Shortcut ⌘S

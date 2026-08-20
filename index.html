@@ -159,7 +159,7 @@
                     <label class="landing-btn-primary" style="cursor: pointer;">
                         <i data-lucide="upload" style="width:14px; height:14px;"></i>
                         <span>Upload PDF</span>
-                        <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                        <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                     </label>
                 </div>
             </div>
@@ -182,12 +182,12 @@
                     <label class="hero-btn-primary" style="cursor: pointer;">
                         <i data-lucide="file-up" style="width:18px; height:18px;"></i>
                         <span>Upload PDF</span>
-                        <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                        <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                     </label>
                     <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;">
                         <i data-lucide="folder-open" style="width:18px; height:18px; color:#0284c7;"></i>
-                        <span>Open Saved Project (.justforms)</span>
-                        <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                        <span>Open Saved Project (.jform)</span>
+                        <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                     </label>
                 </div>
 
@@ -201,7 +201,7 @@
                             <strong>Drop your PDF or project file here</strong> or <span class="dropzone-browse">browse files</span>
                             <div class="dropzone-format-pills" style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
                                 <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.pdf</span>
-                                <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.justforms</span>
+                                <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.jform</span>
                             </div>
                         </div>
                     </div>
@@ -677,15 +677,15 @@
                         <div class="dropdown-divider"></div>
                         <label class="dropdown-item">
                             <i data-lucide="file-up" style="width:14px; height:14px;"></i> Upload PDF
-                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                         </label>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="saveProjectMenuBtn">
-                            <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.justforms)
+                            <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.jform)
                         </button>
                         <label class="dropdown-item">
-                            <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.justforms)
-                            <input type="file" id="loadProjectMenuBtn" accept=".justforms,.json,application/json" style="display: none;">
+                            <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.jform)
+                            <input type="file" id="loadProjectMenuBtn" accept=".jform,.justforms,.json,application/json" style="display: none;">
                         </label>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="feedbackMenuBtn">
@@ -1622,11 +1622,11 @@
                     </div>
                 </div>
 
-                <!-- Also Download .justforms Project Backup -->
+                <!-- Also Download .jform Project Backup -->
                 <div style="margin-bottom: 22px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: #334155; font-weight: 600;">
                         <input type="checkbox" id="exportIncludeProjectJson" style="width: 15px; height: 15px; accent-color: #2563eb;">
-                        <span>Also download .justforms project backup</span>
+                        <span>Also download .jform project backup</span>
                     </label>
                 </div>
 
@@ -1642,7 +1642,7 @@
         </div>
     </div>
 
-    <!-- Save Project (.justforms) Modal -->
+    <!-- Save Project (.jform) Modal -->
     <div id="saveProjectModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 480px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 40px rgba(15,23,42,0.2);">
             <!-- Modal Header -->
@@ -1652,7 +1652,7 @@
                         <i data-lucide="save" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Save Project (.justforms)</h3>
+                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Save Project (.jform)</h3>
                         <span style="font-size: 12px; color: #475569;">Choose whether to update current or save a new copy</span>
                     </div>
                 </div>
@@ -1670,7 +1670,7 @@
                             <input type="radio" name="saveProjectAction" value="replace" checked style="margin-top: 3px; accent-color: #2563eb;">
                             <div>
                                 <strong style="font-size: 12.5px; color: #0f172a; display: block;">Replace / Update Existing Project (Recommended)</strong>
-                                <span style="font-size: 11.5px; color: #475569;">Overwrites current file: <code id="saveReplaceNameDisplay" style="font-weight:600; color:#2563eb;">interactive_form.justforms</code></span>
+                                <span style="font-size: 11.5px; color: #475569;">Overwrites current file: <code id="saveReplaceNameDisplay" style="font-weight:600; color:#2563eb;">interactive_form.jform</code></span>
                             </div>
                         </label>
                         <label style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #ffffff; transition: all 0.15s ease;" id="labelSaveNewCopyOption">
@@ -1688,7 +1688,7 @@
                     <label for="saveNewCopyFilenameInput" style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">New Copy Name</label>
                     <div style="display: flex; align-items: center; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #ffffff; overflow: hidden;">
                         <input type="text" id="saveNewCopyFilenameInput" style="flex: 1; border: none; padding: 10px 12px; font-size: 13.5px; color: #0f172a; outline: none; background: transparent; font-family: inherit;" placeholder="interactive_form_copy">
-                        <span style="background: #f1f5f9; color: #475569; padding: 10px 14px; font-size: 12.5px; font-weight: 700; border-left: 1px solid #e2e8f0; user-select: none;">.justforms</span>
+                        <span style="background: #f1f5f9; color: #475569; padding: 10px 14px; font-size: 12.5px; font-weight: 700; border-left: 1px solid #e2e8f0; user-select: none;">.jform</span>
                     </div>
                 </div>
 
