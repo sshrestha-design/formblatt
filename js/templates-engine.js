@@ -102,13 +102,25 @@ export const STARTER_TEMPLATES = {
             { id: 6, type: "textField", name: "client_email", x: 310, y: 165, width: 240, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Client Email / Address" },
             { id: 7, type: "textField", name: "payment_terms", x: 45, y: 225, width: 220, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Payment Terms" },
             { id: 8, type: "dateField", name: "due_date", x: 310, y: 225, width: 240, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Payment Due Date" },
-            { id: 9, type: "textField", name: "item_desc_1", x: 50, y: 310, width: 320, height: 24, borderStyle: "solid", fillStyle: "white" },
-            { id: 10, type: "textField", name: "item_qty_1", x: 380, y: 310, width: 70, height: 24, borderStyle: "solid", fillStyle: "white" },
-            { id: 11, type: "textField", name: "item_price_1", x: 460, y: 310, width: 85, height: 24, borderStyle: "solid", fillStyle: "white" },
-            { id: 12, type: "textField", name: "subtotal_amount", x: 410, y: 415, width: 135, height: 24, borderStyle: "solid", fillStyle: "white" },
-            { id: 13, type: "textField", name: "tax_amount", x: 410, y: 445, width: 135, height: 24, borderStyle: "solid", fillStyle: "white" },
-            { id: 14, type: "textField", name: "balance_due", x: 410, y: 480, width: 135, height: 28, borderStyle: "solid", fillStyle: "yellow" },
-            { id: 15, type: "textField", name: "invoice_notes", x: 45, y: 550, width: 505, height: 75, multiline: true, borderStyle: "solid", fillStyle: "white" }
+            
+            // Itemized Line Items inside Table Box
+            { id: 9, type: "textField", name: "item_desc_1", x: 50, y: 315, width: 295, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Item 1 Description" },
+            { id: 10, type: "textField", name: "item_qty_1", x: 355, y: 315, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Qty" },
+            { id: 11, type: "textField", name: "item_price_1", x: 420, y: 315, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Price" },
+            { id: 12, type: "textField", name: "item_amount_1", x: 485, y: 315, width: 60, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Amount" },
+
+            { id: 13, type: "textField", name: "item_desc_2", x: 50, y: 350, width: 295, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Item 2 Description" },
+            { id: 14, type: "textField", name: "item_qty_2", x: 355, y: 350, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Qty" },
+            { id: 15, type: "textField", name: "item_price_2", x: 420, y: 350, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Price" },
+            { id: 16, type: "textField", name: "item_amount_2", x: 485, y: 350, width: 60, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Amount" },
+
+            // Totals Grid below Table Box
+            { id: 17, type: "textField", name: "subtotal_amount", x: 425, y: 435, width: 125, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Subtotal" },
+            { id: 18, type: "textField", name: "tax_amount", x: 425, y: 468, width: 125, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Tax" },
+            { id: 19, type: "textField", name: "balance_due", x: 425, y: 504, width: 125, height: 28, borderStyle: "solid", fillStyle: "yellow", tooltip: "Balance Due" },
+            
+            // Notes Box
+            { id: 20, type: "textField", name: "invoice_notes", x: 45, y: 575, width: 505, height: 75, multiline: true, borderStyle: "solid", fillStyle: "white", tooltip: "Notes & Terms" }
         ]
     }
 };
@@ -243,8 +255,8 @@ export async function createTemplatePdf(key) {
 
     } else if (key === "invoice") {
         page.drawText("INVOICE", { x: 420, y: height - 55, size: 26, font: fontBold, color: dark });
-        page.drawText("DATE:", { x: 350, y: height - 73, size: 9, font: fontBold, color: dark });
-        page.drawText("INVOICE #:", { x: 345, y: height - 105, size: 9, font: fontBold, color: dark });
+        page.drawText("DATE:", { x: 350, y: height - 71, size: 9, font: fontBold, color: dark });
+        page.drawText("INVOICE #:", { x: 345, y: height - 104, size: 9, font: fontBold, color: dark });
 
         page.drawText("FROM:", { x: 45, y: height - 125, size: 9, font: fontBold, color: dark });
         page.drawText("TO:", { x: 310, y: height - 125, size: 9, font: fontBold, color: dark });
@@ -252,23 +264,27 @@ export async function createTemplatePdf(key) {
         page.drawText("TERMS:", { x: 45, y: height - 215, size: 9, font: fontBold, color: dark });
         page.drawText("DUE DATE:", { x: 310, y: height - 215, size: 9, font: fontBold, color: dark });
 
-        // Itemized Table Box Grid
-        page.drawRectangle({ x: 45, y: height - 440, width: 505, height: 160, borderColor: dark, borderWidth: 1.2 });
+        // Itemized Table Box Grid (Top: y = height - 280, Bottom: y = height - 410, Height: 130px)
+        page.drawRectangle({ x: 45, y: height - 410, width: 505, height: 130, borderColor: dark, borderWidth: 1.2 });
+        // Header Row Line (y = height - 305)
         page.drawLine({ start: { x: 45, y: height - 305 }, end: { x: 550, y: height - 305 }, thickness: 1, color: dark });
-        page.drawLine({ start: { x: 375, y: height - 440 }, end: { x: 375, y: height - 280 }, thickness: 1, color: dark });
-        page.drawLine({ start: { x: 455, y: height - 440 }, end: { x: 455, y: height - 280 }, thickness: 1, color: dark });
+        // Column Vertical Dividers
+        page.drawLine({ start: { x: 350, y: height - 410 }, end: { x: 350, y: height - 280 }, thickness: 1, color: dark });
+        page.drawLine({ start: { x: 415, y: height - 410 }, end: { x: 415, y: height - 280 }, thickness: 1, color: dark });
+        page.drawLine({ start: { x: 480, y: height - 410 }, end: { x: 480, y: height - 280 }, thickness: 1, color: dark });
 
-        page.drawText("Item Description", { x: 120, y: height - 298, size: 10, font: fontBold, color: dark });
-        page.drawText("Qty", { x: 390, y: height - 298, size: 10, font: fontBold, color: dark });
-        page.drawText("Price / Amount", { x: 468, y: height - 298, size: 10, font: fontBold, color: dark });
+        page.drawText("Item Description", { x: 135, y: height - 298, size: 10, font: fontBold, color: dark });
+        page.drawText("Qty", { x: 370, y: height - 298, size: 10, font: fontBold, color: dark });
+        page.drawText("Price", { x: 435, y: height - 298, size: 10, font: fontBold, color: dark });
+        page.drawText("Amount", { x: 495, y: height - 298, size: 10, font: fontBold, color: dark });
 
-        // Totals Grid
-        page.drawText("Subtotal:", { x: 345, y: height - 430, size: 9, font: fontBold, color: dark });
-        page.drawText("Tax:", { x: 370, y: height - 460, size: 9, font: fontBold, color: dark });
-        page.drawText("BALANCE DUE:", { x: 310, y: height - 498, size: 12, font: fontBold, color: dark });
+        // Totals Grid (Cleanly placed below the Table Box)
+        page.drawText("Subtotal:", { x: 360, y: height - 451, size: 9, font: fontBold, color: dark });
+        page.drawText("Tax:", { x: 385, y: height - 484, size: 9, font: fontBold, color: dark });
+        page.drawText("BALANCE DUE:", { x: 310, y: height - 521, size: 11.5, font: fontBold, color: dark });
 
-        // Notes Box
-        page.drawText("Notes & Special Considerations", { x: 45, y: height - 535, size: 12, font: fontBold, color: dark });
+        // Notes Box (Cleanly placed below the Totals Grid)
+        page.drawText("Notes & Special Considerations", { x: 45, y: height - 565, size: 11, font: fontBold, color: dark });
     }
 
     return await doc.save();
