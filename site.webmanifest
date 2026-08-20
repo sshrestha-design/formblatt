@@ -1,0 +1,17 @@
+{
+  "name": "JustForms — Free Interactive PDF Form Creator",
+  "short_name": "JustForms",
+  "description": "Free, client-side PDF form creator and AcroForm generator.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0284c7",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

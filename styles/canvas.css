@@ -1,0 +1,610 @@
+/* ============================================================
+   JustForms — Canvas & Overlays (styles/canvas.css)
+   ============================================================ */
+
+.center-canvas {
+    flex: 1;
+    position: relative;
+    overflow-y: auto;
+    overflow-x: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 36px 36px 36px 36px;
+}
+
+.canvas-container {
+    position: relative;
+    background: #ffffff;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    flex-shrink: 0;
+    transform-origin: top center;
+    will-change: transform;
+    margin: 0 auto;
+}
+
+#pdfCanvas {
+    display: block;
+}
+
+.overlay-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: auto;
+}
+
+/* ── Field overlays ───────────────────────────────────────────── */
+.field-overlay {
+    position: absolute;
+    border: 1.5px solid #94a3b8;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: move;
+    font-family: inherit;
+    font-size: 11px;
+    color: #1e293b;
+    border-radius: 4px;
+    overflow: hidden;
+    transition: border-color var(--anim-fast), box-shadow var(--anim-fast), opacity var(--anim-fast);
+}
+
+.field-overlay:not(.selected):hover {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25), 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.field-overlay.selected {
+    border: 2px solid #2563eb !important;
+    box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.25), 0 4px 14px rgba(37, 99, 235, 0.16);
+    z-index: 50;
+}
+
+.overlay-label {
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 6px;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 9px;
+    height: 9px;
+    background: #2563eb;
+    border-top-left-radius: 3px;
+    cursor: se-resize;
+    pointer-events: auto;
+    transition: transform var(--anim-fast), background var(--anim-fast);
+    transform-origin: bottom right;
+}
+
+.resize-handle:hover {
+    transform: scale(1.35);
+    background: #1d4ed8;
+}
+
+/* ── Magnetic Alignment Guidelines ───────────────────────────── */
+.align-line {
+    position: absolute;
+    background: #06b6d4;
+    display: none;
+    pointer-events: none;
+    z-index: 999;
+    box-shadow: 0 0 6px rgba(6, 182, 212, 0.9);
+}
+.align-line.horizontal {
+    height: 1.5px;
+    width: 100%;
+    left: 0;
+}
+.align-line.vertical {
+    width: 1.5px;
+    height: 100%;
+    top: 0;
+}
+
+/* ── Document Scanner Animation ───────────────────────── */
+.scan-hud {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1200;
+    overflow: hidden;
+    border-radius: 4px;
+}
+
+.scan-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(2, 132, 199, 0.05) 0%, rgba(2, 132, 199, 0.15) 100%);
+    backdrop-filter: blur(0.5px);
+    animation: scanOverlayPulse 1.2s ease-in-out infinite alternate;
+}
+
+.scan-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 3.5px;
+    background: linear-gradient(90deg, rgba(2, 132, 199, 0) 0%, rgba(56, 189, 248, 1) 30%, rgba(14, 165, 233, 1) 70%, rgba(2, 132, 199, 0) 100%);
+    box-shadow: 0 0 16px 4px rgba(56, 189, 248, 0.8), 0 0 32px 8px rgba(14, 165, 233, 0.45);
+    animation: laserScanSweep 1.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.scan-status-pill {
+    position: absolute;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(10px);
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 500;
+    padding: 8px 18px;
+    border-radius: 9999px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), 0 0 15px rgba(2, 132, 199, 0.35);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1300;
+    animation: statusPillFadeIn 0.3s ease-out;
+    white-space: nowrap;
+}
+
+@keyframes laserScanSweep {
+    0% {
+        top: 0%;
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        top: 100%;
+        opacity: 0.2;
+    }
+}
+
+@keyframes scanOverlayPulse {
+    0% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+
+@keyframes statusPillFadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -10px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+
+/* Newly detected field pop-in animation */
+.field-overlay.field-spawned {
+    animation: fieldSpawnPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes fieldSpawnPop {
+    0% {
+        opacity: 0;
+        transform: scale(0.85);
+        box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.6);
+    }
+    70% {
+        transform: scale(1.03);
+        box-shadow: 0 0 10px 3px rgba(2, 132, 199, 0.35);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: none;
+    }
+}
+
+/* Floating Notice Toast */
+.notice-toast {
+    position: fixed;
+    bottom: 58px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    color: #ffffff;
+    padding: 9px 18px;
+    border-radius: 9999px;
+    font-size: 12.5px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.2), 0 0 20px rgba(2, 132, 199, 0.25);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    z-index: 99999;
+    animation: aiToastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+@keyframes aiToastIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 15px) scale(0.94);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0) scale(1);
+    }
+}
+
+/* ── Global Floating Tool Stamp (Attached to cursor everywhere) ── */
+.floating-tool-stamp {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: #0f172a;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.18);
+    white-space: nowrap;
+    transform: translate(16px, 16px);
+    will-change: left, top;
+    transition: opacity 0.15s ease;
+}
+
+.floating-tool-stamp .stamp-icon {
+    font-size: 13.5px;
+}
+
+.floating-tool-stamp .stamp-hint {
+    color: #38bdf8;
+    font-size: 10.5px;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
+/* ── Interactive Field Placement Ghost Preview ───────────────── */
+.field-placement-ghost {
+    position: absolute;
+    border: 2px dashed #0284c7;
+    background: rgba(224, 242, 254, 0.75);
+    backdrop-filter: blur(1px);
+    box-shadow: 0 10px 30px rgba(2, 132, 199, 0.35), 0 0 0 1px rgba(2, 132, 199, 0.4);
+    border-radius: 4px;
+    pointer-events: none;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.1s ease, border-color 0.1s ease, box-shadow 0.1s ease;
+    will-change: left, top;
+}
+
+.field-placement-ghost.snapped {
+    border: 2px solid #10b981;
+    background: rgba(209, 250, 229, 0.85);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), 0 0 0 2px rgba(16, 185, 129, 0.6);
+}
+
+.ghost-badge {
+    position: absolute;
+    top: -26px;
+    left: -1px;
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 9px;
+    border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: none;
+    line-height: 1.4;
+}
+
+.field-placement-ghost.snapped .ghost-badge {
+    background: #059669;
+}
+
+.ghost-center-label {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #0369a1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding: 0 8px;
+    pointer-events: none;
+    user-select: none;
+}
+
+.field-placement-ghost.snapped .ghost-center-label {
+    color: #047857;
+}
+
+@keyframes ghostPulse {
+    0% { border-color: #0284c7; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.25); }
+    50% { border-color: #38bdf8; box-shadow: 0 12px 32px rgba(56, 189, 248, 0.45); }
+    100% { border-color: #0284c7; box-shadow: 0 8px 24px rgba(2, 132, 199, 0.25); }
+}
+
+.field-placement-ghost:not(.snapped) {
+    animation: ghostPulse 1.8s infinite ease-in-out;
+}
+
+/* Custom Crosshair Cursor for Placement Mode */
+.placing-mode,
+.placing-mode #centerCanvas,
+.placing-mode #canvasContainer,
+.placing-mode #overlayContainer,
+.placing-mode .field-overlay {
+    cursor: crosshair !important;
+}
+
+/* ── Scrubbable Number Labels & Inputs (Figma / Blender UX) ──── */
+label.scrubbable,
+.scrub-label {
+    cursor: ew-resize !important;
+    user-select: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 3px !important;
+    transition: color 0.15s ease;
+}
+
+label.scrubbable:hover,
+.scrub-label:hover {
+    color: #0284c7 !important;
+}
+
+label.scrubbable::after {
+    content: "↔";
+    font-size: 10px;
+    opacity: 0.45;
+    margin-left: 2px;
+}
+
+label.scrubbable:hover::after {
+    opacity: 1;
+    color: #0284c7;
+}
+
+body.is-scrubbing,
+body.is-scrubbing * {
+    cursor: ew-resize !important;
+    user-select: none !important;
+}
+
+/* ── In-Place Canvas Single-Row Floating Toolbar HUD ────────── */
+.canvas-quick-dimension-hud {
+    position: absolute !important;
+    z-index: 999999 !important;
+    background: rgba(255, 255, 255, 0.96) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    color: #0f172a !important;
+    padding: 4px 6px !important;
+    border-radius: 10px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.12), 0 4px 6px -4px rgba(15, 23, 42, 0.05), 0 0 0 1px rgba(15, 23, 42, 0.03) !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 4px !important;
+    font-family: 'Carlito', Calibri, 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    font-size: 11.5px !important;
+    pointer-events: auto !important;
+    animation: hudPopIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    width: max-content !important;
+    max-width: calc(100% - 16px) !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+}
+
+@keyframes hudPopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(6px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.hud-divider {
+    width: 1px;
+    height: 16px;
+    background: #e2e8f0;
+    margin: 0 1px;
+    flex-shrink: 0;
+}
+
+.hud-type-badge {
+    height: 28px;
+    font-size: 10px;
+    font-weight: 700;
+    color: #0284c7;
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    padding: 0 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    box-sizing: border-box;
+}
+
+.hud-val-container {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.hud-val-input {
+    height: 28px;
+    min-width: 90px;
+    max-width: 130px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #0f172a;
+    font-size: 11.5px;
+    font-weight: 500;
+    padding: 0 7px;
+    outline: none;
+    font-family: inherit;
+    transition: all 0.15s ease;
+    box-sizing: border-box;
+}
+
+.hud-val-input:focus {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.hud-val-input::placeholder {
+    color: #94a3b8;
+    font-size: 10.5px;
+}
+
+.hud-val-select {
+    height: 28px;
+    min-width: 90px;
+    max-width: 120px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    color: #0f172a;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 0 5px;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.hud-val-select:focus {
+    border-color: #0284c7;
+}
+
+.hud-input-badge {
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0 5px;
+    gap: 1px;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.hud-input-badge:focus-within {
+    background: #ffffff;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.hud-badge-label {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: #64748b;
+    margin-right: 2px;
+    user-select: none;
+    cursor: ew-resize;
+    transition: color 0.15s ease;
+    line-height: 1;
+}
+
+.hud-input-badge:focus-within .hud-badge-label,
+.hud-badge-label:hover {
+    color: #0284c7;
+}
+
+.hud-badge-input {
+    width: 36px;
+    min-width: 36px;
+    background: transparent;
+    border: none;
+    color: #334155;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 0;
+    outline: none;
+    text-align: center;
+    font-family: inherit;
+    -moz-appearance: textfield;
+    line-height: 1.2;
+    box-sizing: border-box;
+}
+
+.hud-badge-input::-webkit-outer-spin-button,
+.hud-badge-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.hud-badge-unit {
+    font-size: 9.5px;
+    color: #94a3b8;
+    user-select: none;
+    font-weight: 500;
+    margin-left: 1px;
+}
+
+.hud-confirm-btn {
+    height: 28px;
+    background: #0284c7;
+    border: 1px solid #0284c7;
+    color: #ffffff;
+    padding: 0 9px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    box-sizing: border-box;
+}
+
+.hud-confirm-btn:hover {
+    background: #0369a1;
+    border-color: #0369a1;
+}

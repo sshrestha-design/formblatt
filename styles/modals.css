@@ -1,0 +1,375 @@
+/* ============================================================
+   JustForms — Modals & Floating Pills (styles/modals.css)
+   ============================================================ */
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.6);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+    animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal[style*="flex"] {
+    display: flex;
+}
+
+.modal-content {
+    background: #ffffff;
+    width: 90%;
+    height: 88%;
+    border-radius: 14px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 24px 48px -12px rgba(15, 23, 42, 0.28), 0 0 0 1px rgba(226, 232, 240, 0.8);
+    overflow: hidden;
+    animation: modalSpringUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: transform, opacity;
+}
+
+@keyframes modalSpringUp {
+    0% {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+#signatureModal .modal-content {
+    height: auto;
+    max-height: 90vh;
+    width: 92%;
+    max-width: 500px;
+    padding: 20px;
+    border-radius: 14px;
+    overflow-y: auto;
+}
+
+.close-btn {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    background: var(--danger-color);
+    color: #ffffff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 26px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 10;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    transition: transform var(--anim-fast), background var(--anim-fast);
+}
+.close-btn:hover {
+    transform: scale(1.1);
+    background: #dc2626;
+}
+.close-btn:active {
+    transform: scale(0.95);
+}
+
+#previewIframe {
+    flex: 1;
+    border: none;
+    border-radius: 0 0 12px 12px;
+}
+
+/* ── Page Navigation Pill (Figma / Miro style) ───────────────── */
+.page-nav-pill {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.04);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    z-index: 50;
+    gap: 4px;
+    pointer-events: auto;
+    transition: transform var(--anim-norm), box-shadow var(--anim-norm);
+}
+.page-nav-pill:hover {
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow: 0 8px 24px -2px rgba(15, 23, 42, 0.16);
+}
+.page-nav-pill button {
+    border-radius: 16px;
+    transition: transform var(--anim-fast), background var(--anim-fast);
+}
+.page-nav-pill button:hover {
+    background: #f1f5f9;
+}
+.page-nav-pill button:active {
+    transform: scale(0.92);
+}
+
+/* ── Keyboard Shortcuts & Help Modal ────────────────────────── */
+#shortcutsModal .modal-content {
+    height: auto;
+    max-height: 85vh;
+    width: 94%;
+    max-width: 680px;
+    padding: 24px;
+    border-radius: 14px;
+    overflow-y: auto;
+}
+
+.shortcuts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.shortcut-group {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.shortcut-group-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #0284c7;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.shortcut-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.shortcut-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #334155;
+    padding: 2px 0;
+}
+
+.shortcut-desc {
+    font-weight: 500;
+    color: #475569;
+}
+
+.shortcut-keys {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.shortcut-kbd {
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-bottom: 2px solid #94a3b8;
+    border-radius: 5px;
+    padding: 2px 6px;
+    font-size: 10.5px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    font-weight: 600;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    min-width: 20px;
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ── Canvas Right-Click Context Menu ────────────────────────── */
+.context-menu {
+    position: fixed;
+    z-index: 2000;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px -4px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(15, 23, 42, 0.05);
+    padding: 6px;
+    min-width: 210px;
+    animation: ctxPopIn 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform-origin: top left;
+}
+
+@keyframes ctxPopIn {
+    0% { opacity: 0; transform: scale(0.95) translateY(-4px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.ctx-header {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    padding: 4px 10px 6px;
+}
+
+.ctx-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: #1e293b;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+
+.ctx-item:hover {
+    background: #eff6ff;
+    color: #0284c7;
+}
+
+.ctx-item.danger:hover {
+    background: #fef2f2;
+    color: #dc2626;
+}
+
+.ctx-icon {
+    font-size: 14px;
+    width: 16px;
+    text-align: center;
+}
+
+.ctx-label {
+    flex: 1;
+}
+
+.ctx-kbd {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 1px 5px;
+    border-radius: 4px;
+}
+
+.ctx-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 4px 0;
+}
+
+/* ── Star Rating Component ───────────────────────────────────── */
+#starRatingBox span {
+    transition: color 0.15s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+}
+
+#starRatingBox span:hover,
+#starRatingBox span.active {
+    color: #f59e0b;
+    transform: scale(1.2);
+}
+
+/* ── Floating Success Toast ─────────────────────────────────────── */
+.export-success-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10000;
+    background: #ffffff;
+    border: 1px solid #a7f3d0;
+    border-left: 4px solid #059669;
+    border-radius: 12px;
+    padding: 14px 18px;
+    box-shadow: 0 12px 30px -4px rgba(15, 23, 42, 0.15);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    max-width: 380px;
+    animation: toastSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes toastSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.toast-body {
+    flex: 1;
+}
+
+.toast-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 2px;
+}
+
+.toast-desc {
+    font-size: 12px;
+    color: #475569;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.toast-dismiss {
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    margin-left: 4px;
+    transition: color 0.15s ease;
+}
+
+.toast-dismiss:hover {
+    color: #0f172a;
+}

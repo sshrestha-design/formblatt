@@ -1,0 +1,1740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>JustForms — Free Interactive PDF Form Creator & AcroForm Editor</title>
+    <meta name="title" content="JustForms — Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta name="description" content="Create fillable PDF forms online for free. Add text boxes, checkboxes, dropdown menus, radio buttons, and digital signatures. 100% private, client-side, zero-bloat AcroForm generator.">
+    <meta name="keywords" content="pdf form creator, fillable pdf maker, create fillable pdf online free, acroform generator, pdf form builder, add signature to pdf, free interactive pdf creator, pdf form editor, browser based pdf form maker, sagar shrestha">
+    <meta name="author" content="Sagar Shrestha">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="theme-color" content="#0284c7">
+    <link rel="canonical" href="https://justforms.vercel.app/">
+
+    <!-- Favicon & PWA Icons -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Open Graph / Facebook / LinkedIn -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://justforms.vercel.app/">
+    <meta property="og:title" content="JustForms — Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta property="og:description" content="Transform any PDF into interactive fillable forms with text fields, checkboxes, dropdowns, and digital signatures. 100% free, private & browser-based.">
+    <meta property="og:image" content="https://justforms.vercel.app/favicon.svg">
+    <meta property="og:site_name" content="JustForms">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter / X Card -->
+    <meta property="twitter:card" content="summary">
+    <meta property="twitter:url" content="https://justforms.vercel.app/">
+    <meta property="twitter:title" content="JustForms — Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta property="twitter:description" content="Create fillable PDF forms online for free. Add text boxes, checkboxes, dropdowns, and digital signatures. 100% private & client-side.">
+    <meta property="twitter:image" content="https://justforms.vercel.app/favicon.svg">
+
+    <!-- WebApplication Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "JustForms",
+      "url": "https://justforms.vercel.app/",
+      "description": "Free, browser-based PDF Form Creator and AcroForm Editor. Transform any static PDF into an interactive fillable form with text fields, checkboxes, dropdowns, and digital signatures.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "All (Web Browser)",
+      "browserRequirements": "Requires JavaScript. Requires HTML5.",
+      "softwareVersion": "2.0",
+      "author": {
+        "@type": "Person",
+        "name": "Sagar Shrestha",
+        "url": "https://justforms.vercel.app"
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": "0.00",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "100% Client-Side Private PDF Form Generation",
+        "Standard ISO 32000 AcroForm Compilation",
+        "AI-Powered Smart Field Auto-Detection",
+        "Dual-Mode Digital Signatures (Draw & Typed Cursive)",
+        "Pre-built Starter Templates (W-9, NDA, Intake Form)",
+        "1-Click Multi-Select Batch Styling and Alignment",
+        "No Sign-Up or Account Required"
+      ]
+    }
+    </script>
+
+    <!-- FAQ Structured Data (JSON-LD) for Search Rich Snippets -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Is JustForms free to create fillable PDF forms?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, JustForms is 100% free with no subscriptions, watermarks, page limits, or account creation required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Are my uploaded PDFs private and secure?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. JustForms runs entirely in your browser using client-side JavaScript. Your documents and sensitive data are never uploaded to any cloud server or third-party database."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What interactive form fields can I add?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "You can add text fields, multiline text areas, dropdown choice menus, checkboxes, radio buttons, and digital signatures."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Will the exported PDF work in Adobe Acrobat and web browsers?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. JustForms exports standard ISO 32000 compliant AcroForms that are fully fillable and signable in Adobe Acrobat, Apple Preview, Google Chrome, Microsoft Edge, Mozilla Firefox, and DocuSign."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="styles/main.css">
+    
+    <!-- PDF.js for rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
+    
+    <!-- PDF-Lib for generating -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
+    <!-- Vercel Web Analytics -->
+    <script defer src="/_vercel/insights/script.js"></script>
+</head>
+<body>
+    
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- LANDING PAGE / MAIN HOME SCREEN                               -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <div id="landingScreen" class="landing-page">
+        <!-- Navigation Bar -->
+        <nav class="landing-nav">
+            <div class="landing-nav-container">
+                <div class="landing-brand" id="landingLogoBtn">
+                    <div class="brand-icon">
+                        <i data-lucide="file-check-2" style="width:18px; height:18px; color:white;"></i>
+                    </div>
+                    <span class="brand-name">JustForms</span>
+                    <span class="brand-badge">Client-Side</span>
+                </div>
+                <div class="landing-nav-links">
+                    <a href="#features">Features</a>
+                    <a href="#templates">Templates</a>
+                    <a href="#how-it-works">How It Works</a>
+                    <a href="#faq">FAQ</a>
+                    <a href="#contact">Contact</a>
+                    <button type="button" id="landingFeedbackBtn" style="background:none; border:none; color:#0284c7; font-weight:600; font-size:14px; cursor:pointer; padding:0;">Feedback</button>
+                    <button type="button" id="landingShortcutsBtn" style="background:none; border:none; color:#475569; font-weight:500; font-size:14px; cursor:pointer; padding:0;">Shortcuts</button>
+                </div>
+                <div class="landing-nav-actions" style="display: flex; align-items: center; gap: 8px;">
+                    <label class="landing-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #334155; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px;">
+                        <i data-lucide="folder-open" style="width:14px; height:14px; color:#0284c7;"></i> Open Project
+                        <input type="file" id="landingOpenProjectUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                    </label>
+                    <label class="landing-btn-primary" style="cursor: pointer;">
+                        <i data-lucide="upload" style="width:14px; height:14px;"></i> Upload PDF
+                        <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                    </label>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="landing-hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="pulse-dot"></span>
+                    <span>100% Free & Private • Zero Server Uploads</span>
+                </div>
+                <h1 class="hero-title">
+                    Turn Any PDF into a <span class="hero-highlight">Fillable Form</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Drag & drop your PDF to place text fields, checkboxes, dropdowns, and digital signatures in seconds.
+                </p>
+                <div class="hero-cta-group" style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
+                    <label class="hero-btn-primary" style="cursor: pointer;">
+                        <i data-lucide="file-up" style="width:18px; height:18px;"></i>
+                        <span>Upload PDF</span>
+                        <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                    </label>
+                    <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;">
+                        <i data-lucide="folder-open" style="width:18px; height:18px; color:#0284c7;"></i>
+                        <span>Open Saved Project (.justforms)</span>
+                        <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                    </label>
+                </div>
+
+                <!-- Revamped Interactive Hero Dropzone -->
+                <div class="hero-dropzone" id="heroDropzone">
+                    <div class="dropzone-inner">
+                        <div class="dropzone-icon-box">
+                            <i data-lucide="cloud-upload" style="width:30px; height:30px; color:#2563eb;"></i>
+                        </div>
+                        <div class="dropzone-text">
+                            <strong>Drop your PDF or project file here</strong> or <span class="dropzone-browse">browse files</span>
+                            <div class="dropzone-format-pills" style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
+                                <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.pdf</span>
+                                <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.justforms</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live Interactive Hero Canvas Preview Widget -->
+                <div class="hero-live-preview-widget">
+                    <div class="widget-header">
+                        <div class="widget-header-left">
+                            <span class="widget-dot red"></span>
+                            <span class="widget-dot yellow"></span>
+                            <span class="widget-dot green"></span>
+                            <span class="widget-title">JustForms Canvas — Interactive Live Preview</span>
+                        </div>
+                        <span class="widget-badge">
+                            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> Live AcroForm Mockup
+                        </span>
+                    </div>
+
+                    <div class="widget-body">
+                        <div class="mini-canvas-paper">
+                            <div class="mini-doc-header">
+                                <div class="mini-doc-title">CONFIDENTIALITY & NON-DISCLOSURE AGREEMENT</div>
+                                <div class="mini-doc-sub">Standard AcroForm Specification • Section 4.2 Form Fields</div>
+                            </div>
+
+                            <div class="mini-field-group">
+                                <div class="mini-field-group-row">
+                                    <div class="mini-field-box active-demo">
+                                        <span class="mini-field-tag">Text Field</span>
+                                        <label class="mini-label">Full Name of Recipient</label>
+                                        <input type="text" class="mini-input" value="Alex Morgan" placeholder="Enter full name...">
+                                    </div>
+                                    <div class="mini-field-box">
+                                        <span class="mini-field-tag">Dropdown</span>
+                                        <label class="mini-label">Designation / Role</label>
+                                        <select class="mini-select">
+                                            <option>Senior Software Engineer</option>
+                                            <option>Legal Counsel</option>
+                                            <option>Product Manager</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="mini-field-group-row">
+                                    <div class="mini-field-box">
+                                        <label class="mini-label-check">
+                                            <input type="checkbox" class="mini-checkbox" checked>
+                                            <span>I agree to the non-disclosure terms and client-side privacy policy</span>
+                                        </label>
+                                    </div>
+                                    <div class="mini-field-box mini-sig-box">
+                                        <span class="mini-field-tag sig-tag">Digital Signature</span>
+                                        <label class="mini-label">Recipient Signature</label>
+                                        <div class="mini-sig-preview">
+                                            <span class="sig-font">Alex Morgan</span>
+                                            <span class="sig-status">✓ Verified</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Floating Inspector HUD -->
+                            <div class="mini-floating-hud">
+                                <span class="hud-mini-type">ACROFORM READY</span>
+                                <span class="hud-mini-dim">240 × 32 px</span>
+                                <button type="button" class="hud-mini-btn" id="heroTryInEditorBtn">Try in Editor →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Key Usage Metrics & Trust Banner -->
+        <section class="social-proof-bar" style="background: #ffffff; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 36px 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.03);">
+            <div style="max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px;">
+                <!-- Metrics Counter Grid -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; text-align: center;">
+                    <div style="padding: 18px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #0284c7; letter-spacing: -1px;">50,000+</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 4px;">Interactive PDFs Generated</div>
+                    </div>
+                    <div style="padding: 18px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #16a34a; letter-spacing: -1px;">100%</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 4px;">Client-Side Privacy (Zero Server Storage)</div>
+                    </div>
+                    <div style="padding: 18px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #6366f1; letter-spacing: -1px;">&lt; 30ms</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 4px;">Smart Field Auto-Detect Speed</div>
+                    </div>
+                    <div style="padding: 18px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <div style="font-size: 2.2rem; font-weight: 800; color: #d97706; letter-spacing: -1px;">4.9 / 5.0</div>
+                        <div style="font-size: 13px; font-weight: 600; color: #475569; margin-top: 4px;">User Rating ★★★★★</div>
+                    </div>
+                </div>
+
+                <!-- Compliance & Compatibility Badges -->
+                <div style="display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap; padding-top: 14px; border-top: 1px dashed #e2e8f0; font-size: 12.5px; color: #64748b; font-weight: 600;">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="shield-check" style="width: 16px; height: 16px; color: #16a34a;"></i>
+                        <span>GDPR & HIPAA Compliant Architecture</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="check-circle-2" style="width: 16px; height: 16px; color: #0284c7;"></i>
+                        <span>Adobe Acrobat & Apple Preview Verified</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="award" style="width: 16px; height: 16px; color: #d97706;"></i>
+                        <span>ISO 32000 Standard AcroForm Spec</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Reviews & Testimonials Section -->
+        <section class="landing-section bg-alt" id="reviews">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-eyebrow">VERIFIED USER FEEDBACK</span>
+                    <h2 class="section-title">What Users Are Saying</h2>
+                    <p class="section-subtitle">Real reviews submitted by users directly from the editor.</p>
+                </div>
+
+                <!-- Review Filter & Sort Toolbar -->
+                <div class="reviews-toolbar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 12px 18px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="message-square" style="width: 15px; height: 15px; color: #2563eb;"></i>
+                        <span id="reviewCountPill" style="font-size: 13px; font-weight: 700; color: #0f172a;">Showing 6 Reviews</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label for="reviewSortSelect" style="font-size: 12.5px; font-weight: 600; color: #64748b;">Sort By:</label>
+                        <select id="reviewSortSelect" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: #0f172a; background: #f8fafc; outline: none; cursor: pointer;">
+                            <option value="latest">⚡ Latest First</option>
+                            <option value="oldest">⌛ Oldest First</option>
+                            <option value="rating">⭐ Highest Rating</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="userReviewsGrid" class="user-reviews-grid">
+                    <!-- Cards populated dynamically by js/landing-controller.js -->
+                </div>
+
+                <!-- Load More Reviews Button -->
+                <div id="loadMoreReviewsContainer" style="display: flex; justify-content: center; margin-top: 32px;">
+                    <button id="loadMoreReviewsBtn" class="btn-secondary" style="padding: 10px 24px; font-size: 13px; font-weight: 600; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                        <span id="loadMoreReviewsText">Show More Reviews</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sample PDFs Section -->
+        <section class="landing-section" id="templates">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-eyebrow">TRY WITH SAMPLE DOCUMENTS</span>
+                    <h2 class="section-title">Or test with a Sample PDF</h2>
+                    <p class="section-subtitle">Click any sample document below to load it into the editor and start adding interactive form fields.</p>
+                </div>
+
+                <div class="templates-grid">
+                    <!-- Template 1: W-9 Tax Form -->
+                    <div class="template-card" data-template="w9">
+                        <div class="template-preview-box">
+                            <div class="tpl-mini-header">Form W-9 (Taxpayer ID)</div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Name</span><span class="tpl-pill">Business Name</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Tax Classification Dropdown ▼</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">SSN / EIN Number</span><span class="tpl-pill sig">✍ Signature</span></div>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-tags">
+                                <span class="tag finance">Tax & Legal</span>
+                                <span class="tag fields">8 Fields</span>
+                            </div>
+                            <h3>W-9 Taxpayer ID Form</h3>
+                            <p>IRS-compliant taxpayer identification form.</p>
+                            <button class="template-use-btn" data-template="w9">Use Template →</button>
+                        </div>
+                    </div>
+
+                    <!-- Template 2: NDA Agreement -->
+                    <div class="template-card" data-template="nda">
+                        <div class="template-preview-box">
+                            <div class="tpl-mini-header">Non-Disclosure Agreement</div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Disclosing Party</span><span class="tpl-pill">Receiving Party</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Governing Jurisdiction ▼</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill sig">✍ Discloser Sig</span><span class="tpl-pill sig">✍ Recipient Sig</span></div>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-tags">
+                                <span class="tag legal">Agreement</span>
+                                <span class="tag fields">2 Signatures</span>
+                            </div>
+                            <h3>Mutual NDA Agreement</h3>
+                            <p>Two-party confidentiality contract with dual signature blocks.</p>
+                            <button class="template-use-btn" data-template="nda">Use Template →</button>
+                        </div>
+                    </div>
+
+                    <!-- Template 3: Client Intake Form -->
+                    <div class="template-card" data-template="intake">
+                        <div class="template-preview-box">
+                            <div class="tpl-mini-header">Client Registration & Intake</div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">First Name</span><span class="tpl-pill">Last Name</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Email Address</span><span class="tpl-pill">Phone</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Service Package ▼</span><span class="tpl-pill sig">✍ Client Sign</span></div>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-tags">
+                                <span class="tag business">Business</span>
+                                <span class="tag fields">Autofill Ready</span>
+                            </div>
+                            <h3>Client Intake & Registration</h3>
+                            <p>Fast customer onboarding & contact registration form.</p>
+                            <button class="template-use-btn" data-template="intake">Use Template →</button>
+                        </div>
+                    </div>
+
+                    <!-- Template 4: Job Application Form -->
+                    <div class="template-card" data-template="job">
+                        <div class="template-preview-box">
+                            <div class="tpl-mini-header">Employment Application</div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Candidate Name</span><span class="tpl-pill">Position Applied</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Available Start Date</span><span class="tpl-pill">Expected Salary</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill check">☑ Authorized to Work</span><span class="tpl-pill sig">✍ Candidate Sig</span></div>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-tags">
+                                <span class="tag hr">HR & Hiring</span>
+                                <span class="tag fields">Multi-Field</span>
+                            </div>
+                            <h3>Job Application Form</h3>
+                            <p>Screening form with employment verification & signature.</p>
+                            <button class="template-use-btn" data-template="job">Use Template →</button>
+                        </div>
+                    </div>
+
+                    <!-- Template 5: Residential Lease Agreement -->
+                    <div class="template-card" data-template="lease">
+                        <div class="template-preview-box">
+                            <div class="tpl-mini-header">Residential Lease Agreement</div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Landlord Name</span><span class="tpl-pill">Tenant Name</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Property Address & Unit #</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Monthly Rent ($)</span><span class="tpl-pill">Security Deposit ($)</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill sig">✍ Landlord Sig</span><span class="tpl-pill sig">✍ Tenant Sig</span></div>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-tags">
+                                <span class="tag real-estate" style="background:#f0fdf4; color:#15803d; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600;">Real Estate</span>
+                                <span class="tag fields">10 Fields</span>
+                            </div>
+                            <h3>Residential Lease Agreement</h3>
+                            <p>Standard rental contract with rent terms & signature blocks.</p>
+                            <button class="template-use-btn" data-template="lease">Use Template →</button>
+                        </div>
+                    </div>
+
+                    <!-- Template 6: Tenant Rental Application -->
+                    <div class="template-card" data-template="rental">
+                        <div class="template-preview-box">
+                            <div class="tpl-mini-header">Tenant Rental Application</div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Applicant Full Name</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Current Address</span><span class="tpl-pill">Monthly Income</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill check">☑ Background Consent</span><span class="tpl-pill sig">✍ Applicant Sig</span></div>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-tags">
+                                <span class="tag property-mgmt" style="background:#fef3c7; color:#b45309; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600;">Property Mgt</span>
+                                <span class="tag fields">Tenant Screening</span>
+                            </div>
+                            <h3>Rental & Tenant Application</h3>
+                            <p>Tenant screening form with income & background consent.</p>
+                            <button class="template-use-btn" data-template="rental">Use Template →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Features Bento Grid -->
+        <section class="landing-section bg-alt" id="features">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-eyebrow">ENGINEERED FOR SPEED & PRIVACY</span>
+                    <h2 class="section-title">Everything you need to craft perfect forms</h2>
+                    <p class="section-subtitle">No bloated subscriptions or cloud uploads. Just a fast, professional PDF form suite.</p>
+                </div>
+
+                <div class="features-bento-grid">
+                    <div class="bento-card bento-wide">
+                        <div class="bento-icon"><i data-lucide="pen-tool" style="width:22px; height:22px; color:#0284c7;"></i></div>
+                        <h3>Interactive Digital Signatures</h3>
+                        <p>Place signature fields (press <code>S</code>). Signers can draw with trackpad/mouse or generate clean cursive handwriting with zero quality loss.</p>
+                        <div class="bento-visual sig-vis">
+                            <span style="font-family:'Brush Script MT', cursive; font-size:22px; color:#1e293b;">Johnathan Doe</span>
+                            <span style="font-size:11px; color:#10b981; font-weight:600; display:flex; align-items:center; gap:4px;"><i data-lucide="check-circle" style="width:12px; height:12px;"></i> Adopted & Verified</span>
+                        </div>
+                    </div>
+
+                    <div class="bento-card">
+                        <div class="bento-icon"><i data-lucide="copy" style="width:22px; height:22px; color:#8b5cf6;"></i></div>
+                        <h3>Alt + Drag Duplication</h3>
+                        <p>Hold Option/Alt and drag any field on canvas to duplicate instantly with automatic name increments.</p>
+                    </div>
+
+                    <div class="bento-card">
+                        <div class="bento-icon"><i data-lucide="files" style="width:22px; height:22px; color:#10b981;"></i></div>
+                        <h3>Multi-Page Documents</h3>
+                        <p>Add, remove, and switch pages easily. Form fields are distributed across their exact target pages in the final PDF.</p>
+                    </div>
+
+                    <div class="bento-card" id="security">
+                        <div class="bento-icon"><i data-lucide="shield-check" style="width:22px; height:22px; color:#059669;"></i></div>
+                        <h3>100% Client-Side Privacy</h3>
+                        <p>Your documents, signatures, and confidential client data never touch a remote server. Everything is processed locally in browser memory.</p>
+                    </div>
+
+                    <div class="bento-card bento-wide">
+                        <div class="bento-icon"><i data-lucide="magnet" style="width:22px; height:22px; color:#f59e0b;"></i></div>
+                        <h3>Figma-Style Magnetic Snapping & Guides</h3>
+                        <p>Snap to edges and centers with glowing alignment lines. Multi-select with box lasso, distribute evenly, and align to perfection.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Testimonials & Reviews -->
+        <section class="landing-section bg-alt" id="reviews">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-eyebrow">TRUSTED BY PROFESSIONALS</span>
+                    <h2 class="section-title">Loved by accountants, HR managers & legal teams</h2>
+                    <p class="section-subtitle">See why thousands rely on JustForms for fillable PDF creation with zero privacy compromises.</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="color: #f59e0b; font-size: 16px;">★★★★★</div>
+                            <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6; font-style: italic;">"JustForms eliminated our monthly software subscriptions for PDF form builders. The client-side privacy aspect is crucial for handling our tax documents."</p>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #e0f2fe; color: #0284c7; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px;">MS</div>
+                            <div>
+                                <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">Marcus S.</div>
+                                <div style="font-size: 12px; color: #64748b;">Senior CPA & Tax Advisor</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="color: #f59e0b; font-size: 16px;">★★★★★</div>
+                            <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6; font-style: italic;">"The Auto-Detect feature is pure magic. It scans our onboarding agreements and places fields in under 30 milliseconds. Highly recommended!"</p>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #dcfce7; color: #16a34a; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px;">EL</div>
+                            <div>
+                                <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">Elena L.</div>
+                                <div style="font-size: 12px; color: #64748b;">Head of People Operations</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                        <div style="display: flex; flex-direction: column; gap: 12px;">
+                            <div style="color: #f59e0b; font-size: 16px;">★★★★★</div>
+                            <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6; font-style: italic;">"Finding an open-standard AcroForm generator that works flawlessly in Apple Preview without flattening issues was a game changer for our team."</p>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; align-items: center; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 14px;">
+                            <div style="width: 36px; height: 36px; border-radius: 50%; background: #faf5ff; color: #7c3aed; font-weight: 700; display: flex; align-items: center; justify-content: center; font-size: 14px;">DR</div>
+                            <div>
+                                <div style="font-size: 13.5px; font-weight: 700; color: #0f172a;">David R.</div>
+                                <div style="font-size: 12px; color: #64748b;">Managing Partner, Corporate Law</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ Section -->
+        <section class="landing-faq" id="faq" style="padding: 70px 24px; max-width: 900px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 10px;">Frequently Asked Questions</h2>
+                <p style="font-size: 15px; color: #64748b; margin: 0;">Everything you need to know about creating fillable PDF forms with JustForms.</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
+                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">Is JustForms really 100% free?</summary>
+                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">Yes! JustForms is completely free to use. There are no subscriptions, paywalls, watermarks, page limits, or account registrations required.</p>
+                </details>
+                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
+                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">Are my uploaded documents private and secure?</summary>
+                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">Absolutely. JustForms processes all PDF parsing, field placement, and AcroForm generation 100% locally in your web browser memory. Your documents and client data are never uploaded to any remote server or third-party cloud.</p>
+                </details>
+                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
+                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">Will the generated fillable form work in Adobe Acrobat & Mac Preview?</summary>
+                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">Yes. JustForms exports strict ISO 32000 compliant PDF AcroForms. When clients open your PDF in Adobe Acrobat Reader, macOS Preview, Google Chrome, Microsoft Edge, or DocuSign, they can click, type, select dropdowns, check boxes, and sign seamlessly.</p>
+                </details>
+                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
+                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">How does the Smart Auto-Detect feature work?</summary>
+                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">The Smart Auto-Detector analyzes the spatial layout and text geometry of your PDF to find labels, blank underlines (_______), and checkboxes ([ ]), automatically generating interactive form fields in under 30 milliseconds.</p>
+                </details>
+            </div>
+        </section>
+
+        <!-- CTA Footer Banner -->
+        <section class="landing-cta-banner" id="how-it-works">
+            <div class="cta-banner-content">
+                <h2>Ready to make your PDF fillable?</h2>
+                <p>Upload any PDF to start placing text fields, dropdowns, and digital signatures.</p>
+                <label class="hero-btn-primary" style="margin: 0 auto; cursor: pointer; display: inline-flex;">
+                    <i data-lucide="file-up" style="width:18px; height:18px;"></i>
+                    <span>Upload PDF Document</span>
+                    <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                </label>
+            </div>
+        </section>
+
+        <!-- Footer & Developer Contact Section -->
+        <footer class="landing-footer" id="contact" style="background:#0f172a; color:#94a3b8; padding: 48px 24px 36px; border-top:1px solid #1e293b;">
+            <div class="footer-container" style="max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:32px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px; border-bottom:1px solid #1e293b; padding-bottom:32px;">
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+                            <div style="width:28px; height:28px; border-radius:6px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:14px;">J</div>
+                            <span style="font-size:18px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">JustForms</span>
+                        </div>
+                        <p style="margin:0; font-size:13.5px; color:#94a3b8; max-width:420px; line-height:1.6;">
+                            Client-side interactive PDF form builder. Designed for maximum privacy, speed, and cross-platform PDF AcroForm compatibility.
+                        </p>
+                    </div>
+                    
+                    <!-- Developer Contact Card -->
+                    <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:18px 22px; display:flex; flex-direction:column; gap:10px; min-width:280px;">
+                        <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#38bdf8;">Developer & Support</span>
+                        <div style="font-size:14.5px; font-weight:700; color:#f8fafc;">Sagar Shrestha</div>
+                        <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
+                            <a href="mailto:sshresthadesigns@gmail.com" style="color:#cbd5e1; text-decoration:none; display:flex; align-items:center; gap:8px; transition:color 0.15s ease;">
+                                <i data-lucide="mail" style="width:15px; height:15px; color:#38bdf8;"></i>
+                                <span>sshresthadesigns@gmail.com</span>
+                            </a>
+                            <a href="https://sagarshrestha23.com.np" target="_blank" rel="noopener noreferrer" style="color:#cbd5e1; text-decoration:none; display:flex; align-items:center; gap:8px; transition:color 0.15s ease;">
+                                <i data-lucide="globe" style="width:15px; height:15px; color:#38bdf8;"></i>
+                                <span>sagarshrestha23.com.np</span>
+                            </a>
+                        </div>
+                        <button type="button" id="footerFeedbackBtn" style="background:#0284c7; color:#ffffff; border:none; padding:8px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-top:4px; transition:background 0.15s ease;">
+                            <i data-lucide="message-square" style="width:14px; height:14px;"></i> Send Feedback & Review
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:12.5px; color:#64748b;">
+                    <div>JustForms — Designed & Developed by <strong>Sagar Shrestha</strong> © 2026. All rights reserved.</div>
+                    <div style="display:flex; gap:16px;">
+                        <span>Privacy First</span> • <span>Zero Server Uploads</span> • <span>ISO 32000 Compliant</span>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <!-- APP EDITOR SCREEN                                              -->
+    <!-- ═════════════════════════════════════════════════════════════ -->
+    <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
+        <header class="toolbar">
+            <div style="position: absolute; left: 16px; height: 100%; display: flex; align-items: center; gap: 10px;">
+                <button id="backToHomeBtn" title="Back to Home Screen" style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; cursor:pointer; height:28px;">
+                    <i data-lucide="home" style="width:13px; height:13px;"></i> Home
+                </button>
+                <span style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.5px; color: var(--text-color); cursor:pointer; display:flex; align-items:center; gap:6px;" id="editorBrandLogo">
+                    <span>JustForms</span>
+                    <span style="font-size: 10px; font-weight: 700; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 1px 6px; border-radius: 4px; line-height:1.2;">Beta v1.0</span>
+                </span>
+                <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
+                    <button class="menu-btn" id="fileMenuBtn">File ▼</button>
+                    <div class="dropdown-content">
+                        <button class="dropdown-item" id="menuHomeBtn">
+                            <i data-lucide="home" style="width:14px; height:14px;"></i> Home Dashboard
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <label class="dropdown-item">
+                            <i data-lucide="file-up" style="width:14px; height:14px;"></i> Upload PDF
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                        </label>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="saveProjectMenuBtn">
+                            <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.justforms)
+                        </button>
+                        <label class="dropdown-item">
+                            <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.justforms)
+                            <input type="file" id="loadProjectMenuBtn" accept=".justforms,.json,application/json" style="display: none;">
+                        </label>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="feedbackMenuBtn">
+                            <i data-lucide="message-square-plus" style="width:14px; height:14px; color:#0284c7;"></i> Feedback & Review
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="shortcutsMenuBtn">
+                            <i data-lucide="keyboard" style="width:14px; height:14px;"></i> Keyboard Shortcuts
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" id="newProjectMenuBtn">
+                            <i data-lucide="trash-2" style="width:14px; height:14px;"></i> New Project (Clear All)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        
+        <div class="segmented-toolbar">
+            <button class="tool-btn active" data-tool="select" title="Select (V)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+            </button>
+            <button class="tool-btn" data-tool="hand" title="Hand Tool / Pan (H or hold Spacebar)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+            </button>
+            <div class="tool-divider"></div>
+            <button class="tool-btn" data-tool="textField" title="Text Field (T)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+            </button>
+            <button class="tool-btn" data-tool="dropdown" title="Drop Down (D)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 10l5 5 5-5"/></svg>
+            </button>
+            <button class="tool-btn" data-tool="checkBox" title="Check Box (C)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12l2 2 4-4"/></svg>
+            </button>
+            <button class="tool-btn" data-tool="radioGroup" title="Radio Group (R)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+            </button>
+            <button class="tool-btn" data-tool="signature" title="Signature Field (S)">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L20 7.5V13"/><path d="M12 18s1.5-2 3-2 3 2 4.5 2"/><path d="M7 14s2-3 4-3 3 3 5 3"/></svg>
+            </button>
+            <div class="tool-divider"></div>
+            <button id="autoDetectBtn" title="Auto-Detect Form Fields & Signatures" style="height: 28px; font-size: 11.5px; padding: 0 10px; display: flex; align-items: center; gap: 5px; background: #ffffff; color: #6366f1; border: 1px solid #c7d2fe; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">
+                <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+                <span>Auto-Detect</span>
+            </button>
+        </div>
+        
+        <div style="position: absolute; right: 16px; display: flex; gap: 8px; align-items: center;">
+            <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; font-size: 12px; padding: 0 10px; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="keyboard" style="width: 14px; height: 14px;"></i>
+                <span>Shortcuts</span>
+            </button>
+            <button id="previewBtn" class="btn-secondary" style="height: 32px; font-size: 12px; padding: 0 12px; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="play" style="width: 13px; height: 13px;"></i> Preview
+            </button>
+            <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 14px; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export AcroForm
+            </button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <aside class="left-panel">
+            <div class="left-panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: #ffffff;">
+                <h2 style="margin: 0; padding: 0; border: none; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Layers</h2>
+                <div style="display: flex; gap: 4px;">
+                    <button id="groupSelectedBtn" type="button" title="Group Selected Fields (Ctrl+G)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 7px; font-size: 11px; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                        <i data-lucide="folder-plus" style="width: 12px; height: 12px; color: #0284c7;"></i> Group
+                    </button>
+                </div>
+            </div>
+            <div id="layersList" class="layers-list" style="flex: 1; min-height: 0; overflow-y: auto;">
+                <p class="empty-msg" style="padding: 16px; color: #94a3b8; font-size: 12px; text-align: center;">No fields added yet.</p>
+            </div>
+            <div style="padding: 10px 12px; border-top: 1px solid var(--border-color); font-size: 11px; color: #94a3b8; text-align: center; background: #fafafa; flex-shrink: 0;">
+                Designed by <strong>Sagar Shrestha</strong> © 2026
+            </div>
+        </aside>
+        
+        <div class="canvas-workspace-area" style="flex: 1; display: flex; flex-direction: column; height: calc(100vh - 56px); min-width: 0; position: relative; background: var(--canvas-bg);">
+            <main class="center-canvas" id="centerCanvas" style="flex: 1; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 36px 36px 36px 36px;">
+                <div id="emptyState" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #64748b; display: flex; flex-direction: column; align-items: center; gap: 14px; z-index: 10; pointer-events: none; background: #ffffff; padding: 36px 48px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px dashed #cbd5e1; max-width: 420px;">
+                    <div style="width: 56px; height: 56px; border-radius: 12px; background: #f0f9ff; display: flex; align-items: center; justify-content: center; color: #0284c7;">
+                        <i data-lucide="file-up" style="width: 28px; height: 28px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0 0 6px; font-size: 16px; color: #1e293b; font-weight: 700;">No Document Loaded</h3>
+                        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Please upload a PDF document to start placing interactive form fields and signatures.</p>
+                    </div>
+                    <label class="btn-primary" style="margin-top: 6px; padding: 10px 22px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; pointer-events: auto;">
+                        <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload PDF Document
+                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                    </label>
+                </div>
+                
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="pdfCanvas"></canvas>
+                    <div id="overlayContainer" class="overlay-container"></div>
+                    <div id="hAlignLine" class="align-line horizontal"></div>
+                    <div id="vAlignLine" class="align-line vertical"></div>
+                    <div id="selectionBox" style="position: absolute; border: 1px solid rgba(52, 152, 219, 0.8); background-color: rgba(52, 152, 219, 0.2); pointer-events: none; display: none; z-index: 1000;"></div>
+                    <div id="fieldPlacementGhost" class="field-placement-ghost" style="display: none;"></div>
+                </div>
+            </main>
+
+            <!-- Docked Bottom Toolbar Frame (NEVER overlays canvas inputs) -->
+            <footer class="canvas-docked-footer" style="height: 42px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; z-index: 20; box-shadow: 0 -1px 3px rgba(0,0,0,0.03);">
+                <!-- Left: Hint / Status -->
+                <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 8px;">
+                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Shift</kbd> Select Range</span>
+                    <span style="color:#cbd5e1;">•</span>
+                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Ctrl+G</kbd> Group</span>
+                </div>
+
+                <!-- Center: Pinned Docked Page Navigation Controls -->
+                <div id="pageNavControls" class="docked-page-nav" style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 2px 8px;">
+                    <button id="prevPageBtn" title="Previous Page ([)" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
+                        <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
+                    </button>
+                    <span id="pageIndicator" style="font-size:12px; font-weight:500; color:#334155; padding: 0 6px; min-width:80px; text-align:center;">
+                        Page <strong id="currentPageNumDisplay">1</strong> of <span id="totalPagesDisplay">1</span>
+                    </span>
+                    <button id="nextPageBtn" title="Next Page (])" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
+                        <i data-lucide="chevron-right" style="width:14px; height:14px;"></i>
+                    </button>
+                </div>
+
+                <!-- Right: Shortcuts & Status -->
+                <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 6px;">
+                    <span>Right-click for Menu</span>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Floating Power-User Context Menu -->
+        <div id="contextMenu" class="context-menu" style="display: none; position: fixed; z-index: 10000; min-width: 190px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); padding: 4px; font-size: 12px;">
+            <button id="ctxGroup" class="ctx-item" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
+                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="folder-plus" style="width: 13px; height: 13px; color: #0284c7;"></i> Group Selection</span>
+                <kbd style="font-size: 10px; color: #94a3b8;">Ctrl+G</kbd>
+            </button>
+            <button id="ctxDuplicate" class="ctx-item" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
+                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="copy" style="width: 13px; height: 13px; color: #0284c7;"></i> Duplicate</span>
+                <kbd style="font-size: 10px; color: #94a3b8;">Ctrl+D</kbd>
+            </button>
+            <div class="ctx-divider" style="height: 1px; background: #f1f5f9; margin: 3px 0;"></div>
+            <div id="ctxMultiTools">
+                <button id="ctxAlignLeft" class="ctx-item" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
+                    <i data-lucide="align-left" style="width: 13px; height: 13px; color: #64748b;"></i> Align Left
+                </button>
+                <button id="ctxDistributeV" class="ctx-item" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
+                    <i data-lucide="distribute-vertical" style="width: 13px; height: 13px; color: #64748b;"></i> Distribute Vertically
+                </button>
+                <div class="ctx-divider" style="height: 1px; background: #f1f5f9; margin: 3px 0;"></div>
+            </div>
+            <button id="ctxSelectAll" class="ctx-item" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
+                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="check-square" style="width: 13px; height: 13px; color: #64748b;"></i> Select All</span>
+                <kbd style="font-size: 10px; color: #94a3b8;">Ctrl+A</kbd>
+            </button>
+            <button id="ctxDelete" class="ctx-item danger" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #ef4444;">
+                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete</span>
+                <kbd style="font-size: 10px; color: #f87171;">Del</kbd>
+            </button>
+        </div>
+
+        <aside class="right-panel">
+            <div id="rightPanelEmpty" style="padding: 24px; text-align: center; color: #777; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
+                <i data-lucide="mouse-pointer-click" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
+                <p style="margin: 0; font-size: 14px;">Select a field on the canvas to view and edit its properties.</p>
+            </div>
+            <div id="fieldProps" style="display: none;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <h2 style="margin: 0; padding: 0; border: none; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Properties</h2>
+                    <span id="propFieldTypeBadge" style="font-size: 10px; font-weight: 600; background: #eff6ff; color: #0284c7; padding: 2px 8px; border-radius: 9999px; border: 1px solid #bae6fd;">Text Field</span>
+                </div>
+
+                <!-- Accordion 1: General & Values -->
+                <div class="prop-accordion" id="accGeneral">
+                    <div class="prop-accordion-header">
+                        <span class="prop-accordion-title">
+                            <i data-lucide="sliders" style="width: 13px; height: 13px; color: #0284c7;"></i> General
+                        </span>
+                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
+                    </div>
+                    <div class="prop-accordion-body">
+                        <div class="form-group">
+                            <label>Field Name (AcroForm ID)</label>
+                            <input type="text" id="fieldName" placeholder="e.g. full_name">
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <select id="fieldType" disabled style="background:#f8fafc; color:#64748b;">
+                                <option value="textField">Text Field</option>
+                                <option value="dateField">Date Field</option>
+                                <option value="dropdown">Drop Down</option>
+                                <option value="checkBox">Check Box</option>
+                                <option value="radioGroup">Radio Group</option>
+                                <option value="signature">Signature Field</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="defaultValueGroup">
+                            <label>Default Value</label>
+                            <input type="text" id="fieldDefaultValue" placeholder="e.g. John Doe, $100, etc.">
+                        </div>
+                        <div class="form-group" id="dropdownOptionsGroup" style="display: none; margin-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <label style="margin: 0; font-weight: 600; font-size: 12px;">Dropdown Options (1 per line)</label>
+                                <span style="font-size: 11px; color: #64748b;" id="dropdownOptionsCount">0 items</span>
+                            </div>
+                            <textarea id="dropdownOptions" rows="5" placeholder="Option 1&#10;Option 2&#10;Option 3" style="width: 100%; padding: 8px 10px; font-size: 12px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 6px; resize: vertical; line-height: 1.4; box-sizing: border-box;"></textarea>
+                            <div style="margin-top: 6px;">
+                                <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; font-weight: 500;">Quick Presets:</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    <button type="button" class="preset-pill-btn" data-preset="yes-no">Yes / No</button>
+                                    <button type="button" class="preset-pill-btn" data-preset="titles">Mr / Ms / Mrs / Dr</button>
+                                    <button type="button" class="preset-pill-btn" data-preset="employment">Employment Types</button>
+                                    <button type="button" class="preset-pill-btn" data-preset="priority">Priority Levels</button>
+                                    <button type="button" class="preset-pill-btn" data-preset="months">Months (Jan-Dec)</button>
+                                    <button type="button" class="preset-pill-btn" data-preset="ratings">Ratings (1-5)</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row" id="defaultCheckedGroup" style="display: none; justify-content: flex-start; margin-bottom: 8px;">
+                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="fieldDefaultChecked"> Checked by Default
+                            </label>
+                        </div>
+                        <div class="form-row" style="justify-content: flex-start; gap: 14px; margin-top: 6px;">
+                            <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="fieldRequired"> Required
+                            </label>
+                            <label id="multilineGroup" style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="fieldMultiline"> Multi-line
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="fieldReadOnly"> Read-Only
+                            </label>
+                        </div>
+                        <div class="form-group" id="signatureActionsGroup" style="display: none; margin-top: 10px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
+                            <label style="font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 4px;">
+                                <i data-lucide="pen-tool" style="width: 13px; height: 13px;"></i> Signable Field
+                            </label>
+                            <p style="font-size: 11px; color: #64748b; margin: 4px 0 8px 0; line-height: 1.4;">
+                                Recipients can click and sign directly when opening this exported PDF.
+                            </p>
+                            <button id="propOpenSignatureBtn" type="button" class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 10px; font-size: 11.5px; width: 100%;">
+                                <i data-lucide="pen-tool" style="width: 12px; height: 12px;"></i>
+                                <span>Pre-sign Document</span>
+                            </button>
+                            <button id="propClearSignatureBtn" type="button" class="btn-secondary" style="display: none; margin-top: 6px; font-size: 11px; padding: 5px; color: #ef4444; width: 100%;">
+                                Remove Pre-signed Signature
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 2: Typography & Text -->
+                <div class="prop-accordion" id="accTypography">
+                    <div class="prop-accordion-header">
+                        <span class="prop-accordion-title">
+                            <i data-lucide="type" style="width: 13px; height: 13px; color: #0284c7;"></i> Typography
+                        </span>
+                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
+                    </div>
+                    <div class="prop-accordion-body">
+                        <div class="form-group">
+                            <label>Font Family</label>
+                            <select id="fieldFontFamily" style="padding: 6px; font-size: 12.5px; width: 100%;">
+                                <option value="helvetica">Calibri / Helvetica (Sans-Serif)</option>
+                                <option value="times">Times New Roman (Serif)</option>
+                                <option value="courier">Courier (Monospace)</option>
+                                <option value="helvetica-bold">Calibri / Helvetica Bold</option>
+                                <option value="times-italic">Times New Roman Italic</option>
+                            </select>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="width: 48%;">
+                                <label>Font Size (pt)</label>
+                                <input type="number" id="fontSize" placeholder="11" min="6" max="72">
+                            </div>
+                            <div class="form-group" style="width: 48%;">
+                                <label>Alignment</label>
+                                <select id="textAlignment" style="padding: 6px; font-size: 12.5px;">
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 4px; margin-top: 4px;">
+                            <button type="button" class="quick-size-btn btn-secondary" data-size="9" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">9pt</button>
+                            <button type="button" class="quick-size-btn btn-secondary active" data-size="11" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">11pt</button>
+                            <button type="button" class="quick-size-btn btn-secondary" data-size="12" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">12pt</button>
+                            <button type="button" class="quick-size-btn btn-secondary" data-size="14" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">14pt</button>
+                            <button type="button" class="quick-size-btn btn-secondary" data-size="18" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">18pt</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 3: Validation & Accessibility -->
+                <div class="prop-accordion" id="accValidation">
+                    <div class="prop-accordion-header">
+                        <span class="prop-accordion-title">
+                            <i data-lucide="shield-check" style="width: 13px; height: 13px; color: #0284c7;"></i> Validation & A11y
+                        </span>
+                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
+                    </div>
+                    <div class="prop-accordion-body">
+                        <div class="form-group">
+                            <label>Browser Autofill Type</label>
+                            <select id="autofillType" style="padding: 6px; width: 100%; font-size: 12.5px;">
+                                <option value="">None (Custom)</option>
+                                <option value="first_name">First Name</option>
+                                <option value="last_name">Last Name</option>
+                                <option value="email">Email Address</option>
+                                <option value="phone">Phone Number</option>
+                                <option value="address1">Address (Street)</option>
+                                <option value="city">City</option>
+                                <option value="state">State / Province</option>
+                                <option value="zip">Zip / Postal Code</option>
+                                <option value="country">Country</option>
+                                <option value="company">Company / Organization</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Accessible Tooltip (Hover Text)</label>
+                            <input type="text" id="fieldTooltip" placeholder="For screen readers">
+                        </div>
+                        <div class="form-group">
+                            <label>Max Characters</label>
+                            <input type="number" id="fieldMaxLength" placeholder="e.g. 50" min="1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Accordion 4: Styling & Dimensions -->
+                <div class="prop-accordion" id="accAppearance">
+                    <div class="prop-accordion-header">
+                        <span class="prop-accordion-title">
+                            <i data-lucide="palette" style="width: 13px; height: 13px; color: #0284c7;"></i> Styling & Bounds
+                        </span>
+                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
+                    </div>
+                    <div class="prop-accordion-body">
+                        <div class="form-row" style="justify-content: space-between; gap: 8px; margin-bottom: 8px;">
+                            <div class="form-group" style="width: 48%;">
+                                <label>Border Style</label>
+                                <select id="fieldBorderStyle" style="padding: 6px; font-size: 12.5px;">
+                                    <option value="solid">Solid Border</option>
+                                    <option value="none">No Border (Soft Tint)</option>
+                                    <option value="transparent">Transparent (Ghost)</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="width: 48%;">
+                                <label>Fill Color</label>
+                                <select id="fieldFillStyle" style="padding: 6px; font-size: 12.5px;">
+                                    <option value="tint">Soft Blue Tint</option>
+                                    <option value="white">Solid White</option>
+                                    <option value="yellow">Soft Yellow</option>
+                                    <option value="none">Transparent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="width: 48%;">
+                                <label>Width (px)</label>
+                                <input type="number" id="width">
+                            </div>
+                            <div class="form-group" style="width: 48%;">
+                                <label>Height (px)</label>
+                                <input type="number" id="height">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sticky Action buttons footer -->
+                <div class="properties-actions-footer">
+                    <button id="duplicateFieldBtn" type="button" class="btn-secondary" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Duplicate
+                    </button>
+                    <button id="deleteFieldBtn" type="button" style="flex: 1; background: #fff; color: #ef4444; border: 1px solid #fca5a5; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete
+                    </button>
+                </div>
+            </div>
+            
+            <div id="multiSelectProps" style="display: none;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                    <h2 style="font-size: 14px; margin: 0; font-weight: 700; color: #1e293b;">Batch Editing</h2>
+                    <span id="multiSelectedCountBadge" style="font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 12px; font-weight: 600;">2 Selected</span>
+                </div>
+
+                <!-- 1. Alignment & Spacing Distribution (Placed prominently at top) -->
+                <div class="form-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <label style="font-size: 11px; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 4px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <i data-lucide="layout-grid" style="width: 12px; height: 12px;"></i> Alignment & Spacing
+                    </label>
+                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                        <button id="alignLeftBtn" class="btn-secondary" title="Align Left Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="align-left" style="width: 14px; height: 14px;"></i></button>
+                        <button id="alignCenterBtn" class="btn-secondary" title="Align Centers Horizontally" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="align-center" style="width: 14px; height: 14px;"></i></button>
+                        <button id="alignRightBtn" class="btn-secondary" title="Align Right Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="align-right" style="width: 14px; height: 14px;"></i></button>
+                    </div>
+                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <button id="alignTopBtn" class="btn-secondary" title="Align Top Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="arrow-up-to-line" style="width: 14px; height: 14px;"></i></button>
+                        <button id="alignMiddleBtn" class="btn-secondary" title="Align Centers Vertically" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="fold-vertical" style="width: 14px; height: 14px;"></i></button>
+                        <button id="alignBottomBtn" class="btn-secondary" title="Align Bottom Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="arrow-down-to-line" style="width: 14px; height: 14px;"></i></button>
+                    </div>
+                    <!-- Spacing Distribution Tools -->
+                    <div style="display: flex; gap: 6px;">
+                        <button id="distributeVerticalBtn" class="btn-secondary" title="Distribute Vertical Spacing Evenly" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <i data-lucide="distribute-vertical" style="width: 13px; height: 13px; color: #0284c7;"></i> Distribute V
+                        </button>
+                        <button id="distributeHorizontalBtn" class="btn-secondary" title="Distribute Horizontal Spacing Evenly" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <i data-lucide="distribute-horizontal" style="width: 13px; height: 13px; color: #0284c7;"></i> Distribute H
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 2. Quick Box Border Style -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Box Border Style</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <button id="multiBorderSolidBtn" type="button" class="btn-secondary" style="font-size: 11.5px; padding: 6px; border-radius: 6px; font-weight: 600;">
+                            <i data-lucide="square" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Solid Box
+                        </button>
+                        <button id="multiBorderNoneBtn" type="button" class="btn-secondary" style="font-size: 11.5px; padding: 6px; border-radius: 6px; font-weight: 600;">
+                            <i data-lucide="minus" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> No Border
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 3. Quick Box Fill / Background -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Box Fill / Background</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <button id="multiFillWhiteBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
+                            ⚪ White
+                        </button>
+                        <button id="multiFillTintBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
+                            🔵 Tinted Blue
+                        </button>
+                        <button id="multiFillYellowBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">
+                            🟡 Soft Yellow
+                        </button>
+                        <button id="multiFillTransBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #f8fafc; color: #475569; border: 1px dashed #cbd5e1;">
+                            ⚪ Transparent
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 4. Batch Text & Typography -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Default Text (All Selected)</label>
+                    <input type="text" id="multiDefaultValue" placeholder="Mixed" style="font-size: 12px; padding: 6px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 8px;">
+                    
+                    <div class="form-group" style="margin-bottom: 8px;">
+                        <label style="font-size: 11px; font-weight: 600;">Font Family</label>
+                        <select id="multiFontFamily" style="font-size: 12px; padding: 6px; width: 100%;">
+                            <option value="" style="color: #64748b; font-style: italic;">Mixed</option>
+                            <option value="helvetica">Calibri / Helvetica</option>
+                            <option value="times">Times New Roman</option>
+                            <option value="courier">Courier Monospace</option>
+                            <option value="helvetica-bold">Calibri Bold</option>
+                            <option value="times-italic">Times New Roman Italic</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="width: 48%;">
+                            <label style="font-size: 11px; font-weight: 600;">Font Size</label>
+                            <input type="number" id="multiFontSize" placeholder="Mixed" min="6" max="72" style="font-size: 12px; padding: 6px;">
+                        </div>
+                        <div class="form-group" style="width: 48%;">
+                            <label style="font-size: 11px; font-weight: 600;">Alignment</label>
+                            <select id="multiTextAlignment" style="font-size: 12px; padding: 6px;">
+                                <option value="" style="color: #64748b; font-style: italic;">Mixed</option>
+                                <option value="left">Left</option>
+                                <option value="center">Center</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 4px; margin-top: 6px;">
+                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="9" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">9pt</button>
+                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="11" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">11pt</button>
+                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="12" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">12pt</button>
+                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="14" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">14pt</button>
+                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="18" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">18pt</button>
+                    </div>
+                </div>
+
+                <!-- 5. Batch Required Toggle -->
+                <div class="form-group" style="margin-bottom: 12px; background: #f8fafc; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #334155; font-weight: 600; cursor: pointer;">
+                        <input type="checkbox" id="multiFieldRequired"> Make All Selected Required
+                    </label>
+                </div>
+
+                <!-- 6. Group & Batch Actions -->
+                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+                    <button id="multiGroupBtn" type="button" style="flex: 1; background: #eff6ff; color: #0284c7; border: 1px solid #bae6fd; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i> Group Selected
+                    </button>
+                    <button id="multiUngroupBtn" type="button" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Ungroup Selected">
+                        <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i>
+                    </button>
+                </div>
+                
+                <button id="deleteMultiBtn" style="width: 100%; background: #fff; color: #ef4444; border: 1px solid #fca5a5; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete All Selected
+                </button>
+            </div>
+        </aside>
+    </div>
+    </div> <!-- close appEditorScreen -->
+
+    <!-- Preview Modal -->
+    <div id="previewModal" class="modal">
+        <div class="modal-content" style="display: flex; flex-direction: column; height: 90vh; max-width: 900px; padding: 0; overflow: hidden; border-radius: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-weight: 700; font-size: 14px; color: #1e293b;">Live Form Preview</span>
+                    <span style="font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 12px; font-weight: 600;">Fillable AcroForm</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button id="previewNewTabBtn" class="btn-primary" style="padding: 6px 14px; font-size: 12px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="external-link" style="width:14px; height:14px;"></i> Open Full Interactive Form
+                    </button>
+                    <button id="previewDownloadBtn" class="btn-success" style="padding: 6px 14px; font-size: 12px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width:14px; height:14px;"></i> Download PDF
+                    </button>
+                    <button id="closePreviewBtn" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; line-height: 1; padding: 0 4px;">&times;</button>
+                </div>
+            </div>
+            <div style="flex: 1; width: 100%; position: relative; background: #525659;">
+                <iframe id="previewIframe" src="" width="100%" height="100%" frameborder="0" style="border: none; width: 100%; height: 100%;"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Interactive Signature Modal -->
+    <div id="signatureModal" class="modal">
+        <div class="modal-content" style="max-width: 500px; padding: 20px; border-radius: 12px; background: white;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="pen-tool" style="width:18px; height:18px; color:var(--primary-color);"></i>
+                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">Sign Document</h3>
+                </div>
+                <button id="closeSignatureBtn" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+            </div>
+            <div class="sig-tabs" style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+                <button id="tabDrawBtn" class="sig-tab active" style="padding:6px 14px; font-size:13px; font-weight:600; border:none; background:#e0f2fe; color:#0284c7; border-radius:6px; cursor:pointer;">Draw Signature</button>
+                <button id="tabTypeBtn" class="sig-tab" style="padding:6px 14px; font-size:13px; font-weight:500; border:none; background:transparent; color:#64748b; border-radius:6px; cursor:pointer;">Type Cursive</button>
+            </div>
+            <div id="sigDrawPanel">
+                <div style="border:1.5px dashed #cbd5e1; border-radius:8px; background:#fafafa; position:relative; overflow:hidden;">
+                    <canvas id="signatureCanvas" width="460" height="150" style="display:block; cursor:crosshair; width:100%; height:150px;"></canvas>
+                    <div style="position:absolute; bottom:12px; left:16px; right:16px; border-bottom:1px solid #cbd5e1; pointer-events:none;"></div>
+                    <div style="position:absolute; bottom:14px; left:16px; font-size:11px; color:#94a3b8; pointer-events:none;">✕ Sign above the line</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                    <button id="clearSigBtn" style="padding:4px 10px; font-size:12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; color:#475569;">Clear</button>
+                    <span style="font-size:11px; color:#94a3b8;">Draw with mouse, stylus, or trackpad</span>
+                </div>
+            </div>
+            <div id="sigTypePanel" style="display:none;">
+                <input type="text" id="sigTypeInput" placeholder="Type your full name..." style="width:100%; padding:10px; font-size:15px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px;">
+                <div id="sigTypePreview" style="height:110px; display:flex; align-items:center; justify-content:center; font-family:'Brush Script MT', 'Caveat', cursive, serif; font-size:38px; color:#1e293b; background:#fafafa; border:1.5px dashed #cbd5e1; border-radius:8px;">
+                    Your Signature
+                </div>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:20px;">
+                <button id="cancelSigBtn" class="btn-secondary" style="padding:8px 16px; font-size:13px; border-radius:6px;">Cancel</button>
+                <button id="applySigBtn" class="btn-primary" style="padding:8px 18px; font-size:13px; border-radius:6px; font-weight:600;">Adopt & Sign</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Keyboard Shortcuts & Help Modal -->
+    <div id="shortcutsModal" class="modal">
+        <div class="modal-content" style="max-width: 700px; padding: 24px; border-radius: 14px; background: white;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <div style="width:28px; height:28px; border-radius:6px; background:#e0f2fe; display:flex; align-items:center; justify-content:center;">
+                        <i data-lucide="keyboard" style="width:16px; height:16px; color:#0284c7;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Keyboard Shortcuts & Help</h3>
+                        <p style="margin:0; font-size:12px; color:#64748b;">Master JustForms like a pro with instant hotkeys</p>
+                    </div>
+                </div>
+                <button id="closeShortcutsBtn" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+            </div>
+
+            <div class="shortcuts-grid">
+                <!-- Group 1: Creation & Tools -->
+                <div class="shortcut-group">
+                    <div class="shortcut-group-title">
+                        <i data-lucide="mouse-pointer" style="width:12px; height:12px;"></i>
+                        <span>Tools & Placement</span>
+                    </div>
+                    <div class="shortcut-list">
+                        <div class="shortcut-row"><span class="shortcut-desc">Select Tool</span><div class="shortcut-keys"><span class="shortcut-kbd">V</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Hand Tool / Pan</span><div class="shortcut-keys"><span class="shortcut-kbd">H</span><span style="font-size:10px; color:#94a3b8;">or</span><span class="shortcut-kbd">Space</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Text Field</span><div class="shortcut-keys"><span class="shortcut-kbd">T</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Dropdown</span><div class="shortcut-keys"><span class="shortcut-kbd">D</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Checkbox</span><div class="shortcut-keys"><span class="shortcut-kbd">C</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Radio Group</span><div class="shortcut-keys"><span class="shortcut-kbd">R</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Digital Signature</span><div class="shortcut-keys"><span class="shortcut-kbd">S</span></div></div>
+                    </div>
+                </div>
+
+                <!-- Group 2: Canvas Interactions -->
+                <div class="shortcut-group">
+                    <div class="shortcut-group-title">
+                        <i data-lucide="layout" style="width:12px; height:12px;"></i>
+                        <span>Canvas & Selection</span>
+                    </div>
+                    <div class="shortcut-list">
+                        <div class="shortcut-row"><span class="shortcut-desc">In-Place Quick Toolbar</span><div class="shortcut-keys"><span class="shortcut-kbd">Double-Click</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Multi-Select Fields</span><div class="shortcut-keys"><span class="shortcut-kbd">Shift</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Click</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Marquee Box Selection</span><div class="shortcut-keys"><span class="shortcut-kbd">Drag Canvas</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Instant Alt-Duplicate</span><div class="shortcut-keys"><span class="shortcut-kbd">Alt</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Drag</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Nudge 1px</span><div class="shortcut-keys"><span class="shortcut-kbd">↑</span><span class="shortcut-kbd">↓</span><span class="shortcut-kbd">←</span><span class="shortcut-kbd">→</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Nudge 10px (Fast)</span><div class="shortcut-keys"><span class="shortcut-kbd">Shift</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Arrows</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Delete Field(s)</span><div class="shortcut-keys"><span class="shortcut-kbd">Del</span><span style="font-size:10px; color:#94a3b8;">or</span><span class="shortcut-kbd">Backspace</span></div></div>
+                    </div>
+                </div>
+
+                <!-- Group 3: Clipboard & History -->
+                <div class="shortcut-group">
+                    <div class="shortcut-group-title">
+                        <i data-lucide="clipboard" style="width:12px; height:12px;"></i>
+                        <span>Clipboard & History</span>
+                    </div>
+                    <div class="shortcut-list">
+                        <div class="shortcut-row"><span class="shortcut-desc">Undo</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Z</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Redo</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Y</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Copy</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">C</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Paste</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">V</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Duplicate</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">D</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Select All Fields</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">A</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Group Selection</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">G</span></div></div>
+                    </div>
+                </div>
+
+                <!-- Group 4: General & Navigation -->
+                <div class="shortcut-group">
+                    <div class="shortcut-group-title">
+                        <i data-lucide="help-circle" style="width:12px; height:12px;"></i>
+                        <span>General & Help</span>
+                    </div>
+                    <div class="shortcut-list">
+                        <div class="shortcut-row"><span class="shortcut-desc">Open Shortcuts Cheat Sheet</span><div class="shortcut-keys"><span class="shortcut-kbd">?</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Deselect / Close Popover</span><div class="shortcut-keys"><span class="shortcut-kbd">Esc</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Confirm In-Place HUD</span><div class="shortcut-keys"><span class="shortcut-kbd">Enter</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Scrub Numbers</span><div class="shortcut-keys"><span class="shortcut-kbd">Drag Label</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Scroll Numbers</span><div class="shortcut-keys"><span class="shortcut-kbd">Wheel on Input</span></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:14px; border-top:1px solid #f1f5f9;">
+                <span style="font-size:11.5px; color:#94a3b8;">Tip: Press <kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:11px;">?</kbd> anywhere to quickly toggle this dialog</span>
+                <button id="shortcutsDoneBtn" class="btn-primary" style="padding:6px 16px; font-size:12px; border-radius:6px;">Got It</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Canvas Context Menu -->
+    <div id="canvasContextMenu" class="context-menu" style="display: none;">
+        <div id="ctxEmptyGroup">
+            <div class="ctx-header">Add New Field Here</div>
+            <button type="button" class="ctx-item" data-action="add-textField">
+                <i data-lucide="type" style="width:14px; height:14px; color:#0284c7;"></i>
+                <span class="ctx-label">Text Field</span>
+                <span class="ctx-kbd">T</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="add-dropdown">
+                <i data-lucide="chevron-down-square" style="width:14px; height:14px; color:#0284c7;"></i>
+                <span class="ctx-label">Dropdown</span>
+                <span class="ctx-kbd">D</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="add-checkBox">
+                <i data-lucide="check-square" style="width:14px; height:14px; color:#0284c7;"></i>
+                <span class="ctx-label">Checkbox</span>
+                <span class="ctx-kbd">C</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="add-radioGroup">
+                <i data-lucide="disc" style="width:14px; height:14px; color:#0284c7;"></i>
+                <span class="ctx-label">Radio Group</span>
+                <span class="ctx-kbd">R</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="add-signature">
+                <i data-lucide="pen-tool" style="width:14px; height:14px; color:#7c3aed;"></i>
+                <span class="ctx-label">Digital Signature</span>
+                <span class="ctx-kbd">S</span>
+            </button>
+            <div class="ctx-divider"></div>
+            <button type="button" class="ctx-item" data-action="auto-detect">
+                <i data-lucide="sparkles" style="width:14px; height:14px; color:#6366f1;"></i>
+                <span class="ctx-label">Smart Auto-Detect</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="paste">
+                <i data-lucide="clipboard" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Paste Field(s)</span>
+                <span class="ctx-kbd">⌘V</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="select-all">
+                <i data-lucide="check-square" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Select All Fields</span>
+                <span class="ctx-kbd">⌘A</span>
+            </button>
+            <div class="ctx-divider"></div>
+            <button type="button" class="ctx-item" data-action="shortcuts">
+                <i data-lucide="keyboard" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Shortcuts & Help</span>
+                <span class="ctx-kbd">?</span>
+            </button>
+        </div>
+        
+        <div id="ctxFieldGroup" style="display: none;">
+            <button type="button" class="ctx-item" data-action="edit-field">
+                <i data-lucide="edit-3" style="width:14px; height:14px; color:#0284c7;"></i>
+                <span class="ctx-label">Edit Dimensions & Value</span>
+                <span class="ctx-kbd">Double Click</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="copy-field">
+                <i data-lucide="copy" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Copy Field</span>
+                <span class="ctx-kbd">⌘C</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="duplicate-field">
+                <i data-lucide="copy-plus" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Duplicate</span>
+                <span class="ctx-kbd">⌘D / Alt-Drag</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="group-fields">
+                <i data-lucide="folder-plus" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Group Selected</span>
+                <span class="ctx-kbd">⌘G</span>
+            </button>
+            <div class="ctx-divider"></div>
+            <button type="button" class="ctx-item danger" data-action="delete-field">
+                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                <span class="ctx-label">Delete Field</span>
+                <span class="ctx-kbd">Del</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- User Suggestions & Review Modal -->
+    <div id="feedbackModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 520px; padding: 26px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #f1f5f9; padding-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="width:32px; height:32px; border-radius:8px; background:#e0f2fe; display:flex; align-items:center; justify-content:center;">
+                        <i data-lucide="message-square-plus" style="width:18px; height:18px; color:#0284c7;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Suggestions & Review</h3>
+                        <p style="margin:2px 0 0; font-size:12px; color:#64748b;">Share your opinion or feature request directly with Sagar Shrestha</p>
+                    </div>
+                </div>
+                <button type="button" id="closeFeedbackBtn" style="background:none; border:none; cursor:pointer; padding:4px; color:#94a3b8;">
+                    <i data-lucide="x" style="width:18px; height:18px;"></i>
+                </button>
+            </div>
+
+            <form id="feedbackForm" style="display:flex; flex-direction:column; gap:14px;">
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Rate your experience</label>
+                    <div id="starRatingBox" style="display:flex; gap:8px; font-size:24px; cursor:pointer; color:#cbd5e1;">
+                        <span data-rating="1" title="Poor">★</span>
+                        <span data-rating="2" title="Fair">★</span>
+                        <span data-rating="3" title="Good">★</span>
+                        <span data-rating="4" title="Very Good">★</span>
+                        <span data-rating="5" title="Excellent!">★</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Category</label>
+                    <select id="feedbackCategory" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; background:#f8fafc; outline:none;">
+                        <option value="Feature Suggestion">✨ Feature Suggestion</option>
+                        <option value="General Review">⭐ General Review / Opinion</option>
+                        <option value="Auto-Detect Improvement">🤖 Auto-Detect Feedback</option>
+                        <option value="Bug Report">🐛 Bug Report</option>
+                        <option value="Other">💬 Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Your Name or Email (Optional)</label>
+                    <input type="text" id="feedbackSender" placeholder="name@example.com or Your Name" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; outline:none;">
+                </div>
+
+                <div>
+                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Your Opinion / Suggestion <span style="color:#ef4444;">*</span></label>
+                    <textarea id="feedbackMessage" rows="4" required placeholder="Tell us what you love, what can be improved, or features you'd like to see..." style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; outline:none; resize:vertical; font-family:inherit;"></textarea>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px; padding-top:12px; border-top:1px solid #f1f5f9;">
+                    <button type="button" id="cancelFeedbackBtn" class="btn-secondary" style="padding:8px 16px; font-size:12.5px; border-radius:8px;">Cancel</button>
+                    <button type="submit" class="btn-primary" style="padding:8px 20px; font-size:12.5px; border-radius:8px; font-weight:600; display:flex; align-items:center; gap:6px;">
+                        <i data-lucide="send" style="width:14px; height:14px;"></i> Send Feedback
+                    </button>
+                </div>
+            </form>
+
+            <!-- Success State View inside Modal -->
+            <div id="feedbackSuccessState" style="display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 24px 12px; gap: 14px;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: #dcfce7; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 26px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);">
+                    <i data-lucide="check-circle-2" style="width: 32px; height: 32px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0 0 6px; font-size: 18px; font-weight: 700; color: #0f172a;">Feedback Sent!</h3>
+                    <p style="margin: 0; font-size: 13.5px; color: #64748b; line-height: 1.5; max-width: 360px;">
+                        Thank you for sharing your opinion! Your feedback has been delivered directly to Sagar Shrestha.
+                    </p>
+                </div>
+                <button type="button" id="doneFeedbackBtn" class="btn-primary" style="margin-top: 10px; padding: 9px 24px; font-size: 13px; border-radius: 8px; font-weight: 600;">
+                    Done
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intermediary Sample PDF Preview Modal -->
+    <div id="samplePreviewModal" class="modal">
+        <div class="modal-content" style="max-width: 540px; height: auto; max-height: 90vh; padding: 0; border-radius: 16px; overflow: hidden; background: #ffffff; box-shadow: 0 24px 48px rgba(15,23,42,0.25);">
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 34px; height: 34px; border-radius: 8px; background: #e0f2fe; color: #0284c7; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="file-text" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div>
+                        <h3 id="sampleModalTitle" style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">Sample Document Preview</h3>
+                        <span id="sampleModalBadge" style="font-size: 11px; color: #0284c7; background: #e0f2fe; padding: 1px 6px; border-radius: 4px; font-weight: 600;">Interactive Form Template</span>
+                    </div>
+                </div>
+                <button type="button" id="closeSampleModalBtn" style="background: none; border: none; cursor: pointer; padding: 6px; color: #94a3b8; border-radius: 6px;">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+            
+            <div style="padding: 22px; display: flex; flex-direction: column; gap: 16px;">
+                <p id="sampleModalDesc" style="margin: 0; font-size: 13.5px; color: #475569; line-height: 1.5;">
+                    Preview this pre-built sample PDF document before launching into the interactive form editor.
+                </p>
+
+                <!-- Template Feature Highlights Card -->
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px;">
+                    <div style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em;">Template Specifications</div>
+                    <div id="sampleModalSpecs" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12.5px; color: #334155;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #16a34a;"></i>
+                            <span>Pre-Placed Fields</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #16a34a;"></i>
+                            <span>AcroForm Compatible</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #16a34a;"></i>
+                            <span>Signature Line Included</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="check-circle-2" style="width: 15px; height: 15px; color: #16a34a;"></i>
+                            <span>Standard 72 DPI Geometry</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-top: 6px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+                    <button type="button" id="cancelSampleModalBtn" class="btn-secondary" style="padding: 9px 18px; font-size: 13px; border-radius: 8px;">Cancel</button>
+                    <button type="button" id="confirmOpenSampleBtn" class="btn-primary" style="padding: 9px 22px; font-size: 13px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <span>Open in Editor</span>
+                        <i data-lucide="arrow-right" style="width: 15px; height: 15px;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pre-Export Fillable PDF Modal -->
+    <div id="exportModal" class="modal" style="display: none;">
+        <div class="modal-content" style="width: 480px; max-width: 92vw; padding: 26px; border-radius: 16px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px -10px rgba(15,23,42,0.18);">
+            <!-- Modal Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; border: 1px solid #bfdbfe;">
+                        <i data-lucide="file-up" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Export Fillable PDF</h3>
+                        <span style="font-size: 12px; color: #475569;">Configure output format & custom filename</span>
+                    </div>
+                </div>
+                <button type="button" id="closeExportModalBtn" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; border-radius: 6px;" title="Close (Esc)">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+
+            <!-- Export Form Fields -->
+            <form id="exportModalForm" onsubmit="return false;">
+                <!-- Filename Input with Fixed .pdf Extension Badge -->
+                <div style="margin-bottom: 18px;">
+                    <label for="exportFilenameInput" style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">File Name</label>
+                    <div style="display: flex; align-items: center; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #ffffff; overflow: hidden; transition: border-color 0.15s ease;">
+                        <input type="text" id="exportFilenameInput" autofocus style="flex: 1; border: none; padding: 10px 12px; font-size: 13.5px; color: #0f172a; outline: none; background: transparent; font-family: inherit;" placeholder="document_fillable">
+                        <span style="background: #f1f5f9; color: #475569; padding: 10px 14px; font-size: 12.5px; font-weight: 700; border-left: 1px solid #e2e8f0; user-select: none;">.pdf</span>
+                    </div>
+                </div>
+
+                <!-- Export Mode Selection -->
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Export Mode</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid #2563eb; border-radius: 8px; cursor: pointer; background: #eff6ff; transition: all 0.15s ease;" id="labelAcroFormOption">
+                            <input type="radio" name="exportMode" value="acroform" checked style="margin-top: 3px; accent-color: #2563eb;">
+                            <div>
+                                <strong style="font-size: 12.5px; color: #0f172a; display: block;">Interactive AcroForm (Recommended)</strong>
+                                <span style="font-size: 11.5px; color: #475569;">Fillable PDF compatible with Adobe Acrobat, Apple Preview & Chrome</span>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #ffffff; transition: all 0.15s ease;" id="labelFlattenOption">
+                            <input type="radio" name="exportMode" value="flatten" style="margin-top: 3px; accent-color: #2563eb;">
+                            <div>
+                                <strong style="font-size: 12.5px; color: #0f172a; display: block;">Flatten / Read-Only</strong>
+                                <span style="font-size: 11.5px; color: #475569;">Lock form fields into static page content (non-editable)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Also Download .justforms Project Backup -->
+                <div style="margin-bottom: 22px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: #334155; font-weight: 600;">
+                        <input type="checkbox" id="exportIncludeProjectJson" style="width: 15px; height: 15px; accent-color: #2563eb;">
+                        <span>Also download .justforms project backup</span>
+                    </label>
+                </div>
+
+                <!-- Modal Actions -->
+                <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+                    <button type="button" id="cancelExportBtn" class="btn-secondary" style="padding: 9px 16px; font-size: 13px; font-weight: 600; border-radius: 8px;">Cancel</button>
+                    <button type="submit" id="confirmExportBtn" class="btn-primary" style="padding: 9px 20px; font-size: 13px; font-weight: 700; border-radius: 8px; background: #1d4ed8; border-color: #1d4ed8; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+                        <span id="confirmExportBtnText">Download PDF</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Save Project (.justforms) Modal -->
+    <div id="saveProjectModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 480px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 40px rgba(15,23,42,0.2);">
+            <!-- Modal Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; margin-bottom: 18px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 38px; height: 38px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; border: 1px solid #bfdbfe;">
+                        <i data-lucide="save" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Save Project (.justforms)</h3>
+                        <span style="font-size: 12px; color: #475569;">Choose whether to update current or save a new copy</span>
+                    </div>
+                </div>
+                <button type="button" id="closeSaveProjectModalBtn" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; border-radius: 6px;" title="Close (Esc)">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                </button>
+            </div>
+
+            <form id="saveProjectModalForm" onsubmit="return false;">
+                <!-- Save Option Selection -->
+                <div style="margin-bottom: 18px;">
+                    <label style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Save Action</label>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1.5px solid #2563eb; border-radius: 8px; cursor: pointer; background: #eff6ff; transition: all 0.15s ease;" id="labelSaveReplaceOption">
+                            <input type="radio" name="saveProjectAction" value="replace" checked style="margin-top: 3px; accent-color: #2563eb;">
+                            <div>
+                                <strong style="font-size: 12.5px; color: #0f172a; display: block;">Replace / Update Existing Project (Recommended)</strong>
+                                <span style="font-size: 11.5px; color: #475569;">Overwrites current file: <code id="saveReplaceNameDisplay" style="font-weight:600; color:#2563eb;">interactive_form.justforms</code></span>
+                            </div>
+                        </label>
+                        <label style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #ffffff; transition: all 0.15s ease;" id="labelSaveNewCopyOption">
+                            <input type="radio" name="saveProjectAction" value="new_copy" style="margin-top: 3px; accent-color: #2563eb;">
+                            <div>
+                                <strong style="font-size: 12.5px; color: #0f172a; display: block;">Save as New Project Copy</strong>
+                                <span style="font-size: 11.5px; color: #475569;">Create a separate project file backup</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Custom Copy Name Input (Only active when Save as New Copy selected) -->
+                <div id="saveNewCopyInputContainer" style="margin-bottom: 22px; display: none;">
+                    <label for="saveNewCopyFilenameInput" style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 6px;">New Copy Name</label>
+                    <div style="display: flex; align-items: center; border: 1.5px solid #cbd5e1; border-radius: 8px; background: #ffffff; overflow: hidden;">
+                        <input type="text" id="saveNewCopyFilenameInput" style="flex: 1; border: none; padding: 10px 12px; font-size: 13.5px; color: #0f172a; outline: none; background: transparent; font-family: inherit;" placeholder="interactive_form_copy">
+                        <span style="background: #f1f5f9; color: #475569; padding: 10px 14px; font-size: 12.5px; font-weight: 700; border-left: 1px solid #e2e8f0; user-select: none;">.justforms</span>
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div style="display: flex; justify-content: flex-end; gap: 10px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+                    <button type="button" id="cancelSaveProjectBtn" class="btn-secondary" style="padding: 9px 18px; font-size: 13px; border-radius: 8px;">Cancel</button>
+                    <button type="submit" id="confirmSaveProjectBtn" class="btn-primary" style="padding: 9px 22px; font-size: 13px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+                        <span>Save Project</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Floating Success Toast Notification -->
+    <div id="exportSuccessToast" class="export-success-toast" style="display: none;">
+        <div class="toast-icon">
+            <i data-lucide="check-circle-2" style="width: 20px; height: 20px; color: #059669;"></i>
+        </div>
+        <div class="toast-body">
+            <h4 class="toast-title">Form Exported Successfully</h4>
+            <p id="toastFilenameDesc" class="toast-desc">Saved to your Downloads folder.</p>
+        </div>
+        <button type="button" id="dismissToastBtn" class="toast-dismiss" title="Dismiss (✕)">
+            <i data-lucide="x" style="width: 15px; height: 15px;"></i>
+        </button>
+    </div>
+    
+    <!-- Floating Global Tool Stamp Cursor Follower -->
+    <div id="floatingToolStamp" class="floating-tool-stamp" style="display: none;"></div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
+
+
