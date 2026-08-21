@@ -580,14 +580,26 @@ function initMultiSelectTools(onUpdated) {
     const btnNone = document.getElementById("multiBorderNoneBtn");
 
     btnSolid?.addEventListener("click", () => {
-        if (borderToggle) borderToggle.dataset.active = "solid";
+        if (borderToggle) {
+            borderToggle.classList.remove("anim-none");
+            borderToggle.classList.remove("anim-solid");
+            void borderToggle.offsetWidth; // force reflow for fresh animation
+            borderToggle.classList.add("anim-solid");
+            borderToggle.dataset.active = "solid";
+        }
         btnSolid.classList.add("active");
         if (btnNone) btnNone.classList.remove("active");
         batchUpdate(f => f.borderStyle = "solid", true);
     });
 
     btnNone?.addEventListener("click", () => {
-        if (borderToggle) borderToggle.dataset.active = "none";
+        if (borderToggle) {
+            borderToggle.classList.remove("anim-solid");
+            borderToggle.classList.remove("anim-none");
+            void borderToggle.offsetWidth; // force reflow for fresh animation
+            borderToggle.classList.add("anim-none");
+            borderToggle.dataset.active = "none";
+        }
         btnNone.classList.add("active");
         if (btnSolid) btnSolid.classList.remove("active");
         batchUpdate(f => f.borderStyle = "none", true);
@@ -605,8 +617,14 @@ function initMultiSelectTools(onUpdated) {
         btn?.addEventListener("click", () => {
             swatches.forEach(s => {
                 const el = document.getElementById(s.id);
-                if (el) el.style.outline = (s.id === sw.id) ? "2px solid #2563eb" : "none";
-                if (el) el.style.outlineOffset = "2px";
+                if (el) {
+                    el.classList.toggle("active", s.id === sw.id);
+                    if (s.id === sw.id) {
+                        el.classList.remove("just-clicked");
+                        void el.offsetWidth;
+                        el.classList.add("just-clicked");
+                    }
+                }
             });
             batchUpdate(f => f.fillStyle = sw.fill, true);
         });
