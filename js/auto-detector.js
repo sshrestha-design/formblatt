@@ -208,22 +208,37 @@ export async function autoDetectFields(scope = "current") {
 
     if (newFields.length > 0) {
         const existingPageFields = state.fields.filter(f => pagesToScan.includes(f.page || 1));
-        const nonOverlapping = newFields.filter(nf => !isOverlappingAny(nf, state.fields));
         
-        if (nonOverlapping.length > 0) {
-            state.fields.push(...nonOverlapping);
+        // Strict internal deduplication pass on newFields
+        const uniqueNewFields = [];
+        for (let nf of newFields) {
+            if (!isOverlappingAny(nf, uniqueNewFields) && !isOverlappingAny(nf, state.fields)) {
+                uniqueNewFields.push(nf);
+            }
+        }
+
+        if (uniqueNewFields.length > 0) {
+            state.fields.push(...uniqueNewFields);
             state.selectedFieldIds.clear();
-            nonOverlapping.forEach(f => state.selectedFieldIds.add(f.id));
+            uniqueNewFields.forEach(f => state.selectedFieldIds.add(f.id));
             saveHistory();
-            totalDetected = nonOverlapping.length;
+            totalDetected = uniqueNewFields.length;
         } else if (existingPageFields.length > 0) {
             // User re-ran auto-detect on current page: refresh fields with latest names & labels
             state.fields = state.fields.filter(f => !pagesToScan.includes(f.page || 1));
-            state.fields.push(...newFields);
+            
+            const dedupedReScan = [];
+            for (let nf of newFields) {
+                if (!isOverlappingAny(nf, dedupedReScan)) {
+                    dedupedReScan.push(nf);
+                }
+            }
+
+            state.fields.push(...dedupedReScan);
             state.selectedFieldIds.clear();
-            newFields.forEach(f => state.selectedFieldIds.add(f.id));
+            dedupedReScan.forEach(f => state.selectedFieldIds.add(f.id));
             saveHistory();
-            totalDetected = newFields.length;
+            totalDetected = dedupedReScan.length;
         }
     }
 
@@ -798,6 +813,9 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
     for (let ve of vectorElements) {
         if (overlapsAnyText(ve, rawBlocks)) continue;
 
+        // Skip vector elements that overlap any already fused field (e.g. AcroForm or earlier vector rectangle/table cell)
+        if (isOverlappingAny(ve, fused)) continue;
+
         // Skip vector boxes or lines that sit near/under section headings
         const isHeadingVector = rawBlocks.some(tb => {
             const isNearY = Math.abs((tb.y + tb.height / 2) - (ve.y + ve.height / 2)) <= 25 || (tb.y < ve.y && (ve.y - tb.y) <= 30);
@@ -945,11 +963,21 @@ function clusterIntoLines(blocks) {
 
 function isOverlappingAny(field, list) {
     return list.some(existing => {
-        if (existing.page !== field.page) return false;
+        if (field.id && existing.id && field.id === existing.id) return false;
+        if ((existing.page || 1) !== (field.page || 1)) return false;
         const xOverlap = Math.max(0, Math.min(field.x + field.width, existing.x + existing.width) - Math.max(field.x, existing.x));
         const yOverlap = Math.max(0, Math.min(field.y + field.height, existing.y + existing.height) - Math.max(field.y, existing.y));
         const overlapArea = xOverlap * yOverlap;
+        if (overlapArea <= 0) return false;
+
         const fieldArea = field.width * field.height;
-        return (overlapArea / fieldArea) > 0.35;
+        const existingArea = existing.width * existing.height;
+        const minArea = Math.min(fieldArea, existingArea);
+        const unionArea = fieldArea + existingArea - overlapArea;
+        const iou = unionArea > 0 ? (overlapArea / unionArea) : 0;
+        const minRatio = minArea > 0 ? (overlapArea / minArea) : 0;
+        const nearCenter = Math.abs((field.x + field.width / 2) - (existing.x + existing.width / 2)) <= 15 && Math.abs((field.y + field.height / 2) - (existing.y + existing.height / 2)) <= 12;
+
+        return iou > 0.25 || minRatio > 0.35 || nearCenter;
     });
 }
