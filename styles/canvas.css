@@ -172,7 +172,7 @@
     background: #2563eb;
 }
 
-/* ── Magnetic Alignment Guidelines ───────────────────────────── */
+/* ── Magnetic Alignment Guidelines & Snap Points ──────────────── */
 .align-line {
     position: absolute;
     background: #06b6d4;
@@ -190,6 +190,58 @@
     width: 1.5px;
     height: 100%;
     top: 0;
+}
+
+.snap-point-dot {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: #06b6d4;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+    pointer-events: none;
+    z-index: 1001;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 1);
+    animation: snapPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes snapPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 1); }
+    50% { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.7), 0 0 14px rgba(6, 182, 212, 1); }
+}
+
+/* ── Edge & Corner Snap Points on Selected Field Overlays ─────── */
+.edge-snap-point {
+    position: absolute;
+    width: 5.5px;
+    height: 5.5px;
+    background: #ffffff;
+    border: 1.5px solid #2563eb;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 65;
+    opacity: 0.85;
+    box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.edge-snap-point.snap-tl { top: 0; left: 0; }
+.edge-snap-point.snap-tm { top: 0; left: 50%; }
+.edge-snap-point.snap-tr { top: 0; left: 100%; }
+.edge-snap-point.snap-ml { top: 50%; left: 0; }
+.edge-snap-point.snap-mr { top: 50%; left: 100%; }
+.edge-snap-point.snap-bl { top: 100%; left: 0; }
+.edge-snap-point.snap-bm { top: 100%; left: 50%; }
+.edge-snap-point.snap-br { top: 100%; left: 100%; }
+
+.edge-snap-point.active-snap {
+    background: #06b6d4 !important;
+    border-color: #ffffff !important;
+    transform: translate(-50%, -50%) scale(1.6) !important;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 8px #06b6d4 !important;
 }
 
 /* ── Document Scanner Animation ───────────────────────── */

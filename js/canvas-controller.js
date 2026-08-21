@@ -152,7 +152,7 @@ function handleFieldDrag(e, container, handlers) {
 
         snapDx = snaps.snapX;
         snapDy = snaps.snapY;
-        showGuides(snaps.guideX, snaps.guideY);
+        showGuides(snaps.guideX, snaps.guideY, snaps.snapPointX, snaps.snapPointY);
     } else {
         hideGuides();
     }
@@ -222,6 +222,7 @@ async function createFieldAt(type, x, y, handlers) {
 function checkSnapping(x, y, width, height, others, textBlocks = []) {
     let snapX = 0, snapY = 0;
     let guideX = null, guideY = null;
+    let snapPointX = null, snapPointY = null;
 
     const left = x, right = x + width, centerX = x + width / 2;
     const top = y, bottom = y + height, centerY = y + height / 2;
@@ -235,67 +236,67 @@ function checkSnapping(x, y, width, height, others, textBlocks = []) {
         const oTop = o.y, oBottom = o.y + o.height, oCenterY = o.y + o.height / 2;
 
         // --- Horizontal / X-Axis Alignments ---
-        // Left to Left
         if (Math.abs(left - oLeft) < minDiffX) {
             minDiffX = Math.abs(left - oLeft);
             snapX = oLeft - left;
             guideX = oLeft;
+            snapPointX = oLeft;
         }
-        // Right to Right
         if (Math.abs(right - oRight) < minDiffX) {
             minDiffX = Math.abs(right - oRight);
             snapX = oRight - right;
             guideX = oRight;
+            snapPointX = oRight;
         }
-        // Left to Right (Side-by-side)
         if (Math.abs(left - oRight) < minDiffX) {
             minDiffX = Math.abs(left - oRight);
             snapX = oRight - left;
             guideX = oRight;
+            snapPointX = oRight;
         }
-        // Right to Left (Side-by-side)
         if (Math.abs(right - oLeft) < minDiffX) {
             minDiffX = Math.abs(right - oLeft);
             snapX = oLeft - right;
             guideX = oLeft;
+            snapPointX = oLeft;
         }
-        // Center to Center
         if (Math.abs(centerX - oCenterX) < minDiffX) {
             minDiffX = Math.abs(centerX - oCenterX);
             snapX = oCenterX - centerX;
             guideX = oCenterX;
+            snapPointX = oCenterX;
         }
 
         // --- Vertical / Y-Axis Alignments ---
-        // Top to Top
         if (Math.abs(top - oTop) < minDiffY) {
             minDiffY = Math.abs(top - oTop);
             snapY = oTop - top;
             guideY = oTop;
+            snapPointY = oTop;
         }
-        // Bottom to Bottom
         if (Math.abs(bottom - oBottom) < minDiffY) {
             minDiffY = Math.abs(bottom - oBottom);
             snapY = oBottom - bottom;
             guideY = oBottom;
+            snapPointY = oBottom;
         }
-        // Top to Bottom (Stacked rows)
         if (Math.abs(top - oBottom) < minDiffY) {
             minDiffY = Math.abs(top - oBottom);
             snapY = oBottom - top;
             guideY = oBottom;
+            snapPointY = oBottom;
         }
-        // Bottom to Top (Stacked rows)
         if (Math.abs(bottom - oTop) < minDiffY) {
             minDiffY = Math.abs(bottom - oTop);
             snapY = oTop - bottom;
             guideY = oTop;
+            snapPointY = oTop;
         }
-        // Center to Center
         if (Math.abs(centerY - oCenterY) < minDiffY) {
             minDiffY = Math.abs(centerY - oCenterY);
             snapY = oCenterY - centerY;
             guideY = oCenterY;
+            snapPointY = oCenterY;
         }
     }
 
@@ -308,57 +309,56 @@ function checkSnapping(x, y, width, height, others, textBlocks = []) {
             const tbBottom = Math.round(tb.y + tb.height);
 
             if (guideX === null) {
-                // Left aligned to text start
                 if (Math.abs(left - tbLeft) < minDiffX) {
                     minDiffX = Math.abs(left - tbLeft);
                     snapX = tbLeft - left;
                     guideX = tbLeft;
-                }
-                // Left aligned after prompt (+6px padding)
-                else if (Math.abs(left - (tbRight + 6)) < minDiffX) {
+                    snapPointX = tbLeft;
+                } else if (Math.abs(left - (tbRight + 6)) < minDiffX) {
                     minDiffX = Math.abs(left - (tbRight + 6));
                     snapX = (tbRight + 6) - left;
                     guideX = tbRight + 6;
-                }
-                // Right aligned to text end
-                else if (Math.abs(right - tbRight) < minDiffX) {
+                    snapPointX = tbRight + 6;
+                } else if (Math.abs(right - tbRight) < minDiffX) {
                     minDiffX = Math.abs(right - tbRight);
                     snapX = tbRight - right;
                     guideX = tbRight;
+                    snapPointX = tbRight;
                 }
             }
 
             if (guideY === null) {
-                // Top aligned to text top
                 if (Math.abs(top - tbTop) < minDiffY) {
                     minDiffY = Math.abs(top - tbTop);
                     snapY = tbTop - top;
                     guideY = tbTop;
-                }
-                // Bottom aligned to text baseline
-                else if (Math.abs(bottom - tbBottom) < minDiffY) {
+                    snapPointY = tbTop;
+                } else if (Math.abs(bottom - tbBottom) < minDiffY) {
                     minDiffY = Math.abs(bottom - tbBottom);
                     snapY = tbBottom - bottom;
                     guideY = tbBottom;
-                }
-                // Top placed below label (+4px padding)
-                else if (Math.abs(top - (tbBottom + 4)) < minDiffY) {
+                    snapPointY = tbBottom;
+                } else if (Math.abs(top - (tbBottom + 4)) < minDiffY) {
                     minDiffY = Math.abs(top - (tbBottom + 4));
                     snapY = (tbBottom + 4) - top;
                     guideY = tbBottom + 4;
+                    snapPointY = tbBottom + 4;
                 }
             }
         }
     }
 
-    return { snapX, snapY, guideX, guideY };
+    return { snapX, snapY, guideX, guideY, snapPointX, snapPointY };
 }
+
+let snapPointDot = null;
 
 export function initCanvasController(handlers) {
     const centerCanvas = document.getElementById("centerCanvas");
     const container = document.getElementById("canvasContainer");
     hAlignLine = document.getElementById("hAlignLine");
     vAlignLine = document.getElementById("vAlignLine");
+    snapPointDot = document.getElementById("snapPointDot");
     selectionBox = document.getElementById("selectionBox");
     ghostElement = document.getElementById("fieldPlacementGhost");
 
@@ -726,7 +726,7 @@ function handleFieldResize(e, handlers) {
         if (dir.includes("s") && snaps.guideY !== null) {
             newH = Math.max(14, Math.round(newH + snaps.snapY));
         }
-        showGuides(snaps.guideX, snaps.guideY);
+        showGuides(snaps.guideX, snaps.guideY, snaps.snapPointX, snaps.snapPointY);
     } else {
         hideGuides();
     }
@@ -767,7 +767,9 @@ function duplicateSelectedFields() {
     clones.forEach(id => state.selectedFieldIds.add(id));
 }
 
-function showGuides(x, y) {
+function showGuides(x, y, activeX = null, activeY = null) {
+    if (!snapPointDot) snapPointDot = document.getElementById("snapPointDot");
+
     if (vAlignLine) {
         if (x !== null) { vAlignLine.style.left = x + "px"; vAlignLine.style.display = "block"; }
         else { vAlignLine.style.display = "none"; }
@@ -776,11 +778,32 @@ function showGuides(x, y) {
         if (y !== null) { hAlignLine.style.top = y + "px"; hAlignLine.style.display = "block"; }
         else { hAlignLine.style.display = "none"; }
     }
+
+    if (snapPointDot) {
+        const posX = activeX !== null ? activeX : x;
+        const posY = activeY !== null ? activeY : y;
+        if (posX !== null && posY !== null) {
+            snapPointDot.style.left = posX + "px";
+            snapPointDot.style.top = posY + "px";
+            snapPointDot.style.display = "block";
+        } else if (posX !== null && y !== null) {
+            snapPointDot.style.left = posX + "px";
+            snapPointDot.style.top = y + "px";
+            snapPointDot.style.display = "block";
+        } else if (x !== null && posY !== null) {
+            snapPointDot.style.left = x + "px";
+            snapPointDot.style.top = posY + "px";
+            snapPointDot.style.display = "block";
+        } else {
+            snapPointDot.style.display = "none";
+        }
+    }
 }
 
 function hideGuides() {
     if (vAlignLine) vAlignLine.style.display = "none";
     if (hAlignLine) hAlignLine.style.display = "none";
+    if (snapPointDot) snapPointDot.style.display = "none";
 }
 
 function startPanning(e) {
