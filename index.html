@@ -177,17 +177,17 @@
                     Turn Any PDF into a <span class="hero-highlight">Fillable Form</span>
                 </h1>
                 <p class="hero-subtitle">
-                    Drag & drop your PDF to place text fields, checkboxes, dropdowns, and digital signatures in seconds.
+                    Drag & drop any PDF to add fillable text fields, checkboxes, dropdowns, and digital signatures in seconds.
                 </p>
                 <div class="hero-cta-group" style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
                     <label class="hero-btn-primary" style="cursor: pointer;">
                         <i data-lucide="file-up" style="width:18px; height:18px;"></i>
-                        <span>Upload PDF</span>
+                        <span>Upload PDF Document</span>
                         <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                     </label>
-                    <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;">
+                    <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;" title="Open a previously saved editable JustForms project backup file">
                         <i data-lucide="folder-open" style="width:18px; height:18px; color:#0284c7;"></i>
-                        <span>Open Saved Project (.jform)</span>
+                        <span>Open Saved Project (.jform file)</span>
                         <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                     </label>
                 </div>
@@ -202,11 +202,17 @@
                             <strong style="font-size: 15px; display: block; margin-bottom: 2px;">Drop your PDF or project file here</strong>
                             <span style="color: #64748b; font-size: 13px;">or <span class="dropzone-browse">browse files</span> from your device</span>
                             <div class="dropzone-format-pills" style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px;">
-                                <span style="background:#eff6ff; color:#2563eb; padding:4px 14px; border-radius:20px; font-size:11.5px; font-weight:700; border:1px solid #bfdbfe;">.pdf</span>
-                                <span style="background:#eff6ff; color:#2563eb; padding:4px 14px; border-radius:20px; font-size:11.5px; font-weight:700; border:1px solid #bfdbfe;">.jform</span>
+                                <span style="background:#eff6ff; color:#2563eb; padding:4px 14px; border-radius:20px; font-size:11.5px; font-weight:700; border:1px solid #bfdbfe;" title="Standard PDF Document">📄 .pdf (Standard PDF)</span>
+                                <span style="background:#eff6ff; color:#2563eb; padding:4px 14px; border-radius:20px; font-size:11.5px; font-weight:700; border:1px solid #bfdbfe;" title="Editable JustForms Project Backup File">💾 .jform (Saved Project Backup)</span>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Desktop vs Mobile Workflow Notice -->
+                <div class="mobile-device-notice" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin: 16px auto 0; max-width: 600px; padding: 8px 16px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 12px; color: #475569; text-align: center;">
+                    <i data-lucide="monitor" style="width: 14px; height: 14px; color: #2563eb; flex-shrink: 0;"></i>
+                    <span><strong>Desktop & Tablet Recommended:</strong> For drag-and-drop field placement. Created forms can be filled out on any device!</span>
                 </div>
             </div>
         </section>
@@ -238,7 +244,7 @@
                         <div class="mini-canvas-paper">
                             <div class="mini-doc-header">
                                 <div class="mini-doc-title">CONFIDENTIALITY & NON-DISCLOSURE AGREEMENT</div>
-                                <div class="mini-doc-sub">Standard AcroForm Specification • Section 4.2 Form Fields</div>
+                                <div class="mini-doc-sub">Interactive Fillable Form • Works in Adobe Reader, Apple Preview & Web Browsers</div>
                             </div>
 
                             <div class="mini-field-group">
@@ -279,51 +285,12 @@
 
                             <!-- Floating Inspector HUD -->
                             <div class="mini-floating-hud">
-                                <span class="hud-mini-type">ACROFORM READY</span>
+                                <span class="hud-mini-type">FILLABLE FORM READY</span>
                                 <span class="hud-mini-dim">240 × 32 px</span>
                                 <button type="button" class="hud-mini-btn" id="heroTryInEditorBtn">Try Sample in Editor →</button>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- User Reviews & Testimonials Section -->
-        <section class="landing-section bg-alt" id="reviews">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-eyebrow">VERIFIED USER FEEDBACK</span>
-                    <h2 class="section-title">What Users Are Saying</h2>
-                    <p class="section-subtitle">Real reviews submitted by users directly from the editor.</p>
-                </div>
-
-                <!-- Review Filter & Sort Toolbar -->
-                <div class="reviews-toolbar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 12px 18px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="message-square" style="width: 15px; height: 15px; color: #2563eb;"></i>
-                        <span id="reviewCountPill" style="font-size: 13px; font-weight: 700; color: #0f172a;">Showing 6 Reviews</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label for="reviewSortSelect" style="font-size: 12.5px; font-weight: 600; color: #64748b;">Sort By:</label>
-                        <select id="reviewSortSelect" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: #0f172a; background: #f8fafc; outline: none; cursor: pointer;">
-                            <option value="latest">⚡ Latest First</option>
-                            <option value="oldest">⌛ Oldest First</option>
-                            <option value="rating">⭐ Highest Rating</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="userReviewsGrid" class="user-reviews-grid">
-                    <!-- Cards populated dynamically by js/landing-controller.js -->
-                </div>
-
-                <!-- Load More Reviews Button -->
-                <div id="loadMoreReviewsContainer" style="display: flex; justify-content: center; margin-top: 32px;">
-                    <button id="loadMoreReviewsBtn" class="btn-secondary" style="padding: 10px 24px; font-size: 13px; font-weight: 600; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                        <span id="loadMoreReviewsText">Show More Reviews</span>
-                    </button>
                 </div>
             </div>
         </section>
@@ -350,7 +317,7 @@
                         <div class="template-info">
                             <div class="template-tags">
                                 <span class="tag finance">Billing</span>
-                                <span class="tag fields">15 AcroForm Fields</span>
+                                <span class="tag fields">15 Form Fields</span>
                             </div>
                             <h3>Commercial Invoice Form</h3>
                             <p>Standard billing invoice with itemized line items, totals & notes.</p>
@@ -370,7 +337,7 @@
                         <div class="template-info">
                             <div class="template-tags">
                                 <span class="tag finance">Tax & Legal</span>
-                                <span class="tag fields">8 AcroForm Fields</span>
+                                <span class="tag fields">8 Form Fields</span>
                             </div>
                             <h3>W-9 Taxpayer ID Form</h3>
                             <p>IRS-compliant taxpayer identification form.</p>
@@ -446,7 +413,7 @@
                         <div class="template-info">
                             <div class="template-tags">
                                 <span class="tag legal">Real Estate</span>
-                                <span class="tag fields">10 AcroForm Fields</span>
+                                <span class="tag fields">10 Form Fields</span>
                             </div>
                             <h3>Residential Lease Agreement</h3>
                             <p>Standard rental contract with rent terms & signature blocks.</p>
@@ -519,6 +486,45 @@
                         <h3>Figma-Style Magnetic Snapping & Guides</h3>
                         <p>Snap to edges and centers with glowing alignment lines. Multi-select with box lasso, distribute evenly, and align to perfection.</p>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- User Reviews & Testimonials Section (Social Proof placed right before Open Source/Footer) -->
+        <section class="landing-section" id="reviews" style="background:#ffffff; border-top: 1px solid #e2e8f0;">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-eyebrow">VERIFIED USER FEEDBACK</span>
+                    <h2 class="section-title">What Users Are Saying</h2>
+                    <p class="section-subtitle">Real reviews submitted by users directly from the editor.</p>
+                </div>
+
+                <!-- Review Filter & Sort Toolbar -->
+                <div class="reviews-toolbar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="message-square" style="width: 15px; height: 15px; color: #2563eb;"></i>
+                        <span id="reviewCountPill" style="font-size: 13px; font-weight: 700; color: #0f172a;">Showing 6 Reviews</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label for="reviewSortSelect" style="font-size: 12.5px; font-weight: 600; color: #64748b;">Sort By:</label>
+                        <select id="reviewSortSelect" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: #0f172a; background: #ffffff; outline: none; cursor: pointer;">
+                            <option value="latest">⚡ Latest First</option>
+                            <option value="oldest">⌛ Oldest First</option>
+                            <option value="rating">⭐ Highest Rating</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="userReviewsGrid" class="user-reviews-grid">
+                    <!-- Cards populated dynamically by js/landing-controller.js -->
+                </div>
+
+                <!-- Load More Reviews Button -->
+                <div id="loadMoreReviewsContainer" style="display: flex; justify-content: center; margin-top: 32px;">
+                    <button id="loadMoreReviewsBtn" class="btn-secondary" style="padding: 10px 24px; font-size: 13px; font-weight: 600; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
+                        <span id="loadMoreReviewsText">Show More Reviews</span>
+                    </button>
                 </div>
             </div>
         </section>
