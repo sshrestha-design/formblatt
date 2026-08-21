@@ -886,10 +886,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         // Toggle Left Sidebar (Ctrl+\ / Cmd+\)
-        if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
+        if ((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) {
             e.preventDefault();
-            const leftPanel = document.querySelector(".left-panel");
-            if (leftPanel) leftPanel.classList.toggle("collapsed");
+            toggleLeftSidebar();
             return;
         }
 
@@ -969,15 +968,29 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Toggle Sidebar Button
-    document.getElementById("toggleSidebarBtn")?.addEventListener("click", () => {
-        const leftPanel = document.querySelector(".left-panel");
-        if (leftPanel) leftPanel.classList.toggle("collapsed");
-    });
+    document.getElementById("toggleSidebarBtn")?.addEventListener("click", toggleLeftSidebar);
 
     // Default to landing screen
     showLandingScreen();
     if (typeof lucide !== "undefined") lucide.createIcons();
 });
+
+function toggleLeftSidebar() {
+    const leftPanel = document.querySelector(".left-panel");
+    const toggleBtn = document.getElementById("toggleSidebarBtn");
+    if (!leftPanel) return;
+
+    leftPanel.classList.toggle("collapsed");
+    const isCollapsed = leftPanel.classList.contains("collapsed");
+
+    if (toggleBtn) {
+        toggleBtn.title = isCollapsed ? "Expand Sidebar (Ctrl+\\)" : "Collapse Sidebar (Ctrl+\\)";
+        toggleBtn.innerHTML = isCollapsed
+            ? `<i data-lucide="panel-left-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
+            : `<i data-lucide="panel-left-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
+        if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+}
 
 // Transient Undo Toast Notification
 function showUndoToast(msg) {
