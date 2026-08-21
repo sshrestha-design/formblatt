@@ -473,9 +473,16 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
             for (let i = 0; i < uniqueLines.length; i++) {
                 if (!usedIndices.has(i)) {
                     const l = uniqueLines[i];
-
-                    // Find static text label sitting on or directly left of this line
                     const lineMidY = l.y;
+
+                    // Skip decorative section divider lines sitting under section headings (e.g. "JOB", "CONTRACT", "LOCATION")
+                    const isHeadingLine = rawBlocks.some(tb => {
+                        const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 20 || (tb.y <= l.y && (l.y - tb.y) <= 32);
+                        const isNearX = tb.x <= (l.x + l.width * 0.8) && (tb.x + tb.width) >= (l.x - 15);
+                        return isNearY && isNearX && isHeadingLabel(tb.str);
+                    });
+                    if (isHeadingLine) continue;
+
                     const leftLabel = rawBlocks.find(tb => {
                         const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 16 || (tb.y < l.y && (l.y - tb.y) <= 25);
                         const isLeft = tb.x <= (l.x + l.width * 0.6) && (tb.x + tb.width) >= (l.x - 12);
@@ -985,10 +992,14 @@ function isOverlappingAny(field, list) {
     return list.some(existing => {
         if (field.id && existing.id && field.id === existing.id) return false;
         if ((existing.page || 1) !== (field.page || 1)) return false;
+
+        const fieldMidY = field.y + (field.height / 2);
+        const existingMidY = existing.y + (existing.height / 2);
+        const sameRow = Math.abs(fieldMidY - existingMidY) <= 12;
+
         const xOverlap = Math.max(0, Math.min(field.x + field.width, existing.x + existing.width) - Math.max(field.x, existing.x));
         const yOverlap = Math.max(0, Math.min(field.y + field.height, existing.y + existing.height) - Math.max(field.y, existing.y));
-        const overlapArea = xOverlap * yOverlap;
-        if (overlapArea <= 0) return false;
+        const overlapArea = Math.max(0, xOverlap) * Math.max(0, yOverlap);
 
         const fieldArea = field.width * field.height;
         const existingArea = existing.width * existing.height;
@@ -996,8 +1007,14 @@ function isOverlappingAny(field, list) {
         const unionArea = fieldArea + existingArea - overlapArea;
         const iou = unionArea > 0 ? (overlapArea / unionArea) : 0;
         const minRatio = minArea > 0 ? (overlapArea / minArea) : 0;
-        const nearCenter = Math.abs((field.x + field.width / 2) - (existing.x + existing.width / 2)) <= 15 && Math.abs((field.y + field.height / 2) - (existing.y + existing.height / 2)) <= 12;
+        
+        const centerDistX = Math.abs((field.x + field.width / 2) - (existing.x + existing.width / 2));
+        const centerDistY = Math.abs(fieldMidY - existingMidY);
+        const nearCenter = centerDistX <= 18 && centerDistY <= 12;
 
-        return iou > 0.25 || minRatio > 0.35 || nearCenter;
+        // Deduplicate adjacent/overlapping fields on the same row for the same label
+        const sameRowAdjacent = sameRow && (xOverlap > -20) && (centerDistX <= 85 || (field.x <= existing.x + existing.width + 18 && existing.x <= field.x + field.width + 18));
+
+        return iou > 0.20 || minRatio > 0.30 || nearCenter || sameRowAdjacent;
     });
 }
