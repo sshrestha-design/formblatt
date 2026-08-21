@@ -503,11 +503,24 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
         const tableColDefs = [
             { regex: /^item\s*(?:#|no|num)?$/i, id: "item_no", name: "item" },
             { regex: /^(?:sku|part\s*#|code)$/i, id: "sku", name: "sku" },
-            { regex: /description|particulars|details/i, id: "description", name: "description" },
-            { regex: /^(?:qty|quantity|units|hours)$/i, id: "qty", name: "quantity" },
-            { regex: /unit\s*price|price|rate|unit\s*cost/i, id: "unit_price", name: "price" },
+            { regex: /description|particulars|details|goods|services|purpose|attendees/i, id: "description", name: "description" },
+            { regex: /^(?:qty|quantity|units|hours|miles|count)$/i, id: "qty", name: "quantity" },
+            { regex: /unit\s*price|price|rate|unit\s*cost|fee|charge/i, id: "unit_price", name: "price" },
             { regex: /^taxable$/i, id: "taxable", name: "taxable" },
-            { regex: /^(?:amount|total|line\s*total|ext\s*price)$/i, id: "amount", name: "amount" }
+            { regex: /^(?:amount|total|line\s*total|ext\s*price)$/i, id: "amount", name: "amount" },
+            { regex: /category|expense\s*type/i, id: "category", name: "category" },
+            { regex: /merchant|vendor|payee|supplier/i, id: "merchant", name: "merchant" },
+            { regex: /receipt/i, id: "receipt", name: "receipt" },
+            { regex: /^date$/i, id: "date", name: "date" },
+            { regex: /school|institution|college/i, id: "school", name: "school" },
+            { regex: /degree|major|diploma/i, id: "degree", name: "degree" },
+            { regex: /graduated|graduation|year/i, id: "year", name: "year" },
+            { regex: /gpa|honors|grade/i, id: "gpa", name: "gpa" },
+            { regex: /employer|company/i, id: "employer", name: "employer" },
+            { regex: /position|job\s*title|role/i, id: "job_title", name: "job_title" },
+            { regex: /medication|drug|medicine/i, id: "medication", name: "medication" },
+            { regex: /dosage|frequency/i, id: "dosage", name: "dosage" },
+            { regex: /physician|doctor/i, id: "physician", name: "physician" }
         ];
 
         const matchedCols = [];
