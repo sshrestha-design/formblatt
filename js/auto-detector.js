@@ -666,46 +666,48 @@ function isArtifactString(str) {
 
 // ── Sanitize, Decode Subset-Font Artifacts, and Classify Label ───────
 function sanitizeAndDecodeLabel(rawLabel) {
-    if (!rawLabel || isArtifactString(rawLabel)) return null;
-    
-    const priorityShifts = [0, 29, -29, 3, -3, 1, -1, 4, -4, 2, -2];
-    const otherShifts = [];
-    for (let s = -40; s <= 40; s++) {
-        if (!priorityShifts.includes(s)) otherShifts.push(s);
-    }
-    const allShifts = [...priorityShifts, ...otherShifts];
+    if (!rawLabel) return null;
+    const cleanStr = rawLabel.trim();
+    if (!cleanStr || cleanStr.length < 2) return null;
 
-    let bestMatch = null;
-    let bestScore = -1;
-
-    for (const shift of allShifts) {
-        let res = "";
-        for (let i = 0; i < rawLabel.length; i++) {
-            const code = rawLabel.charCodeAt(i);
-            const ch = rawLabel[i];
-            if (ch === "v" && shift === 29) res += ":";
-            else if (ch === " ") res += " ";
-            else {
-                const target = code + shift;
-                if (target >= 32 && target <= 126) res += String.fromCharCode(target);
-                else res += ch;
-            }
+    // 1. First attempt direct exact match (shift = 0)
+    const exactClean = cleanStr.replace(/^\d+[\.\s\)]*/, "").replace(/[:_.\s-]+$/, "").trim();
+    for (const item of SEMANTIC_DICTIONARY) {
+        if (item.regex.test(exactClean)) {
+            return {
+                id: item.id,
+                title: item.title,
+                type: item.type || "textField",
+                multiline: item.multiline || false,
+                autofill: item.autofill || ""
+            };
         }
+    }
 
-        const clean = res.replace(/^\d+[\.\s\)]*/, "")
-                         .replace(/[:_.\s-]+$/, "")
-                         .trim();
-        if (!clean || clean.length < 2) continue;
+    // 2. Only attempt subset-font Caesar cipher decoding if the string is a genuine subset-font artifact
+    if (isArtifactString(cleanStr)) {
+        const priorityShifts = [29, -29, 3, -3, 1, -1];
+        for (const shift of priorityShifts) {
+            let res = "";
+            for (let i = 0; i < cleanStr.length; i++) {
+                const code = cleanStr.charCodeAt(i);
+                const ch = cleanStr[i];
+                if (ch === "v" && shift === 29) res += ":";
+                else if (ch === " ") res += " ";
+                else {
+                    const target = code + shift;
+                    if (target >= 32 && target <= 126) res += String.fromCharCode(target);
+                    else res += ch;
+                }
+            }
 
-        for (const item of SEMANTIC_DICTIONARY) {
-            if (item.regex.test(clean)) {
-                // NEVER allow a Caesar cipher shift match to convert a field to checkBox (e.g. "Ao" shifted +13 to "No")
+            const clean = res.replace(/^\d+[\.\s\)]*/, "").replace(/[:_.\s-]+$/, "").trim();
+            if (!clean || clean.length < 2 || isArtifactString(clean)) continue;
+
+            for (const item of SEMANTIC_DICTIONARY) {
                 if (shift !== 0 && item.type === "checkBox") continue;
-
-                const score = item.score || 10;
-                if (score > bestScore) {
-                    bestScore = score;
-                    bestMatch = {
+                if (item.regex.test(clean)) {
+                    return {
                         id: item.id,
                         title: item.title,
                         type: item.type || "textField",
@@ -717,33 +719,14 @@ function sanitizeAndDecodeLabel(rawLabel) {
         }
     }
 
-    if (bestMatch) return bestMatch;
-
-    // Direct words fallback
-    for (const shift of priorityShifts) {
-        let res = "";
-        for (let i = 0; i < rawLabel.length; i++) {
-            const code = rawLabel.charCodeAt(i);
-            const ch = rawLabel[i];
-            if (ch === "v" && shift === 29) res += ":";
-            else if (ch === " ") res += " ";
-            else {
-                const target = code + shift;
-                if (target >= 32 && target <= 126) res += String.fromCharCode(target);
-                else res += ch;
-            }
-        }
-        const clean = res.replace(/^\d+[\.\s\)]*/, "").replace(/[:_.\s-]+$/, "").trim();
-        if (!clean || clean.length < 2 || isArtifactString(clean)) continue;
-
-        const words = clean.split(/\s+/).filter(w => /^[a-zA-Z0-9\/\-\(\)]+$/.test(w));
-        if (words.length >= 1 && words.length <= 6) {
-            const cleanWords = words.map(w => w.replace(/[^a-zA-Z0-9]/g, "")).filter(w => w.length > 0);
-            if (cleanWords.length > 0) {
-                const cleanId = cleanWords.join("_").toLowerCase() + "_input";
-                const title = cleanWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-                return { id: cleanId, title: title, type: "textField" };
-            }
+    // Direct words fallback for unmatched plain labels
+    const words = exactClean.split(/\s+/).filter(w => /^[a-zA-Z0-9\/\-\(\)]+$/.test(w));
+    if (words.length >= 1 && words.length <= 6) {
+        const cleanWords = words.map(w => w.replace(/[^a-zA-Z0-9]/g, "")).filter(w => w.length > 0);
+        if (cleanWords.length > 0) {
+            const cleanId = cleanWords.join("_").toLowerCase() + "_input";
+            const title = cleanWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+            return { id: cleanId, title: title, type: "textField" };
         }
     }
 
@@ -961,8 +944,8 @@ function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
     const headerBlocks = rawBlocks.filter(tb => {
         const text = (tb.str || "").trim();
         const isHeaderWord = /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
-        const isAboveTable = tb.y < minTableY && (minTableY - tb.y) <= 120;
-        return isHeaderWord && isAboveTable;
+        const isNearHeaderBand = (minTableY - tb.y) <= 120 && (tb.y - minTableY) <= 25;
+        return isHeaderWord && isNearHeaderBand;
     }).sort((a, b) => a.x - b.x);
 
     // Build column bands from either detected vector fields OR printed header text
@@ -1045,18 +1028,23 @@ function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
 // ── Check if bounding box overlaps any printed text on the page ──────
 function overlapsAnyText(box, rawBlocks) {
     return rawBlocks.some(tb => {
+        // Underlines ("_____") or dashes ("-----") are valid input line graphic indicators
         if (/^[_.\s-]+$/.test(tb.str)) return false;
 
         const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
         const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
         const overlapArea = xOverlap * yOverlap;
+
+        if (overlapArea <= 0) return false;
+
+        const boxArea = box.width * box.height;
         const tbArea = tb.width * tb.height;
 
-        // Discard any box that sits on top of large header titles ("Invoice", "Tax Form", "Statement")
-        const isHeaderTitle = (tb.height >= 15) || /invoice|factura|statement|receipt|w-?9|tax|balance\s*due/i.test(tb.str);
-        if (isHeaderTitle && overlapArea > 0) return true;
+        // Discard any candidate box that overlaps printed prompt text (e.g. "Payment Terms:", "Notes:", "Invoice")
+        const minArea = Math.min(boxArea, tbArea);
+        const overlapRatio = minArea > 0 ? (overlapArea / minArea) : 0;
 
-        return tbArea > 0 && (overlapArea / tbArea) > 0.08;
+        return overlapRatio > 0.15;
     });
 }
 
