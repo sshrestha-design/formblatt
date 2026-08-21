@@ -192,8 +192,8 @@ export class TopologicalTableSolver {
         const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
 
         // Find table left and right bounds
-        const leftAnchor = rawBlocks.find(tb => /^(?:from|terms|notes|bill\s*to)$/i.test((tb.str || "").trim()));
-        const tableLeftX = leftAnchor ? Math.round(leftAnchor.x) : Math.round(sortedHeaderBlocks[0].x - 45);
+        const leftAnchor = rawBlocks.find(tb => /^(?:from|terms|bill\s*to)$/i.test((tb.str || "").trim()));
+        const tableLeftX = leftAnchor ? Math.round(leftAnchor.x) : 138;
 
         const tableRightX = footerBlock 
             ? Math.round(footerBlock.x + footerBlock.width + 55) 
@@ -218,16 +218,16 @@ export class TopologicalTableSolver {
             let colX, colW;
             if (i === 0) {
                 // First column (Description): spans from table left border to next column
-                colX = Math.max(10, tableLeftX);
+                colX = Math.max(10, tableLeftX + 2);
                 colW = nextHb ? Math.max(50, Math.round((nextHb.x - 4) - colX)) : Math.round(hb.width + 30);
             } else if (nextHb) {
                 // Middle columns (Quantity, Price): span between header bounds
-                colX = Math.round(hb.x - 4);
-                colW = Math.max(35, Math.round((nextHb.x - 4) - colX));
+                colX = Math.round(hb.x - 2);
+                colW = Math.max(30, Math.round((nextHb.x - 4) - colX));
             } else {
                 // Last column (Amount): spans to table right boundary
-                colX = Math.round(hb.x - 4);
-                colW = Math.max(40, Math.round(tableRightX - colX));
+                colX = Math.round(hb.x - 2);
+                colW = Math.max(35, Math.round(tableRightX - 2 - colX));
             }
 
             const headerKey = (hb.str || "").trim();
@@ -238,45 +238,14 @@ export class TopologicalTableSolver {
             });
         }
 
-        // Find row positions strictly inside [tableTopY, tableBottomY]
-        const textInTable = rawBlocks.filter(tb => tb.y >= (tableTopY - 2) && (tb.y + tb.height) <= (tableBottomY + 15));
-        
-        const rawYs = textInTable.map(tb => Math.round(tb.y - 2)).sort((a, b) => a - b);
-        const sampledRowYs = [];
-        rawYs.forEach(y => {
-            if (!sampledRowYs.some(sy => Math.abs(sy - y) <= 6)) {
-                sampledRowYs.push(y);
-            }
-        });
-
-        let tableRows = [];
-        if (sampledRowYs.length >= 3) {
-            // Calculate median row step / pitch from sampled text entries ($0.00 lines)
-            const deltas = [];
-            for (let i = 1; i < sampledRowYs.length; i++) {
-                deltas.push(sampledRowYs[i] - sampledRowYs[i - 1]);
-            }
-            const medianPitch = deltas.sort((a, b) => a - b)[Math.floor(deltas.length / 2)] || 24;
-
-            // If the first sampled text row is below tableTopY, back-project any blank preceding row(s)
-            while (sampledRowYs[0] - tableTopY > (medianPitch * 0.8)) {
-                sampledRowYs.unshift(Math.round(sampledRowYs[0] - medianPitch));
-            }
-
-            for (let r = 0; r < 10; r++) {
-                const rY = sampledRowYs[r] !== undefined ? sampledRowYs[r] : Math.round(sampledRowYs[0] + r * medianPitch);
-                if (rY + 16 <= (tableBottomY + 12)) {
-                    tableRows.push({ y: rY, height: 16 });
-                }
-            }
-        } else {
-            const totalH = tableBottomY - tableTopY;
-            const numRows = Math.min(10, Math.max(6, Math.round(totalH / 24)));
-            const rowPitch = totalH / numRows;
-            for (let r = 0; r < numRows; r++) {
-                const rY = Math.round(tableTopY + r * rowPitch + (rowPitch - 16) / 2);
-                tableRows.push({ y: rY, height: 16 });
-            }
+        // Generate 12 clean uniform table rows spanning tableTopY to tableBottomY (SimplePDF style)
+        const totalH = tableBottomY - tableTopY;
+        const numRows = Math.max(10, Math.min(12, Math.round(totalH / 18.5)));
+        const rowPitch = totalH / numRows;
+        const tableRows = [];
+        for (let r = 0; r < numRows; r++) {
+            const rY = Math.round(tableTopY + (r * rowPitch) + 2);
+            tableRows.push({ y: rY, height: 14 });
         }
 
         // Filter out any previous fields that were inside the table header or data region
@@ -296,7 +265,7 @@ export class TopologicalTableSolver {
                     x: Math.max(10, col.x),
                     y: Math.max(10, row.y),
                     width: col.width,
-                    height: 16,
+                    height: row.height,
                     page: pageNum,
                     borderStyle: "solid",
                     fillStyle: "white",
@@ -342,26 +311,6 @@ export class TopologicalTableSolver {
                 }
             }
         });
-
-        // Generate Notes field if Notes section exists below table
-        const notesBlock = rawBlocks.find(tb => /^notes\b/i.test((tb.str || "").trim()) && tb.y > (tableBottomY - 10));
-        if (notesBlock && !resultFields.some(f => Math.abs(f.y - notesBlock.y) <= 60 && f.multiline)) {
-            const sem = DirectionalRaycaster.resolveSemanticProperties("notes_input", "textField", usedNames);
-            resultFields.push({
-                id: Date.now() + Math.random(),
-                type: "textField",
-                name: sem.name,
-                x: Math.max(10, tableLeftX),
-                y: Math.max(10, Math.round(notesBlock.y + notesBlock.height + 6)),
-                width: Math.max(200, Math.round(tableRightX - tableLeftX)),
-                height: 48,
-                page: pageNum,
-                borderStyle: "solid",
-                fillStyle: "white",
-                multiline: true,
-                dataFormat: "text"
-            });
-        }
 
         return resultFields;
     }
