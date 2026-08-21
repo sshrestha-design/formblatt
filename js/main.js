@@ -309,20 +309,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             statusPill = document.getElementById("scanStatusText");
         }
 
-        const t1 = setTimeout(() => {
-            if (statusPill) statusPill.textContent = "Scanning static text baselines & labels...";
-        }, 300);
-
-        const t2 = setTimeout(() => {
-            if (statusPill) statusPill.textContent = "Synthesizing interactive AcroForm fields...";
-        }, 600);
-
         try {
-            const count = await autoDetectFields("current");
+            // Stage 1: Vector layout & table grid
+            await new Promise(r => setTimeout(r, 240));
+            if (statusPill) statusPill.textContent = "Scanning static text baselines & labels...";
 
-            clearTimeout(t1);
-            clearTimeout(t2);
-            if (scanHud) scanHud.remove();
+            // Stage 2: Execute actual field auto-detection
+            const countPromise = autoDetectFields("current");
+            await new Promise(r => setTimeout(r, 260));
+            if (statusPill) statusPill.textContent = "Synthesizing interactive AcroForm fields...";
+            
+            const count = await countPromise;
+            await new Promise(r => setTimeout(r, 220));
+
+            if (scanHud) {
+                scanHud.style.opacity = "0";
+                scanHud.style.transition = "opacity 0.2s ease";
+                setTimeout(() => scanHud.remove(), 200);
+            }
 
             if (count > 0) {
                 refreshUI();
@@ -332,7 +336,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (overlayContainer) {
                     overlayContainer.querySelectorAll(".field-overlay").forEach((el, idx) => {
                         el.classList.add("field-spawned");
-                        el.style.animationDelay = `${idx * 30}ms`;
+                        el.style.animationDelay = `${idx * 25}ms`;
                     });
                 }
 
@@ -344,8 +348,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 showNoticeToast("No new form fields detected on this page");
             }
         } catch(err) {
-            clearTimeout(t1);
-            clearTimeout(t2);
             if (scanHud) scanHud.remove();
             console.error("Auto detect failed:", err);
             alert("Auto-detect failed: " + err.message);
