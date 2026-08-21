@@ -10,7 +10,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /invoice\s*date|issue\s*date|claim.*start|start\s*date|date\s*of\s*service/i, id: "date_of_service", type: "dateField" },
     { regex: /claim.*end|end\s*date/i, id: "claim_period_end_date", type: "dateField" },
     { regex: /date\s*approved|approval\s*date/i, id: "date_approved", type: "dateField" },
-    { regex: /date|dob|birth\s*date|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|yyyy\s*-\s*mm\s*-\s*dd/i, id: "date", type: "dateField", defaultValue: "YYYY-MM-DD" },
+    { regex: /date|dob|birth\s*date|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|yyyy\s*-\s*mm\s*-\s*dd/i, id: "date", type: "dateField" },
     
     // Signatures
     { regex: /employee.*signature|applicant.*signature|cardholder.*signature|witness.*signature|^signature\b|sign\s*here/i, id: "signature", type: "signature" },
@@ -61,7 +61,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /zip|postal/i, id: "zip_code", type: "textField", autofill: "zip" },
     { regex: /country/i, id: "country", type: "textField", autofill: "country" },
     { regex: /credit\s*card\s*number|card\s*number/i, id: "credit_card_number", type: "textField", autofill: "cc-number" },
-    { regex: /expiration\s*date|exp\s*date|mm\s*\/\s*yy/i, id: "expiration_date", type: "dateField", defaultValue: "MM/YY" },
+    { regex: /expiration\s*date|exp\s*date|mm\s*\/\s*yy/i, id: "expiration_date", type: "dateField" },
     { regex: /cvv|cvc/i, id: "cvv", type: "textField", autofill: "cc-csc" },
     { regex: /comments|notes|remarks|responsibilities|duties/i, id: "comments", type: "textField", multiline: true }
 ];
@@ -95,7 +95,7 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
             baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "option";
         } else if (type === "dateField") {
             baseId = "date";
-            defaultValue = "YYYY-MM-DD";
+            defaultValue = "";
         } else {
             const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
             baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "field";
@@ -252,11 +252,15 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             const item = line.items[wIdx];
             const str = item.str.trim();
 
-            const isOpen = str === "(" || str === "[" || str === "☐" || str === "□" || str === "✓" || str === "✔" || str === "○" || str === "●" || str === "■";
+            const isDiscreteSymbol = str === "☐" || str === "□" || str === "✓" || str === "✔" || str === "○" || str === "●" || str === "■";
+            const isBracketPair = (str === "[" && wIdx + 1 < line.items.length && line.items[wIdx + 1].str === "]") || /^\[\s*\]$/.test(str);
+            const isParenPair = (str === "(" && wIdx + 1 < line.items.length && line.items[wIdx + 1].str === ")") || /^\(\s*\)$/.test(str);
+
+            const isOpen = isDiscreteSymbol || isBracketPair || isParenPair;
             if (isOpen) {
                 const markerX = item.x;
                 const markerY = item.y;
-                const markerType = (str === "(" || str === "○" || str === "●") ? "radioGroup" : "checkBox";
+                const markerType = (str === "(" || str === "○" || str === "●" || isParenPair) ? "radioGroup" : "checkBox";
 
                 // Check for closing pair
                 if (wIdx + 1 < line.items.length && (line.items[wIdx + 1].str === ")" || line.items[wIdx + 1].str === "]")) {
@@ -395,6 +399,18 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
 
             const targetW = Math.max(35, Math.min(preferredW, availableW));
 
+            // Strict vertical collision avoidance: clamp targetH against text blocks below
+            let maxAllowedY = pageHeight - 25;
+            for (const tb of rawBlocks) {
+                if (tb.y > targetY + 4) {
+                    const hOverlap = Math.max(0, Math.min(targetX + targetW, tb.x + tb.width) - Math.max(targetX, tb.x));
+                    if (hOverlap > 8) {
+                        maxAllowedY = Math.min(maxAllowedY, tb.y);
+                    }
+                }
+            }
+            targetH = Math.max(16, Math.min(targetH, maxAllowedY - targetY - 2));
+
             const newField = {
                 id: generateFieldId(),
                 type: fieldType,
@@ -402,7 +418,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 x: Math.max(10, targetX),
                 y: targetY,
                 width: Math.round(targetW),
-                height: targetH,
+                height: Math.round(targetH),
                 page: pageNum,
                 borderStyle: "solid",
                 fillStyle: "white",
