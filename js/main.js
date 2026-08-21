@@ -76,6 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             state.activeTool = btn.dataset.tool;
+            document.body.classList.toggle("tool-hand", state.activeTool === "hand");
 
             const stamp = document.getElementById("floatingToolStamp");
             if (state.activeTool !== "select" && state.activeTool !== "hand") {

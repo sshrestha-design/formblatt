@@ -378,6 +378,25 @@ export function initCanvasController(handlers) {
         }
     });
 
+    // CenterCanvas Background MouseDown (supports dragging from canvas padding & margins)
+    centerCanvas?.addEventListener("mousedown", e => {
+        if (e.button === 2) return; // Right-click handled by contextmenu
+
+        if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
+            e.preventDefault();
+            startPanning(e);
+            return;
+        }
+
+        // Deselect if clicking on empty gray background outside document
+        if (e.target === centerCanvas) {
+            if (!e.shiftKey) {
+                setSelectedField(null);
+                handlers.onSelectionChange();
+            }
+        }
+    });
+
     // Canvas Background MouseDown
     container?.addEventListener("mousedown", e => {
         if (e.button === 2) {
@@ -385,13 +404,14 @@ export function initCanvasController(handlers) {
             return;
         }
 
-        if (e.target !== container && e.target !== document.getElementById("pdfCanvas") && e.target !== document.getElementById("overlayContainer")) {
+        // Hand tool panning (or middle click / space+drag)
+        if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
+            e.preventDefault();
+            startPanning(e);
             return;
         }
 
-        // Hand tool panning (or middle click / space+drag)
-        if (state.activeTool === "hand" || e.button === 1 || e.spaceKey) {
-            startPanning(e);
+        if (e.target !== container && e.target !== document.getElementById("pdfCanvas") && e.target !== document.getElementById("overlayContainer")) {
             return;
         }
 
@@ -431,7 +451,7 @@ export function initCanvasController(handlers) {
     });
 
     window.addEventListener("mouseup", () => {
-        if (state.isPanning) state.isPanning = false;
+        if (state.isPanning) stopPanning();
         if (state.isDragging) {
             state.isDragging = false;
             hideGuides();
@@ -450,10 +470,31 @@ export function initCanvasController(handlers) {
         }
     });
 
+    // Spacebar temporary pan listener
+    window.addEventListener("keydown", e => {
+        const tag = (e.target?.tagName || "").toLowerCase();
+        if (tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable) return;
+        if (e.code === "Space" && !isSpacePressed) {
+            isSpacePressed = true;
+            document.body.classList.add("is-space-panning");
+        }
+    });
+
+    window.addEventListener("keyup", e => {
+        if (e.code === "Space") {
+            isSpacePressed = false;
+            document.body.classList.remove("is-space-panning");
+            if (state.isPanning && state.activeTool !== "hand") {
+                stopPanning();
+            }
+        }
+    });
+
     // Initialize Canvas Context Menu
     initContextMenu(handlers);
 }
 
+let isSpacePressed = false;
 let lastFieldClickTime = 0;
 let lastFieldClickId = null;
 
@@ -467,7 +508,15 @@ export function handleFieldMouseDown(e, field, handlers) {
         return;
     }
 
-    if (state.activeTool !== "select" && state.activeTool !== "hand") {
+    // If Hand tool or spacebar pan is active, initiate pan across field overlays
+    if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
+        e.preventDefault();
+        e.stopPropagation();
+        startPanning(e);
+        return;
+    }
+
+    if (state.activeTool !== "select") {
         // User clicked with a creation tool active on top of an existing overlay
         const container = document.getElementById("canvasContainer");
         if (container) {
@@ -483,7 +532,6 @@ export function handleFieldMouseDown(e, field, handlers) {
 
     e.preventDefault();
     e.stopPropagation();
-    if (state.activeTool === "hand") return;
 
     const now = Date.now();
     const isDoubleClick = (lastFieldClickId === field.id && (now - lastFieldClickTime) < 400);
@@ -623,6 +671,14 @@ function hideGuides() {
 function startPanning(e) {
     state.isPanning = true;
     state.panStart = { x: e.clientX, y: e.clientY };
+    document.body.classList.add("is-panning");
+}
+
+function stopPanning() {
+    if (state.isPanning) {
+        state.isPanning = false;
+        document.body.classList.remove("is-panning");
+    }
 }
 
 function handlePanning(e, centerCanvas) {
