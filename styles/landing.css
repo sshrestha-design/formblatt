@@ -1370,3 +1370,93 @@
         box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
     }
 }
+
+/* ── Industry & Profession Showcase Grid ──────────────────────────── */
+.profession-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+}
+
+.profession-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.profession-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e1;
+}
+
+.profession-icon-badge {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+}
+
+.profession-card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.3px;
+}
+
+.profession-card p {
+    font-size: 13.5px;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0 0 16px 0;
+    flex-grow: 1;
+}
+
+.profession-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.profession-tags span {
+    font-size: 11.5px;
+    font-weight: 600;
+    background: #f1f5f9;
+    color: #334155;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+}
+
+.profession-btn {
+    width: 100%;
+    background: #ffffff;
+    color: #2563eb;
+    border: 1.5px solid #bfdbfe;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+}
+
+.profession-btn:hover {
+    background: #eff6ff;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+}
