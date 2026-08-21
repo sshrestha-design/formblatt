@@ -262,7 +262,6 @@ export function initLandingController(onLoaded) {
     document.getElementById("footerPdfUpload")?.addEventListener("change", handleUploadInput);
     document.getElementById("pdfUploadMenu")?.addEventListener("change", handleUploadInput);
     document.getElementById("emptyStateUpload")?.addEventListener("change", handleUploadInput);
-    document.getElementById("editorUploadInput")?.addEventListener("change", handleUploadInput);
 
     // Interactive Dropzone with Drag & Drop Visual State Feedback
     const heroDropzone = document.getElementById("heroDropzone");
