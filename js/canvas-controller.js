@@ -378,15 +378,10 @@ export function initCanvasController(handlers) {
         }
     });
 
-    let rightClickStart = null;
-    let hasRightDragged = false;
-
     // Canvas Background MouseDown
     container?.addEventListener("mousedown", e => {
         if (e.button === 2) {
-            // Track right-click drag for smooth canvas panning
-            rightClickStart = { x: e.clientX, y: e.clientY, panX: state.panOffset.x, panY: state.panOffset.y };
-            hasRightDragged = false;
+            // Right click: do nothing on mousedown, contextmenu event handles opening the menu
             return;
         }
 
@@ -394,7 +389,7 @@ export function initCanvasController(handlers) {
             return;
         }
 
-        // Hand tool panning
+        // Hand tool panning (or middle click / space+drag)
         if (state.activeTool === "hand" || e.button === 1 || e.spaceKey) {
             startPanning(e);
             return;
@@ -422,19 +417,6 @@ export function initCanvasController(handlers) {
 
     // Global Mouse Move & Up
     window.addEventListener("mousemove", e => {
-        if (rightClickStart) {
-            const rdx = e.clientX - rightClickStart.x;
-            const rdy = e.clientY - rightClickStart.y;
-            if (Math.abs(rdx) > 10 || Math.abs(rdy) > 10) {
-                hasRightDragged = true;
-                state.panOffset.x = rightClickStart.panX + rdx;
-                state.panOffset.y = rightClickStart.panY + rdy;
-                if (centerCanvas) {
-                    centerCanvas.style.transform = `translate(${state.panOffset.x}px, ${state.panOffset.y}px)`;
-                }
-            }
-        }
-
         if (state.isPanning) {
             handlePanning(e, centerCanvas);
         } else if (state.isDragging) {
@@ -449,7 +431,6 @@ export function initCanvasController(handlers) {
     });
 
     window.addEventListener("mouseup", () => {
-        rightClickStart = null;
         if (state.isPanning) state.isPanning = false;
         if (state.isDragging) {
             state.isDragging = false;
@@ -477,6 +458,15 @@ let lastFieldClickTime = 0;
 let lastFieldClickId = null;
 
 export function handleFieldMouseDown(e, field, handlers) {
+    if (e.button === 2) {
+        // Right-click on field: select it if not already selected, do NOT initiate drag
+        if (!state.selectedFieldIds.has(field.id) && !state.selectedFieldIds.has(String(field.id)) && !state.selectedFieldIds.has(Number(field.id))) {
+            setSelectedField(field.id);
+            handlers.onSelectionChange();
+        }
+        return;
+    }
+
     if (state.activeTool !== "select" && state.activeTool !== "hand") {
         // User clicked with a creation tool active on top of an existing overlay
         const container = document.getElementById("canvasContainer");
@@ -699,23 +689,33 @@ export function initContextMenu(handlers) {
 
     if (!menuEl) return;
 
+    let menuJustOpenedAt = 0;
+
     const hideContextMenu = () => {
+        if (Date.now() - menuJustOpenedAt < 150) return;
         menuEl.style.display = "none";
     };
 
-    document.addEventListener("click", e => {
-        if (!menuEl.contains(e.target)) hideContextMenu();
+    document.addEventListener("pointerdown", e => {
+        if (e.button === 2) return; // Right-click should not close the menu
+        if (menuEl.contains(e.target)) return;
+        hideContextMenu();
     });
-    document.addEventListener("scroll", hideContextMenu, true);
-    window.addEventListener("resize", hideContextMenu);
+    document.addEventListener("click", e => {
+        if (menuEl.contains(e.target)) return;
+        hideContextMenu();
+    });
+    window.addEventListener("resize", () => {
+        menuEl.style.display = "none";
+    });
     window.addEventListener("keydown", e => {
-        if (e.key === "Escape") hideContextMenu();
+        if (e.key === "Escape") menuEl.style.display = "none";
     });
 
     menuEl.querySelectorAll(".ctx-item").forEach(item => {
         item.addEventListener("click", e => {
             e.stopPropagation();
-            hideContextMenu();
+            menuEl.style.display = "none";
             const action = item.dataset.action;
 
             if (action.startsWith("add-")) {
@@ -816,23 +816,22 @@ export function initContextMenu(handlers) {
         });
     });
 
-    const centerCanvas = document.querySelector(".center-canvas");
-    const container = document.getElementById("canvasContainer");
-
-    const handleContextMenuEvent = e => {
+    window.addEventListener("contextmenu", e => {
         // Guard: Only enable when editor screen is active
         const editorScreen = document.getElementById("appEditorScreen");
         if (!editorScreen || editorScreen.style.display === "none") return;
 
-        // If user was right-drag panning the canvas, do not open context menu
-        if (hasRightDragged) {
-            hasRightDragged = false;
-            e.preventDefault();
+        // Allow browser menu on form inputs / textareas / modals / sidebars / landing page
+        if (e.target.closest("input, textarea, select, .right-panel, .left-panel, .landing-page, .modal")) {
             return;
         }
 
         e.preventDefault();
+        e.stopPropagation();
 
+        menuJustOpenedAt = Date.now();
+
+        const container = document.getElementById("canvasContainer");
         if (container) {
             const rect = container.getBoundingClientRect();
             lastRightClickPos = {
@@ -885,10 +884,5 @@ export function initContextMenu(handlers) {
 
         menuEl.style.left = `${posX}px`;
         menuEl.style.top = `${posY}px`;
-    };
-
-    centerCanvas?.addEventListener("contextmenu", handleContextMenuEvent);
-    if (!centerCanvas && container) {
-        container.addEventListener("contextmenu", handleContextMenuEvent);
-    }
+    });
 }

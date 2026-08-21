@@ -4,7 +4,7 @@ import { state } from "./state.js";
 export async function buildPdf(options = {}) {
     if (!state.originalPdfBytes) throw new Error("No PDF loaded.");
 
-    const { PDFDocument, StandardFonts, rgb, PDFName, PDFBool, PDFString } = PDFLib;
+    const { PDFDocument, StandardFonts, rgb } = PDFLib;
     // Load fresh slice of bytes
     const doc = await PDFDocument.load(state.originalPdfBytes.slice(), { ignoreEncryption: true });
     const form = doc.getForm();
@@ -17,32 +17,6 @@ export async function buildPdf(options = {}) {
     const times = await doc.embedFont(StandardFonts.TimesRoman);
     const timesItalic = await doc.embedFont(StandardFonts.TimesRomanItalic);
     const courier = await doc.embedFont(StandardFonts.Courier);
-
-    // Register Default Resources (/DR) and NeedAppearances on AcroForm
-    let acroForm, dr, fontsDict;
-    try {
-        acroForm = doc.catalog.getOrCreateAcroForm();
-        acroForm.set(PDFName.of("NeedAppearances"), PDFBool.True);
-
-        dr = acroForm.getOrCreateDefaultResources();
-        fontsDict = dr.lookup(PDFName.of("Font"));
-        if (!fontsDict) {
-            fontsDict = doc.context.obj({});
-            dr.set(PDFName.of("Font"), fontsDict);
-        }
-        // Register all common font aliases with exact standard PDF postscript names
-        fontsDict.set(PDFName.of("Helvetica"), helvetica.ref);
-        fontsDict.set(PDFName.of("Helv"), helvetica.ref);
-        fontsDict.set(PDFName.of("Helvetica-Bold"), helveticaBold.ref);
-        fontsDict.set(PDFName.of("Helv-Bold"), helveticaBold.ref);
-        fontsDict.set(PDFName.of("Times-Roman"), times.ref);
-        fontsDict.set(PDFName.of("Times"), times.ref);
-        fontsDict.set(PDFName.of("Times-Italic"), timesItalic.ref);
-        fontsDict.set(PDFName.of("Courier"), courier.ref);
-        fontsDict.set(PDFName.of("Cour"), courier.ref);
-    } catch (naErr) {
-        console.warn("AcroForm setup:", naErr);
-    }
 
     for (let f of state.fields) {
         const pageIdx = (f.page || 1) - 1;
@@ -108,26 +82,12 @@ export async function buildPdf(options = {}) {
                 }
                 try { tf.setToolTip(autoFillTooltip || f.name.replace(/_/g, " ")); } catch(e) {}
 
-                // Always add to page first
-                tf.addToPage(page, common);
-
                 // Select font & font size
                 let font = helvetica;
-                let fontRefName = "Helvetica";
-
-                if (f.fontFamily === "times") {
-                    font = times;
-                    fontRefName = "Times-Roman";
-                } else if (f.fontFamily === "courier") {
-                    font = courier;
-                    fontRefName = "Courier";
-                } else if (f.fontFamily === "helvetica-bold") {
-                    font = helveticaBold;
-                    fontRefName = "Helvetica-Bold";
-                } else if (f.fontFamily === "times-italic") {
-                    font = timesItalic;
-                    fontRefName = "Times-Italic";
-                }
+                if (f.fontFamily === "times") font = times;
+                else if (f.fontFamily === "courier") font = courier;
+                else if (f.fontFamily === "helvetica-bold") font = helveticaBold;
+                else if (f.fontFamily === "times-italic") font = timesItalic;
 
                 const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 11;
                 try { tf.setFontSize(fontSize); } catch(e) {}
@@ -145,19 +105,9 @@ export async function buildPdf(options = {}) {
                     try { tf.setText(String(f.defaultValue)); } catch(e) {}
                 }
 
-                // Compile vector appearance stream using the chosen font
+                // Add to page and compile vector appearance
+                tf.addToPage(page, common);
                 try { tf.updateAppearances(font); } catch(e) {}
-
-                // Enforce exact /DA and /DR on both field and widget annotations LAST
-                try {
-                    const daStr = `/${fontRefName} ${fontSize} Tf 0 g`;
-                    tf.acroField.dict.set(PDFName.of("DA"), PDFString.of(daStr));
-                    const widgets = tf.acroField.getWidgets();
-                    widgets.forEach(w => {
-                        w.dict.set(PDFName.of("DA"), PDFString.of(daStr));
-                        if (dr) w.dict.set(PDFName.of("DR"), dr);
-                    });
-                } catch(daErr) {}
 
             } else if (f.type === "checkBox") {
                 let cb;
@@ -178,27 +128,16 @@ export async function buildPdf(options = {}) {
                 try { if (f.required) dd.enableRequired(); } catch(e) {}
                 try { if (f.tooltip) dd.setToolTip(f.tooltip); } catch(e) {}
                 
-                dd.addToPage(page, common);
-
                 let font = helvetica;
-                let fontRefName = "Helvetica";
-
-                if (f.fontFamily === "times") {
-                    font = times;
-                    fontRefName = "Times-Roman";
-                } else if (f.fontFamily === "courier") {
-                    font = courier;
-                    fontRefName = "Courier";
-                } else if (f.fontFamily === "helvetica-bold") {
-                    font = helveticaBold;
-                    fontRefName = "Helvetica-Bold";
-                } else if (f.fontFamily === "times-italic") {
-                    font = timesItalic;
-                    fontRefName = "Times-Italic";
-                }
+                if (f.fontFamily === "times") font = times;
+                else if (f.fontFamily === "courier") font = courier;
+                else if (f.fontFamily === "helvetica-bold") font = helveticaBold;
+                else if (f.fontFamily === "times-italic") font = timesItalic;
                 
                 const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 11;
                 try { dd.setFontSize(fontSize); } catch(e) {}
+
+                dd.addToPage(page, common);
 
                 try {
                     if (f.defaultValue && opts.includes(f.defaultValue)) dd.select(f.defaultValue);
@@ -206,17 +145,6 @@ export async function buildPdf(options = {}) {
                 } catch(e) {}
 
                 try { dd.updateAppearances(font); } catch(e) {}
-
-                // Enforce exact /DA and /DR on dropdown and widgets LAST
-                try {
-                    const daStr = `/${fontRefName} ${fontSize} Tf 0 g`;
-                    dd.acroField.dict.set(PDFName.of("DA"), PDFString.of(daStr));
-                    const widgets = dd.acroField.getWidgets();
-                    widgets.forEach(w => {
-                        w.dict.set(PDFName.of("DA"), PDFString.of(daStr));
-                        if (dr) w.dict.set(PDFName.of("DR"), dr);
-                    });
-                } catch(daErr) {}
 
             } else if (f.type === "radioGroup") {
                 let rg;
@@ -276,6 +204,7 @@ export async function buildPdf(options = {}) {
                         height: Math.max(20, f.height - 10),
                         backgroundColor: undefined
                     });
+                    try { tf.updateAppearances(helvetica); } catch(e) {}
                 }
             }
         } catch(fieldErr) {
@@ -291,8 +220,7 @@ export async function buildPdf(options = {}) {
         }
     }
 
-    // Save with updateFieldAppearances: false so pdf-lib preserves our vector appearances
-    return await doc.save({ updateFieldAppearances: false });
+    return await doc.save();
 }
 
 export async function downloadAcroForm() {
