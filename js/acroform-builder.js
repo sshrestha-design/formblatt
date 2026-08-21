@@ -24,6 +24,9 @@ export async function buildPdf(options = {}) {
         const pageHeight = page.getHeight();
         
         let nm = (f.name || `field_${f.id}`).trim().replace(/[^a-zA-Z0-9_-]/g, "_");
+        if (f.autofill && (!f.name || f.name.startsWith("field_") || f.name.startsWith("textField_") || f.name.startsWith("input_"))) {
+            nm = f.autofill;
+        }
         if (!nm || usedNames.has(nm)) {
             nm = `${nm || "field"}_${f.id}`;
         }
@@ -78,7 +81,7 @@ export async function buildPdf(options = {}) {
                         city: "City", state: "State / Province", zip: "Zip / Postal Code",
                         country: "Country", company: "Company Name", job_title: "Job Title", dob: "Date of Birth"
                     };
-                    autoFillTooltip = `${roleTitles[autofillRole] || autofillRole} (Autofill)`;
+                    autoFillTooltip = roleTitles[autofillRole] || autofillRole;
                 }
                 try { tf.setToolTip(autoFillTooltip || f.name.replace(/_/g, " ")); } catch(e) {}
 
