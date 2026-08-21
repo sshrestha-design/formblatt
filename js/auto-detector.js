@@ -1,5 +1,5 @@
 // ── Precision 4-Stage PDF Form Field Auto-Detector (js/auto-detector.js) ──
-import { state } from "./state.js";
+import { state, generateFieldId } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 
 const SEMANTIC_DICTIONARY = [
@@ -259,7 +259,7 @@ export class TopologicalTableSolver {
                 const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
 
                 const newField = {
-                    id: Date.now() + Math.random(),
+                    id: generateFieldId(),
                     type: "textField",
                     name: sem.name,
                     x: Math.max(10, col.x),
@@ -295,7 +295,7 @@ export class TopologicalTableSolver {
 
                 if (!resultFields.some(f => Math.abs(f.y - block.y) <= 12 && Math.abs(f.x - sumX) <= 30)) {
                     resultFields.push({
-                        id: Date.now() + Math.random(),
+                        id: generateFieldId(),
                         type: "textField",
                         name: sem.name,
                         x: Math.max(10, sumX),
@@ -546,7 +546,7 @@ async function extractExistingAnnotations(page, viewport, pageNum, usedNames) {
             const sem = DirectionalRaycaster.resolveSemanticProperties(rawName, type, usedNames);
 
             fields.push({
-                id: Date.now() + Math.random(),
+                id: generateFieldId(),
                 type: sem.type || type,
                 name: sem.name,
                 x: Math.max(10, canvasX),
@@ -991,7 +991,7 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
         }
 
         fused.push({
-            id: Date.now() + Math.random(),
+            id: generateFieldId(),
             type: finalType,
             name: sem.name,
             x: ve.x,
@@ -1023,7 +1023,7 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
             const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, td.type, usedNames);
 
             fused.push({
-                id: Date.now() + Math.random(),
+                id: generateFieldId(),
                 type: td.type || sem.type,
                 name: sem.name,
                 x: td.x,
