@@ -16,9 +16,11 @@ const SEMANTIC_DICTIONARY = [
     { regex: /discount/i, id: "discount_input", title: "Discount", type: "textField", score: 10 },
     { regex: /shipping|freight/i, id: "shipping_fee_input", title: "Shipping Fee", type: "textField", score: 10 },
     { regex: /total\s*amount|amount\s*due|balance\s*due|^total\b/i, id: "total_amount_input", title: "Total Amount", type: "textField", score: 12 },
-    { regex: /unit\s*price|rate|price/i, id: "unit_price_input", title: "Unit Price", type: "textField", score: 10 },
-    { regex: /qty|quantity/i, id: "quantity_input", title: "Quantity", type: "textField", score: 10 },
-    { regex: /amount|line\s*total/i, id: "line_amount_input", title: "Line Amount", type: "textField", score: 10 },
+    { regex: /item\s*description|description|item/i, id: "description_input", title: "Description", type: "textField", score: 11 },
+    { regex: /unit\s*price|rate|\bprice\b/i, id: "unit_price_input", title: "Unit Price", type: "textField", score: 11 },
+    { regex: /qty|quantity/i, id: "quantity_input", title: "Quantity", type: "textField", score: 11 },
+    { regex: /amount|line\s*total/i, id: "line_amount_input", title: "Line Amount", type: "textField", score: 11 },
+    { regex: /\btax\b|sales\s*tax/i, id: "tax_amount_input", title: "Tax", type: "textField", score: 11 },
 
     // Tax & Financial Forms (IRS W-9, W-4, 1099, Banking, Direct Deposit, Loans)
     { regex: /routing\s*n(?:o|um|umber)?|aba\s*routing|transit\s*n(?:o|um|umber)?/i, id: "routing_number_input", title: "Routing Number", type: "textField", score: 12 },
@@ -637,17 +639,26 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
 
 // ── Helper: Check if string is OCR / subset-font garbled artifact ────
 function isArtifactString(str) {
-    if (!str || str.length < 2) return true;
-    if (/^\d+(_\d+)*$/.test(str) || (str.replace(/[^0-9]/g, "").length / str.length) > 0.35) return true;
-    
-    // Subset font encoded character artifacts like "ilhogb46", "llhogb37", "abcde12"
-    if (/^[a-zA-Z]{3,}\d+$/.test(str)) return true;
+    if (!str) return true;
+    const clean = str.trim().replace(/[:_.\s-]+$/, "");
+    if (!clean || clean.length < 2) return true;
 
-    const lettersOnly = str.replace(/[^a-zA-Z]/g, "");
+    // 1. Two-letter standalone codes (e.g. "An", "Ao", "Ap", "Aq", "Qu", "Mo") that are NOT standard field abbreviations
+    if (/^[a-zA-Z]{1,2}$/.test(clean) && !/^(?:ID|PO|NO|RE|TO|US|UK)$/i.test(clean)) {
+        return true;
+    }
+
+    // 2. Pure numbers or high digit ratio
+    if (/^\d+(_\d+)*$/.test(clean) || (clean.replace(/[^0-9]/g, "").length / clean.length) > 0.35) return true;
+    
+    // 3. Subset font encoded character artifacts like "ilhogb46", "llhogb37", "abcde12"
+    if (/^[a-zA-Z]{3,}\d+$/.test(clean)) return true;
+
+    const lettersOnly = clean.replace(/[^a-zA-Z]/g, "");
     if (lettersOnly.length >= 4) {
         const vowels = lettersOnly.match(/[aeiouyAEIOUY]/g) || [];
         const vowelRatio = vowels.length / lettersOnly.length;
-        if (vowelRatio < 0.25 || /[^aeiouyAEIOUY\s]{5,}/.test(lettersOnly)) {
+        if (vowelRatio < 0.22 || /[^aeiouyAEIOUY\s]{5,}/.test(lettersOnly)) {
             return true;
         }
     }
@@ -656,7 +667,7 @@ function isArtifactString(str) {
 
 // ── Sanitize, Decode Subset-Font Artifacts, and Classify Label ───────
 function sanitizeAndDecodeLabel(rawLabel) {
-    if (!rawLabel) return null;
+    if (!rawLabel || isArtifactString(rawLabel)) return null;
     
     const priorityShifts = [0, 29, -29, 3, -3, 1, -1, 4, -4, 2, -2];
     const otherShifts = [];
@@ -689,6 +700,9 @@ function sanitizeAndDecodeLabel(rawLabel) {
 
         for (const item of SEMANTIC_DICTIONARY) {
             if (item.regex.test(clean)) {
+                // NEVER allow a Caesar cipher shift match to convert a field to checkBox (e.g. "Ao" shifted +13 to "No")
+                if (shift !== 0 && item.type === "checkBox") continue;
+
                 const score = item.score || 10;
                 if (score > bestScore) {
                     bestScore = score;
@@ -741,8 +755,22 @@ function sanitizeAndDecodeLabel(rawLabel) {
 function findNearbyLabelForBox(box, rawBlocks) {
     const boxMidY = box.y + (box.height / 2);
 
-    // 1. Text block on the same row to the left (vertical center within 14px of boxMidY)
+    // 1. Text block directly ABOVE the box (Column Headers: "Description", "Price", "QTY", "Total", "Tax")
+    const aboveBlocks = rawBlocks.filter(tb => {
+        if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
+        const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 55;
+        const isAlignedX = (tb.x + tb.width >= box.x - 20) && (tb.x <= box.x + box.width + 20);
+        return isAbove && isAlignedX;
+    }).sort((a, b) => (box.y - (a.y + a.height)) - (box.y - (b.y + b.height)));
+
+    for (let tb of aboveBlocks) {
+        const decoded = sanitizeAndDecodeLabel(tb.str);
+        if (decoded) return tb.str;
+    }
+
+    // 2. Text block on the same row to the LEFT
     const leftBlocks = rawBlocks.filter(tb => {
+        if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
         const tbMidY = tb.y + (tb.height / 2);
         const isSameRow = Math.abs(tbMidY - boxMidY) <= 14;
         const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 250;
@@ -755,43 +783,29 @@ function findNearbyLabelForBox(box, rawBlocks) {
     });
 
     for (let tb of leftBlocks) {
-        if (isHeadingLabel(tb.str)) continue;
         const decoded = sanitizeAndDecodeLabel(tb.str);
         if (decoded) return tb.str;
     }
 
     if (leftBlocks.length > 0) {
         const combined = leftBlocks.map(b => b.str).join(" ");
-        if (!isHeadingLabel(combined)) {
+        if (!isHeadingLabel(combined) && !isArtifactString(combined)) {
             const decoded = sanitizeAndDecodeLabel(combined);
             if (decoded) return combined;
         }
     }
 
-    // 2. Text block directly above the box
-    const aboveBlocks = rawBlocks.filter(tb => {
-        const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 35;
-        const isAligned = Math.abs(tb.x - box.x) <= 80 || (tb.x >= box.x && (tb.x + tb.width) <= (box.x + box.width + 30));
-        return isAbove && isAligned;
-    }).sort((a, b) => (box.y - (a.y + a.height)) - (box.y - (b.y + b.height)));
-
-    for (let tb of aboveBlocks) {
-        if (isHeadingLabel(tb.str)) continue;
-        const decoded = sanitizeAndDecodeLabel(tb.str);
-        if (decoded) return tb.str;
-    }
-
-    // 3. Fallback: closest text block within 150px
+    // 3. Fallback: closest valid text block within 150px
     let bestMatch = null;
     let minDistance = Infinity;
     for (let tb of rawBlocks) {
-        if (isHeadingLabel(tb.str)) continue;
+        if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) continue;
         const decoded = sanitizeAndDecodeLabel(tb.str);
         if (!decoded) continue;
 
         const tbMidY = tb.y + (tb.height / 2);
         const isLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 250 && Math.abs(tbMidY - boxMidY) <= 20;
-        const isAbove = Math.abs(tb.x - box.x) <= 80 && tb.y <= box.y && (box.y - (tb.y + tb.height)) <= 35;
+        const isAbove = (tb.x + tb.width >= box.x - 20) && (tb.x <= box.x + box.width + 20) && tb.y <= box.y && (box.y - (tb.y + tb.height)) <= 55;
         if (isLeft || isAbove) {
             const dist = isLeft ? (box.x - (tb.x + tb.width)) : ((box.y - (tb.y + tb.height)) * 1.5);
             if (dist < minDistance) {
@@ -829,9 +843,15 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
 
         const sem = resolveSemanticProperties(rawLabel, "textField", usedNames);
 
+        let finalType = sem.type;
+        // Non-square or wide boxes in tables (Price, QTY, Description, Total, Tax) are ALWAYS text fields!
+        if ((finalType === "checkBox" || finalType === "radioGroup") && (ve.width > 35 || ve.height > 35 || Math.abs(ve.width - ve.height) > 12)) {
+            finalType = "textField";
+        }
+
         fused.push({
             id: Date.now() + Math.random(),
-            type: sem.type,
+            type: finalType,
             name: sem.name,
             x: ve.x,
             y: ve.y,
