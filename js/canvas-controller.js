@@ -769,30 +769,39 @@ function duplicateSelectedFields() {
 
 function showGuides(x, y, activeX = null, activeY = null) {
     if (!snapPointDot) snapPointDot = document.getElementById("snapPointDot");
+    const scale = state.currentScale || 1;
 
     if (vAlignLine) {
-        if (x !== null) { vAlignLine.style.left = x + "px"; vAlignLine.style.display = "block"; }
-        else { vAlignLine.style.display = "none"; }
+        if (x !== null) {
+            vAlignLine.style.left = Math.round(x * scale) + "px";
+            vAlignLine.style.display = "block";
+        } else {
+            vAlignLine.style.display = "none";
+        }
     }
     if (hAlignLine) {
-        if (y !== null) { hAlignLine.style.top = y + "px"; hAlignLine.style.display = "block"; }
-        else { hAlignLine.style.display = "none"; }
+        if (y !== null) {
+            hAlignLine.style.top = Math.round(y * scale) + "px";
+            hAlignLine.style.display = "block";
+        } else {
+            hAlignLine.style.display = "none";
+        }
     }
 
     if (snapPointDot) {
         const posX = activeX !== null ? activeX : x;
         const posY = activeY !== null ? activeY : y;
         if (posX !== null && posY !== null) {
-            snapPointDot.style.left = posX + "px";
-            snapPointDot.style.top = posY + "px";
+            snapPointDot.style.left = Math.round(posX * scale) + "px";
+            snapPointDot.style.top = Math.round(posY * scale) + "px";
             snapPointDot.style.display = "block";
         } else if (posX !== null && y !== null) {
-            snapPointDot.style.left = posX + "px";
-            snapPointDot.style.top = y + "px";
+            snapPointDot.style.left = Math.round(posX * scale) + "px";
+            snapPointDot.style.top = Math.round(y * scale) + "px";
             snapPointDot.style.display = "block";
         } else if (x !== null && posY !== null) {
-            snapPointDot.style.left = x + "px";
-            snapPointDot.style.top = posY + "px";
+            snapPointDot.style.left = Math.round(x * scale) + "px";
+            snapPointDot.style.top = Math.round(posY * scale) + "px";
             snapPointDot.style.display = "block";
         } else {
             snapPointDot.style.display = "none";
