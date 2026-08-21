@@ -1112,28 +1112,16 @@ function isOverlappingAny(field, list) {
         if (field.id && existing.id && field.id === existing.id) return false;
         if ((existing.page || 1) !== (field.page || 1)) return false;
 
-        const fieldMidY = field.y + (field.height / 2);
-        const existingMidY = existing.y + (existing.height / 2);
-        const sameRow = Math.abs(fieldMidY - existingMidY) <= 12;
-
         const xOverlap = Math.max(0, Math.min(field.x + field.width, existing.x + existing.width) - Math.max(field.x, existing.x));
         const yOverlap = Math.max(0, Math.min(field.y + field.height, existing.y + existing.height) - Math.max(field.y, existing.y));
         const overlapArea = Math.max(0, xOverlap) * Math.max(0, yOverlap);
 
+        if (overlapArea <= 0) return false;
+
         const fieldArea = field.width * field.height;
         const existingArea = existing.width * existing.height;
         const minArea = Math.min(fieldArea, existingArea);
-        const unionArea = fieldArea + existingArea - overlapArea;
-        const iou = unionArea > 0 ? (overlapArea / unionArea) : 0;
-        const minRatio = minArea > 0 ? (overlapArea / minArea) : 0;
-        
-        const centerDistX = Math.abs((field.x + field.width / 2) - (existing.x + existing.width / 2));
-        const centerDistY = Math.abs(fieldMidY - existingMidY);
-        const nearCenter = centerDistX <= 18 && centerDistY <= 12;
 
-        // Deduplicate adjacent/overlapping fields on the same row for the same label
-        const sameRowAdjacent = sameRow && (xOverlap > -20) && (centerDistX <= 85 || (field.x <= existing.x + existing.width + 18 && existing.x <= field.x + field.width + 18));
-
-        return iou > 0.20 || minRatio > 0.30 || nearCenter || sameRowAdjacent;
+        return minArea > 0 && (overlapArea / minArea) > 0.45;
     });
 }
