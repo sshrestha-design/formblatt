@@ -93,7 +93,20 @@ export async function buildPdf(options = {}) {
                 try { if (f.readOnly) tf.enableReadOnly(); } catch(e) {}
                 try { if (f.required) tf.enableRequired(); } catch(e) {}
                 try { if (f.maxLength) tf.setMaxLength(f.maxLength); } catch(e) {}
-                try { if (f.tooltip) tf.setToolTip(f.tooltip); } catch(e) {}
+                
+                // Enhanced PDF Viewer Autofill Descriptor (/TU)
+                const autofillRole = f.autofill || "";
+                let autoFillTooltip = f.tooltip;
+                if (!autoFillTooltip && autofillRole) {
+                    const roleTitles = {
+                        name: "Full Name", first_name: "First Name", last_name: "Last Name",
+                        email: "Email Address", phone: "Phone Number", address1: "Street Address",
+                        city: "City", state: "State / Province", zip: "Zip / Postal Code",
+                        country: "Country", company: "Company Name", job_title: "Job Title", dob: "Date of Birth"
+                    };
+                    autoFillTooltip = `${roleTitles[autofillRole] || autofillRole} (Autofill)`;
+                }
+                try { tf.setToolTip(autoFillTooltip || f.name.replace(/_/g, " ")); } catch(e) {}
 
                 // Always add to page first
                 tf.addToPage(page, common);
