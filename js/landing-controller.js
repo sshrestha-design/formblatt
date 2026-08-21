@@ -262,6 +262,7 @@ export function initLandingController(onLoaded) {
     document.getElementById("footerPdfUpload")?.addEventListener("change", handleUploadInput);
     document.getElementById("pdfUploadMenu")?.addEventListener("change", handleUploadInput);
     document.getElementById("emptyStateUpload")?.addEventListener("change", handleUploadInput);
+    document.getElementById("editorUploadInput")?.addEventListener("change", handleUploadInput);
 
     // Interactive Dropzone with Drag & Drop Visual State Feedback
     const heroDropzone = document.getElementById("heroDropzone");
@@ -291,6 +292,21 @@ export function initLandingController(onLoaded) {
             }
         });
     }
+
+    // Global Canvas & Window Drag & Drop PDF Loader
+    window.addEventListener("dragover", e => {
+        if (e.dataTransfer?.types?.includes("Files")) {
+            e.preventDefault();
+        }
+    });
+    window.addEventListener("drop", async e => {
+        if (e.target.closest("#layersList") || e.target.closest(".layer-item")) return;
+        const file = e.dataTransfer?.files[0];
+        if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
+            e.preventDefault();
+            await loadPdfFile(file, onLoaded);
+        }
+    });
 
     // Interactive Demo Playground Event Handlers
     const demoNameInput = document.getElementById("demoNameInput");
