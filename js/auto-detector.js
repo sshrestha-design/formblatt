@@ -1,69 +1,53 @@
-// ── High-Precision Geometric Form Field Auto-Detector (js/auto-detector.js) ──
+// ── Universal Geometric Form Field Auto-Detector (js/auto-detector.js) ──
+// Pure geometric, typographical, and heuristic-based form field extraction.
+// Zero hardcoded document titles, company names, or domain-specific constants.
+
 import { state, generateFieldId } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 
 // ============================================================================
-// 1. SEMANTIC DICTIONARY & FIELD TYPE RESOLVER
+// 1. GENERIC SEMANTIC RESOLVER
 // ============================================================================
-const SEMANTIC_DICTIONARY = [
+const GENERIC_PATTERNS = [
+    // Dates
     { regex: /due\s*date|payment\s*due/i, id: "due_date", type: "dateField" },
-    { regex: /invoice\s*date|issue\s*date|claim.*start|start\s*date|date\s*of\s*service/i, id: "date_of_service", type: "dateField" },
-    { regex: /claim.*end|end\s*date/i, id: "claim_period_end_date", type: "dateField" },
+    { regex: /expiration\s*date|exp\s*date|expiry/i, id: "expiration_date", type: "dateField" },
     { regex: /date\s*approved|approval\s*date/i, id: "date_approved", type: "dateField" },
-    { regex: /date|dob|birth\s*date|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|yyyy\s*-\s*mm\s*-\s*dd/i, id: "date", type: "dateField" },
+    { regex: /birth\s*date|\bdob\b|date\s*of\s*birth/i, id: "dob", type: "dateField" },
+    { regex: /\bdate\b|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|yyyy\s*-\s*mm\s*-\s*dd/i, id: "date", type: "dateField" },
     
     // Signatures
-    { regex: /employee.*signature|applicant.*signature|cardholder.*signature|witness.*signature|^signature\b|sign\s*here/i, id: "signature", type: "signature" },
-    { regex: /manager.*signature|approver.*signature|supervisor.*signature/i, id: "approver_signature", type: "signature" },
+    { regex: /signature|sign\s*here|signed\s*by|^sign\b/i, id: "signature", type: "signature" },
 
-    // Financial & Invoice
-    { regex: /invoice\s*number|inv\s*#|invoice\s*#/i, id: "invoice_number", type: "textField", autofill: "invoice_num" },
-    { regex: /purchase\s*order|po\s*#|po\s*number/i, id: "po_number", type: "textField" },
-    { regex: /subtotal|subtotal\s*amount/i, id: "subtotal_amount", type: "textField" },
-    { regex: /sales\s*tax|tax\s*rate/i, id: "sales_tax", type: "textField" },
-    { regex: /shipping.*handling/i, id: "shipping_handling", type: "textField" },
-    { regex: /total.*reimbursement|total\s*amount\s*due|total\s*authorized|balance\s*due|^total\s*amount/i, id: "total_amount_due", type: "textField" },
-    { regex: /total.*itemized/i, id: "total_itemized_expenses", type: "textField" },
-    { regex: /mileage.*total|mileage.*allowance/i, id: "mileage_total_amount", type: "textField" },
-    { regex: /advance|cash.*advance/i, id: "cash_advance_received", type: "textField" },
-    { regex: /total.*miles|miles.*driven/i, id: "total_business_miles", type: "textField" },
-    { regex: /merchant|vendor/i, id: "merchant_vendor", type: "textField" },
-    { regex: /expense\s*category|category/i, id: "expense_category", type: "textField" },
-    { regex: /exceeded.*expectations|aspects.*exceeded/i, id: "exceeded_expectations", type: "textField", multiline: true },
-    { regex: /need.*improvement|areas.*improvement/i, id: "areas_need_improvement", type: "textField", multiline: true },
-    { regex: /description\s*of\s*goods|business\s*purpose|purpose|attendees/i, id: "description", type: "textField" },
-    { regex: /\bqty\b|quantity/i, id: "quantity", type: "textField" },
-    { regex: /unit\s*price|price|rate/i, id: "unit_price", type: "textField" },
-    { regex: /line\s*total/i, id: "line_total", type: "textField" },
+    // Financial & Numbers
+    { regex: /invoice\s*(?:#|no|number|num)/i, id: "invoice_number", type: "textField", autofill: "invoice_num" },
+    { regex: /po\s*(?:#|no|number|num)|purchase\s*order/i, id: "po_number", type: "textField" },
+    { regex: /subtotal/i, id: "subtotal", type: "textField" },
+    { regex: /tax|vat|gst/i, id: "tax", type: "textField" },
+    { regex: /total|balance\s*due|amount\s*due/i, id: "total", type: "textField" },
+    { regex: /amount|price|rate|cost|fee|charge/i, id: "amount", type: "textField" },
+    { regex: /\bqty\b|quantity|units/i, id: "quantity", type: "textField" },
+    { regex: /routing|iban|swift|bsb/i, id: "routing_number", type: "textField" },
+    { regex: /account\s*(?:#|no|number|num)/i, id: "account_number", type: "textField" },
+    { regex: /ssn|social\s*security|tax\s*id|ein|national\s*id/i, id: "ssn", type: "textField" },
 
-    // Contact & Details
-    { regex: /customer.*name|organization\s*name|client\s*name/i, id: "customer_organization_name", type: "textField" },
-    { regex: /account.*ticket|ticket.*reference|account\s*#/i, id: "account_ticket_reference", type: "textField" },
-    { regex: /representative|primary\s*service\s*rep/i, id: "service_representative", type: "textField" },
-    { regex: /employee\s*full\s*name|employee\s*name/i, id: "employee_full_name", type: "textField", autofill: "name" },
-    { regex: /manager.*name|approver.*name/i, id: "manager_approver_name", type: "textField", autofill: "name" },
-    { regex: /first\s*name/i, id: "first_name", type: "textField", autofill: "first_name" },
-    { regex: /last\s*name/i, id: "last_name", type: "textField", autofill: "last_name" },
-    { regex: /badge\s*name|nickname/i, id: "badge_name", type: "textField" },
-    { regex: /employee\s*id|staff\s*id|badge\s*#|asset\s*id/i, id: "employee_id", type: "textField" },
-    { regex: /cost\s*center/i, id: "cost_center_code", type: "textField" },
-    { regex: /department|division/i, id: "department_division", type: "textField" },
-    { regex: /job\s*title|role/i, id: "job_title", type: "textField" },
-    { regex: /organization|company|client\s*\/\s*organization/i, id: "organization", type: "textField", autofill: "organization" },
-    { regex: /attention|attn/i, id: "attention_recipient", type: "textField" },
-    { regex: /email.*phone|phone.*email/i, id: "email_phone", type: "textField" },
-    { regex: /e-?p?mail/i, id: "email", type: "textField", autofill: "email" },
-    { regex: /phone|mobile|cell/i, id: "phone", type: "textField", autofill: "phone" },
-    { regex: /street\s*address|home\s*address|address\s*line/i, id: "street_address", type: "textField", autofill: "address1" },
-    { regex: /city,\s*state,\s*zip|city\s*state\s*zip/i, id: "city_state_zip", type: "textField" },
-    { regex: /city|location/i, id: "city", type: "textField", autofill: "city" },
-    { regex: /state|province/i, id: "state", type: "textField", autofill: "state" },
-    { regex: /zip|postal/i, id: "zip_code", type: "textField", autofill: "zip" },
-    { regex: /country/i, id: "country", type: "textField", autofill: "country" },
-    { regex: /credit\s*card\s*number|card\s*number/i, id: "credit_card_number", type: "textField", autofill: "cc-number" },
-    { regex: /expiration\s*date|exp\s*date|mm\s*\/\s*yy/i, id: "expiration_date", type: "dateField" },
-    { regex: /cvv|cvc/i, id: "cvv", type: "textField", autofill: "cc-csc" },
-    { regex: /comments|notes|remarks|responsibilities|duties/i, id: "comments", type: "textField", multiline: true }
+    // Contact Details
+    { regex: /first\s*name|given\s*name|forename/i, id: "first_name", type: "textField", autofill: "given-name" },
+    { regex: /last\s*name|surname|family\s*name/i, id: "last_name", type: "textField", autofill: "family-name" },
+    { regex: /full\s*name|^name\b/i, id: "full_name", type: "textField", autofill: "name" },
+    { regex: /e-?mail/i, id: "email", type: "textField", autofill: "email" },
+    { regex: /phone|telephone|mobile|cell|fax|tel\b/i, id: "phone", type: "textField", autofill: "tel" },
+    { regex: /street\s*address|address\s*line|home\s*address/i, id: "street_address", type: "textField", autofill: "address-line1" },
+    { regex: /city/i, id: "city", type: "textField", autofill: "address-level2" },
+    { regex: /state|province|region/i, id: "state", type: "textField", autofill: "address-level1" },
+    { regex: /zip|postal\s*code|postcode/i, id: "zip_code", type: "textField", autofill: "postal-code" },
+    { regex: /country/i, id: "country", type: "textField", autofill: "country-name" },
+    { regex: /company|organization|employer|institution/i, id: "organization", type: "textField", autofill: "organization" },
+    { regex: /title|role|position|designation/i, id: "job_title", type: "textField", autofill: "organization-title" },
+    { regex: /department|division|unit/i, id: "department", type: "textField" },
+    
+    // Notes & Multiline Freeform
+    { regex: /comments|notes|remarks|description|explanation|justification|feedback|details/i, id: "comments", type: "textField", multiline: true }
 ];
 
 function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = new Set()) {
@@ -72,22 +56,21 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
     let type = defaultType;
     let multiline = false;
     let autofill = "";
-    let defaultValue = "";
 
-    for (const item of SEMANTIC_DICTIONARY) {
+    for (const item of GENERIC_PATTERNS) {
         if (item.regex.test(clean)) {
             baseId = item.id;
             if (item.type) type = item.type;
             if (item.multiline) multiline = true;
             if (item.autofill) autofill = item.autofill;
-            if (item.defaultValue) defaultValue = item.defaultValue;
             break;
         }
     }
 
     if (!baseId) {
-        if (type === "signature") baseId = "signature";
-        else if (type === "checkBox") {
+        if (type === "signature") {
+            baseId = "signature";
+        } else if (type === "checkBox") {
             const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
             baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "checkbox";
         } else if (type === "radioGroup") {
@@ -95,7 +78,6 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
             baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "option";
         } else if (type === "dateField") {
             baseId = "date";
-            defaultValue = "";
         } else {
             const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
             baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "field";
@@ -110,46 +92,41 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
     }
     usedNames.add(finalId);
 
-    return { name: finalId, type, multiline, autofill, defaultValue };
+    return { name: finalId, type, multiline, autofill };
 }
 
-function isTitleOrStatic(text) {
+// ============================================================================
+// 2. UNIVERSAL STATIC TEXT & BANNER HEURISTICS (Zero Hardcoded Names)
+// ============================================================================
+function isUniversalStaticText(text) {
     if (!text) return true;
     const clean = text.trim();
     if (clean.length < 2) return true;
 
-    // 1. Numbered section banners (e.g. "1. ATTENDEE INFORMATION", "2. REGISTRATION PASS TYPE (Select One)")
-    if (/^\d+[\.\)]\s*[A-Z\s\&\(\)\/]+$/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
+    // 1. Numbered section banners (e.g. "1. SECTION TITLE", "Section A: Requirements")
+    if (/^(?:section\s+[a-z0-9]|\d+[\.\)])\s+[A-Za-z\s\&\(\)\/\-]+$/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
         return true;
     }
 
-    // 2. Metadata / Doc Refs
-    if (/^(?:FORM\s*REF|REVISION|STATUS|TEMPLATE|DOC\s*ID)\s*:/i.test(clean)) return true;
-
-    // 3. Document Titles & Department Banners
-    if (/^(?:FINANCE\s*&\s*COMPLIANCE|EXPENSE\s*REIMBURSEMENT|TECHSUMMIT|GLOBAL\s*CONFERENCE|EMPLOYMENT\s*APPLICATION|APPLICATION\s*FORM|PATIENT\s*INTAKE|NON-DISCLOSURE|AGREEMENT|INVOICE\s*TEMPLATE|CLAIM\s*FORM|COMMERCIAL\s*INVOICE|APEX\s*ENTERPRISES|URBAN\s*LIVING|NEXUS\s*CLIENT|CUSTOMER\s*SATISFACTION|VALLEY\s*HEALTH|INDUSTRIAL\s*SAFETY|BILL\s*TO|SHIP\s*TO|ITEMIZED\s*PRODUCTS|SCHEDULE\s*A|SERVICE\s*EVALUATION\s*MATRIX|RECOMMENDATION\s*LIKELIHOOD|WRITTEN\s*COMMENTS)/i.test(clean)) {
+    // 2. Long sentences, paragraphs, or legal disclaimer text (high word count)
+    if (clean.length > 75 || clean.split(/\s+/).length > 12 || (clean.endsWith(".") && clean.split(/\s+/).length > 5)) {
         return true;
     }
 
-    // 4. Subtitles & Instructions
-    if (/^(?:Corporate Travel|2026 Global Technology|Personal Vehicle Mileage Log|Access to all|General sessions|Hands-on technical|Valid student|Select all that apply|Select One|Attach All Original Receipts|Pre-Operation Safety|Individual Tenant|Enterprise Helpdesk|Schedule A|Client Experience|Billing Statement|Confidential Health|Rate 1 = Poor|Net Promoter Score)/i.test(clean)) {
+    // 3. Pure instruction in parentheses (e.g. "(Please print clearly)", "(Check all that apply)")
+    if (/^\([^)]+\)$/.test(clean) && !clean.includes(":")) {
         return true;
     }
 
-    // 5. Question Headers & Sub-labels
-    if (/^(?:How likely are you to recommend|0 = Not at all likely|10 = Extremely likely|What aspects of our service|What specific areas need)/i.test(clean)) {
+    // 4. Pure single numbers or list indices (e.g. "1", "2", "3")
+    if (/^\d+$/.test(clean)) {
         return true;
     }
 
-    // 6. Parenthesized instructions
-    if (/^\((?:Attach All|Select all|Select one|Check all|Rate 1)\b/i.test(clean)) return true;
-
-    // 7. Printed Static Rates / Banking Constants
-    if (/Standard Reimbursement Rate:\s*\$[\d\.]+\s*\/\s*mile/i.test(clean)) return true;
-    if (/^(?:Bank:|Routing\s*#:?\s*\d+|Account\s*#:?\s*[\d-]+|Payment\s*Terms:\s*Net\s*\d+)/i.test(clean)) return true;
-
-    // 8. Pure Row Line Numbers
-    if (/^\d+$/.test(clean)) return true;
+    // 5. Standalone currency symbols
+    if (/^[\$\€\£\¥]$/.test(clean)) {
+        return true;
+    }
 
     return false;
 }
@@ -173,7 +150,7 @@ function isOverlapping(field, list, threshold = 0.35) {
 }
 
 // ============================================================================
-// 2. MAIN AUTO-DETECT CONTROLLER
+// 3. MAIN AUTO-DETECT CONTROLLER
 // ============================================================================
 export async function autoDetectFields(scope = "current") {
     if (!state.pdfDoc) {
@@ -235,7 +212,7 @@ export async function autoDetectFields(scope = "current") {
 }
 
 // ============================================================================
-// 3. DETECTION PIPELINE
+// 4. DETECTION PIPELINE
 // ============================================================================
 function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     const fields = [];
@@ -252,7 +229,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             const item = line.items[wIdx];
             const str = item.str.trim();
 
-            const isDiscreteSymbol = str === "☐" || str === "□" || str === "✓" || str === "✔" || str === "○" || str === "●" || str === "■";
+            const isDiscreteSymbol = str === "☐" || str === "□" || str === "✓" || str === "✔" || str === "○" || str === "●" || str === "■" || str === "☑";
             const isBracketPair = (str === "[" && wIdx + 1 < line.items.length && line.items[wIdx + 1].str === "]") || /^\[\s*\]$/.test(str);
             const isParenPair = (str === "(" && wIdx + 1 < line.items.length && line.items[wIdx + 1].str === ")") || /^\(\s*\)$/.test(str);
 
@@ -262,23 +239,23 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 const markerY = item.y;
                 const markerType = (str === "(" || str === "○" || str === "●" || isParenPair) ? "radioGroup" : "checkBox";
 
-                // Check for closing pair
+                // Advance index past closing bracket/paren if separate item
                 if (wIdx + 1 < line.items.length && (line.items[wIdx + 1].str === ")" || line.items[wIdx + 1].str === "]")) {
                     wIdx++;
                 }
 
                 let optLabel = "";
-                if (wIdx + 1 < line.items.length && !["(", "[", "☐", "□", "✓", "✔", "○", "●", "■"].includes(line.items[wIdx + 1].str)) {
+                if (wIdx + 1 < line.items.length && !["(", "[", "☐", "□", "✓", "✔", "○", "●", "■", "☑"].includes(line.items[wIdx + 1].str)) {
                     optLabel = line.items[wIdx + 1].str;
-                    if (wIdx + 2 < line.items.length && !["(", "[", "☐", "□", ":"].includes(line.items[wIdx + 2].str)) {
+                    if (wIdx + 2 < line.items.length && !["(", "[", "☐", "□", "✓", "✔", "○", "●", "■", "☑", ":"].includes(line.items[wIdx + 2].str)) {
                         optLabel += " " + line.items[wIdx + 2].str;
                     }
                 } else {
                     optLabel = "option";
                 }
 
-                if (!isTitleOrStatic(optLabel)) {
-                    const isRadio = markerType === "radioGroup" || /^(?:mr|ms|dr|prof|visa|mc|amex|credit|wire|purchase|all-access|standard|workshop|student|1|2|3|4|5|0|6|7|8|9|10)/i.test(optLabel);
+                if (!isUniversalStaticText(optLabel)) {
+                    const isRadio = markerType === "radioGroup";
                     const sem = resolveSemanticProps(optLabel, isRadio ? "radioGroup" : "checkBox", usedNames);
 
                     const newField = {
@@ -307,28 +284,35 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     }
 
     // ------------------------------------------------------------------------
-    // AFFORDANCE 2: Text Prompts & Sliced Key-Value Inputs
+    // AFFORDANCE 2: Key-Value Prompts with Colons (Label: _____)
     // ------------------------------------------------------------------------
     for (const line of textLines) {
         const text = line.str.trim();
-        if (isTitleOrStatic(text)) continue;
+        if (isUniversalStaticText(text)) continue;
 
         const promptMatches = [...text.matchAll(/([a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?):/g)];
         for (let i = 0; i < promptMatches.length; i++) {
             const m = promptMatches[i];
             const cleanLabel = m[1].trim();
-            if (isTitleOrStatic(cleanLabel)) continue;
+            if (isUniversalStaticText(cleanLabel)) continue;
 
-            const textAfter = text.slice(m.index + m[0].length);
-            if (/^[\s]*(?:\[\s*\]|\(\s*\)|[☐□✓✔○●■])/.test(textAfter)) continue;
-            if (/^[\s]*(?:Web Portal|Phone Support|First Time|Monthly|Standard|Full-Time)/i.test(textAfter)) continue;
+            const textAfterColon = text.slice(m.index + m[0].length).trim();
+
+            // 1. Skip if choices (checkboxes/radios) immediately follow
+            if (/^(?:\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/.test(textAfterColon)) continue;
             if (/select\s*all|select\s*one/i.test(cleanLabel)) continue;
 
-            const isSig = /signature|sign/i.test(cleanLabel);
+            // 2. Skip if this is already-filled static text (e.g. "REF: FRM-7745", "REVISION: 2.4", "STATUS: BLANK")
+            const nextPromptInLine = textAfterColon.search(/[a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?:/);
+            const valueChunk = nextPromptInLine !== -1 ? textAfterColon.slice(0, nextPromptInLine).trim() : textAfterColon;
+            const isAlreadyFilledStatic = valueChunk.length > 0 && !valueChunk.startsWith("_") && !valueChunk.startsWith("-") && !valueChunk.startsWith(".");
+            if (isAlreadyFilledStatic) continue;
+
+            const isSig = /signature|sign\s*here/i.test(cleanLabel);
             const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
             const isMulti = /comments|notes|remarks|responsibilities|description/i.test(cleanLabel);
 
-            // Find exact physical right edge of THIS specific prompt using character index in line.str
+            // Find physical right edge of THIS specific prompt
             const matchEnd = m.index + m[0].length;
             let charOffset = 0;
             let promptEndX = line.x + line.width;
@@ -342,11 +326,11 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 charOffset += it.str.length + 1;
             }
 
-            // Skip prompt if it is a choice group header (has checkboxes directly on line or below)
+            // Skip choice group headers (prompts with checkboxes directly below them)
             const hasCheckboxesBelow = rawBlocks.some(tb => {
                 const isBelow = tb.y > line.y && (tb.y - line.y) <= 22;
                 const isAligned = tb.x >= promptEndX - 60 && tb.x <= promptEndX + 140;
-                const isBox = /^[(\[]|☐|□|✓|✔|○|●|■/.test(tb.str);
+                const isBox = /^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str);
                 return isBelow && isAligned && isBox;
             });
             if (hasCheckboxesBelow) continue;
@@ -355,7 +339,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
             let targetH = isSig ? 38 : (isMulti ? 50 : 20);
 
-            // Strict collision avoidance: clamp available width against ALL text blocks on the page
+            // Strict horizontal collision avoidance: clamp available width against ALL text blocks on the page
             let maxAllowedX = pageWidth - 25;
             for (const tb of rawBlocks) {
                 if (tb.x > targetX + 2) {
@@ -368,7 +352,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
 
             const availableW = maxAllowedX - targetX - 8;
             if (availableW < 30) {
-                // Not enough horizontal room for a field without colliding into next label
+                // Insufficient space before next column / text; avoid label collision
                 continue;
             }
 
@@ -434,15 +418,16 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     }
 
     // ------------------------------------------------------------------------
-    // AFFORDANCE 3: Multi-Line Feedback Questions (Survey Free-Response)
+    // AFFORDANCE 3: Multi-Line Open Questions & Feedback Prompts (Question?)
     // ------------------------------------------------------------------------
     for (const block of rawBlocks) {
         const text = block.str.trim();
-        if (isTitleOrStatic(text)) continue;
-        if (/\?$/.test(text) && !text.includes(":") && !/^(?:How likely|May we quote|Follow-up|Rate|Please rate)/i.test(text) && !/(\[\s*\]|\(\s*\))/.test(text)) {
-            // Skip if question is part of a rating scale / NPS matrix with options below
+        if (isUniversalStaticText(text)) continue;
+
+        if (/\?$/.test(text) && !text.includes(":") && !/(\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/.test(text)) {
+            // Skip if question is part of a rating scale with choice markers below
             const hasRatingScaleBelow = rawBlocks.some(tb => {
-                return tb.y > block.y && tb.y <= block.y + 40 && (/^[(\[]|☐|□|\b(?:Extremely|Likely|Poor|Excellent|Strongly|Disagree|Agree)\b/i.test(tb.str));
+                return tb.y > block.y && tb.y <= block.y + 40 && (/^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str));
             });
             if (hasRatingScaleBelow) continue;
 
