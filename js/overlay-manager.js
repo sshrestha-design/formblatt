@@ -142,11 +142,12 @@ export function renderOverlays(handlers) {
                 div.appendChild(label);
                 div.appendChild(arrow);
             } else {
-                if (f.defaultValue) {
+                const isFormatPlaceholder = f.defaultValue && /^(?:YYYY[-/]MM[-/]DD|MM[-/]DD[-/]YYYY|MM[-/]YY)$/i.test(f.defaultValue.trim());
+                if (f.defaultValue && !isFormatPlaceholder) {
                     label.textContent = f.defaultValue;
                     label.style.color = "#0f172a";
                 } else {
-                    // Do NOT show blocking field title inside box; keep see-through!
+                    // Do NOT show blocking text inside box; keep 100% see-through!
                     label.textContent = "";
                 }
                 div.appendChild(label);
