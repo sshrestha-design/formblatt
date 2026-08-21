@@ -124,6 +124,17 @@
 
 .left-panel {
     overflow: hidden;
+    transition: width 0.25s var(--ease-spring), min-width 0.25s var(--ease-spring), margin 0.25s var(--ease-spring), opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.left-panel.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border: none !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
 .right-panel {
