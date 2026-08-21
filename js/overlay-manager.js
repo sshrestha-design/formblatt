@@ -32,22 +32,22 @@ export function renderOverlays(handlers) {
 
         // Border & fill styles
         if (f.borderStyle === "none") {
-            div.style.border = "1.5px dashed rgba(148, 163, 184, 0.6)";
-            div.style.background = "rgba(248, 250, 252, 0.55)";
+            div.style.border = "1.5px dashed rgba(148, 163, 184, 0.5)";
+            div.style.background = "rgba(248, 250, 252, 0.15)";
         } else if (f.borderStyle === "thick") {
             div.style.border = "2.5px solid #3b82f6";
         } else {
-            div.style.border = "1.5px solid #60a5fa";
+            div.style.border = "1.5px solid rgba(59, 130, 246, 0.65)";
         }
 
         if (f.fillStyle === "tint") {
-            div.style.background = "rgba(224, 242, 254, 0.60)";
+            div.style.background = "rgba(224, 242, 254, 0.25)";
         } else if (f.fillStyle === "yellow") {
-            div.style.background = "rgba(254, 249, 195, 0.65)";
+            div.style.background = "rgba(254, 249, 195, 0.30)";
         } else if (f.fillStyle === "transparent") {
-            div.style.background = "rgba(255, 255, 255, 0.15)";
+            div.style.background = "rgba(255, 255, 255, 0.05)";
         } else {
-            div.style.background = "rgba(239, 246, 255, 0.60)";
+            div.style.background = "rgba(239, 246, 255, 0.20)";
         }
 
         // Alignment and typography
@@ -69,9 +69,8 @@ export function renderOverlays(handlers) {
                 `;
             } else {
                 div.innerHTML = `
-                    <div class="sig-prompt-badge" style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; height:100%; color:#0284c7; gap:3px; cursor:pointer;">
-                        <span style="font-size:12px; font-weight:700; font-family:'Caveat', cursive, sans-serif; letter-spacing:0.5px; background:#e0f2fe; padding:2px 8px; border-radius:4px; border:1px solid #bae6fd;">✍ ${f.name || "Click to Sign"}</span>
-                        <div style="width:85%; height:1px; background:#cbd5e1;"></div>
+                    <div class="sig-prompt-badge" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:#2563eb; cursor:pointer;">
+                        <span style="font-size:10.5px; font-weight:600; font-family:'Inter', sans-serif; background:rgba(224,242,254,0.65); padding:2px 7px; border-radius:3px; border:1px dashed #60a5fa; box-shadow:0 1px 2px rgba(0,0,0,0.05);">✍ Sign</span>
                     </div>
                 `;
             }
@@ -88,9 +87,9 @@ export function renderOverlays(handlers) {
             const badge = div.querySelector(".sig-prompt-badge");
             if (badge) badge.addEventListener("click", triggerSign);
         } else if (f.type === "checkBox") {
-            div.innerHTML = `<span style="font-size:12px; color:#0284c7; font-weight:bold;">${f.defaultChecked ? "✓" : ""}</span>`;
+            div.innerHTML = `<span style="font-size:12px; color:#2563eb; font-weight:bold;">${f.defaultChecked ? "✓" : ""}</span>`;
         } else if (f.type === "radioGroup") {
-            div.innerHTML = f.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#0284c7;"></div>` : "";
+            div.innerHTML = f.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#2563eb;"></div>` : "";
         } else {
             const label = document.createElement("span");
             label.className = "overlay-label";
@@ -130,9 +129,9 @@ export function renderOverlays(handlers) {
             label.style.textOverflow = "ellipsis";
 
             if (f.type === "dropdown") {
-                const displayText = f.defaultValue || (f.options && f.options.length ? f.options[0] : formatFieldDisplayName(f));
+                const displayText = f.defaultValue || (f.options && f.options.length ? f.options[0] : "Select...");
                 label.textContent = displayText;
-                label.style.color = f.defaultValue ? "#0f172a" : "#475569";
+                label.style.color = f.defaultValue ? "#0f172a" : "rgba(100, 116, 139, 0.7)";
                 
                 const arrow = document.createElement("span");
                 arrow.style.cssText = "font-size:8.5px; color:#64748b; margin-left:auto; padding-right:4px; flex-shrink:0; pointer-events:none; user-select:none;";
@@ -147,11 +146,19 @@ export function renderOverlays(handlers) {
                     label.textContent = f.defaultValue;
                     label.style.color = "#0f172a";
                 } else {
-                    label.textContent = formatFieldDisplayName(f);
-                    label.style.color = "#64748b";
+                    // Do NOT show blocking field title inside box; keep see-through!
+                    label.textContent = "";
                 }
                 div.appendChild(label);
             }
+        }
+
+        // Add non-blocking top-floating badge
+        if (f.type !== "checkBox" && f.type !== "radioGroup") {
+            const floatingBadge = document.createElement("span");
+            floatingBadge.className = "field-floating-badge";
+            floatingBadge.textContent = formatFieldDisplayName(f);
+            div.appendChild(floatingBadge);
         }
 
         const isSelected = state.selectedFieldIds.has(f.id);

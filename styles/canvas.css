@@ -40,31 +40,31 @@
 /* ── Field overlays ───────────────────────────────────────────── */
 .field-overlay {
     position: absolute;
-    border: 1.5px solid #60a5fa;
-    background: rgba(239, 246, 255, 0.60);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    border: 1.5px solid rgba(59, 130, 246, 0.65);
+    background: rgba(239, 246, 255, 0.20);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
     pointer-events: auto;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     cursor: move;
     font-family: inherit;
     font-size: 11px;
-    color: #1e293b;
-    border-radius: 4px;
-    overflow: hidden;
-    transition: border-color var(--anim-fast), box-shadow var(--anim-fast), opacity var(--anim-fast), background var(--anim-fast);
+    color: #0f172a;
+    border-radius: 3px;
+    overflow: visible;
+    transition: border-color var(--anim-fast), box-shadow var(--anim-fast), background var(--anim-fast);
 }
 
 .field-overlay:not(.selected):hover {
     border-color: #2563eb !important;
-    background: rgba(219, 234, 254, 0.75) !important;
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25), 0 2px 6px rgba(0,0,0,0.06);
+    background: rgba(219, 234, 254, 0.35) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.20);
 }
 
 .field-overlay.selected {
     border: 1.5px solid #2563eb !important;
-    background: rgba(219, 234, 254, 0.75) !important;
+    background: rgba(219, 234, 254, 0.35) !important;
     box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
     z-index: 50;
 }
@@ -74,12 +74,35 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    padding: 0 6px;
+    padding: 0 4px;
     font-family: inherit;
     font-size: 11px;
     font-weight: 500;
-    color: #1e3a8a;
-    opacity: 0.85;
+    color: #0f172a;
+    width: 100%;
+}
+
+.field-floating-badge {
+    position: absolute;
+    top: -16px;
+    left: -1px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 0 4px;
+    border-radius: 2px;
+    white-space: nowrap;
+    pointer-events: none;
+    line-height: 14px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    display: none;
+    z-index: 60;
+}
+
+.field-overlay.selected .field-floating-badge,
+.field-overlay:hover .field-floating-badge {
+    display: block;
 }
 
 .resize-handle {
