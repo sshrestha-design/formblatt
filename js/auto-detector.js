@@ -11,7 +11,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /bill\s*to|billed\s*to|invoice\s*to|client\s*name|customer/i, id: "bill_to_input", title: "Bill To", type: "textField", multiline: true, score: 12 },
     { regex: /ship\s*to|deliver\s*to|shipping\s*address/i, id: "ship_to_input", title: "Ship To", type: "textField", multiline: true, score: 10 },
     { regex: /vat\s*(?:id|num|number)?|tax\s*id|gstin|ein\s*num/i, id: "tax_id_input", title: "Tax ID / VAT", type: "textField", score: 10 },
-    { regex: /payment\s*terms|terms/i, id: "payment_terms_input", title: "Payment Terms", type: "textField", score: 10 },
+    { regex: /payment\s*terms|\bterms\b/i, id: "payment_terms_input", title: "Payment Terms", type: "textField", score: 10 },
     { regex: /subtotal|sub-total/i, id: "subtotal_input", title: "Subtotal", type: "textField", score: 10 },
     { regex: /discount/i, id: "discount_input", title: "Discount", type: "textField", score: 10 },
     { regex: /shipping|freight/i, id: "shipping_fee_input", title: "Shipping Fee", type: "textField", score: 10 },
@@ -87,15 +87,15 @@ function isHeadingLabel(text) {
     const clean = text.trim().replace(/[:_.\s-]+$/, "");
     if (!clean || clean.length < 2) return false;
 
-    if (/(?:invoice\s*n|inv\s*#|bill\s*to|ship\s*to|due\s*date|po\s*number|p\.o\.\s*#|subtotal|amount\s*due|balance\s*due|total\s*amount|payment\s*terms)/i.test(clean)) {
+    if (/(?:invoice\s*n|inv\s*#|bill\s*to|ship\s*to|due\s*date|po\s*number|p\.o\.\s*#|subtotal|amount\s*due|balance\s*due|total\s*amount|payment\s*terms|\bterms\b|\bdue\b)/i.test(clean)) {
         return false;
     }
 
-    if (/^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
+    if (/^(?:job|contract|location|contact|details|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         return true;
     }
 
-    if (/(?:pdf|form|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|general|personal|employment|contact|applicant|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document|summary|description|profile|record|details|information|page)/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
+    if (/(?:pdf|form|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|general|personal|employment|contact|applicant|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document|summary|profile|record|details|information|page)/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         const isFieldKeyword = /^(?:first\s*name|last\s*name|full\s*name|name|email|phone|address|city|state|zip|date|dob|ssn|ein|title|company|country)$/i.test(clean);
         if (!isFieldKeyword) return true;
     }
@@ -117,38 +117,26 @@ function isHeadingLabel(text) {
 export class TextOccupancyGrid {
     constructor(rawBlocks, pageHeight) {
         this.pageHeight = pageHeight;
-        this.blockedZones = rawBlocks.filter(tb => {
+        this.rawBlocks = rawBlocks;
+        this.titleBlocks = rawBlocks.filter(tb => {
             const str = (tb.str || "").trim();
             if (!str) return false;
-            if (/^[_.\s-]+$/.test(str) || /^\$?\d+[\d.,]*$/.test(str)) return false;
-            return true;
+            return (tb.height >= 16) || /^(?:invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order)$/i.test(str);
         });
     }
 
-    /**
-     * Strictly rejects candidate field box if Area(FieldBox ∩ BlockedTextZone) > 0 for headers (fontSize >= 16pt)
-     */
-    isBlocked(box, minRatio = 0.20) {
-        return this.blockedZones.some(tb => {
+    isBlocked(box) {
+        // Strict title collision: reject any box that touches a document title
+        for (let tb of this.titleBlocks) {
             const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
             const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
-            const overlapArea = xOverlap * yOverlap;
+            if (xOverlap > 0 && yOverlap > 0) return true;
+        }
 
-            if (overlapArea <= 0) return false;
+        // Reject boxes placed in empty top margin
+        if (box.y < 45 && !box.type?.includes("signature")) return true;
 
-            const isLargeHeader = (tb.height >= 16) || /invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order/i.test(tb.str);
-            if (isLargeHeader) {
-                const tbArea = tb.width * tb.height;
-                return (overlapArea / tbArea) > 0.20;
-            }
-
-            if (tb.str.endsWith(":") || /description|quantity|qty|price|amount|total|subtotal|notes|terms|due|date/i.test(tb.str)) {
-                return false;
-            }
-
-            const minArea = Math.min(box.width * box.height, tb.width * tb.height);
-            return minArea > 0 && (overlapArea / minArea) > minRatio;
-        });
+        return false;
     }
 }
 
@@ -157,14 +145,15 @@ export class TextOccupancyGrid {
 // ============================================================================
 export class TopologicalTableSolver {
     static solveGrid(fields, rawBlocks, pageNum, usedNames) {
+        // 1. Find table header rows in rawBlocks
         const headerBlocks = rawBlocks.filter(tb => {
             const text = (tb.str || "").trim();
-            return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
+            return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b/i.test(text);
         }).sort((a, b) => a.x - b.x);
 
         const headerRows = [];
         headerBlocks.forEach(hb => {
-            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 35);
+            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 15);
             if (!hr) {
                 hr = { y: hb.y, height: hb.height, blocks: [] };
                 headerRows.push(hr);
@@ -172,108 +161,143 @@ export class TopologicalTableSolver {
             hr.blocks.push(hb);
         });
 
+        // Find the header row that contains at least 2 table columns
         const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
-        if (!mainHeaderRow && fields.length < 2) return fields;
+        if (!mainHeaderRow) return fields;
 
-        const rowGroups = [];
-        for (let f of fields) {
-            let group = rowGroups.find(g => Math.abs(g.y - f.y) <= 12);
-            if (!group) {
-                group = { y: f.y, height: f.height, fields: [] };
-                rowGroups.push(group);
+        const tableTopY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 4);
+        
+        // Find bottom boundary of this specific table
+        const footerBlock = rawBlocks.find(tb => {
+            const text = (tb.str || "").trim();
+            return /subtotal|tax|balance\s*due|total\s*due/i.test(text) && tb.y > tableTopY;
+        });
+        const tableBottomY = footerBlock ? Math.round(footerBlock.y - 8) : Math.min(tableTopY + 280, 750);
+
+        // Build column definitions strictly from the table header blocks
+        const colBands = [];
+        const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
+        for (let i = 0; i < sortedHeaderBlocks.length; i++) {
+            const hb = sortedHeaderBlocks[i];
+            const nextHb = sortedHeaderBlocks[i + 1];
+            const colX = Math.round(hb.x - 2);
+            let colW;
+            if (nextHb) {
+                colW = Math.max(45, Math.round(nextHb.x - hb.x - 6));
+            } else {
+                colW = Math.max(55, Math.round(hb.width + 25));
             }
-            group.fields.push(f);
+            colBands.push({
+                x: colX,
+                width: colW,
+                headerText: hb.str
+            });
         }
 
-        let tableRows = rowGroups.filter(g => g.fields.length >= 1).sort((a, b) => a.y - b.y);
+        // Find row positions strictly inside [tableTopY, tableBottomY]
+        const textInTable = rawBlocks.filter(tb => tb.y >= tableTopY && (tb.y + tb.height) <= tableBottomY);
+        
+        const sampleRowYs = [];
+        textInTable.forEach(tb => {
+            if (!sampleRowYs.some(y => Math.abs(y - tb.y) <= 10)) {
+                sampleRowYs.push(Math.round(tb.y));
+            }
+        });
+        sampleRowYs.sort((a, b) => a - b);
 
-        if (tableRows.length < 2 && mainHeaderRow) {
-            const startY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 6);
-            const footerBlock = rawBlocks.find(tb => {
-                const text = (tb.str || "").trim();
-                return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > startY;
-            });
-            const endY = footerBlock ? Math.round(footerBlock.y - 12) : Math.min(startY + 240, 750);
-            
-            tableRows = [];
-            let currY = startY;
-            while (currY + 22 <= endY && tableRows.length < 10) {
-                tableRows.push({ y: currY, height: 22, fields: [] });
+        let tableRows = [];
+        if (sampleRowYs.length >= 2) {
+            tableRows = sampleRowYs.map(y => ({ y, height: 22 }));
+        } else {
+            let currY = tableTopY;
+            while (currY + 20 <= tableBottomY && tableRows.length < 10) {
+                tableRows.push({ y: currY, height: 22 });
                 currY += 24;
             }
         }
 
-        if (tableRows.length < 1) return fields;
+        // Filter out any previous fields that were inside the table data region
+        const resultFields = fields.filter(f => f.y < tableTopY || f.y > tableBottomY);
 
-        const minTableY = tableRows[0].y;
-        const activeHeaders = mainHeaderRow ? mainHeaderRow.blocks : headerBlocks.filter(tb => (minTableY - tb.y) <= 120 && (tb.y - minTableY) <= 25);
+        // Generate fields for all rows and columns
+        tableRows.forEach((row, rowIndex) => {
+            colBands.forEach(col => {
+                const colHeader = col.headerText || "Column";
+                const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
 
-        const colBands = [];
-        tableRows.forEach(row => {
-            row.fields.forEach(f => {
-                let col = colBands.find(c => Math.abs(c.x - f.x) <= 30);
-                if (!col) {
-                    col = { x: f.x, width: f.width, headerText: f.name || "col" };
-                    colBands.push(col);
-                }
+                const newField = {
+                    id: Date.now() + Math.random(),
+                    type: "textField",
+                    name: sem.name,
+                    x: Math.max(10, col.x),
+                    y: Math.max(10, row.y),
+                    width: col.width,
+                    height: Math.min(24, row.height || 22),
+                    page: pageNum,
+                    borderStyle: "solid",
+                    fillStyle: "white",
+                    multiline: false,
+                    autofill: sem.autofill || "",
+                    dataFormat: "text"
+                };
+
+                resultFields.push(newField);
             });
         });
 
-        activeHeaders.forEach(hb => {
-            let col = colBands.find(c => Math.abs(c.x - hb.x) <= 35 || (hb.x >= c.x - 10 && hb.x <= c.x + c.width + 10));
-            if (!col) {
-                const isDesc = /desc|item|details/i.test(hb.str);
-                const colW = isDesc ? 220 : Math.max(50, Math.round(hb.width + 20));
-                colBands.push({
-                    x: Math.round(hb.x - 2),
-                    width: colW,
-                    headerText: hb.str,
-                    isFromHeader: true
-                });
-            } else if (!col.headerText || col.headerText === "col") {
-                col.headerText = hb.str;
-            }
-        });
+        // Generate table summary fields (Subtotal, Tax, Balance Due) if present
+        const summaryKeywords = [
+            { regex: /subtotal/i, name: "subtotal_input" },
+            { regex: /\btax\b|sales\s*tax/i, name: "tax_amount_input" },
+            { regex: /balance\s*due|amount\s*due|\btotal\b/i, name: "balance_due_input" }
+        ];
 
-        colBands.sort((a, b) => a.x - b.x);
+        summaryKeywords.forEach(kw => {
+            const block = rawBlocks.find(tb => kw.regex.test((tb.str || "").trim()) && tb.y >= (tableTopY + 40));
+            if (block) {
+                const amountCol = colBands[colBands.length - 1];
+                const sumX = amountCol ? amountCol.x : Math.round(block.x + block.width + 10);
+                const sumW = amountCol ? amountCol.width : 80;
+                const sem = DirectionalRaycaster.resolveSemanticProperties(kw.name, "textField", usedNames);
 
-        const footerBlock = rawBlocks.find(tb => {
-            const text = (tb.str || "").trim();
-            return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > (minTableY + 40);
-        });
-        const maxTableY = footerBlock ? Math.round(footerBlock.y - 8) : Infinity;
-
-        const validTableRows = tableRows.filter(r => (r.y + r.height) <= maxTableY);
-        const resultFields = fields.filter(f => f.y < maxTableY);
-
-        validTableRows.forEach((row, rowIndex) => {
-            colBands.forEach(col => {
-                const hasFieldInCell = row.fields.some(f => Math.abs(f.x - col.x) <= 35 || (f.x >= col.x - 15 && f.x <= col.x + col.width + 15));
-                if (!hasFieldInCell) {
-                    const colHeader = col.headerText || "Column";
-                    const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
-
-                    const newField = {
+                if (!resultFields.some(f => Math.abs(f.y - block.y) <= 12 && Math.abs(f.x - sumX) <= 30)) {
+                    resultFields.push({
                         id: Date.now() + Math.random(),
                         type: "textField",
                         name: sem.name,
-                        x: Math.max(10, col.x),
-                        y: Math.max(10, row.y),
-                        width: col.width,
-                        height: Math.min(24, row.height || 22),
+                        x: Math.max(10, sumX),
+                        y: Math.max(10, Math.round(block.y - 1)),
+                        width: sumW,
+                        height: 22,
                         page: pageNum,
                         borderStyle: "solid",
                         fillStyle: "white",
                         multiline: false,
-                        autofill: sem.autofill || "",
-                        dataFormat: sem.dataFormat || "text"
-                    };
-
-                    resultFields.push(newField);
-                    row.fields.push(newField);
+                        dataFormat: "text"
+                    });
                 }
-            });
+            }
         });
+
+        // Generate Notes field if Notes section exists below table
+        const notesBlock = rawBlocks.find(tb => /^notes\b/i.test((tb.str || "").trim()) && tb.y > (tableBottomY - 10));
+        if (notesBlock && !resultFields.some(f => Math.abs(f.y - notesBlock.y) <= 60 && f.multiline)) {
+            const sem = DirectionalRaycaster.resolveSemanticProperties("notes_input", "textField", usedNames);
+            resultFields.push({
+                id: Date.now() + Math.random(),
+                type: "textField",
+                name: sem.name,
+                x: Math.max(10, Math.round(notesBlock.x)),
+                y: Math.max(10, Math.round(notesBlock.y + notesBlock.height + 6)),
+                width: Math.min(380, Math.round(rawBlocks[0]?.width ? 450 : 380)),
+                height: 70,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: true,
+                dataFormat: "text"
+            });
+        }
 
         return resultFields;
     }
@@ -317,7 +341,7 @@ export class DirectionalRaycaster {
             if (decoded) return tb.str;
         }
 
-        // 3. Score-weighted proximity search strictly within 40px radius
+        // 3. Score-weighted proximity search strictly within 30px radius
         let bestLabel = null;
         let highestScore = -1;
 
@@ -330,8 +354,8 @@ export class DirectionalRaycaster {
             const distLeft = (box.x - (tb.x + tb.width));
             const distTop = (box.y - (tb.y + tb.height));
 
-            const isLeft = distLeft >= -18 && distLeft <= 40 && Math.abs(tbMidY - boxMidY) <= 14;
-            const isTop = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15) && distTop >= 0 && distTop <= 24;
+            const isLeft = distLeft >= -18 && distLeft <= 30 && Math.abs(tbMidY - boxMidY) <= 14;
+            const isTop = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15) && distTop >= 0 && distTop <= 20;
 
             if (isLeft || isTop) {
                 const distance = isLeft ? distLeft : distTop;
@@ -389,7 +413,7 @@ export class DirectionalRaycaster {
 export class UnderlineBaselineSnapper {
     static snapToUnderline(lineCanvasY, canvasX, canvasW, lineHeight = 24) {
         const height = Math.max(18, Math.min(24, Math.round(lineHeight * 0.8)));
-        const y = Math.round(lineCanvasY - height - 1); // box.bottom = underline.y - 1
+        const y = Math.round(lineCanvasY - height - 1);
         return {
             x: Math.max(10, Math.round(canvasX)),
             y: Math.max(10, y),
@@ -590,7 +614,8 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                             const canvasX = tx;
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
-                            if (lineCanvasY >= (pageHeight * 0.03) && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 40) {
+                            // Discard lines in top margin
+                            if (lineCanvasY >= 55 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 40) {
                                 const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, canvasW);
                                 if (!occupancyGrid.isBlocked(snapped)) {
                                     rawLines.push(snapped);
@@ -611,11 +636,12 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        if (canvasY <= (pageHeight * 0.05) || canvasY >= (pageHeight * 0.94)) continue;
+                        // Discard boxes in top 55px margin
+                        if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
 
-                        if (boxW >= 22 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
+                        if (boxW >= 22 && boxH >= 12 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                             if (boxW < 22 && boxH < 22) continue;
-                            if (boxW >= (pageWidth * 0.45) && boxH <= 40) continue;
+                            if (boxW >= (pageWidth * 0.40) && boxH <= 40) continue;
 
                             const box = {
                                 type: "text_box",
@@ -639,11 +665,11 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                 const canvasY = pageHeight - ty - boxH;
                 const canvasX = tx;
 
-                if (canvasY <= (pageHeight * 0.05) || canvasY >= (pageHeight * 0.94)) continue;
+                if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
 
                 if (boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                     if (boxW < 22 && boxH < 22) continue;
-                    if (boxW >= (pageWidth * 0.45) && boxH <= 40) continue;
+                    if (boxW >= (pageWidth * 0.40) && boxH <= 40) continue;
 
                     const box = {
                         type: "text_box",
@@ -690,7 +716,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
         const text = line.str.trim();
 
         if (isHeadingLabel(text)) continue;
-        if (line.y < (viewport.height * 0.02) && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
+        if (line.y < 45 && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
         if (CONTACT_OR_RESUME_KEYWORDS.test(text) && !text.includes(":")) continue;
 
         if (/^(\[\s*\]|\(\s*\)|[☐□✓])$/.test(text)) {
@@ -741,6 +767,8 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             const labelPart = parts[0].trim();
             const afterColon = (parts[1] || "").trim();
 
+            if (isHeadingLabel(labelPart)) continue;
+
             const isBillShip = /bill\s*to|ship\s*to|billed\s*to|deliver\s*to/i.test(labelPart);
             if (isBillShip) {
                 const targetX = Math.round(line.x);
@@ -761,38 +789,39 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                 continue;
             }
 
-            const hasRightNeighbor = lines.some(other => {
-                if (other === line) return false;
-                const sameRow = Math.abs(other.y - line.y) <= 8;
-                const isRight = other.x > (line.x + line.width + 6);
-                return sameRow && isRight;
-            });
+            const targetX = Math.round(line.x + line.width + 6);
+            const targetY = Math.round(line.y - 1);
 
-            if (!hasRightNeighbor && line.x < (pageWidth * 0.75)) {
-                const targetX = Math.round(line.x + line.width + 6);
-                const targetY = Math.round(line.y - 1);
-                const availableWidth = Math.max(80, pageWidth - targetX - 35);
+            const rightNeighbor = lines.find(other => 
+                other !== line && 
+                Math.abs(other.y - line.y) <= 8 && 
+                other.x > (line.x + line.width + 6)
+            );
 
+            let fieldWidth = 160;
+            if (rightNeighbor) {
+                fieldWidth = Math.max(50, Math.min(200, (rightNeighbor.x - 10) - targetX));
+            } else {
+                fieldWidth = Math.min(240, Math.max(80, pageWidth - targetX - 35));
+            }
+
+            if (targetX < (pageWidth - 30) && line.y > 45) {
                 const isSig = /signature|sign/i.test(labelPart);
                 const isDate = /date|dob/i.test(labelPart);
                 const isMulti = /comments|notes|remarks|description|message/i.test(labelPart);
 
-                const fieldWidth = Math.min(isMulti ? 380 : (afterColon.length > 0 ? 140 : 250), availableWidth);
-
-                if (fieldWidth >= 50 && targetX < (pageWidth - 40)) {
-                    detected.push({
-                        type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
-                        rawLabel: labelPart,
-                        x: targetX,
-                        y: targetY,
-                        width: Math.round(fieldWidth),
-                        height: isSig ? 44 : (isMulti ? 60 : 24),
-                        borderStyle: "solid",
-                        fillStyle: "white",
-                        multiline: isMulti,
-                        ...(afterColon.length > 0 ? { defaultValue: afterColon } : (isDate ? { defaultValue: "MM/DD/YYYY" } : {}))
-                    });
-                }
+                detected.push({
+                    type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
+                    rawLabel: labelPart,
+                    x: targetX,
+                    y: targetY,
+                    width: Math.round(fieldWidth),
+                    height: isSig ? 44 : (isMulti ? 60 : 24),
+                    borderStyle: "solid",
+                    fillStyle: "white",
+                    multiline: isMulti,
+                    ...(afterColon.length > 0 ? { defaultValue: afterColon } : (isDate ? { defaultValue: "MM/DD/YYYY" } : {}))
+                });
             }
         }
     }
@@ -893,10 +922,14 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
         if (occupancyGrid.isBlocked(ve)) continue;
         if (isOverlappingAny(ve, fused)) continue;
 
-        const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks) || `field_${usedNames.size + 1}`;
-        if (isHeadingLabel(rawLabel)) continue;
+        const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks);
+        // If a vector box has no associated label and is in the header area or very large, discard it!
+        if (!rawLabel && (ve.y < 120 || (ve.width * ve.height) > 5000)) continue;
 
-        const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, "textField", usedNames);
+        const effectiveLabel = rawLabel || `field_${usedNames.size + 1}`;
+        if (isHeadingLabel(effectiveLabel)) continue;
+
+        const sem = DirectionalRaycaster.resolveSemanticProperties(effectiveLabel, "textField", usedNames);
         let finalType = sem.type;
         if ((finalType === "checkBox" || finalType === "radioGroup") && (ve.width > 35 || ve.height > 35 || Math.abs(ve.width - ve.height) > 12)) {
             finalType = "textField";
