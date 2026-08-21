@@ -881,18 +881,19 @@
     border-radius: 8px;
     border: 1px solid #cbd5e1;
     gap: 2px;
-    box-shadow: inset 0 1px 2px rgba(0,0,0,0.04);
+    height: 32px;
+    box-sizing: border-box;
 }
 
 .mode-toggle-btn {
-    height: 28px;
-    padding: 0 11px;
+    height: 24px;
+    padding: 0 9px;
     font-size: 11.5px;
     font-weight: 600;
     color: #64748b;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: 5px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -908,15 +909,16 @@
 
 .mode-toggle-btn.active {
     background: #ffffff;
-    color: #2563eb;
+    color: #0f172a;
     border-color: #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
 }
 
 .mode-toggle-btn.mode-fill-active {
-    background: #059669 !important;
+    background: #2563eb !important;
     color: #ffffff !important;
-    border-color: #059669 !important;
+    border-color: #2563eb !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
 }
 
 /* ── Workspace in Fill Mode ──────────────────────────────────── */
