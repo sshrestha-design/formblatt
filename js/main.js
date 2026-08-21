@@ -780,6 +780,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (ctxMenu) ctxMenu.style.display = "none";
     });
 
+    // ── Unsaved Changes Protection (Browser Refresh / Close Safety) ────
+    window.addEventListener("beforeunload", e => {
+        if (state.fields && state.fields.length > 0) {
+            e.preventDefault();
+            e.returnValue = "Your form fields are saved in browser storage. Are you sure you want to leave?";
+            return e.returnValue;
+        }
+    });
+
     // ── Group Selected Button (Left Layers Header) ───────────────────
     document.getElementById("groupSelectedBtn")?.addEventListener("click", () => {
         if (state.selectedFieldIds.size > 0) {
