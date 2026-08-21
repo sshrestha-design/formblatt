@@ -928,10 +928,10 @@ function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
         return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
     }).sort((a, b) => a.x - b.x);
 
-    // Group header blocks on the same baseline
+    // Group header blocks on the same table header band (+/- 35px tolerance)
     const headerRows = [];
     headerBlocks.forEach(hb => {
-        let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 14);
+        let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 35);
         if (!hr) {
             hr = { y: hb.y, height: hb.height, blocks: [] };
             headerRows.push(hr);
