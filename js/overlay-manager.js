@@ -32,18 +32,22 @@ export function renderOverlays(handlers) {
 
         // Border & fill styles
         if (f.borderStyle === "none") {
-            div.style.border = "1.5px dashed #cbd5e1";
-            div.style.background = "rgba(255,255,255,0.85)";
+            div.style.border = "1.5px dashed rgba(148, 163, 184, 0.6)";
+            div.style.background = "rgba(248, 250, 252, 0.55)";
+        } else if (f.borderStyle === "thick") {
+            div.style.border = "2.5px solid #3b82f6";
         } else {
-            div.style.border = "1.5px solid #94a3b8";
+            div.style.border = "1.5px solid #60a5fa";
         }
 
         if (f.fillStyle === "tint") {
-            div.style.background = "#eff6ff";
+            div.style.background = "rgba(224, 242, 254, 0.60)";
         } else if (f.fillStyle === "yellow") {
-            div.style.background = "#fefce8";
+            div.style.background = "rgba(254, 249, 195, 0.65)";
         } else if (f.fillStyle === "transparent") {
-            div.style.background = "transparent";
+            div.style.background = "rgba(255, 255, 255, 0.15)";
+        } else {
+            div.style.background = "rgba(239, 246, 255, 0.60)";
         }
 
         // Alignment and typography
