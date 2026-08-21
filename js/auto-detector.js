@@ -467,6 +467,120 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
         }
     }
 
+    // ------------------------------------------------------------------------
+    // AFFORDANCE 4: Table Grid Line Items (Invoices, POs, Estimates, Orders)
+    // ------------------------------------------------------------------------
+    for (const line of textLines) {
+        const text = line.str.toLowerCase();
+        if (line.items.length < 2) continue;
+
+        const tableColDefs = [
+            { regex: /^item\s*(?:#|no|num)?$/i, id: "item_no", name: "item" },
+            { regex: /^(?:sku|part\s*#|code)$/i, id: "sku", name: "sku" },
+            { regex: /description|particulars|details/i, id: "description", name: "description" },
+            { regex: /^(?:qty|quantity|units|hours)$/i, id: "qty", name: "quantity" },
+            { regex: /unit\s*price|price|rate|unit\s*cost/i, id: "unit_price", name: "price" },
+            { regex: /^taxable$/i, id: "taxable", name: "taxable" },
+            { regex: /^(?:amount|total|line\s*total|ext\s*price)$/i, id: "amount", name: "amount" }
+        ];
+
+        const matchedCols = [];
+        for (const item of line.items) {
+            for (const col of tableColDefs) {
+                if (col.regex.test(item.str) && !matchedCols.some(m => m.id === col.id)) {
+                    matchedCols.push({ ...col, x: item.x, width: item.width, y: item.y, height: item.height });
+                    break;
+                }
+            }
+        }
+
+        // A table header line has at least 2 distinct column keywords
+        if (matchedCols.length >= 2 && !text.includes(":")) {
+            matchedCols.sort((a, b) => a.x - b.x);
+
+            const columns = [];
+            for (let c = 0; c < matchedCols.length; c++) {
+                const current = matchedCols[c];
+                const next = matchedCols[c + 1];
+                const colStartX = Math.max(10, current.x - 4);
+                const colEndX = next ? Math.max(colStartX + 25, next.x - 6) : Math.min(pageWidth - 25, current.x + 120);
+                columns.push({
+                    id: current.id,
+                    name: current.name,
+                    x: colStartX,
+                    width: Math.max(25, colEndX - colStartX)
+                });
+            }
+
+            const tableTopY = line.y + line.height + 4;
+            let tableBottomY = pageHeight - 40;
+
+            for (const tb of rawBlocks) {
+                if (tb.y > tableTopY + 15) {
+                    if (/^(?:subtotal|total|notes|terms|payment|authorized|signature)/i.test(tb.str) || (tb.str.includes(":") && !tb.str.includes("http"))) {
+                        tableBottomY = Math.min(tableBottomY, tb.y - 6);
+                    }
+                }
+            }
+
+            const tableHeight = tableBottomY - tableTopY;
+            if (tableHeight >= 30) {
+                // Find existing row indices or placeholder rows
+                const rowMarkers = rawBlocks.filter(tb => {
+                    return tb.y >= tableTopY && tb.y <= tableBottomY && (/^\d+$/.test(tb.str) || /^\$\s*0(?:\.00)?$/.test(tb.str) || tb.str === "[");
+                });
+
+                let rowYs = [];
+                if (rowMarkers.length >= 2) {
+                    const sortedY = rowMarkers.map(m => m.y).sort((a, b) => a - b);
+                    for (const y of sortedY) {
+                        if (!rowYs.some(ry => Math.abs(ry - y) <= 6)) {
+                            rowYs.push(y);
+                        }
+                    }
+                }
+
+                if (rowYs.length === 0) {
+                    const rowCount = Math.min(8, Math.max(2, Math.floor(tableHeight / 24)));
+                    const rowHeight = tableHeight / rowCount;
+                    for (let r = 0; r < rowCount; r++) {
+                        rowYs.push(Math.round(tableTopY + r * rowHeight));
+                    }
+                }
+
+                for (let rIdx = 0; rIdx < rowYs.length; rIdx++) {
+                    const rowY = rowYs[rIdx];
+                    const rowNum = rIdx + 1;
+
+                    for (const col of columns) {
+                        if (col.id === "item_no" || col.id === "taxable") continue;
+
+                        const sem = resolveSemanticProps(`${col.name}_${rowNum}`, "textField", usedNames);
+                        const cellField = {
+                            id: generateFieldId(),
+                            type: "textField",
+                            name: sem.name,
+                            x: col.x,
+                            y: rowY,
+                            width: col.width,
+                            height: 18,
+                            page: pageNum,
+                            borderStyle: "solid",
+                            fillStyle: "white",
+                            multiline: false,
+                            autofill: "",
+                            dataFormat: (col.id === "amount" || col.id === "unit_price") ? "currency" : ((col.id === "qty") ? "number" : "text")
+                        };
+
+                        if (!isOverlapping(cellField, fields, 0.35)) {
+                            fields.push(cellField);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     return fields;
 }
 
