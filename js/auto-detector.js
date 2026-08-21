@@ -320,15 +320,22 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             if (/^[\s]*(?:Web Portal|Phone Support|First Time|Monthly|Standard|Full-Time)/i.test(textAfter)) continue;
             if (/select\s*all|select\s*one/i.test(cleanLabel)) continue;
 
-            // Find exact physical right edge of the prompt
-            let promptEndX = line.x;
-            let runningStr = "";
+            const isSig = /signature|sign/i.test(cleanLabel);
+            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
+            const isMulti = /comments|notes|remarks|responsibilities|description/i.test(cleanLabel);
+
+            // Find exact physical right edge of THIS specific prompt using character index in line.str
+            const matchEnd = m.index + m[0].length;
+            let charOffset = 0;
+            let promptEndX = line.x + line.width;
             for (const it of line.items) {
-                runningStr += (runningStr ? " " : "") + it.str;
-                if (it.str.includes(":") || (cleanLabel.length > 0 && runningStr.includes(cleanLabel))) {
-                    promptEndX = Math.max(promptEndX, it.x + it.width);
-                    if (it.str.includes(":")) break;
+                const itStart = charOffset;
+                const itEnd = charOffset + it.str.length;
+                if (matchEnd - 1 >= itStart && matchEnd - 1 <= itEnd) {
+                    promptEndX = it.x + it.width;
+                    break;
                 }
+                charOffset += it.str.length + 1;
             }
 
             const targetX = Math.round(promptEndX + 6);
@@ -348,10 +355,6 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             }
 
             targetW = Math.max(35, Math.min(targetW, maxAllowedX - targetX - 8));
-
-            const isSig = /signature|sign/i.test(cleanLabel);
-            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
-            const isMulti = /comments|notes|remarks|responsibilities|description/i.test(cleanLabel);
 
             const sem = resolveSemanticProps(cleanLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
