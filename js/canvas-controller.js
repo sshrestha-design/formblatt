@@ -140,7 +140,8 @@ function handleFieldDrag(e, container, handlers) {
     const primaryField = getSelectedField() || state.fields.find(f => state.selectedFieldIds.has(f.id));
     let snapDx = 0, snapDy = 0;
 
-    if (primaryField && state.initialFieldPositions.has(primaryField.id)) {
+    // Alt / Option: Holding Alt completely disables magnetic snapping for 100% free smooth precision movement
+    if (!e.altKey && primaryField && state.initialFieldPositions.has(primaryField.id)) {
         const init = state.initialFieldPositions.get(primaryField.id);
         const targetX = init.x + dx;
         const targetY = init.y + dy;
@@ -152,6 +153,8 @@ function handleFieldDrag(e, container, handlers) {
         snapDx = snaps.snapX;
         snapDy = snaps.snapY;
         showGuides(snaps.guideX, snaps.guideY);
+    } else {
+        hideGuides();
     }
 
     state.selectedFieldIds.forEach(id => {
@@ -375,9 +378,17 @@ export function initCanvasController(handlers) {
         }
     });
 
+    let rightClickStart = null;
+    let hasRightDragged = false;
+
     // Canvas Background MouseDown
     container?.addEventListener("mousedown", e => {
-        if (e.button === 2) return; // Ignore right-click, handled by contextmenu listener
+        if (e.button === 2) {
+            // Track right-click drag for smooth canvas panning
+            rightClickStart = { x: e.clientX, y: e.clientY, panX: state.panOffset.x, panY: state.panOffset.y };
+            hasRightDragged = false;
+            return;
+        }
 
         if (e.target !== container && e.target !== document.getElementById("pdfCanvas") && e.target !== document.getElementById("overlayContainer")) {
             return;
@@ -411,6 +422,19 @@ export function initCanvasController(handlers) {
 
     // Global Mouse Move & Up
     window.addEventListener("mousemove", e => {
+        if (rightClickStart) {
+            const rdx = e.clientX - rightClickStart.x;
+            const rdy = e.clientY - rightClickStart.y;
+            if (Math.abs(rdx) > 3 || Math.abs(rdy) > 3) {
+                hasRightDragged = true;
+                state.panOffset.x = rightClickStart.panX + rdx;
+                state.panOffset.y = rightClickStart.panY + rdy;
+                if (centerCanvas) {
+                    centerCanvas.style.transform = `translate(${state.panOffset.x}px, ${state.panOffset.y}px)`;
+                }
+            }
+        }
+
         if (state.isPanning) {
             handlePanning(e, centerCanvas);
         } else if (state.isDragging) {
@@ -425,16 +449,17 @@ export function initCanvasController(handlers) {
     });
 
     window.addEventListener("mouseup", () => {
+        rightClickStart = null;
         if (state.isPanning) state.isPanning = false;
         if (state.isDragging) {
             state.isDragging = false;
             hideGuides();
-            saveHistory();
+            saveHistory(true);
             handlers.onFieldUpdated();
         }
         if (state.isResizing) {
             state.isResizing = false;
-            saveHistory();
+            saveHistory(true);
             handlers.onFieldUpdated();
         }
         if (state.isLassoing) {
@@ -748,6 +773,14 @@ export function initContextMenu(handlers) {
             // Guard: Only enable when editor screen is active
             const editorScreen = document.getElementById("appEditorScreen");
             if (!editorScreen || editorScreen.style.display === "none") return;
+
+            // If user was right-drag panning the canvas, do not open context menu
+            if (hasRightDragged) {
+                hasRightDragged = false;
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
 
             e.preventDefault();
             e.stopPropagation();

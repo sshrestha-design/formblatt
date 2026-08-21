@@ -23,7 +23,27 @@ export function base64ToUint8Array(base64) {
     return bytes;
 }
 
-export function saveHistory() {
+let historyDebounceTimer = null;
+
+export function saveHistory(immediate = false) {
+    if (immediate) {
+        if (historyDebounceTimer) {
+            clearTimeout(historyDebounceTimer);
+            historyDebounceTimer = null;
+        }
+        commitHistorySnapshot();
+        return;
+    }
+
+    // Debounce rapid continuous stream of updates (sliders, scrubbing, typing)
+    if (historyDebounceTimer) clearTimeout(historyDebounceTimer);
+    historyDebounceTimer = setTimeout(() => {
+        commitHistorySnapshot();
+        historyDebounceTimer = null;
+    }, 350);
+}
+
+function commitHistorySnapshot() {
     const snapshot = JSON.stringify({ fields: state.fields, groups: state.groups || [] });
     if (state.historyIndex >= 0 && state.history[state.historyIndex] === snapshot) {
         return;
@@ -34,6 +54,10 @@ export function saveHistory() {
 }
 
 export function undo(onRestore) {
+    if (historyDebounceTimer) {
+        clearTimeout(historyDebounceTimer);
+        historyDebounceTimer = null;
+    }
     if (state.historyIndex > 0) {
         state.historyIndex--;
         const parsed = JSON.parse(state.history[state.historyIndex]);
@@ -48,6 +72,10 @@ export function undo(onRestore) {
 }
 
 export function redo(onRestore) {
+    if (historyDebounceTimer) {
+        clearTimeout(historyDebounceTimer);
+        historyDebounceTimer = null;
+    }
     if (state.historyIndex < state.history.length - 1) {
         state.historyIndex++;
         const parsed = JSON.parse(state.history[state.historyIndex]);
