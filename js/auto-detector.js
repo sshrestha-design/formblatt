@@ -123,6 +123,10 @@ export class TextOccupancyGrid {
             if (!str) return false;
             return (tb.height >= 16) || /^(?:invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order)$/i.test(str);
         });
+        this.sectionTabBlocks = rawBlocks.filter(tb => {
+            const str = (tb.str || "").trim();
+            return /^(?:from|to|billed?\s*to|ship\s*to|payment\s*terms|terms|due|invoice\s*to|remit\s*to)$/i.test(str);
+        });
     }
 
     isBlocked(box) {
@@ -131,6 +135,15 @@ export class TextOccupancyGrid {
             const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
             const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
             if (xOverlap > 0 && yOverlap > 0) return true;
+        }
+
+        // Strict section tab collision: reject any box that sits directly over a section tab/prompt
+        for (let sb of this.sectionTabBlocks) {
+            const xOverlap = Math.max(0, Math.min(box.x + box.width, sb.x + sb.width) - Math.max(box.x, sb.x));
+            const yOverlap = Math.max(0, Math.min(box.y + box.height, sb.y + sb.height) - Math.max(box.y, sb.y));
+            const overlapArea = xOverlap * yOverlap;
+            const blockArea = sb.width * sb.height;
+            if (overlapArea > (blockArea * 0.4) && box.width < 60) return true;
         }
 
         // Reject boxes placed in empty top margin
@@ -207,12 +220,12 @@ export class TopologicalTableSolver {
 
         let tableRows = [];
         if (sampleRowYs.length >= 2) {
-            tableRows = sampleRowYs.map(y => ({ y, height: 22 }));
+            tableRows = sampleRowYs.map(y => ({ y, height: 18 }));
         } else {
             let currY = tableTopY;
-            while (currY + 20 <= tableBottomY && tableRows.length < 10) {
-                tableRows.push({ y: currY, height: 22 });
-                currY += 24;
+            while (currY + 18 <= tableBottomY && tableRows.length < 10) {
+                tableRows.push({ y: currY, height: 18 });
+                currY += 22;
             }
         }
 
@@ -233,7 +246,7 @@ export class TopologicalTableSolver {
                     x: Math.max(10, col.x),
                     y: Math.max(10, row.y),
                     width: col.width,
-                    height: Math.min(24, row.height || 22),
+                    height: Math.min(20, row.height || 18),
                     page: pageNum,
                     borderStyle: "solid",
                     fillStyle: "white",
@@ -639,7 +652,16 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
 
                         // Discard boxes in top 55px margin or tall narrow vertical tabs (From, To tabs)
                         if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
-                        if (boxW < 36 && boxH >= 28) continue;
+                        if (boxW < 45 && boxH >= 24) continue;
+
+                        // Discard outer grouping containers that enclose 2 or more text lines
+                        if (boxH >= 35 && boxW >= 80 && rawBlocks) {
+                            const contained = rawBlocks.filter(tb => 
+                                tb.x >= (canvasX - 5) && (tb.x + tb.width) <= (canvasX + boxW + 5) &&
+                                tb.y >= (canvasY - 5) && (tb.y + tb.height) <= (canvasY + boxH + 5)
+                            );
+                            if (contained.length >= 2) continue;
+                        }
 
                         if (boxW >= 22 && boxH >= 12 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                             if (boxW < 22 && boxH < 22) continue;
@@ -668,7 +690,16 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                 const canvasX = tx;
 
                 if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
-                if (boxW < 36 && boxH >= 28) continue;
+                if (boxW < 45 && boxH >= 24) continue;
+
+                // Discard outer grouping containers that enclose 2 or more text lines
+                if (boxH >= 35 && boxW >= 80 && rawBlocks) {
+                    const contained = rawBlocks.filter(tb => 
+                        tb.x >= (canvasX - 5) && (tb.x + tb.width) <= (canvasX + boxW + 5) &&
+                        tb.y >= (canvasY - 5) && (tb.y + tb.height) <= (canvasY + boxH + 5)
+                    );
+                    if (contained.length >= 2) continue;
+                }
 
                 if (boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                     if (boxW < 22 && boxH < 22) continue;
@@ -764,6 +795,25 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             continue;
         }
 
+        // ── Placeholder Lines (Company Name, Client Name, Address 1, Terms, Due Date) ──
+        const isPlaceholderLine = /^(?:company\s*name|client\s*name|client\s*email(?:\s*address)?|address\s*\d*|street\s*address|client\s*address\s*\d*|city,\s*state,\s*zip|zip\s*code|terms|due\s*date)$/i.test(text);
+        if (isPlaceholderLine) {
+            const isDate = /date|dob/i.test(text);
+            detected.push({
+                type: isDate ? "dateField" : "textField",
+                rawLabel: text,
+                x: Math.max(10, Math.round(line.x - 2)),
+                y: Math.max(10, Math.round(line.y - 1)),
+                width: Math.round(Math.max(105, Math.min(135, line.width + 25))),
+                height: 16,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: false,
+                ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
+            });
+            continue;
+        }
+
         const hasExplicitColon = text.endsWith(":") || text.includes(":");
         if (hasExplicitColon) {
             const parts = text.split(":");
@@ -771,6 +821,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             const afterColon = (parts[1] || "").trim();
 
             if (isHeadingLabel(labelPart)) continue;
+            if (/^(?:from|to|terms|due)$/i.test(labelPart)) continue;
 
             const isBillShip = /bill\s*to|ship\s*to|billed\s*to|deliver\s*to/i.test(labelPart);
             if (isBillShip) {
