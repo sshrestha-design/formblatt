@@ -580,6 +580,19 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
     // ------------------------------------------------------------------------
     // AFFORDANCE 4: Table Grid Line Items (Invoices, POs, Estimates, Orders)
     // ------------------------------------------------------------------------
+    // Guards against detecting the SAME table more than once. Any other line
+    // on the page that happens to contain 2+ column keywords (a repeated
+    // label, stray text near the table, etc.) would otherwise spin up an
+    // independent second "table" with its own guessed boundaries and its own
+    // synthetic row spacing — producing stray fields that don't line up with
+    // the real grid, floating inside or just past it.
+    const processedTableRegions = [];
+    const regionsOverlap = (a, b) => {
+        const xOverlap = Math.min(a.xMax, b.xMax) - Math.max(a.xMin, b.xMin);
+        const yOverlap = Math.min(a.yMax, b.yMax) - Math.max(a.yMin, b.yMin);
+        return xOverlap > 0 && yOverlap > 0;
+    };
+
     for (const line of textLines) {
         const text = line.str.toLowerCase();
         if (line.items.length < 2) continue;
@@ -621,6 +634,19 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
         if (matchedCols.length >= 2 && !text.includes(":")) {
             matchedCols.sort((a, b) => a.x - b.x);
 
+            // Skip this header if it falls inside a table region we've
+            // already built fields for — this is very likely a stray
+            // repeated label rather than a genuinely separate table.
+            const candidateRegion = {
+                xMin: matchedCols[0].x - 10,
+                xMax: matchedCols[matchedCols.length - 1].x + 130,
+                yMin: line.y - 5,
+                yMax: line.y + 400 // generous: real table body extends well below the header
+            };
+            if (processedTableRegions.some(r => regionsOverlap(r, candidateRegion))) {
+                continue;
+            }
+
             const columns = [];
             for (let c = 0; c < matchedCols.length; c++) {
                 const current = matchedCols[c];
@@ -648,6 +674,15 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
 
             const tableHeight = tableBottomY - tableTopY;
             if (tableHeight >= 30) {
+                // Record the real bounds of this table now that we know
+                // them, so any later header line that overlaps this region
+                // gets skipped instead of spawning a competing table.
+                processedTableRegions.push({
+                    xMin: columns[0].x - 10,
+                    xMax: columns[columns.length - 1].x + columns[columns.length - 1].width + 10,
+                    yMin: tableTopY - 5,
+                    yMax: tableBottomY + 5
+                });
                 // Find existing row indices or placeholder rows
                 const rowMarkers = rawBlocks.filter(tb => {
                     return tb.y >= tableTopY && tb.y <= tableBottomY && (/^\d+$/.test(tb.str) || /^\$\s*0(?:\.00)?$/.test(tb.str) || tb.str === "[");
