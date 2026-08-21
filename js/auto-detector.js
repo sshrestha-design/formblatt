@@ -1,427 +1,128 @@
-// ── Precision 4-Stage PDF Form Field Auto-Detector (js/auto-detector.js) ──
+// ── Geometric-First PDF Form Field Auto-Detector (js/auto-detector.js) ──
+// SimplePDF / Acrobat visual affordance architecture
 import { state, generateFieldId } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 
+// ============================================================================
+// 1. SEMANTIC DICTIONARY & AUTOFILL RESOLVER
+// ============================================================================
 const SEMANTIC_DICTIONARY = [
-    // Invoice & Billing Specific Fields
-    { regex: /invoice\s*n(?:o|um|umber)?|inv\s*#|factura/i, id: "invoice_number_input", title: "Invoice Number", type: "textField", autofill: "invoice_num", score: 12 },
-    { regex: /po\s*n(?:o|um|umber)?|p\.o\.\s*#|purchase\s*order/i, id: "po_number_input", title: "PO Number", type: "textField", score: 12 },
-    { regex: /due\s*date|payment\s*due/i, id: "due_date_input", title: "Due Date", type: "dateField", score: 12 },
-    { regex: /invoice\s*date|issue\s*date|date\s*of\s*issue/i, id: "invoice_date_input", title: "Invoice Date", type: "dateField", score: 12 },
-    { regex: /bill\s*to|billed\s*to|invoice\s*to|client\s*name|customer/i, id: "bill_to_input", title: "Bill To", type: "textField", multiline: true, score: 12 },
-    { regex: /ship\s*to|deliver\s*to|shipping\s*address/i, id: "ship_to_input", title: "Ship To", type: "textField", multiline: true, score: 10 },
-    { regex: /vat\s*(?:id|num|number)?|tax\s*id|gstin|ein\s*num/i, id: "tax_id_input", title: "Tax ID / VAT", type: "textField", score: 10 },
-    { regex: /payment\s*terms|\bterms\b/i, id: "payment_terms_input", title: "Payment Terms", type: "textField", score: 10 },
-    { regex: /subtotal|sub-total/i, id: "subtotal_input", title: "Subtotal", type: "textField", score: 10 },
-    { regex: /discount/i, id: "discount_input", title: "Discount", type: "textField", score: 10 },
-    { regex: /shipping|freight/i, id: "shipping_fee_input", title: "Shipping Fee", type: "textField", score: 10 },
-    { regex: /total\s*authorized\s*amount|total\s*amount|amount\s*due|balance\s*due|^total\b/i, id: "total_amount_input", title: "Total Amount", type: "textField", score: 12 },
-    { regex: /item\s*description|description|item/i, id: "description_input", title: "Description", type: "textField", score: 11 },
-    { regex: /unit\s*price|rate|\bprice\b/i, id: "unit_price_input", title: "Unit Price", type: "textField", score: 11 },
-    { regex: /qty|quantity/i, id: "quantity_input", title: "Quantity", type: "textField", score: 11 },
-    { regex: /amount|line\s*total/i, id: "line_amount_input", title: "Line Amount", type: "textField", score: 11 },
-    { regex: /\btax\b|sales\s*tax/i, id: "tax_amount_input", title: "Tax", type: "textField", score: 11 },
+    // Invoice & Payment
+    { regex: /invoice\s*n(?:o|um|umber)?|inv\s*#|factura/i, id: "invoice_number", title: "Invoice Number", type: "textField", autofill: "invoice_num" },
+    { regex: /po\s*n(?:o|um|umber)?|p\.o\.\s*#|purchase\s*order/i, id: "po_number", title: "PO Number", type: "textField" },
+    { regex: /due\s*date|payment\s*due/i, id: "due_date", title: "Due Date", type: "dateField" },
+    { regex: /invoice\s*date|issue\s*date|date\s*of\s*issue/i, id: "invoice_date", title: "Invoice Date", type: "dateField" },
+    { regex: /credit\s*card\s*number|card\s*number|account\s*number/i, id: "credit_card_number", title: "Credit Card Number", type: "textField", autofill: "cc-number" },
+    { regex: /cardholder\s*(?:full\s*)?name|name\s*on\s*card/i, id: "cardholder_name", title: "Cardholder Name", type: "textField", autofill: "cc-name" },
+    { regex: /expiration\s*date|exp\s*date|exp\s*\.?\s*date/i, id: "expiration_date", title: "Expiration Date", type: "dateField", autofill: "cc-exp" },
+    { regex: /cvv|cvc|security\s*code/i, id: "cvv", title: "CVV / CVC", type: "textField", autofill: "cc-csc" },
+    { regex: /billing\s*(?:street\s*)?address/i, id: "billing_address", title: "Billing Address", type: "textField", autofill: "address1" },
+    { regex: /total\s*reimbursement|total\s*amount|total\s*authorized|balance\s*due|amount\s*due|^total\b/i, id: "total_amount", title: "Total Amount", type: "textField" },
+    { regex: /total\s*itemized\s*expenses|itemized\s*expenses/i, id: "total_itemized_expenses", title: "Total Itemized Expenses", type: "textField" },
+    { regex: /mileage\s*total|mileage\s*allowance/i, id: "mileage_total_amount", title: "Mileage Total Amount", type: "textField" },
+    { regex: /less\s*cash\s*advance|cash\s*advance/i, id: "cash_advance_received", title: "Cash Advance Received", type: "textField" },
+    { regex: /total\s*business\s*miles|miles\s*driven/i, id: "total_business_miles", title: "Total Business Miles", type: "textField" },
 
-    // Credit Card & Payment Processing
-    { regex: /credit\s*card\s*number|card\s*number|account\s*number/i, id: "credit_card_number_input", title: "Credit Card Number", type: "textField", autofill: "cc-number", score: 12 },
-    { regex: /cardholder\s*(?:full\s*)?name|name\s*on\s*card/i, id: "cardholder_name_input", title: "Cardholder Full Name", type: "textField", autofill: "cc-name", score: 12 },
-    { regex: /expiration\s*date|exp\s*date|exp\s*\.?\s*date/i, id: "expiration_date_input", title: "Expiration Date", type: "dateField", autofill: "cc-exp", score: 12 },
-    { regex: /cvv|cvc|security\s*code/i, id: "cvv_input", title: "CVV / CVC", type: "textField", autofill: "cc-csc", score: 12 },
-    { regex: /billing\s*(?:street\s*)?address/i, id: "billing_address_input", title: "Billing Street Address", type: "textField", autofill: "address1", score: 12 },
+    // Expense & Claim Form Fields
+    { regex: /employee\s*full\s*name|employee\s*name/i, id: "employee_full_name", title: "Employee Full Name", type: "textField", autofill: "name" },
+    { regex: /employee\s*id|staff\s*id|badge\s*#/i, id: "employee_id", title: "Employee ID #", type: "textField" },
+    { regex: /department|division/i, id: "department_division", title: "Department / Division", type: "textField", autofill: "organization-title" },
+    { regex: /cost\s*center\s*code|cost\s*center/i, id: "cost_center_code", title: "Cost Center Code", type: "textField" },
+    { regex: /manager\s*\/?\s*approver\s*name|manager\s*name|approver\s*name/i, id: "manager_approver_name", title: "Manager / Approver Name", type: "textField", autofill: "name" },
+    { regex: /claim\s*period\s*\(?start\s*date\)?|start\s*date|claim\s*start/i, id: "claim_period_start_date", title: "Claim Period (Start Date)", type: "dateField" },
+    { regex: /claim\s*period\s*\(?end\s*date\)?|end\s*date|claim\s*end/i, id: "claim_period_end_date", title: "Claim Period (End Date)", type: "dateField" },
+    { regex: /direct\s*deposit\s*on\s*file|direct\s*deposit/i, id: "direct_deposit_on_file", title: "Direct Deposit on File", type: "checkBox" },
 
-    // Tax & Financial Forms (IRS W-9, W-4, 1099, Banking, Direct Deposit, Loans)
-    { regex: /routing\s*n(?:o|um|umber)?|aba\s*routing|transit\s*n(?:o|um|umber)?/i, id: "routing_number_input", title: "Routing Number", type: "textField", score: 12 },
-    { regex: /taxpayer\s*id|tin\b|ein\b/i, id: "taxpayer_id_input", title: "Taxpayer ID / EIN", type: "textField", score: 12 },
-    { regex: /ssn|social\s*security/i, id: "ssn_input", title: "Social Security Number", type: "textField", score: 12 },
-    { regex: /filing\s*status|marital\s*status/i, id: "marital_status_input", title: "Marital Status", type: "textField", score: 10 },
-    { regex: /legal\s*sex|gender/i, id: "legal_sex_input", title: "Legal Sex", type: "textField", score: 10 },
-    { regex: /preferred\s*language|language/i, id: "preferred_language_input", title: "Preferred Language", type: "textField", score: 10 },
-    { regex: /gross\s*income|annual\s*income|net\s*income/i, id: "annual_income_input", title: "Annual Income", type: "textField", score: 10 },
+    // Employment & HR Fields
+    { regex: /position\s*(?:applied\s*for|desired|title)|applied\s*position/i, id: "position_applied_for", title: "Position Applied For", type: "textField" },
+    { regex: /desired\s*(?:salary|wage|pay)|hourly\s*(?:rate|wage)|pay\s*rate/i, id: "desired_salary", title: "Desired Salary", type: "textField" },
+    { regex: /supervisor\s*(?:name\s*)?(?:&|\/|\s*and\s*)?\s*title|supervisor\s*name/i, id: "supervisor_name_title", title: "Supervisor Name & Title", type: "textField" },
+    { regex: /key\s*responsibilities|responsibilities|job\s*duties|duties/i, id: "key_responsibilities", title: "Key Responsibilities", type: "textField", multiline: true },
+    { regex: /reason\s*for\s*leaving/i, id: "reason_for_leaving", title: "Reason for Leaving", type: "textField", multiline: true },
+    { regex: /previous\s*employer|employer\s*name|company\s*name/i, id: "employer_name", title: "Employer / Company Name", type: "textField", autofill: "organization" },
+    { regex: /dates\s*employed|employment\s*dates/i, id: "dates_employed", title: "Dates Employed", type: "textField" },
+    { regex: /starting\s*pay|starting\s*salary/i, id: "starting_pay", title: "Starting Pay", type: "textField" },
+    { regex: /ending\s*pay|ending\s*salary/i, id: "ending_pay", title: "Ending Pay", type: "textField" },
+    { regex: /high\s*school|college|university|school\s*name/i, id: "school_name", title: "School Name", type: "textField" },
+    { regex: /degree\s*(?:&|\/|\s*and\s*)?\s*major|highest\s*degree|major/i, id: "degree_major", title: "Degree & Major", type: "textField" },
+    { regex: /graduation\s*year/i, id: "graduation_year", title: "Graduation Year", type: "textField" },
 
-    // HR & Employment & Application Forms
-    { regex: /position\s*(?:applied\s*for|desired|title)|applied\s*position/i, id: "position_applied_for_input", title: "Position Applied For", type: "textField", score: 12 },
-    { regex: /desired\s*(?:salary|wage|pay)|hourly\s*(?:rate|wage)|pay\s*rate/i, id: "desired_salary_input", title: "Desired Salary / Wage", type: "textField", score: 12 },
-    { regex: /date\s*available(?:\s*to\s*start)?|available\s*start\s*date|start\s*date/i, id: "start_date_input", title: "Date Available to Start", type: "dateField", score: 12 },
-    { regex: /employment\s*status|status/i, id: "employment_status_input", title: "Employment Status", type: "textField", score: 10 },
-    { regex: /supervisor\s*(?:name\s*)?(?:&|\/|\s*and\s*)?\s*title|supervisor\s*name/i, id: "supervisor_name_title_input", title: "Supervisor Name & Title", type: "textField", score: 12 },
-    { regex: /supervisor\s*phone/i, id: "supervisor_phone_input", title: "Supervisor Phone", type: "textField", autofill: "phone", score: 11 },
-    { regex: /key\s*responsibilities|responsibilities|job\s*duties|duties/i, id: "key_responsibilities_input", title: "Key Responsibilities", type: "textField", multiline: true, score: 12 },
-    { regex: /reason\s*for\s*leaving/i, id: "reason_for_leaving_input", title: "Reason for Leaving", type: "textField", multiline: true, score: 12 },
-    { regex: /previous\s*employer|employer\s*name|company\s*name/i, id: "employer_name_input", title: "Employer / Company Name", type: "textField", autofill: "organization", score: 12 },
-    { regex: /dates\s*employed|employment\s*dates|dates\s*of\s*employment/i, id: "dates_employed_input", title: "Dates Employed (From / To)", type: "textField", score: 12 },
-    { regex: /starting\s*pay|starting\s*salary/i, id: "starting_pay_input", title: "Starting Pay", type: "textField", score: 11 },
-    { regex: /ending\s*pay|ending\s*salary/i, id: "ending_pay_input", title: "Ending Pay", type: "textField", score: 11 },
-    { regex: /high\s*school|college|university|school\s*name/i, id: "school_name_input", title: "High School / College / University", type: "textField", score: 11 },
-    { regex: /degree\s*(?:&|\/|\s*and\s*)?\s*major|highest\s*degree|major/i, id: "degree_major_input", title: "Degree & Major", type: "textField", score: 11 },
-    { regex: /graduation\s*year|year\s*graduated/i, id: "graduation_year_input", title: "Graduation Year", type: "textField", score: 11 },
-    { regex: /authorized\s*to\s*work|work\s*authorization/i, id: "work_authorized_input", title: "Work Authorization", type: "textField", score: 11 },
-    { regex: /require\s*sponsorship|sponsorship/i, id: "require_sponsorship_input", title: "Require Sponsorship", type: "textField", score: 11 },
-    { regex: /felony|convicted/i, id: "felony_conviction_input", title: "Felony Conviction", type: "textField", score: 11 },
-    { regex: /print\s*name|printed\s*name|applicant\s*name/i, id: "printed_name_input", title: "Printed Name", type: "textField", autofill: "name", score: 12 },
-    { regex: /applicant\s*signature|employee\s*signature|signature\s*of\s*applicant/i, id: "applicant_signature_input", title: "Applicant Signature", type: "signature", score: 12 },
-    { regex: /date\s*of\s*application|application\s*date/i, id: "application_date_input", title: "Date of Application", type: "dateField", score: 12 },
+    // Signatures & Dates
+    { regex: /employee\s*certification\s*signature|employee\s*signature|applicant\s*signature|cardholder\s*\/?\s*attendee\s*signature|witness\s*signature|^signature\b|sign\s*here|authorized\s*sign/i, id: "signature", title: "Signature", type: "signature" },
+    { regex: /manager\s*\/?\s*approver\s*signature|approver\s*signature|supervisor\s*signature/i, id: "approver_signature", title: "Approver Signature", type: "signature" },
+    { regex: /date\s*approved|approval\s*date/i, id: "date_approved", title: "Date Approved", type: "dateField" },
+    { regex: /^date\b|date\s*signed|today.?s\s*date|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i, id: "date_signed", title: "Date", type: "dateField" },
 
-    // Healthcare & Medical Forms (Patient Intake, Insurance Claims, HIPAA)
-    { regex: /patient\s*name/i, id: "patient_name_input", title: "Patient Name", type: "textField", autofill: "name", score: 12 },
-    { regex: /patient\s*id|mrn\b|medical\s*record/i, id: "patient_id_input", title: "Patient ID / MRN", type: "textField", score: 12 },
-    { regex: /emergency\s*contact\s*name|emergency\s*contact/i, id: "emergency_contact_name", title: "Emergency Contact Name", type: "textField", autofill: "name", score: 12 },
-    { regex: /emergency\s*phone/i, id: "emergency_phone_input", title: "Emergency Phone", type: "textField", autofill: "phone", score: 12 },
-    { regex: /relationship\s*to\s*patient|relationship\s*to\s*policyholder|\brelationship\b/i, id: "relationship_input", title: "Relationship", type: "textField", score: 10 },
-    { regex: /primary\s*insurance|insurance\s*(?:company|provider|carrier|plan)/i, id: "insurance_provider_input", title: "Insurance Provider", type: "textField", score: 12 },
-    { regex: /policy\s*(?:\/|\s*)member\s*id|policy\s*n(?:o|um|umber)?|member\s*id/i, id: "insurance_policy_input", title: "Policy / Member ID", type: "textField", score: 12 },
-    { regex: /group\s*n(?:o|um|umber)?/i, id: "group_number_input", title: "Group Number", type: "textField", score: 12 },
-    { regex: /policyholder\s*name/i, id: "policyholder_name_input", title: "Policyholder Name", type: "textField", autofill: "name", score: 12 },
-    { regex: /policyholder\s*dob|policyholder\s*date\s*of\s*birth/i, id: "policyholder_dob_input", title: "Policyholder DOB", type: "dateField", score: 12 },
-    { regex: /known\s*allergies|allergies/i, id: "allergies_input", title: "Known Allergies", type: "textField", multiline: true, score: 11 },
-    { regex: /reaction\s*&?\s*severity|reaction/i, id: "reaction_severity_input", title: "Reaction & Severity", type: "textField", multiline: true, score: 11 },
-    { regex: /current\s*prescription|prescription\s*medications|medications/i, id: "medications_input", title: "Current Medications", type: "textField", multiline: true, score: 11 },
-    { regex: /reason\s*for\s*medication|prescribing\s*physician/i, id: "prescribing_physician_input", title: "Prescribing Physician / Reason", type: "textField", multiline: true, score: 11 },
-    { regex: /accessibility\s*accommodations|accommodations/i, id: "accessibility_accommodations_input", title: "Accessibility Accommodations", type: "textField", multiline: true, score: 11 },
-
-    // Conference & Event Registration
-    { regex: /prefix/i, id: "prefix_input", title: "Prefix", type: "textField", score: 10 },
-    { regex: /badge\s*name|nickname/i, id: "badge_name_input", title: "Badge Name / Nickname", type: "textField", score: 11 },
-    { regex: /job\s*title|role/i, id: "job_title_input", title: "Job Title / Role", type: "textField", autofill: "organization-title", score: 11 },
-    { regex: /organization|company/i, id: "organization_input", title: "Organization / Company", type: "textField", autofill: "organization", score: 11 },
-    { regex: /work\s*email|business\s*email/i, id: "work_email_input", title: "Work Email Address", type: "textField", autofill: "email", score: 12 },
-    { regex: /mobile\s*phone|cell\s*phone/i, id: "mobile_phone_input", title: "Mobile Phone Number", type: "textField", autofill: "phone", score: 12 },
-    { regex: /country\s*(?:\/|\s*)region|country/i, id: "country_region_input", title: "Country / Region", type: "textField", autofill: "country", score: 11 },
-
-    // Real Estate & Rental
-    { regex: /property\s*address|premises|unit\s*#|apt\s*#/i, id: "property_address_input", title: "Property Address", type: "textField", autofill: "address1", score: 12 },
-    { regex: /monthly\s*rent|rent\s*amount/i, id: "monthly_rent_input", title: "Monthly Rent", type: "textField", score: 12 },
-    { regex: /security\s*deposit|deposit\s*amount/i, id: "security_deposit_input", title: "Security Deposit", type: "textField", score: 10 },
-    { regex: /landlord|lessor/i, id: "landlord_name_input", title: "Landlord Name", type: "textField", score: 10 },
-    { regex: /tenant|lessee/i, id: "tenant_name_input", title: "Tenant Name", type: "textField", score: 10 },
-    { regex: /lease\s*start|move-?in\s*date/i, id: "move_in_date_input", title: "Move-In Date", type: "dateField", score: 10 },
-
-    // Legal, Contracts & Agreements
-    { regex: /effective\s*date|execution\s*date/i, id: "effective_date_input", title: "Effective Date", type: "dateField", score: 12 },
-    { regex: /disclosing\s*party|party\s*a/i, id: "disclosing_party_input", title: "Disclosing Party", type: "textField", score: 10 },
-    { regex: /receiving\s*party|party\s*b/i, id: "receiving_party_input", title: "Receiving Party", type: "textField", score: 10 },
-    { regex: /governing\s*law|jurisdiction/i, id: "governing_law_input", title: "Governing Law", type: "textField", score: 10 },
-    { regex: /witness\s*signature/i, id: "witness_signature_input", title: "Witness Signature", type: "signature", score: 12 },
-
-    // Standard Person & Contact Fields
-    { regex: /first\s*name/i, id: "first_name_input", title: "First Name", type: "textField", autofill: "first_name", score: 10 },
-    { regex: /last\s*name|surname/i, id: "last_name_input", title: "Last Name", type: "textField", autofill: "last_name", score: 10 },
-    { regex: /\bm\.?i\.?\b|middle\s*initial|middle\s*name/i, id: "middle_initial_input", title: "Middle Initial", type: "textField", score: 10 },
-    { regex: /full\s*legal\s*name|legal\s*name|full\s*name|^name\b/i, id: "full_name_input", title: "Full Legal Name", type: "textField", autofill: "name", score: 10 },
-    { regex: /city,\s*state,\s*postal\s*code|city,\s*state,\s*zip|city\s*state\s*zip/i, id: "city_state_zip_input", title: "City, State, Postal Code", type: "textField", score: 10 },
-    { regex: /location|city|ort|standort/i, id: "location_input", title: "Location", type: "textField", autofill: "city", score: 10 },
-    { regex: /e-?p?mail/i, id: "email_address_input", title: "Email Address", type: "textField", autofill: "email", score: 10 },
-    { regex: /primary\s*phone|home\s*phone|cell\s*phone|\bphone\b|\bmobile\b|\bcell\b|\btelephone\b|\btel\b/i, id: "phone_number_input", title: "Phone Number", type: "textField", autofill: "phone", score: 10 },
-    { regex: /street\s*address|home\s*address|address\s*line/i, id: "street_address_input", title: "Street Address", type: "textField", autofill: "address1", score: 10 },
-    { regex: /address/i, id: "address_input", title: "Address", type: "textField", autofill: "address1", score: 10 },
-    { regex: /state|province|region|bundesland/i, id: "state_input", title: "State / Province", type: "textField", autofill: "state", score: 10 },
-    { regex: /postal\s*code|zip\s*code|zip|postal|postcode|plz/i, id: "zip_code_input", title: "Postal Code", type: "textField", autofill: "zip", score: 10 },
-    { regex: /date\s*of\s*birth|dob|birth\s*date|\(mm\/dd\/yyyy\)/i, id: "date_of_birth_input", title: "Date of Birth", type: "dateField", score: 10 },
-    { regex: /cardholder\s*\/?\s*attendee\s*signature|signature|sign\s*here|authorized\s*sign/i, id: "signature_input", title: "Signature", type: "signature", score: 10 },
-    { regex: /^date\b|date\s*signed|today.?s\s*date|\(yyyy-mm-dd\)/i, id: "date_signed_input", title: "Date Signed", type: "dateField", score: 10 },
-    { regex: /comments|notes|remarks|message|description|explanation/i, id: "comments_input", title: "Additional Comments", type: "textField", multiline: true, score: 10 }
+    // Person & Contact Fields
+    { regex: /first\s*name/i, id: "first_name", title: "First Name", type: "textField", autofill: "first_name" },
+    { regex: /last\s*name|surname/i, id: "last_name", title: "Last Name", type: "textField", autofill: "last_name" },
+    { regex: /\bm\.?i\.?\b|middle\s*initial|middle\s*name/i, id: "middle_initial", title: "Middle Initial", type: "textField" },
+    { regex: /full\s*legal\s*name|legal\s*name|full\s*name|^name\b/i, id: "full_name", title: "Full Name", type: "textField", autofill: "name" },
+    { regex: /street\s*address|home\s*address|address\s*line/i, id: "street_address", title: "Street Address", type: "textField", autofill: "address1" },
+    { regex: /city,\s*state,\s*postal\s*code|city,\s*state,\s*zip|city\s*state\s*zip/i, id: "city_state_zip", title: "City, State, Zip", type: "textField" },
+    { regex: /city|location/i, id: "city", title: "City", type: "textField", autofill: "city" },
+    { regex: /state|province/i, id: "state_region", title: "State", type: "textField", autofill: "state" },
+    { regex: /postal\s*code|zip\s*code|zip\b/i, id: "zip_code", title: "Zip Code", type: "textField", autofill: "zip" },
+    { regex: /e-?p?mail/i, id: "email_address", title: "Email Address", type: "textField", autofill: "email" },
+    { regex: /primary\s*phone|cell\s*phone|mobile\s*phone|\bphone\b|\bmobile\b/i, id: "phone_number", title: "Phone Number", type: "textField", autofill: "phone" },
+    { regex: /date\s*of\s*birth|dob|birth\s*date/i, id: "date_of_birth", title: "Date of Birth", type: "dateField" },
+    { regex: /comments|notes|remarks|message|description/i, id: "comments", title: "Comments", type: "textField", multiline: true }
 ];
 
-const CONTACT_OR_RESUME_KEYWORDS = /(?:@|\.(?:com|org|net|io|edu|gov|co|uk|de)|https?:\/\/|\+?\d{2,4}[-\s]?\d{3,4}|\b(?:linkedin|github|twitter|portfolio|behance|dribbble|website|experience|skills|projects|summary|awards|languages|hobbies)\b)/i;
+function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = new Set()) {
+    const clean = (rawLabel || "").trim().replace(/[:_.\s-]+$/, "");
+    let baseId = "";
+    let type = defaultType;
+    let multiline = false;
+    let autofill = "";
+    let defaultValue = "";
 
-function isHeadingLabel(text) {
-    if (!text) return false;
-    const clean = text.trim().replace(/[:_.\s-]+$/, "");
-    if (!clean || clean.length < 2) return false;
-
-    // Never filter out actual form prompts
-    if (/(?:signature|date|name|email|phone|address|city|state|zip|ssn|dob|position|employer|company|title|supervisor|salary|wage|education|degree|school|contact|card|amount|due|invoice|po\s*#|reason|responsibilities|authorized|felony|license)/i.test(clean)) {
-        // If it is a numbered section heading like "1. ATTENDEE INFORMATION" or "4. EMPLOYMENT HISTORY", check
-        if (/^\d+[\.\)]\s*(?:ATTENDEE|REGISTRATION|EMPLOYMENT\s*HISTORY|EDUCATION\s*HISTORY|CERTIFICATION|PERSONAL\s*INFO|CONTACT\s*INFO|GENERAL\s*INFO)/i.test(clean)) {
-            return true;
+    for (const item of SEMANTIC_DICTIONARY) {
+        if (item.regex.test(clean)) {
+            baseId = item.id;
+            if (item.type) type = item.type;
+            if (item.multiline) multiline = true;
+            if (item.autofill) autofill = item.autofill;
+            if (type === "dateField") defaultValue = "YYYY-MM-DD";
+            break;
         }
-        return false;
     }
 
-    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) return true;
-
-    if (/^(?:contract|details|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(clean) && !text.includes(":") && !/[_]{2,}/.test(text)) {
-        return true;
-    }
-
-    if (/(?:pdf|form|example|sample|demonstration|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document)/i.test(clean) && !text.includes(":") && !/[_]{2,}/.test(text)) {
-        return true;
-    }
-
-    return false;
-}
-
-
-// ============================================================================
-// STAGE 1: Spatial Obstacle & Text Occupancy Grid (Blocked Text Zones)
-// ============================================================================
-export class TextOccupancyGrid {
-    constructor(rawBlocks, pageHeight) {
-        this.pageHeight = pageHeight;
-        this.rawBlocks = rawBlocks;
-        this.titleBlocks = rawBlocks.filter(tb => {
-            const str = (tb.str || "").trim();
-            if (!str) return false;
-            return (tb.height >= 18) || /^(?:invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order)$/i.test(str);
-        });
-        this.sectionTabBlocks = rawBlocks.filter(tb => {
-            const str = (tb.str || "").trim();
-            return /^(?:from|to|billed?\s*to|ship\s*to|payment\s*terms|terms|due|invoice\s*to|remit\s*to)$/i.test(str);
-        });
-    }
-
-    isBlocked(box) {
-        for (let tb of this.titleBlocks) {
-            const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
-            const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
-            if (xOverlap > 0 && yOverlap > 0) return true;
+    if (!baseId) {
+        if (type === "signature") baseId = "signature";
+        else if (type === "checkBox") {
+            const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
+            baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "checkbox";
+        } else if (type === "dateField") {
+            baseId = "date";
+            defaultValue = "YYYY-MM-DD";
+        } else {
+            const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 4);
+            baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "field";
         }
-
-        if (box.y < 40 && !box.type?.includes("signature")) return true;
-
-        return false;
     }
+
+    let finalId = baseId;
+    let counter = 1;
+    while (usedNames.has(finalId)) {
+        counter++;
+        finalId = `${baseId}_${counter}`;
+    }
+    usedNames.add(finalId);
+
+    return { name: finalId, type, multiline, autofill, defaultValue };
 }
 
 // ============================================================================
-// STAGE 2: Topological Table & Grid Solver (2D Matrix Projector)
+// 2. MAIN AUTO-DETECT CONTROLLER
 // ============================================================================
-export class TopologicalTableSolver {
-    static solveGrid(fields, rawBlocks, pageNum, usedNames) {
-        const headerBlocks = rawBlocks.filter(tb => {
-            const text = (tb.str || "").trim();
-            return /^(?:item|description|item\s*description|qty|quantity|unit\s*price|price|rate|amount|line\s*total)$/i.test(text);
-        }).sort((a, b) => a.x - b.x);
-
-        const headerRows = [];
-        headerBlocks.forEach(hb => {
-            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 8);
-            if (!hr) {
-                hr = { y: hb.y, height: hb.height, blocks: [] };
-                headerRows.push(hr);
-            }
-            hr.blocks.push(hb);
-        });
-
-        // Require at least 3 distinct invoice table column headers on the same line
-        const mainHeaderRow = headerRows.find(hr => {
-            if (hr.blocks.length < 3) return false;
-            const texts = hr.blocks.map(b => (b.str || "").trim().toLowerCase());
-            const hasDesc = texts.some(t => t.includes("desc") || t.includes("item"));
-            const hasQtyOrPrice = texts.some(t => t.includes("qty") || t.includes("quant") || t.includes("price") || t.includes("rate") || t.includes("amount"));
-            return hasDesc && hasQtyOrPrice;
-        });
-        if (!mainHeaderRow) return fields;
-
-        const tableTopY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 4);
-        
-        const footerBlock = rawBlocks.find(tb => {
-            const text = (tb.str || "").trim();
-            return /subtotal|tax|balance\s*due|total\s*due/i.test(text) && tb.y > tableTopY;
-        });
-        const tableBottomY = footerBlock ? Math.round(footerBlock.y - 8) : Math.min(tableTopY + 280, 750);
-
-        const colBands = [];
-        const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
-
-        const leftAnchor = rawBlocks.find(tb => /^(?:from|terms|bill\s*to)$/i.test((tb.str || "").trim()));
-        const tableLeftX = leftAnchor ? Math.round(leftAnchor.x) : 138;
-
-        const tableRightX = footerBlock 
-            ? Math.round(footerBlock.x + footerBlock.width + 55) 
-            : Math.round(sortedHeaderBlocks[sortedHeaderBlocks.length - 1].x + sortedHeaderBlocks[sortedHeaderBlocks.length - 1].width + 30);
-
-        const colHeaderMap = {
-            "Item Description": "Description",
-            "Description": "Description",
-            "Quantity": "Quantity",
-            "Qty": "Quantity",
-            "Price": "Unit Price",
-            "Unit Price": "Unit Price",
-            "Rate": "Unit Price",
-            "Amount": "Line Amount",
-            "Total": "Line Amount"
-        };
-
-        for (let i = 0; i < sortedHeaderBlocks.length; i++) {
-            const hb = sortedHeaderBlocks[i];
-            const nextHb = sortedHeaderBlocks[i + 1];
-            
-            let colX, colW;
-            if (i === 0) {
-                colX = Math.max(10, tableLeftX + 2);
-                colW = nextHb ? Math.max(50, Math.round((nextHb.x - 4) - colX)) : Math.round(hb.width + 30);
-            } else if (nextHb) {
-                colX = Math.round(hb.x - 2);
-                colW = Math.max(30, Math.round((nextHb.x - 4) - colX));
-            } else {
-                colX = Math.round(hb.x - 2);
-                colW = Math.max(35, Math.round(tableRightX - 2 - colX));
-            }
-
-            const headerKey = (hb.str || "").trim();
-            colBands.push({
-                x: colX,
-                width: colW,
-                headerText: colHeaderMap[headerKey] || headerKey || "Column"
-            });
-        }
-
-        const totalH = tableBottomY - tableTopY;
-        const numRows = Math.max(10, Math.min(12, Math.round(totalH / 18.5)));
-        const rowPitch = totalH / numRows;
-        const tableRows = [];
-        for (let r = 0; r < numRows; r++) {
-            const rY = Math.round(tableTopY + (r * rowPitch) + 2);
-            tableRows.push({ y: rY, height: 14 });
-        }
-
-        const headerMinY = Math.round(mainHeaderRow.y - 12);
-        const resultFields = fields.filter(f => f.y < headerMinY || f.y > tableBottomY);
-
-        tableRows.forEach((row, rowIndex) => {
-            colBands.forEach(col => {
-                const colHeader = col.headerText || "Column";
-                const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
-
-                const newField = {
-                    id: generateFieldId(),
-                    type: "textField",
-                    name: sem.name,
-                    x: Math.max(10, col.x),
-                    y: Math.max(10, row.y),
-                    width: col.width,
-                    height: row.height,
-                    page: pageNum,
-                    borderStyle: "solid",
-                    fillStyle: "white",
-                    multiline: false,
-                    autofill: sem.autofill || "",
-                    dataFormat: "text"
-                };
-
-                resultFields.push(newField);
-            });
-        });
-
-        return resultFields;
-    }
-}
-
-// ============================================================================
-// STAGE 3: Directional Raycasting & Local Context Decay
-// ============================================================================
-export class DirectionalRaycaster {
-    static findLabelForBox(box, rawBlocks) {
-        const boxMidY = box.y + (box.height / 2);
-
-        // 1. Inside top of box: Look for text inside the box upper area
-        const insideTop = rawBlocks.filter(tb => {
-            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
-            return tb.x >= (box.x - 4) && (tb.x + tb.width) <= (box.x + box.width + 4) &&
-                   tb.y >= (box.y - 2) && tb.y <= (box.y + 18);
-        });
-        if (insideTop.length > 0) {
-            const decoded = sanitizeAndDecodeLabel(insideTop[0].str);
-            if (decoded) return insideTop[0].str;
-        }
-
-        // 2. Top Ray: Look up for stacked labels within max 24px
-        const topBlocks = rawBlocks.filter(tb => {
-            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
-            const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 24;
-            const isAlignedX = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15);
-            return isAbove && isAlignedX;
-        }).sort((a, b) => (box.y - (a.y + a.height)) - (box.y - (b.y + b.height)));
-
-        for (let tb of topBlocks) {
-            const decoded = sanitizeAndDecodeLabel(tb.str);
-            if (decoded) return tb.str;
-        }
-
-        // 3. Left Ray: Look left for inline labels within max 120px
-        const leftBlocks = rawBlocks.filter(tb => {
-            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
-            const tbMidY = tb.y + (tb.height / 2);
-            const isSameRow = Math.abs(tbMidY - boxMidY) <= 14;
-            const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 120;
-            return isSameRow && isToLeft;
-        }).sort((a, b) => {
-            const distA = box.x - (a.x + a.width);
-            const distB = box.x - (b.x + b.width);
-            return distA - distB;
-        });
-
-        for (let tb of leftBlocks) {
-            const decoded = sanitizeAndDecodeLabel(tb.str);
-            if (decoded) return tb.str;
-        }
-
-        return null;
-    }
-
-    static resolveSemanticProperties(rawLabel, defaultType = "textField", usedNames = new Set()) {
-        let clean = (rawLabel || "").trim().replace(/[:_.\s-]+$/, "");
-        let baseId = "";
-        let type = defaultType;
-        let multiline = false;
-        let autofill = "";
-        let defaultValue = "";
-
-        const match = sanitizeAndDecodeLabel(clean);
-        if (match) {
-            baseId = match.id;
-            if (match.type) type = match.type;
-            if (match.multiline) multiline = true;
-            if (match.autofill) autofill = match.autofill;
-            if (type === "dateField") defaultValue = match.defaultValue || "MM/DD/YYYY";
-        }
-
-        if (!baseId) {
-            if (type === "signature") baseId = "signature";
-            else if (type === "checkBox") {
-                const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
-                baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "checkbox";
-            }
-            else if (type === "dateField") { baseId = "date"; defaultValue = "MM/DD/YYYY"; }
-            else baseId = "text_field";
-        }
-
-        let finalId = baseId;
-        let counter = 1;
-        while (usedNames.has(finalId)) {
-            counter++;
-            finalId = `${baseId}_${counter}`;
-        }
-        usedNames.add(finalId);
-
-        return { name: finalId, type, multiline, autofill, defaultValue };
-    }
-}
-
-// ============================================================================
-// STAGE 4: Underline & Baseline Snapper
-// ============================================================================
-export class UnderlineBaselineSnapper {
-    static snapToUnderline(lineCanvasY, canvasX, canvasW, lineHeight = 24) {
-        const height = Math.max(18, Math.min(24, Math.round(lineHeight * 0.8)));
-        const y = Math.round(lineCanvasY - height - 1);
-        return {
-            x: Math.max(10, Math.round(canvasX)),
-            y: Math.max(10, y),
-            width: Math.round(canvasW),
-            height
-        };
-    }
-}
-
-// ── Main Auto-Detect Engine Controller ──────────────────────────────
 export async function autoDetectFields(scope = "current") {
     if (!state.pdfDoc) {
         alert("Please load a PDF document first.");
         return 0;
     }
 
-    const pagesToScan = scope === "all" 
+    const pagesToScan = scope === "all"
         ? Array.from({ length: state.totalPages }, (_, i) => i + 1)
         : [state.currentPageNum];
 
@@ -435,36 +136,26 @@ export async function autoDetectFields(scope = "current") {
             const viewport = page.getViewport({ scale: 1.0 });
             const textContent = await page.getTextContent();
             
+            // Extract positioned text items
             const rawBlocks = textContent.items.map(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
                 const fontHeight = Math.abs(item.transform[3]) || item.height || 12;
                 return {
-                    x: tx,
-                    y: viewport.height - ty - fontHeight,
-                    width: item.width,
-                    height: fontHeight,
+                    x: Math.round(tx),
+                    y: Math.round(viewport.height - ty - fontHeight),
+                    width: Math.round(item.width),
+                    height: Math.round(fontHeight),
                     str: (item.str || "").trim()
                 };
             }).filter(tb => tb.str.length > 0);
 
-            const occupancyGrid = new TextOccupancyGrid(rawBlocks, viewport.height);
+            // Extract vector lines & path drawings
+            const vectorGeometry = await extractVectorGeometry(page, viewport);
 
-            // Engine 0: Native AcroForm Annotation Reader
-            const acroFormFields = await extractExistingAnnotations(page, viewport, pageNum, usedNames);
-
-            // Engine 1: Vector Drawing Path Detection
-            const vectorElements = await extractVectorPaths(page, viewport, rawBlocks, occupancyGrid);
-
-            // Engine 2: Semantic Text Layout & Checkbox / Colon Detection
-            const textElements = scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid);
-
-            // Engine 3: Fusion & Directional Raycasting
-            let merged = fuseDetections(acroFormFields, vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames, occupancyGrid);
-
-            // Engine 4: Topological Table Grid Solver
-            merged = TopologicalTableSolver.solveGrid(merged, rawBlocks, pageNum, usedNames);
-            newFields.push(...merged);
+            // Run 4-Affordance Geometric Detection Pipeline
+            const pageFields = detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, usedNames);
+            newFields.push(...pageFields);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
@@ -473,113 +164,56 @@ export async function autoDetectFields(scope = "current") {
     if (newFields.length > 0) {
         state.fields = state.fields.filter(f => !pagesToScan.includes(f.page || 1));
         
-        const uniqueNewFields = [];
-        for (let nf of newFields) {
-            if (!isOverlappingAny(nf, uniqueNewFields)) {
-                uniqueNewFields.push(nf);
+        // Final spatial deduplication
+        const finalUnique = [];
+        for (let f of newFields) {
+            if (!isOverlapping(f, finalUnique, 0.35)) {
+                finalUnique.push(f);
             }
         }
 
-        state.fields.push(...uniqueNewFields);
+        state.fields.push(...finalUnique);
         state.selectedFieldIds.clear();
-        uniqueNewFields.forEach(f => state.selectedFieldIds.add(f.id));
+        finalUnique.forEach(f => state.selectedFieldIds.add(f.id));
         saveHistory();
-        totalDetected = uniqueNewFields.length;
+        totalDetected = finalUnique.length;
     }
 
     return totalDetected;
 }
 
-// ── Helper: Extract Native AcroForms ─────────────────────────────────
-async function extractExistingAnnotations(page, viewport, pageNum, usedNames) {
-    const fields = [];
-    try {
-        const annotations = await page.getAnnotations();
-        if (!annotations || annotations.length === 0) return fields;
-
-        for (let annot of annotations) {
-            if (annot.subtype !== "Widget" && !annot.fieldName) continue;
-
-            const rect = annot.rect;
-            const [x1, y1, x2, y2] = rect;
-            const canvasX = Math.round(x1);
-            const canvasY = Math.round(viewport.height - y2);
-            const canvasW = Math.round(x2 - x1);
-            const canvasH = Math.round(y2 - y1);
-
-            let type = "textField";
-            let multiline = false;
-
-            if (annot.fieldType === "Btn") {
-                if (annot.checkBox || (annot.fieldFlags & 16)) type = "checkBox";
-                else if (annot.radioButton || (annot.fieldFlags & 32768)) type = "radioGroup";
-                else type = "signature";
-            } else if (annot.fieldType === "Tx") {
-                if (annot.fieldFlags & 4096) multiline = true;
-            } else if (annot.fieldType === "Ch") {
-                type = "dropdown";
-            }
-
-            const rawName = annot.fieldName || annot.alternativeText || `acro_${fields.length + 1}`;
-            const sem = DirectionalRaycaster.resolveSemanticProperties(rawName, type, usedNames);
-
-            fields.push({
-                id: generateFieldId(),
-                type: sem.type || type,
-                name: sem.name,
-                x: Math.max(10, canvasX),
-                y: Math.max(10, canvasY),
-                width: Math.max(20, canvasW),
-                height: Math.max(16, canvasH),
-                page: pageNum,
-                borderStyle: "solid",
-                fillStyle: "white",
-                multiline: multiline || sem.multiline || false,
-                autofill: sem.autofill || "",
-                ...(annot.fieldValue ? { defaultValue: String(annot.fieldValue) } : {})
-            });
-        }
-    } catch(err) {
-        console.warn("AcroForm annotation extraction warning:", err);
-    }
-    return fields;
-}
-
-// ── Helper: Extract Vector Path Elements & Underlines ────────────────
-async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
-    const vectorElements = [];
-    const rawLines = [];
+// ============================================================================
+// 3. VECTOR GEOMETRY EXTRACTOR (Strokes, Rectangles & Underlines)
+// ============================================================================
+async function extractVectorGeometry(page, viewport) {
+    const lines = [];
+    const boxes = [];
     const pageHeight = viewport.height;
     const pageWidth = viewport.width;
 
     try {
         const opList = await page.getOperatorList();
-        if (!opList || !opList.fnArray) return vectorElements;
+        if (!opList || !opList.fnArray) return { lines, boxes };
 
         const { fnArray, argsArray } = opList;
         const OPS = (typeof pdfjsLib !== "undefined" && pdfjsLib.OPS) ? pdfjsLib.OPS : {};
 
-        let currentMatrix = [1, 0, 0, 1, 0, 0];
-        const matrixStack = [];
+        let matrix = [1, 0, 0, 1, 0, 0];
+        const mStack = [];
 
         for (let i = 0; i < fnArray.length; i++) {
             const fn = fnArray[i];
             const args = argsArray[i];
 
-            if (fn === OPS.save) {
-                matrixStack.push([...currentMatrix]);
-            } else if (fn === OPS.restore) {
-                if (matrixStack.length > 0) currentMatrix = matrixStack.pop();
-            } else if (fn === OPS.transform && args) {
-                const [a1, b1, c1, d1, e1, f1] = currentMatrix;
+            if (fn === OPS.save) mStack.push([...matrix]);
+            else if (fn === OPS.restore) { if (mStack.length > 0) matrix = mStack.pop(); }
+            else if (fn === OPS.transform && args) {
+                const [a1, b1, c1, d1, e1, f1] = matrix;
                 const [a2, b2, c2, d2, e2, f2] = args;
-                currentMatrix = [
-                    a1 * a2 + c1 * b2,
-                    b1 * a2 + d1 * b2,
-                    a1 * c2 + c1 * d2,
-                    b1 * c2 + d1 * d2,
-                    a1 * e2 + c1 * f2 + e1,
-                    b1 * e2 + d1 * f2 + f1
+                matrix = [
+                    a1 * a2 + c1 * b2, b1 * a2 + d1 * b2,
+                    a1 * c2 + c1 * d2, b1 * c2 + d1 * d2,
+                    a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1
                 ];
             } else if (fn === OPS.constructPath && args) {
                 const [pathOps, pathArgs] = args;
@@ -594,22 +228,20 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                     } else if (op === OPS.lineTo) {
                         const curX = pathArgs[argIdx++];
                         const curY = pathArgs[argIdx++];
-                        
                         const dx = Math.abs(curX - lastX);
                         const dy = Math.abs(curY - lastY);
-                        if (dx >= 35 && dy <= 4 && dx < (pageWidth * 0.96)) {
+
+                        if (dx >= 25 && dy <= 3) {
                             const minX = Math.min(lastX, curX);
                             const minY = Math.min(lastY, curY);
-                            const [tx, ty] = applyMatrix(minX, minY, currentMatrix);
-                            const lineCanvasY = pageHeight - ty;
+                            const tx = matrix[0] * minX + matrix[2] * minY + matrix[4];
+                            const ty = matrix[1] * minX + matrix[3] * minY + matrix[5];
+                            const canvasY = pageHeight - ty;
                             const canvasX = tx;
-                            const canvasW = dx * Math.abs(currentMatrix[0] || 1);
+                            const canvasW = dx * Math.abs(matrix[0] || 1);
 
-                            if (lineCanvasY >= 45 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5 && canvasX <= (pageWidth - 15)) {
-                                const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, canvasW);
-                                if (!occupancyGrid.isBlocked(snapped)) {
-                                    rawLines.push(snapped);
-                                }
+                            if (canvasY >= 35 && canvasY <= (pageHeight - 20) && canvasW >= 25) {
+                                lines.push({ x: Math.round(canvasX), y: Math.round(canvasY), width: Math.round(canvasW) });
                             }
                         }
                         lastX = curX;
@@ -620,521 +252,357 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                         const rw = pathArgs[argIdx++];
                         const rh = pathArgs[argIdx++];
 
-                        const [tx, ty] = applyMatrix(rx, ry, currentMatrix);
-                        const boxW = Math.abs(rw * (currentMatrix[0] || 1));
-                        const boxH = Math.abs(rh * (currentMatrix[3] || 1));
+                        const tx = matrix[0] * rx + matrix[2] * ry + matrix[4];
+                        const ty = matrix[1] * rx + matrix[3] * ry + matrix[5];
+                        const boxW = Math.abs(rw * (matrix[0] || 1));
+                        const boxH = Math.abs(rh * (matrix[3] || 1));
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
                         // Check for thin horizontal line drawn as filled rectangle
-                        if (boxH <= 3 && boxW >= 35 && boxW < (pageWidth * 0.96)) {
-                            const lineCanvasY = canvasY + boxH;
-                            if (lineCanvasY >= 45 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5) {
-                                const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, boxW);
-                                if (!occupancyGrid.isBlocked(snapped)) {
-                                    rawLines.push(snapped);
-                                }
-                            }
+                        if (boxH <= 3 && boxW >= 25 && boxW < (pageWidth * 0.96)) {
+                            lines.push({ x: Math.round(canvasX), y: Math.round(canvasY + boxH), width: Math.round(boxW) });
                             continue;
                         }
 
-                        if (canvasY < 45 || canvasY >= (pageHeight * 0.96)) continue;
-                        if (boxW < 20 || boxH < 12) continue;
-                        if (boxW >= (pageWidth * 0.94) && boxH >= (pageHeight * 0.85)) continue; // skip whole page border
-
-                        const box = {
-                            type: "text_box",
-                            x: Math.max(10, Math.round(canvasX)),
-                            y: Math.max(10, Math.round(canvasY)),
-                            width: Math.round(boxW),
-                            height: Math.round(boxH)
-                        };
-
-                        if (!occupancyGrid.isBlocked(box)) {
-                            vectorElements.push(box);
+                        // Check for small discrete input box or table cell
+                        if (boxW >= 12 && boxH >= 12 && boxH <= 45 && boxW <= (pageWidth * 0.40)) {
+                            boxes.push({
+                                x: Math.round(canvasX),
+                                y: Math.round(canvasY),
+                                width: Math.round(boxW),
+                                height: Math.round(boxH)
+                            });
                         }
                     }
                 }
             } else if (fn === OPS.rectangle && args) {
                 const [rx, ry, rw, rh] = args;
-                const [tx, ty] = applyMatrix(rx, ry, currentMatrix);
-                const boxW = Math.abs(rw * (currentMatrix[0] || 1));
-                const boxH = Math.abs(rh * (currentMatrix[3] || 1));
+                const tx = matrix[0] * rx + matrix[2] * ry + matrix[4];
+                const ty = matrix[1] * rx + matrix[3] * ry + matrix[5];
+                const boxW = Math.abs(rw * (matrix[0] || 1));
+                const boxH = Math.abs(rh * (matrix[3] || 1));
                 const canvasY = pageHeight - ty - boxH;
                 const canvasX = tx;
 
-                if (boxH <= 3 && boxW >= 35 && boxW < (pageWidth * 0.96)) {
-                    const lineCanvasY = canvasY + boxH;
-                    if (lineCanvasY >= 45 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5) {
-                        const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, boxW);
-                        if (!occupancyGrid.isBlocked(snapped)) {
-                            rawLines.push(snapped);
-                        }
-                    }
-                    continue;
-                }
-
-                if (canvasY < 45 || canvasY >= (pageHeight * 0.96)) continue;
-                if (boxW < 20 || boxH < 12) continue;
-                if (boxW >= (pageWidth * 0.94) && boxH >= (pageHeight * 0.85)) continue;
-
-                const box = {
-                    type: "text_box",
-                    x: Math.max(10, Math.round(canvasX)),
-                    y: Math.max(10, Math.round(canvasY)),
-                    width: Math.round(boxW),
-                    height: Math.round(boxH)
-                };
-
-                if (!occupancyGrid.isBlocked(box)) {
-                    vectorElements.push(box);
+                if (boxH <= 3 && boxW >= 25 && boxW < (pageWidth * 0.96)) {
+                    lines.push({ x: Math.round(canvasX), y: Math.round(canvasY + boxH), width: Math.round(boxW) });
+                } else if (boxW >= 12 && boxH >= 12 && boxH <= 45 && boxW <= (pageWidth * 0.40)) {
+                    boxes.push({
+                        x: Math.round(canvasX),
+                        y: Math.round(canvasY),
+                        width: Math.round(boxW),
+                        height: Math.round(boxH)
+                    });
                 }
             }
-        }
-
-        if (rawLines.length > 0) {
-            rawLines.forEach(l => vectorElements.push(l));
         }
     } catch(err) {
         console.warn("Vector extraction warning:", err);
     }
 
-    return vectorElements;
+    return { lines, boxes };
 }
 
-function applyMatrix(x, y, m) {
-    return [
-        m[0] * x + m[2] * y + m[4],
-        m[1] * x + m[3] * y + m[5]
-    ];
-}
-
-// ── Helper: Precision 5-Phase Semantic Text Layout & Element Parser ──
-function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
-    const detected = [];
+// ============================================================================
+// 4. VISUAL AFFORDANCE FORM FIELD DETECTOR
+// ============================================================================
+function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, usedNames) {
+    const fields = [];
     const pageWidth = viewport.width;
+    const pageHeight = viewport.height;
 
-    if (rawBlocks.length === 0) return { detected, lines: [] };
+    // Cluster text items into visual lines
+    const textLines = clusterIntoLines(rawBlocks);
 
-    const lines = clusterIntoLines(rawBlocks);
+    // ------------------------------------------------------------------------
+    // AFFORDANCE 1: Checkbox & Radio Glyphs
+    // ------------------------------------------------------------------------
+    const cbGlyphRegex = /(\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756]|\[\s*[xX•*]\s*\]|\(\s*[xX•*•]\s*\))\s*([a-zA-Z0-9\s\/\(\)\,\.\-\+\$\#]+?)(?=(?:\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756]|\[\s*[xX•*]\s*\]|\(\s*[xX•*•]\s*\)|$|\b(?:First Name|Last Name|Cost Center|Employee|Manager|Date|Signature|Badge|Job|Total|Direct Deposit)\b|(?<=\s)[A-Z][a-zA-Z\s\/]+:))/g;
 
-    for (let line of lines) {
+    for (const line of textLines) {
         const text = line.str.trim();
-
-        if (isHeadingLabel(text)) continue;
-        if (line.y < 40 && !line.str.includes(":") && !/[_]{2,}/.test(line.str)) continue;
-        if (CONTACT_OR_RESUME_KEYWORDS.test(text) && !text.includes(":")) continue;
-
-        // Tracks consumed character ranges [start, end] on this line to prevent collisions
-        const consumedRanges = [];
-
-        // -------------------------------------------------------------
-        // Phase 1: Checkbox & Radio Button Extraction (Unicode & ASCII)
-        // -------------------------------------------------------------
-        const cbRegex = /(\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756]|\[\s*[xX•*]\s*\]|\(\s*[xX•*•]\s*\))\s*([a-zA-Z0-9\s\/\(\)\,\.\-\+\$\#]+?)(?=(?:\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756]|\[\s*[xX•*]\s*\]|\(\s*[xX•*•]\s*\)|$|\b(?:First Name|Last Name|Cardholder|Card Type|Expiration|CVV|Billing|City|Date|Signature|Badge|Job|Organization|Work|Mobile|Country|Status|Location|Supervisor|Key Responsibilities|Starting Pay|Ending Pay|High School|Degree)\b|(?<=\s)[A-Z][a-zA-Z\s\/]+:))/g;
-        
-        let cbMatch;
-        while ((cbMatch = cbRegex.exec(text)) !== null) {
-            const marker = cbMatch[1];
-            const optLabel = cbMatch[2].trim();
-            const charIdx = cbMatch.index;
-            const matchLen = cbMatch[0].length;
-            
-            consumedRanges.push({ start: charIdx, end: charIdx + matchLen, type: "checkbox" });
-
+        let match;
+        while ((match = cbGlyphRegex.exec(text)) !== null) {
+            const optLabel = match[2].trim();
+            const charIdx = match.index;
             const charX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
             const charY = Math.round(line.y + (line.height - 16) / 2);
 
-            if (optLabel && optLabel.length > 0 && !isHeadingLabel(optLabel)) {
-                detected.push({
-                    type: "checkBox",
-                    rawLabel: optLabel,
-                    x: Math.max(10, charX),
-                    y: Math.max(10, charY),
-                    width: 16,
-                    height: 16,
-                    borderStyle: "solid",
-                    fillStyle: "white"
-                });
-            }
+            const sem = resolveSemanticProps(optLabel, "checkBox", usedNames);
+            fields.push({
+                id: generateFieldId(),
+                type: "checkBox",
+                name: sem.name,
+                x: Math.max(10, charX),
+                y: Math.max(10, charY),
+                width: 16,
+                height: 16,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: false,
+                autofill: "",
+                dataFormat: "text"
+            });
         }
+    }
 
-        // -------------------------------------------------------------
-        // Phase 2: Bracket Input Boxes (e.g. [ - - - ], [ MM / YY ], [   ])
-        // -------------------------------------------------------------
-        const bracketBoxRegex = /\[\s*([-–—\s]{2,}|MM\s*\/\s*YY|DD\s*\/\s*MM|YYYY|YY|CVC|CVV|\$\s*|\s{2,})\s*\]/gi;
+    // ------------------------------------------------------------------------
+    // AFFORDANCE 2: Fill-in Underlines, Dotted Lines & Dashed Runs
+    // ------------------------------------------------------------------------
+    const underlineRegex = /([_]{2,}|(?:_\s*){3,}|[.]{3,}|[-–—]{3,})/g;
+
+    for (const line of textLines) {
+        const text = line.str.trim();
+        if (isSectionHeader(text)) continue;
+
+        let ulMatch;
+        while ((ulMatch = underlineRegex.exec(text)) !== null) {
+            const charIdx = ulMatch.index;
+            const matchLen = ulMatch[0].length;
+
+            const textBefore = text.slice(0, charIdx);
+            const labelMatch = textBefore.match(/([a-zA-Z0-9\s\/\(\)\.\-\#\$X]+?)[:\s]*$/);
+            const rawLabel = labelMatch ? labelMatch[1].replace(/^[X\s]+/, "").trim() : "fill_line";
+
+            const startX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
+            const width = Math.max(65, Math.round((matchLen / Math.max(1, text.length)) * line.width));
+
+            const isSig = /signature|sign/i.test(rawLabel) || /^X\s*$/i.test(textBefore.trim());
+            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(rawLabel);
+
+            const sem = resolveSemanticProps(rawLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
+
+            fields.push({
+                id: generateFieldId(),
+                type: isSig ? "signature" : (isDate ? "dateField" : sem.type),
+                name: sem.name,
+                x: Math.max(10, startX),
+                y: Math.max(10, Math.round(line.y - (isSig ? 12 : 2))),
+                width: Math.min(width, pageWidth - startX - 20),
+                height: isSig ? 44 : 24,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: sem.multiline || false,
+                autofill: sem.autofill || "",
+                dataFormat: sem.dataFormat || "text",
+                ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
+            });
+        }
+    }
+
+    // Also snap vector horizontal lines (Underlines drawn as vector strokes)
+    for (const vLine of vectorGeometry.lines) {
+        if (fields.some(f => Math.abs(f.y + f.height - vLine.y) <= 8 && Math.abs(f.x - vLine.x) <= 25)) continue;
+
+        // Find nearest text label to the left or immediately above
+        const labelBlock = rawBlocks.find(tb => {
+            const isToLeft = (tb.x + tb.width) <= (vLine.x + 15) && (vLine.x - (tb.x + tb.width)) <= 180 && Math.abs(tb.y - (vLine.y - 18)) <= 14;
+            const isAbove = Math.abs(tb.x - vLine.x) <= 40 && tb.y < vLine.y && (vLine.y - tb.y) <= 28;
+            return isToLeft || isAbove;
+        });
+
+        const rawLabel = labelBlock ? labelBlock.str : "line_input";
+        if (isSectionHeader(rawLabel)) continue;
+
+        const isSig = /signature|sign/i.test(rawLabel) || /^X\b/i.test(rawLabel);
+        const isDate = /date|dob/i.test(rawLabel);
+
+        const sem = resolveSemanticProps(rawLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
+
+        fields.push({
+            id: generateFieldId(),
+            type: isSig ? "signature" : (isDate ? "dateField" : sem.type),
+            name: sem.name,
+            x: Math.max(10, vLine.x),
+            y: Math.max(10, Math.round(vLine.y - (isSig ? 38 : 22))),
+            width: Math.min(vLine.width, pageWidth - vLine.x - 20),
+            height: isSig ? 44 : 24,
+            page: pageNum,
+            borderStyle: "solid",
+            fillStyle: "white",
+            multiline: sem.multiline || false,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
+        });
+    }
+
+    // ------------------------------------------------------------------------
+    // AFFORDANCE 3: Bracket Input Boxes & Vector Form / Table Cells
+    // ------------------------------------------------------------------------
+    const bracketBoxRegex = /\[\s*([-–—\s]{2,}|MM\s*\/\s*YY|DD\s*\/\s*MM|YYYY|YY|CVC|CVV|\$\s*|\s{2,})\s*\]/gi;
+
+    for (const line of textLines) {
+        const text = line.str.trim();
         let bbMatch;
         while ((bbMatch = bracketBoxRegex.exec(text)) !== null) {
             const charIdx = bbMatch.index;
             const matchLen = bbMatch[0].length;
-            consumedRanges.push({ start: charIdx, end: charIdx + matchLen, type: "bracketBox" });
 
             const boxX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
             const boxW = Math.max(50, Math.round((matchLen / Math.max(1, text.length)) * line.width));
             const boxY = Math.round(line.y - 1);
 
             const textBefore = text.slice(0, charIdx);
-            const labelBeforeMatch = textBefore.match(/([a-zA-Z0-9\s\/\(\)\.\-\#]+?):\s*$/);
-            const rawLabel = labelBeforeMatch ? labelBeforeMatch[1].trim() : "input_box";
+            const labelMatch = textBefore.match(/([a-zA-Z0-9\s\/\(\)\.\-\#\$]+?):\s*$/);
+            const rawLabel = labelMatch ? labelMatch[1].trim() : "input_box";
 
             const isDate = /expiration|date|dob|mm\s*\/\s*yy/i.test(bbMatch[1] + " " + rawLabel);
             const isCVV = /cvv|cvc/i.test(rawLabel);
 
-            detected.push({
+            const sem = resolveSemanticProps(rawLabel, isDate ? "dateField" : "textField", usedNames);
+
+            fields.push({
+                id: generateFieldId(),
                 type: isDate ? "dateField" : "textField",
-                rawLabel: rawLabel,
+                name: sem.name,
                 x: Math.max(10, boxX),
                 y: Math.max(10, boxY),
                 width: Math.round(isCVV ? Math.min(boxW, 65) : boxW),
                 height: 22,
+                page: pageNum,
                 borderStyle: "solid",
                 fillStyle: "white",
+                multiline: false,
+                autofill: isCVV ? "cc-csc" : sem.autofill,
+                dataFormat: "text",
                 ...(isDate ? { defaultValue: "MM/YY" } : {})
             });
         }
-
-        // -------------------------------------------------------------
-        // Phase 3: Underlines, Dashes & Signatures (e.g. "Signature: X ________________", "Date: _______")
-        // -------------------------------------------------------------
-        const underlineRegex = /([_]{2,}|(?:_\s*){3,}|[.]{3,}|[-–—]{3,})/g;
-        let ulMatch;
-        while ((ulMatch = underlineRegex.exec(text)) !== null) {
-            const charIdx = ulMatch.index;
-            const matchLen = ulMatch[0].length;
-            consumedRanges.push({ start: charIdx, end: charIdx + matchLen, type: "underline" });
-
-            const textBefore = text.slice(0, charIdx);
-            const labelBeforeMatch = textBefore.match(/([a-zA-Z0-9\s\/\(\)\.\-\#X]+?)[:\s]*$/);
-            const rawLabel = labelBeforeMatch ? labelBeforeMatch[1].replace(/^[X\s]+/, "").trim() : "underline_field";
-
-            const startX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
-            const width = Math.max(80, Math.round((matchLen / Math.max(1, text.length)) * line.width));
-
-            const isSig = /signature|sign/i.test(rawLabel);
-            const isDate = /date|dob|\(mm\/dd\/yyyy\)|\(yyyy-mm-dd\)/i.test(rawLabel);
-
-            detected.push({
-                type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
-                rawLabel: rawLabel,
-                x: Math.max(10, startX),
-                y: Math.max(10, Math.round(line.y - (isSig ? 8 : 1))),
-                width: Math.min(width, pageWidth - startX - 25),
-                height: isSig ? 44 : 24,
-                borderStyle: "solid",
-                fillStyle: "white",
-                ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
-            });
-        }
-
-        // -------------------------------------------------------------
-        // Phase 4: Text Prompt / Colon Labels
-        // -------------------------------------------------------------
-        if (text.includes(":")) {
-            const labelRegex = /([a-zA-Z0-9\s\/\(\)\.\-\#\$]+?):/g;
-            const labelMatches = [...text.matchAll(labelRegex)];
-
-            for (let i = 0; i < labelMatches.length; i++) {
-                const match = labelMatches[i];
-                const nextMatch = labelMatches[i + 1];
-                const labelPart = match[1].trim();
-
-                if (isHeadingLabel(labelPart)) continue;
-                if (/^(?:from|to|terms|due)$/i.test(labelPart)) continue;
-
-                const matchStartIdx = match.index;
-                const matchEndIdx = match.index + match[0].length;
-
-                const followedByCheckbox = consumedRanges.some(r => 
-                    r.type === "checkbox" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
-                );
-                if (followedByCheckbox) continue;
-
-                const followedByBracketBox = consumedRanges.some(r => 
-                    r.type === "bracketBox" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
-                );
-                if (followedByBracketBox) continue;
-
-                const followedByUnderline = consumedRanges.some(r => 
-                    r.type === "underline" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
-                );
-                if (followedByUnderline) continue;
-
-                const insideConsumed = consumedRanges.some(r => matchStartIdx >= r.start && matchEndIdx <= r.end);
-                if (insideConsumed) continue;
-
-                // Check if this label already has a complete static printed value (e.g. "Standard Reimbursement Rate: $0.670 / mile", "FORM REF: FRM-7160", "REVISION: 2.4")
-                if (!nextMatch) {
-                    const remainder = text.slice(matchEndIdx).trim();
-                    const isStaticRateOrCode = remainder.length > 0 && 
-                        !/^[_.\-—\s\[\(\$\€\£\¥]+$/.test(remainder) && 
-                        !/^[\$\€\£\¥]\s*$/.test(remainder) &&
-                        !/^(?:miles|usd|eur|aud|cad|gbp)$/i.test(remainder) &&
-                        /[a-zA-Z0-9]{2,}/.test(remainder);
-                    if (isStaticRateOrCode) {
-                        continue;
-                    }
-                }
-
-                const nextStartIdx = nextMatch ? nextMatch.index : text.length;
-                const labelEndX = line.x + (matchEndIdx / Math.max(1, text.length)) * line.width;
-                const nextLabelX = nextMatch 
-                    ? (line.x + (nextStartIdx / Math.max(1, text.length)) * line.width)
-                    : (line.x + line.width);
-
-                const targetX = Math.round(labelEndX + 4);
-                let targetW = Math.max(45, Math.round(nextLabelX - targetX - 6));
-
-
-                if (!nextMatch) {
-                    const rightNeighbor = lines.find(other => 
-                        other !== line && 
-                        Math.abs(other.y - line.y) <= 8 && 
-                        other.x > targetX
-                    );
-                    if (rightNeighbor) {
-                        targetW = Math.max(45, Math.min(200, (rightNeighbor.x - 10) - targetX));
-                    } else {
-                        targetW = Math.min(240, Math.max(60, pageWidth - targetX - 35));
-                    }
-                }
-
-                const isSig = /signature|sign/i.test(labelPart);
-                const isDate = /date|dob|\(mm\/dd\/yyyy\)|\(yyyy-mm-dd\)/i.test(labelPart);
-                const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(labelPart);
-
-                if (targetX < (pageWidth - 25) && line.y > 40) {
-                    detected.push({
-                        type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
-                        rawLabel: labelPart,
-                        x: Math.max(10, targetX),
-                        y: Math.max(10, Math.round(line.y - 1)),
-                        width: Math.round(targetW),
-                        height: isSig ? 44 : (isMulti ? 55 : 24),
-                        borderStyle: "solid",
-                        fillStyle: "white",
-                        multiline: isMulti,
-                        ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
-                    });
-                }
-            }
-        }
-
-        // -------------------------------------------------------------
-        // Phase 5: Stacked & Multi-Column Prompts Without Colons
-        // -------------------------------------------------------------
-        if (!text.includes(":") && consumedRanges.length === 0 && text.length >= 3 && !isHeadingLabel(text)) {
-            const isSig = /applicant\s*signature|employee\s*signature|witness\s*signature|^signature\b|sign\s*here/i.test(text);
-            const isDate = /date\s*signed|today.?s\s*date|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|^date\b/i.test(text);
-            const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(text);
-
-            const decoded = sanitizeAndDecodeLabel(text);
-            if (decoded || isSig || isDate) {
-                const targetX = Math.round(line.x + line.width + 8);
-                const availableW = Math.max(60, pageWidth - targetX - 25);
-                
-                if (targetX < (pageWidth - 60) && availableW >= 60) {
-                    detected.push({
-                        type: isSig ? "signature" : (isDate ? "dateField" : (decoded?.type || "textField")),
-                        rawLabel: text,
-                        x: Math.max(10, targetX),
-                        y: Math.max(10, Math.round(line.y - 1)),
-                        width: Math.min(isSig ? 240 : (isDate ? 140 : 220), availableW),
-                        height: isSig ? 44 : (isMulti ? 55 : 24),
-                        borderStyle: "solid",
-                        fillStyle: "white",
-                        multiline: isMulti || decoded?.multiline || false,
-                        ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
-                    });
-                } else {
-                    const belowY = Math.round(line.y + line.height + 2);
-                    if (belowY < (viewport.height - 35)) {
-                        detected.push({
-                            type: isSig ? "signature" : (isDate ? "dateField" : (decoded?.type || "textField")),
-                            rawLabel: text,
-                            x: Math.max(10, Math.round(line.x)),
-                            y: Math.max(10, belowY),
-                            width: Math.min(Math.max(160, Math.round(line.width)), pageWidth - line.x - 25),
-                            height: isSig ? 44 : (isMulti ? 55 : 24),
-                            borderStyle: "solid",
-                            fillStyle: "white",
-                            multiline: isMulti || decoded?.multiline || false,
-                            ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
-                        });
-                    }
-                }
-            }
-        }
     }
 
-    return { detected, lines };
-}
+    // Vector Table & Form Cells (Discrete drawn cell boxes)
+    for (const box of vectorGeometry.boxes) {
+        if (fields.some(f => isOverlappingBox(f, box, 0.4))) continue;
 
-// ── Helper: Label Sanitization & Decoding ────────────────────────────
-function sanitizeAndDecodeLabel(rawLabel) {
-    if (!rawLabel) return null;
-    const cleanStr = rawLabel.trim();
-    if (!cleanStr || cleanStr.length < 2) return null;
+        // Find label inside top or to left of cell
+        const insideLabel = rawBlocks.find(tb => 
+            tb.x >= box.x - 2 && (tb.x + tb.width) <= box.x + box.width + 4 &&
+            tb.y >= box.y - 2 && tb.y <= box.y + 16
+        );
+        const leftLabel = rawBlocks.find(tb =>
+            (tb.x + tb.width) <= box.x + 8 && (box.x - (tb.x + tb.width)) <= 140 &&
+            Math.abs(tb.y - box.y) <= 12
+        );
 
-    const exactClean = cleanStr.replace(/^\d+[\.\s\)]*/, "").replace(/[:_.\s-]+$/, "").trim();
-    for (const item of SEMANTIC_DICTIONARY) {
-        if (item.regex.test(exactClean)) {
-            return {
-                id: item.id,
-                title: item.title,
-                type: item.type || "textField",
-                multiline: item.multiline || false,
-                autofill: item.autofill || "",
-                defaultValue: item.defaultValue || "",
-                score: item.score || 10
-            };
-        }
-    }
+        const rawLabel = insideLabel ? insideLabel.str : (leftLabel ? leftLabel.str : "cell");
+        if (isSectionHeader(rawLabel)) continue;
 
-    if (isArtifactString(cleanStr)) {
-        const priorityShifts = [29, -29, 3, -3, 1, -1];
-        for (const shift of priorityShifts) {
-            let res = "";
-            for (let i = 0; i < cleanStr.length; i++) {
-                const code = cleanStr.charCodeAt(i);
-                const ch = cleanStr[i];
-                if (ch === "v" && shift === 29) res += ":";
-                else if (ch === " ") res += " ";
-                else {
-                    const target = code + shift;
-                    if (target >= 32 && target <= 126) res += String.fromCharCode(target);
-                    else res += ch;
-                }
-            }
+        const isDate = /date|dob/i.test(rawLabel);
+        const sem = resolveSemanticProps(rawLabel, isDate ? "dateField" : "textField", usedNames);
 
-            const clean = res.replace(/^\d+[\.\s\)]*/, "").replace(/[:_.\s-]+$/, "").trim();
-            if (!clean || clean.length < 2 || isArtifactString(clean)) continue;
-
-            for (const item of SEMANTIC_DICTIONARY) {
-                if (shift !== 0 && item.type === "checkBox") continue;
-                if (item.regex.test(clean)) {
-                    return {
-                        id: item.id,
-                        title: item.title,
-                        type: item.type || "textField",
-                        multiline: item.multiline || false,
-                        autofill: item.autofill || "",
-                        defaultValue: item.defaultValue || "",
-                        score: item.score || 10
-                    };
-                }
-            }
-        }
-    }
-
-    const words = exactClean.split(/\s+/).filter(w => /^[a-zA-Z0-9\/\-\(\)]+$/.test(w));
-    if (words.length >= 1 && words.length <= 6) {
-        const cleanWords = words.map(w => w.replace(/[^a-zA-Z0-9]/g, "")).filter(w => w.length > 0);
-        if (cleanWords.length > 0) {
-            const cleanId = cleanWords.join("_").toLowerCase() + "_input";
-            const title = cleanWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-            return { id: cleanId, title: title, type: "textField", score: 5 };
-        }
-    }
-
-    return null;
-}
-
-function isArtifactString(str) {
-    if (!str) return false;
-    const clean = str.trim();
-    if (clean.length <= 1) return false;
-    if (/^\d+(_\d+)*$/.test(clean) || (clean.replace(/[^0-9]/g, "").length / clean.length) > 0.35) return true;
-    if (/^[a-zA-Z]{3,}\d+$/.test(clean)) return true;
-
-    const lettersOnly = clean.replace(/[^a-zA-Z]/g, "");
-    if (lettersOnly.length >= 4) {
-        const vowels = lettersOnly.match(/[aeiouyAEIOUY]/g) || [];
-        const vowelRatio = vowels.length / lettersOnly.length;
-        if (vowelRatio < 0.22 || /[^aeiouyAEIOUY\s]{5,}/.test(lettersOnly)) return true;
-    }
-    return false;
-}
-
-function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, viewport, pageNum, usedNames, occupancyGrid) {
-    const fused = [...acroFormFields];
-    const { detected: textDetections } = textResult;
-
-    for (let td of textDetections) {
-        if (occupancyGrid.isBlocked(td)) continue;
-        if (isOverlappingAny(td, fused)) continue;
-
-        const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (DirectionalRaycaster.findLabelForBox(td, rawBlocks) || `field_${usedNames.size + 1}`);
-        if (isHeadingLabel(rawLabel)) continue;
-        const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, td.type, usedNames);
-
-        fused.push({
+        fields.push({
             id: generateFieldId(),
-            type: td.type || sem.type,
+            type: isDate ? "dateField" : sem.type,
             name: sem.name,
-            x: td.x,
-            y: td.y,
-            width: td.width,
-            height: td.height,
-            page: pageNum,
-            borderStyle: td.borderStyle || "solid",
-            fillStyle: td.fillStyle || "white",
-            multiline: td.multiline || sem.multiline || false,
-            autofill: sem.autofill || "",
-            dataFormat: sem.dataFormat || "text",
-            ...(td.defaultValue || sem.defaultValue ? { defaultValue: td.defaultValue || sem.defaultValue } : {})
-        });
-    }
-
-    for (let ve of vectorElements) {
-        if (occupancyGrid.isBlocked(ve)) continue;
-        if (isOverlappingAny(ve, fused)) continue;
-
-        const touchesExisting = fused.some(f => {
-            const xOverlap = Math.max(0, Math.min(ve.x + ve.width, f.x + f.width) - Math.max(ve.x, f.x));
-            const yOverlap = Math.max(0, Math.min(ve.y + ve.height, f.y + f.height) - Math.max(ve.y, f.y));
-            return (xOverlap > 0 && yOverlap > 0);
-        });
-        if (touchesExisting) continue;
-
-        if (ve.width > (viewport.width * 0.38) && ve.height > 25) continue;
-        if (ve.height > 35) continue;
-
-        const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks);
-        if (!rawLabel) continue;
-
-        const effectiveLabel = rawLabel;
-        if (isHeadingLabel(effectiveLabel)) continue;
-        if (/^(?:from|to|bill\s*from|bill\s*to)$/i.test(effectiveLabel) && ve.width < 50) continue;
-
-        const sem = DirectionalRaycaster.resolveSemanticProperties(effectiveLabel, "textField", usedNames);
-        let finalType = sem.type;
-        if ((finalType === "checkBox" || finalType === "radioGroup") && (ve.width > 35 || ve.height > 35 || Math.abs(ve.width - ve.height) > 12)) {
-            finalType = "textField";
-        }
-
-        fused.push({
-            id: generateFieldId(),
-            type: finalType,
-            name: sem.name,
-            x: ve.x,
-            y: ve.y,
-            width: ve.width,
-            height: ve.height,
+            x: Math.max(10, box.x + 2),
+            y: Math.max(10, box.y + 2),
+            width: Math.max(30, box.width - 4),
+            height: Math.max(16, box.height - 4),
             page: pageNum,
             borderStyle: "solid",
             fillStyle: "white",
-            multiline: sem.multiline || ve.height >= 45,
+            multiline: sem.multiline || box.height >= 40,
             autofill: sem.autofill || "",
-            dataFormat: sem.dataFormat || "text",
-            ...(sem.defaultValue ? { defaultValue: sem.defaultValue } : {})
+            dataFormat: "text",
+            ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
         });
     }
 
+    // ------------------------------------------------------------------------
+    // AFFORDANCE 4: Key-Value Colon Prompts & Multi-Column Slices
+    // ------------------------------------------------------------------------
+    for (const line of textLines) {
+        const text = line.str.trim();
+        if (isSectionHeader(text)) continue;
+        if (!text.includes(":")) continue;
 
-    return fused;
+        const labelRegex = /([a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?):/g;
+        const labelMatches = [...text.matchAll(labelRegex)];
+
+        for (let i = 0; i < labelMatches.length; i++) {
+            const match = labelMatches[i];
+            const nextMatch = labelMatches[i + 1];
+            const labelPart = match[1].trim();
+
+            if (isSectionHeader(labelPart)) continue;
+            if (/^(?:from|to|terms|due)$/i.test(labelPart)) continue;
+
+            const matchEndIdx = match.index + match[0].length;
+            const nextStartIdx = nextMatch ? nextMatch.index : text.length;
+
+            // Check if label already has a complete printed constant (e.g. "$0.670 / mile", "FRM-7160", "2.4")
+            const textAfter = text.slice(matchEndIdx, nextStartIdx).trim();
+            const isPrintedConstant = !nextMatch && textAfter.length > 0 &&
+                !/^[_.\-—\s\[\(\$\€\£\¥]+$/.test(textAfter) &&
+                !/^[\$\€\£\¥]\s*$/.test(textAfter) &&
+                !/^(?:miles|usd|eur|aud|cad|gbp)$/i.test(textAfter) &&
+                /[a-zA-Z0-9]{2,}/.test(textAfter);
+
+            if (isPrintedConstant) continue;
+
+            // Check if followed by checkboxes/radios (Group headers like "Direct Deposit on File? [ ] YES [ ] NO", "Prefix: ( ) Mr")
+            const isFollowedByCheckbox = /^\s*(?:\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756])/i.test(textAfter);
+            if (isFollowedByCheckbox) continue;
+
+            // Calculate precise bounds
+            const labelEndX = line.x + (matchEndIdx / Math.max(1, text.length)) * line.width;
+            const nextLabelX = nextMatch
+                ? (line.x + (nextStartIdx / Math.max(1, text.length)) * line.width)
+                : (line.x + line.width);
+
+            const targetX = Math.round(labelEndX + 4);
+            let targetW = Math.max(45, Math.round(nextLabelX - targetX - 6));
+
+            if (!nextMatch) {
+                const rightNeighbor = textLines.find(other => 
+                    other !== line && Math.abs(other.y - line.y) <= 8 && other.x > targetX
+                );
+                if (rightNeighbor) {
+                    targetW = Math.max(45, Math.min(220, (rightNeighbor.x - 8) - targetX));
+                } else {
+                    targetW = Math.min(240, Math.max(60, pageWidth - targetX - 30));
+                }
+            }
+
+            const isSig = /signature|sign/i.test(labelPart);
+            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(labelPart);
+            const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(labelPart);
+
+            const sem = resolveSemanticProps(labelPart, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
+
+            const newField = {
+                id: generateFieldId(),
+                type: isSig ? "signature" : (isDate ? "dateField" : sem.type),
+                name: sem.name,
+                x: Math.max(10, targetX),
+                y: Math.max(10, Math.round(line.y - (isSig ? 10 : 2))),
+                width: Math.round(targetW),
+                height: isSig ? 44 : (isMulti ? 55 : 24),
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: isMulti || sem.multiline || false,
+                autofill: sem.autofill || "",
+                dataFormat: sem.dataFormat || "text",
+                ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
+            };
+
+            if (!fields.some(f => isOverlapping(f, [newField], 0.35))) {
+                fields.push(newField);
+            }
+        }
+    }
+
+    return fields;
 }
 
-// ── Utilities ────────────────────────────────────────────────────────
+// ============================================================================
+// 5. UTILITIES (Line Clustering, Section Header & Collision Solvers)
+// ============================================================================
 function clusterIntoLines(blocks) {
     if (blocks.length === 0) return [];
     const sorted = [...blocks].sort((a, b) => (Math.abs(a.y - b.y) <= 4 ? a.x - b.x : a.y - b.y));
@@ -1146,7 +614,7 @@ function clusterIntoLines(blocks) {
             currentLine = { ...b, items: [b] };
         } else {
             const sameBaseline = Math.abs(currentLine.y - b.y) <= 6;
-            const reasonableGap = b.x >= currentLine.x && (b.x - (currentLine.x + currentLine.width)) <= 35;
+            const reasonableGap = b.x >= currentLine.x && (b.x - (currentLine.x + currentLine.width)) <= 40;
 
             if (sameBaseline && reasonableGap) {
                 currentLine.str += " " + b.str;
@@ -1163,14 +631,36 @@ function clusterIntoLines(blocks) {
     return lines;
 }
 
-function isOverlappingAny(field, list) {
+function isSectionHeader(text) {
+    if (!text) return false;
+    const clean = text.trim();
+    if (clean.length < 2) return false;
+
+    // Numbered Section Banners (e.g. "1. EMPLOYEE & CLAIM DETAILS", "2. ITEMIZED EXPENSE ENTRIES")
+    if (/^\d+[\.\)]\s*[A-Z\s\&\(\)\/]+$/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
+        return true;
+    }
+
+    // Document header metadata
+    if (/^(?:FORM\s*REF|REVISION|STATUS)\s*:/i.test(clean)) {
+        return true;
+    }
+
+    if (/^(?:FINANCE\s*&\s*COMPLIANCE|EXPENSE\s*REIMBURSEMENT\s*CLAIM|EMPLOYMENT\s*APPLICATION|TECHSUMMIT|PATIENT\s*INTAKE|APPLICATION\s*FORM)$/i.test(clean)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isOverlapping(field, list, threshold = 0.35) {
     return list.some(existing => {
         if (field.id && existing.id && field.id === existing.id) return false;
         if ((existing.page || 1) !== (field.page || 1)) return false;
 
         const xOverlap = Math.max(0, Math.min(field.x + field.width, existing.x + existing.width) - Math.max(field.x, existing.x));
         const yOverlap = Math.max(0, Math.min(field.y + field.height, existing.y + existing.height) - Math.max(field.y, existing.y));
-        const overlapArea = Math.max(0, xOverlap) * Math.max(0, yOverlap);
+        const overlapArea = xOverlap * yOverlap;
 
         if (overlapArea <= 0) return false;
 
@@ -1178,6 +668,15 @@ function isOverlappingAny(field, list) {
         const existingArea = existing.width * existing.height;
         const minArea = Math.min(fieldArea, existingArea);
 
-        return minArea > 0 && (overlapArea / minArea) > 0.45;
+        return minArea > 0 && (overlapArea / minArea) > threshold;
     });
+}
+
+function isOverlappingBox(f, box, threshold = 0.4) {
+    const xOverlap = Math.max(0, Math.min(f.x + f.width, box.x + box.width) - Math.max(f.x, box.x));
+    const yOverlap = Math.max(0, Math.min(f.y + f.height, box.y + box.height) - Math.max(f.y, box.y));
+    const overlapArea = xOverlap * yOverlap;
+    if (overlapArea <= 0) return false;
+    const minArea = Math.min(f.width * f.height, box.width * box.height);
+    return minArea > 0 && (overlapArea / minArea) > threshold;
 }
