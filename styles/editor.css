@@ -257,6 +257,70 @@
     outline-offset: 2px !important;
 }
 
+/* ── Animated Sliding Segmented Control ──────────────────────── */
+.segmented-toggle {
+    position: relative;
+    display: inline-flex;
+    background: #f1f5f9;
+    padding: 2px;
+    border-radius: 7px;
+    border: 1px solid #e2e8f0;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.segmented-glider {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    height: calc(100% - 4px);
+    width: calc(50% - 2px);
+    background: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
+    transition: transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.15s ease;
+    will-change: transform;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.segmented-toggle[data-active="none"] .segmented-glider {
+    transform: translateX(100%);
+}
+
+.segmented-toggle[data-active="solid"] .segmented-glider {
+    transform: translateX(0%);
+}
+
+.segmented-toggle[data-active="mixed"] .segmented-glider {
+    opacity: 0;
+}
+
+.segmented-opt {
+    position: relative;
+    z-index: 2;
+    padding: 3px 12px !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    color: #64748b !important;
+    border: none !important;
+    background: transparent !important;
+    border-radius: 5px !important;
+    cursor: pointer;
+    line-height: 1.2 !important;
+    box-shadow: none !important;
+    transition: color 0.15s ease, font-weight 0.15s ease;
+}
+
+.segmented-opt:hover {
+    color: #1e293b !important;
+}
+
+.segmented-opt.active {
+    color: #0f172a !important;
+    font-weight: 600 !important;
+}
+
 /* ── Layers list ─────────────────────────────────────────────── */
 .layers-list {
     flex: 1;
