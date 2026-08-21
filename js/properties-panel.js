@@ -304,6 +304,21 @@ export function populateProperties(field) {
                 }
             }
 
+            // Sync width and height inputs if not actively focused
+            const wInput = document.getElementById("multiFieldWidth");
+            if (wInput && document.activeElement !== wInput) {
+                const firstW = selectedFields[0]?.width;
+                const allSameW = selectedFields.every(f => f.width === firstW);
+                wInput.value = (allSameW && firstW) ? firstW : "";
+            }
+
+            const hInput = document.getElementById("multiFieldHeight");
+            if (hInput && document.activeElement !== hInput) {
+                const firstH = selectedFields[0]?.height;
+                const allSameH = selectedFields.every(f => f.height === firstH);
+                hInput.value = (allSameH && firstH) ? firstH : "";
+            }
+
             // Sync default value input if not actively focused
             const defInput = document.getElementById("multiDefaultValue");
             if (defInput && document.activeElement !== defInput) {
@@ -421,6 +436,78 @@ function initMultiSelectTools(onUpdated) {
         saveHistory();
         if (onUpdated) onUpdated();
     };
+
+    // ── Field Dimensions & Sizing (Batch Sizing) ─────────────────────
+    const multiWInput = document.getElementById("multiFieldWidth");
+    if (multiWInput) {
+        multiWInput.addEventListener("input", e => {
+            const raw = e.target.value.trim();
+            const val = raw === "" ? null : parseInt(raw);
+            if (val !== null && val >= 16 && val <= 2000) {
+                batchUpdate(f => f.width = val);
+            }
+        });
+        makeScrubbableAndScrollable(multiWInput, null, { min: 16, max: 2000, step: 2 });
+    }
+
+    const multiHInput = document.getElementById("multiFieldHeight");
+    if (multiHInput) {
+        multiHInput.addEventListener("input", e => {
+            const raw = e.target.value.trim();
+            const val = raw === "" ? null : parseInt(raw);
+            if (val !== null && val >= 16 && val <= 1000) {
+                batchUpdate(f => f.height = val);
+            }
+        });
+        makeScrubbableAndScrollable(multiHInput, null, { min: 16, max: 1000, step: 1 });
+    }
+
+    // Match Width (Equalize Width)
+    document.getElementById("multiMatchWidthBtn")?.addEventListener("click", () => {
+        const sel = getSelected();
+        if (sel.length < 2) return;
+        const primary = (state.lastSelectedFieldId && sel.find(f => f.id === state.lastSelectedFieldId)) || sel[0];
+        if (!primary) return;
+        const targetW = primary.width;
+        if (multiWInput) multiWInput.value = targetW;
+        batchUpdate(f => f.width = targetW);
+    });
+
+    // Match Height (Equalize Height)
+    document.getElementById("multiMatchHeightBtn")?.addEventListener("click", () => {
+        const sel = getSelected();
+        if (sel.length < 2) return;
+        const primary = (state.lastSelectedFieldId && sel.find(f => f.id === state.lastSelectedFieldId)) || sel[0];
+        if (!primary) return;
+        const targetH = primary.height;
+        if (multiHInput) multiHInput.value = targetH;
+        batchUpdate(f => f.height = targetH);
+    });
+
+    // Match Both (Equalize Width & Height)
+    document.getElementById("multiMatchBothBtn")?.addEventListener("click", () => {
+        const sel = getSelected();
+        if (sel.length < 2) return;
+        const primary = (state.lastSelectedFieldId && sel.find(f => f.id === state.lastSelectedFieldId)) || sel[0];
+        if (!primary) return;
+        const targetW = primary.width;
+        const targetH = primary.height;
+        if (multiWInput) multiWInput.value = targetW;
+        if (multiHInput) multiHInput.value = targetH;
+        batchUpdate(f => {
+            f.width = targetW;
+            f.height = targetH;
+        });
+    });
+
+    // Preset Height Buttons
+    document.querySelectorAll(".multi-quick-height-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const h = parseInt(btn.dataset.height);
+            if (multiHInput) multiHInput.value = h;
+            batchUpdate(f => f.height = h);
+        });
+    });
 
     // ── 1-Click Batch Border Changes ─────────────────────────────────
     document.getElementById("multiBorderSolidBtn")?.addEventListener("click", () => batchUpdate(f => f.borderStyle = "solid"));

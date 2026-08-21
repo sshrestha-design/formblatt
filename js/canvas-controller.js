@@ -528,16 +528,36 @@ export function handleResizeStart(e, field) {
     state.resizeFieldId = field.id;
     state.resizeStartPos = { x: e.clientX, y: e.clientY };
     state.resizeStartDim = { width: field.width, height: field.height };
+
+    state.initialFieldDims = new Map();
+    if (state.selectedFieldIds.has(field.id)) {
+        state.selectedFieldIds.forEach(id => {
+            const f = state.fields.find(item => item.id === id);
+            if (f) state.initialFieldDims.set(id, { width: f.width, height: f.height });
+        });
+    } else {
+        state.initialFieldDims.set(field.id, { width: field.width, height: field.height });
+    }
 }
 
 function handleFieldResize(e, handlers) {
-    const field = state.fields.find(f => f.id === state.resizeFieldId);
-    if (!field) return;
     const dx = (e.clientX - state.resizeStartPos.x) / state.currentScale;
     const dy = (e.clientY - state.resizeStartPos.y) / state.currentScale;
 
-    field.width = Math.max(16, Math.round(state.resizeStartDim.width + dx));
-    field.height = Math.max(16, Math.round(state.resizeStartDim.height + dy));
+    if (state.initialFieldDims && state.initialFieldDims.size > 0) {
+        state.initialFieldDims.forEach((dim, id) => {
+            const f = state.fields.find(item => item.id === id);
+            if (f) {
+                f.width = Math.max(16, Math.round(dim.width + dx));
+                f.height = Math.max(16, Math.round(dim.height + dy));
+            }
+        });
+    } else {
+        const field = state.fields.find(f => f.id === state.resizeFieldId);
+        if (!field) return;
+        field.width = Math.max(16, Math.round(state.resizeStartDim.width + dx));
+        field.height = Math.max(16, Math.round(state.resizeStartDim.height + dy));
+    }
 
     handlers.onFieldMoving();
 }
