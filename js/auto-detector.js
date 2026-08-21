@@ -701,6 +701,16 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             if (isSectionHeader(cleanLabel)) continue;
             if (/^(?:from|to|terms|due)$/i.test(cleanLabel)) continue;
 
+            // Check if prompt is a choice group header (e.g. "Prefix: ( ) Mr...", "Payment Method: ( ) Credit Card...")
+            const textAfterPrompt = text.slice(text.indexOf(curPrompt.str) + curPrompt.str.length);
+            const hasImmediateChoiceMarkers = /(\[\s*\]|\(\s*\)|[☐□✓✔○●■])/.test(textAfterPrompt);
+            if (hasImmediateChoiceMarkers && /^(?:Prefix|Payment Method|Card Type|Dietary Requirements|Direct Deposit|Primary Tracks|Pass Type|Gender|Marital Status|Status|Registration)/i.test(cleanLabel)) {
+                continue;
+            }
+            if (/select\s*all|select\s*one/i.test(cleanLabel)) {
+                continue;
+            }
+
             const labelRight = curPrompt.x + curPrompt.width;
             const isSig = /signature|sign/i.test(cleanLabel);
             const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
@@ -793,19 +803,37 @@ function clusterIntoLines(blocks) {
 }
 
 function isSectionHeader(text) {
-    if (!text) return false;
+    if (!text) return true;
     const clean = text.trim();
-    if (clean.length < 2) return false;
+    if (clean.length < 2) return true;
 
+    // 1. Numbered Section Headers (e.g. "1. ATTENDEE INFORMATION", "2. REGISTRATION PASS TYPE (Select One)")
     if (/^\d+[\.\)]\s*[A-Z\s\&\(\)\/]+$/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
         return true;
     }
 
-    if (/^(?:FORM\s*REF|REVISION|STATUS)\s*:/i.test(clean)) {
+    // 2. Metadata / Doc Refs
+    if (/^(?:FORM\s*REF|REVISION|STATUS|TEMPLATE|DOC\s*ID)\s*:/i.test(clean)) {
         return true;
     }
 
-    if (/^(?:FINANCE\s*&\s*COMPLIANCE|EXPENSE\s*REIMBURSEMENT\s*CLAIM|EMPLOYMENT\s*APPLICATION|TECHSUMMIT|PATIENT\s*INTAKE|APPLICATION\s*FORM)$/i.test(clean)) {
+    // 3. Document Titles & Department Banners
+    if (/^(?:FINANCE\s*&\s*COMPLIANCE|EXPENSE\s*REIMBURSEMENT|TECHSUMMIT|GLOBAL\s*CONFERENCE|EMPLOYMENT\s*APPLICATION|APPLICATION\s*FORM|PATIENT\s*INTAKE|NON-DISCLOSURE|AGREEMENT|INVOICE\s*TEMPLATE|CLAIM\s*FORM)/i.test(clean)) {
+        return true;
+    }
+
+    // 4. Subtitles & Instructions
+    if (/^(?:Corporate Travel|2026 Global Technology|Personal Vehicle Mileage Log|Access to all|General sessions|Hands-on technical|Valid student|Select all that apply|Select One|Attach All Original Receipts)/i.test(clean)) {
+        return true;
+    }
+
+    // 5. Instruction in parentheses
+    if (/^\(Attach All Original Receipts\)$/i.test(clean) || /^\(Select all that apply\)$/i.test(clean) || /^\(Select One\)$/i.test(clean)) {
+        return true;
+    }
+
+    // 6. Printed Static Rates / Constants
+    if (/Standard Reimbursement Rate:\s*\$[\d\.]+\s*\/\s*mile/i.test(clean)) {
         return true;
     }
 
