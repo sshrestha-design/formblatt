@@ -147,8 +147,6 @@ export function showEditorScreen(onReady) {
             if (onReady) onReady();
         });
     }
-    const shortcutBar = document.getElementById("editorShortcutBar");
-    if (shortcutBar) shortcutBar.style.display = "flex";
     if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
