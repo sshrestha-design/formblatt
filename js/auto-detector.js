@@ -187,19 +187,39 @@ export class TopologicalTableSolver {
         });
         const tableBottomY = footerBlock ? Math.round(footerBlock.y - 8) : Math.min(tableTopY + 280, 750);
 
-        // Build column definitions strictly from the table header blocks
+        // Build column definitions strictly from the table header blocks & table boundaries
         const colBands = [];
         const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
+
+        // Find table left and right bounds
+        const promptLeftBlocks = rawBlocks.filter(tb => tb.x > 30 && tb.x < sortedHeaderBlocks[0].x);
+        const tableLeftX = promptLeftBlocks.length > 0 
+            ? Math.round(Math.min(...promptLeftBlocks.map(tb => tb.x)) - 2)
+            : Math.round(sortedHeaderBlocks[0].x - 22);
+
+        const tableRightX = footerBlock 
+            ? Math.round(footerBlock.x + footerBlock.width + 55) 
+            : Math.round(sortedHeaderBlocks[sortedHeaderBlocks.length - 1].x + sortedHeaderBlocks[sortedHeaderBlocks.length - 1].width + 30);
+
         for (let i = 0; i < sortedHeaderBlocks.length; i++) {
             const hb = sortedHeaderBlocks[i];
             const nextHb = sortedHeaderBlocks[i + 1];
-            const colX = Math.round(hb.x - 2);
-            let colW;
-            if (nextHb) {
-                colW = Math.max(45, Math.round(nextHb.x - hb.x - 6));
+            
+            let colX, colW;
+            if (i === 0) {
+                // First column (Description): spans from table left border to next column
+                colX = Math.max(10, tableLeftX);
+                colW = nextHb ? Math.max(50, Math.round((nextHb.x - 4) - colX)) : Math.round(hb.width + 30);
+            } else if (nextHb) {
+                // Middle columns (Quantity, Price): span between header bounds
+                colX = Math.round(hb.x - 4);
+                colW = Math.max(35, Math.round((nextHb.x - 4) - colX));
             } else {
-                colW = Math.max(55, Math.round(hb.width + 25));
+                // Last column (Amount): spans to table right boundary
+                colX = Math.round(hb.x - 4);
+                colW = Math.max(40, Math.round(tableRightX - colX));
             }
+
             colBands.push({
                 x: colX,
                 width: colW,
@@ -212,7 +232,7 @@ export class TopologicalTableSolver {
         
         const sampleRowYs = [];
         textInTable.forEach(tb => {
-            if (!sampleRowYs.some(y => Math.abs(y - tb.y) <= 10)) {
+            if (!sampleRowYs.some(y => Math.abs(y - tb.y) <= 8)) {
                 sampleRowYs.push(Math.round(tb.y));
             }
         });
@@ -220,12 +240,12 @@ export class TopologicalTableSolver {
 
         let tableRows = [];
         if (sampleRowYs.length >= 2) {
-            tableRows = sampleRowYs.map(y => ({ y, height: 18 }));
+            tableRows = sampleRowYs.map(y => ({ y: Math.round(y - 2), height: 16 }));
         } else {
-            let currY = tableTopY;
-            while (currY + 18 <= tableBottomY && tableRows.length < 10) {
-                tableRows.push({ y: currY, height: 18 });
-                currY += 22;
+            let currY = tableTopY + 2;
+            while (currY + 16 <= tableBottomY && tableRows.length < 10) {
+                tableRows.push({ y: currY, height: 16 });
+                currY += 21;
             }
         }
 
@@ -246,7 +266,7 @@ export class TopologicalTableSolver {
                     x: Math.max(10, col.x),
                     y: Math.max(10, row.y),
                     width: col.width,
-                    height: Math.min(20, row.height || 18),
+                    height: 16,
                     page: pageNum,
                     borderStyle: "solid",
                     fillStyle: "white",
@@ -280,9 +300,9 @@ export class TopologicalTableSolver {
                         type: "textField",
                         name: sem.name,
                         x: Math.max(10, sumX),
-                        y: Math.max(10, Math.round(block.y - 1)),
+                        y: Math.max(10, Math.round(block.y - 2)),
                         width: sumW,
-                        height: 22,
+                        height: 16,
                         page: pageNum,
                         borderStyle: "solid",
                         fillStyle: "white",
@@ -301,9 +321,9 @@ export class TopologicalTableSolver {
                 id: Date.now() + Math.random(),
                 type: "textField",
                 name: sem.name,
-                x: Math.max(10, Math.round(notesBlock.x)),
+                x: Math.max(10, tableLeftX),
                 y: Math.max(10, Math.round(notesBlock.y + notesBlock.height + 6)),
-                width: Math.min(380, Math.round(rawBlocks[0]?.width ? 450 : 380)),
+                width: Math.max(200, Math.round(tableRightX - tableLeftX)),
                 height: 70,
                 page: pageNum,
                 borderStyle: "solid",
