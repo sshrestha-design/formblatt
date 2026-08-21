@@ -40,9 +40,9 @@
 /* ── Field overlays ───────────────────────────────────────────── */
 .field-overlay {
     position: absolute;
-    border: 1.5px solid #94a3b8;
-    background: #ffffff;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    border: 1.5px solid #60a5fa;
+    background: rgba(239, 246, 255, 0.60);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
     pointer-events: auto;
     display: flex;
     align-items: center;
@@ -53,17 +53,19 @@
     color: #1e293b;
     border-radius: 4px;
     overflow: hidden;
-    transition: border-color var(--anim-fast), box-shadow var(--anim-fast), opacity var(--anim-fast);
+    transition: border-color var(--anim-fast), box-shadow var(--anim-fast), opacity var(--anim-fast), background var(--anim-fast);
 }
 
 .field-overlay:not(.selected):hover {
-    border-color: #38bdf8 !important;
+    border-color: #2563eb !important;
+    background: rgba(219, 234, 254, 0.75) !important;
     box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25), 0 2px 6px rgba(0,0,0,0.06);
 }
 
 .field-overlay.selected {
     border: 1.5px solid #2563eb !important;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+    background: rgba(219, 234, 254, 0.75) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
     z-index: 50;
 }
 
@@ -76,7 +78,8 @@
     font-family: inherit;
     font-size: 11px;
     font-weight: 500;
-    color: #475569;
+    color: #1e3a8a;
+    opacity: 0.85;
 }
 
 .resize-handle {
