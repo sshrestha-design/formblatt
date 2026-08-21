@@ -192,14 +192,24 @@ export class TopologicalTableSolver {
         const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
 
         // Find table left and right bounds
-        const promptLeftBlocks = rawBlocks.filter(tb => tb.x > 30 && tb.x < sortedHeaderBlocks[0].x);
-        const tableLeftX = promptLeftBlocks.length > 0 
-            ? Math.round(Math.min(...promptLeftBlocks.map(tb => tb.x)) - 2)
-            : Math.round(sortedHeaderBlocks[0].x - 22);
+        const leftAnchor = rawBlocks.find(tb => /^(?:from|terms|notes|bill\s*to)$/i.test((tb.str || "").trim()));
+        const tableLeftX = leftAnchor ? Math.round(leftAnchor.x) : Math.round(sortedHeaderBlocks[0].x - 45);
 
         const tableRightX = footerBlock 
             ? Math.round(footerBlock.x + footerBlock.width + 55) 
             : Math.round(sortedHeaderBlocks[sortedHeaderBlocks.length - 1].x + sortedHeaderBlocks[sortedHeaderBlocks.length - 1].width + 30);
+
+        const colHeaderMap = {
+            "Item Description": "Description",
+            "Description": "Description",
+            "Quantity": "Quantity",
+            "Qty": "Quantity",
+            "Price": "Unit Price",
+            "Unit Price": "Unit Price",
+            "Rate": "Unit Price",
+            "Amount": "Line Amount",
+            "Total": "Line Amount"
+        };
 
         for (let i = 0; i < sortedHeaderBlocks.length; i++) {
             const hb = sortedHeaderBlocks[i];
@@ -220,32 +230,52 @@ export class TopologicalTableSolver {
                 colW = Math.max(40, Math.round(tableRightX - colX));
             }
 
+            const headerKey = (hb.str || "").trim();
             colBands.push({
                 x: colX,
                 width: colW,
-                headerText: hb.str
+                headerText: colHeaderMap[headerKey] || headerKey || "Column"
             });
         }
 
         // Find row positions strictly inside [tableTopY, tableBottomY]
-        const textInTable = rawBlocks.filter(tb => tb.y >= tableTopY && (tb.y + tb.height) <= tableBottomY);
+        const textInTable = rawBlocks.filter(tb => tb.y >= (tableTopY - 2) && (tb.y + tb.height) <= (tableBottomY + 15));
         
-        const sampleRowYs = [];
-        textInTable.forEach(tb => {
-            if (!sampleRowYs.some(y => Math.abs(y - tb.y) <= 8)) {
-                sampleRowYs.push(Math.round(tb.y));
+        const rawYs = textInTable.map(tb => Math.round(tb.y - 2)).sort((a, b) => a - b);
+        const sampledRowYs = [];
+        rawYs.forEach(y => {
+            if (!sampledRowYs.some(sy => Math.abs(sy - y) <= 6)) {
+                sampledRowYs.push(y);
             }
         });
-        sampleRowYs.sort((a, b) => a - b);
 
         let tableRows = [];
-        if (sampleRowYs.length >= 2) {
-            tableRows = sampleRowYs.map(y => ({ y: Math.round(y - 2), height: 16 }));
+        if (sampledRowYs.length >= 3) {
+            // Calculate median row step / pitch from sampled text entries ($0.00 lines)
+            const deltas = [];
+            for (let i = 1; i < sampledRowYs.length; i++) {
+                deltas.push(sampledRowYs[i] - sampledRowYs[i - 1]);
+            }
+            const medianPitch = deltas.sort((a, b) => a - b)[Math.floor(deltas.length / 2)] || 24;
+
+            // If the first sampled text row is below tableTopY, back-project any blank preceding row(s)
+            while (sampledRowYs[0] - tableTopY > (medianPitch * 0.8)) {
+                sampledRowYs.unshift(Math.round(sampledRowYs[0] - medianPitch));
+            }
+
+            for (let r = 0; r < 10; r++) {
+                const rY = sampledRowYs[r] !== undefined ? sampledRowYs[r] : Math.round(sampledRowYs[0] + r * medianPitch);
+                if (rY + 16 <= (tableBottomY + 12)) {
+                    tableRows.push({ y: rY, height: 16 });
+                }
+            }
         } else {
-            let currY = tableTopY + 2;
-            while (currY + 16 <= tableBottomY && tableRows.length < 10) {
-                tableRows.push({ y: currY, height: 16 });
-                currY += 21;
+            const totalH = tableBottomY - tableTopY;
+            const numRows = Math.min(10, Math.max(6, Math.round(totalH / 24)));
+            const rowPitch = totalH / numRows;
+            for (let r = 0; r < numRows; r++) {
+                const rY = Math.round(tableTopY + r * rowPitch + (rowPitch - 16) / 2);
+                tableRows.push({ y: rY, height: 16 });
             }
         }
 
@@ -324,7 +354,7 @@ export class TopologicalTableSolver {
                 x: Math.max(10, tableLeftX),
                 y: Math.max(10, Math.round(notesBlock.y + notesBlock.height + 6)),
                 width: Math.max(200, Math.round(tableRightX - tableLeftX)),
-                height: 70,
+                height: 48,
                 page: pageNum,
                 borderStyle: "solid",
                 fillStyle: "white",
