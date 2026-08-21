@@ -100,7 +100,7 @@
     z-index: 60;
 }
 
-.field-overlay.selected .field-floating-badge,
+/* Only show floating badge on hover, never on mass multi-selection */
 .field-overlay:hover .field-floating-badge {
     display: block;
 }
