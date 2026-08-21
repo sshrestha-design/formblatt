@@ -145,6 +145,77 @@ function isUniversalStaticText(text) {
     return false;
 }
 
+// ============================================================================
+// 2.5 EXISTING ACROFORM WIDGET PASSTHROUGH
+// ============================================================================
+async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
+    let annotations;
+    try {
+        annotations = await page.getAnnotations({ intent: "display" });
+    } catch (err) {
+        console.warn("Failed to read annotations on page " + pageNum + ":", err);
+        return [];
+    }
+
+    if (!Array.isArray(annotations)) return [];
+    const widgets = annotations.filter(a => a.subtype === "Widget" && a.rect && a.fieldName);
+    const fields = [];
+
+    for (const w of widgets) {
+        const [x0, y0, x1, y1] = w.rect;
+        const left = Math.min(x0, x1);
+        const right = Math.max(x0, x1);
+        const top = viewport.height - Math.max(y0, y1);
+        const bottom = viewport.height - Math.min(y0, y1);
+
+        const fieldFlags = w.fieldFlags || 0;
+        const isRadio = (w.checkBox === false && w.radioButton === true) || (!!(fieldFlags & 32768));
+        const isCheckbox = w.checkBox === true || (w.fieldType === "Btn" && !isRadio && !(fieldFlags & 65536));
+        const isMultiline = !!(fieldFlags & 4096);
+
+        let type = "textField";
+        let options = undefined;
+        let defaultValue = undefined;
+
+        if (w.fieldType === "Btn") {
+            type = isRadio ? "radioGroup" : "checkBox";
+        } else if (w.fieldType === "Sig") {
+            type = "signature";
+        } else if (w.fieldType === "Ch") {
+            type = "dropdown";
+            options = Array.isArray(w.options)
+                ? w.options.map(o => typeof o === "string" ? o : (o.displayValue || o.exportValue || ""))
+                : ["Select...", "Option 1", "Option 2"];
+            defaultValue = w.fieldValue || (options.length > 0 ? options[0] : "Select...");
+        } else if (/date/i.test(w.fieldName || "")) {
+            type = "dateField";
+        }
+
+        const sem = resolveSemanticProps(w.fieldName || w.alternativeText || "field", type, isRadio ? new Set() : usedNames);
+
+        fields.push({
+            id: generateFieldId(),
+            type,
+            name: sem.name,
+            value: w.buttonValue || w.fieldValue || "",
+            ...(type === "dropdown" ? { options, defaultValue } : {}),
+            x: Math.max(0, Math.round(left)),
+            y: Math.max(0, Math.round(top)),
+            width: Math.max(10, Math.round(right - left)),
+            height: Math.max(10, Math.round(bottom - top)),
+            page: pageNum,
+            borderStyle: "solid",
+            fillStyle: "white",
+            multiline: isMultiline || sem.multiline || false,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            sourcedFrom: "acroform"
+        });
+    }
+
+    return fields;
+}
+
 function isOverlapping(field, list, threshold = 0.35) {
     return list.some(existing => {
         if (field.id && existing.id && field.id === existing.id) return false;
@@ -184,6 +255,14 @@ export async function autoDetectFields(scope = "current") {
         try {
             const page = await state.pdfDoc.getPage(pageNum);
             const viewport = page.getViewport({ scale: 1.0 });
+
+            // 1. Authoritative AcroForm passthrough
+            const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
+            if (widgetFields.length > 0) {
+                newFields.push(...widgetFields);
+                continue;
+            }
+
             const textContent = await page.getTextContent();
             
             const rawBlocks = textContent.items.map(item => {
@@ -635,7 +714,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
 }
 
 // ============================================================================
-// 4. LINE CLUSTERING UTILITY
+// 4. LINE CLUSTERING UTILITY (Font-Relative Tolerances)
 // ============================================================================
 function clusterIntoLines(blocks) {
     if (blocks.length === 0) return [];
@@ -644,11 +723,17 @@ function clusterIntoLines(blocks) {
     let currentLine = null;
 
     for (let b of sorted) {
+        const fontH = Math.max(6, b.height || 12);
+
         if (!currentLine) {
             currentLine = { ...b, items: [b] };
         } else {
-            const sameBaseline = Math.abs(currentLine.y - b.y) <= 6;
-            const reasonableGap = b.x >= currentLine.x && (b.x - (currentLine.x + currentLine.width)) <= 40;
+            const refFontH = Math.max(6, currentLine.height || fontH);
+            const baselineTolerance = Math.max(6, refFontH * 0.5);
+            const gapTolerance = Math.max(60, refFontH * 4);
+
+            const sameBaseline = Math.abs(currentLine.y - b.y) <= baselineTolerance;
+            const reasonableGap = b.x >= currentLine.x && (b.x - (currentLine.x + currentLine.width)) <= gapTolerance;
 
             if (sameBaseline && reasonableGap) {
                 currentLine.str += " " + b.str;
