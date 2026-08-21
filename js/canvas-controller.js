@@ -425,7 +425,7 @@ export function initCanvasController(handlers) {
         if (rightClickStart) {
             const rdx = e.clientX - rightClickStart.x;
             const rdy = e.clientY - rightClickStart.y;
-            if (Math.abs(rdx) > 3 || Math.abs(rdy) > 3) {
+            if (Math.abs(rdx) > 10 || Math.abs(rdy) > 10) {
                 hasRightDragged = true;
                 state.panOffset.x = rightClickStart.panX + rdx;
                 state.panOffset.y = rightClickStart.panY + rdy;
@@ -693,6 +693,9 @@ export function initContextMenu(handlers) {
     const menuEl = document.getElementById("canvasContextMenu");
     const emptyGroup = document.getElementById("ctxEmptyGroup");
     const fieldGroup = document.getElementById("ctxFieldGroup");
+    const multiTools = document.getElementById("ctxMultiTools");
+    const groupLabel = document.getElementById("ctxGroupLabel");
+    const groupIcon = document.getElementById("ctxGroupIcon");
 
     if (!menuEl) return;
 
@@ -700,10 +703,11 @@ export function initContextMenu(handlers) {
         menuEl.style.display = "none";
     };
 
-    document.addEventListener("click", hideContextMenu);
+    document.addEventListener("click", e => {
+        if (!menuEl.contains(e.target)) hideContextMenu();
+    });
     document.addEventListener("scroll", hideContextMenu, true);
     window.addEventListener("resize", hideContextMenu);
-
     window.addEventListener("keydown", e => {
         if (e.key === "Escape") hideContextMenu();
     });
@@ -755,7 +759,52 @@ export function initContextMenu(handlers) {
                     handlers.onSelectionChange();
                 }
             } else if (action === "group-fields") {
-                document.getElementById("groupSelectedBtn")?.click();
+                const selFields = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+                const isAllInGroup = selFields.length > 0 && selFields.every(f => f.groupId);
+                if (isAllInGroup) {
+                    ungroupSelected();
+                } else {
+                    createGroupForSelected();
+                }
+                saveHistory();
+                handlers.onSelectionChange();
+            } else if (action === "align-left") {
+                const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+                if (sel.length >= 2) {
+                    const minX = Math.min(...sel.map(f => f.x));
+                    sel.forEach(f => f.x = minX);
+                    saveHistory();
+                    handlers.onSelectionChange();
+                }
+            } else if (action === "align-top") {
+                const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+                if (sel.length >= 2) {
+                    const minY = Math.min(...sel.map(f => f.y));
+                    sel.forEach(f => f.y = minY);
+                    saveHistory();
+                    handlers.onSelectionChange();
+                }
+            } else if (action === "distribute-v") {
+                const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+                if (sel.length >= 3) {
+                    sel.sort((a, b) => a.y - b.y);
+                    const first = sel[0];
+                    const last = sel[sel.length - 1];
+                    const totalSpan = (last.y + last.height) - first.y;
+                    const totalItemsHeight = sel.reduce((sum, f) => sum + f.height, 0);
+                    const totalGap = totalSpan - totalItemsHeight;
+                    const gap = totalGap / (sel.length - 1);
+                    
+                    let currentY = first.y;
+                    for (let i = 0; i < sel.length; i++) {
+                        if (i > 0) {
+                            currentY += sel[i - 1].height + gap;
+                            sel[i].y = Math.round(currentY);
+                        }
+                    }
+                    saveHistory();
+                    handlers.onSelectionChange();
+                }
             } else if (action === "delete-field") {
                 if (state.selectedFieldIds.size > 0) {
                     state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
@@ -767,60 +816,79 @@ export function initContextMenu(handlers) {
         });
     });
 
+    const centerCanvas = document.querySelector(".center-canvas");
     const container = document.getElementById("canvasContainer");
-    if (container) {
-        container.addEventListener("contextmenu", e => {
-            // Guard: Only enable when editor screen is active
-            const editorScreen = document.getElementById("appEditorScreen");
-            if (!editorScreen || editorScreen.style.display === "none") return;
 
-            // If user was right-drag panning the canvas, do not open context menu
-            if (hasRightDragged) {
-                hasRightDragged = false;
-                e.preventDefault();
-                e.stopPropagation();
-                return;
-            }
+    const handleContextMenuEvent = e => {
+        // Guard: Only enable when editor screen is active
+        const editorScreen = document.getElementById("appEditorScreen");
+        if (!editorScreen || editorScreen.style.display === "none") return;
 
+        // If user was right-drag panning the canvas, do not open context menu
+        if (hasRightDragged) {
+            hasRightDragged = false;
             e.preventDefault();
-            e.stopPropagation();
+            return;
+        }
 
+        e.preventDefault();
+
+        if (container) {
             const rect = container.getBoundingClientRect();
             lastRightClickPos = {
                 x: Math.max(10, Math.round((e.clientX - rect.left) / state.currentScale)),
                 y: Math.max(10, Math.round((e.clientY - rect.top) / state.currentScale))
             };
+        }
 
-            const overlayTarget = e.target.closest(".field-overlay");
-            if (overlayTarget) {
-                const idStr = overlayTarget.id.replace("overlay_", "");
-                const field = state.fields.find(f => String(f.id) === idStr);
-                if (field) {
-                    if (!state.selectedFieldIds.has(field.id)) {
-                        setSelectedField(field.id);
-                        handlers.onSelectionChange();
-                    }
-                    if (emptyGroup) emptyGroup.style.display = "none";
-                    if (fieldGroup) fieldGroup.style.display = "block";
+        const overlayTarget = e.target.closest(".field-overlay");
+        if (overlayTarget) {
+            const idStr = overlayTarget.id.replace("overlay_", "");
+            const field = state.fields.find(f => String(f.id) === idStr);
+            if (field) {
+                if (!state.selectedFieldIds.has(field.id) && !state.selectedFieldIds.has(String(field.id)) && !state.selectedFieldIds.has(Number(field.id))) {
+                    setSelectedField(field.id);
+                    handlers.onSelectionChange();
                 }
-            } else {
-                if (emptyGroup) emptyGroup.style.display = "block";
-                if (fieldGroup) fieldGroup.style.display = "none";
+            }
+        }
+
+        if (state.selectedFieldIds.size > 0) {
+            if (emptyGroup) emptyGroup.style.display = "none";
+            if (fieldGroup) fieldGroup.style.display = "block";
+
+            if (multiTools) {
+                multiTools.style.display = state.selectedFieldIds.size >= 2 ? "block" : "none";
             }
 
-            menuEl.style.display = "block";
-            if (typeof lucide !== "undefined") lucide.createIcons();
+            if (groupLabel && groupIcon) {
+                const selFields = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+                const isAllInGroup = selFields.length > 0 && selFields.every(f => f.groupId);
+                groupLabel.textContent = isAllInGroup ? "Ungroup Selection" : "Group Selection";
+                groupIcon.setAttribute("data-lucide", isAllInGroup ? "folder-minus" : "folder-plus");
+            }
+        } else {
+            if (emptyGroup) emptyGroup.style.display = "block";
+            if (fieldGroup) fieldGroup.style.display = "none";
+        }
 
-            const menuW = menuEl.offsetWidth || 210;
-            const menuH = menuEl.offsetHeight || 280;
-            let posX = e.clientX;
-            let posY = e.clientY;
+        menuEl.style.display = "block";
+        if (typeof lucide !== "undefined") lucide.createIcons();
 
-            if (posX + menuW > window.innerWidth - 10) posX = window.innerWidth - menuW - 10;
-            if (posY + menuH > window.innerHeight - 10) posY = window.innerHeight - menuH - 10;
+        const menuW = menuEl.offsetWidth || 210;
+        const menuH = menuEl.offsetHeight || 280;
+        let posX = e.clientX;
+        let posY = e.clientY;
 
-            menuEl.style.left = `${posX}px`;
-            menuEl.style.top = `${posY}px`;
-        });
+        if (posX + menuW > window.innerWidth - 10) posX = window.innerWidth - menuW - 10;
+        if (posY + menuH > window.innerHeight - 10) posY = window.innerHeight - menuH - 10;
+
+        menuEl.style.left = `${posX}px`;
+        menuEl.style.top = `${posY}px`;
+    };
+
+    centerCanvas?.addEventListener("contextmenu", handleContextMenuEvent);
+    if (!centerCanvas && container) {
+        container.addEventListener("contextmenu", handleContextMenuEvent);
     }
 }

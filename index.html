@@ -981,40 +981,10 @@
                 </div>
 
                 <!-- Right: Shortcuts & Status -->
-                <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 6px;">
-                    <span>Right-click for Menu</span>
+                <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Right-Click</kbd> for Menu</span>
                 </div>
             </footer>
-        </div>
-
-        <!-- Floating Power-User Context Menu -->
-        <div id="contextMenu" class="context-menu" style="display: none; position: fixed; z-index: 10000; min-width: 190px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); padding: 4px; font-size: 12px;">
-            <button id="ctxGroup" class="ctx-item" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
-                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="folder-plus" style="width: 13px; height: 13px; color: #0284c7;"></i> Group Selection</span>
-                <kbd style="font-size: 10px; color: #94a3b8;">Ctrl+G</kbd>
-            </button>
-            <button id="ctxDuplicate" class="ctx-item" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
-                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="copy" style="width: 13px; height: 13px; color: #0284c7;"></i> Duplicate</span>
-                <kbd style="font-size: 10px; color: #94a3b8;">Ctrl+D</kbd>
-            </button>
-            <div class="ctx-divider" style="height: 1px; background: #f1f5f9; margin: 3px 0;"></div>
-            <div id="ctxMultiTools">
-                <button id="ctxAlignLeft" class="ctx-item" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
-                    <i data-lucide="align-left" style="width: 13px; height: 13px; color: #64748b;"></i> Align Left
-                </button>
-                <button id="ctxDistributeV" class="ctx-item" style="display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
-                    <i data-lucide="distribute-vertical" style="width: 13px; height: 13px; color: #64748b;"></i> Distribute Vertically
-                </button>
-                <div class="ctx-divider" style="height: 1px; background: #f1f5f9; margin: 3px 0;"></div>
-            </div>
-            <button id="ctxSelectAll" class="ctx-item" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #334155;">
-                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="check-square" style="width: 13px; height: 13px; color: #64748b;"></i> Select All</span>
-                <kbd style="font-size: 10px; color: #94a3b8;">Ctrl+A</kbd>
-            </button>
-            <button id="ctxDelete" class="ctx-item danger" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; border: none; background: none; border-radius: 4px; cursor: pointer; color: #ef4444;">
-                <span style="display: flex; align-items: center; gap: 8px;"><i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete</span>
-                <kbd style="font-size: 10px; color: #f87171;">Del</kbd>
-            </button>
         </div>
 
         <aside class="right-panel">
@@ -1620,10 +1590,25 @@
                 <span class="ctx-kbd">⌘D / Alt-Drag</span>
             </button>
             <button type="button" class="ctx-item" data-action="group-fields">
-                <i data-lucide="folder-plus" style="width:14px; height:14px;"></i>
-                <span class="ctx-label">Group Selected</span>
+                <i id="ctxGroupIcon" data-lucide="folder-plus" style="width:14px; height:14px;"></i>
+                <span id="ctxGroupLabel" class="ctx-label">Group Selected</span>
                 <span class="ctx-kbd">⌘G</span>
             </button>
+            <div id="ctxMultiTools" style="display: none;">
+                <div class="ctx-divider"></div>
+                <button type="button" class="ctx-item" data-action="align-left">
+                    <i data-lucide="align-left" style="width:14px; height:14px; color:#64748b;"></i>
+                    <span class="ctx-label">Align Left</span>
+                </button>
+                <button type="button" class="ctx-item" data-action="align-top">
+                    <i data-lucide="align-start-vertical" style="width:14px; height:14px; color:#64748b;"></i>
+                    <span class="ctx-label">Align Top</span>
+                </button>
+                <button type="button" class="ctx-item" data-action="distribute-v">
+                    <i data-lucide="distribute-vertical" style="width:14px; height:14px; color:#64748b;"></i>
+                    <span class="ctx-label">Distribute Vertically</span>
+                </button>
+            </div>
             <div class="ctx-divider"></div>
             <button type="button" class="ctx-item danger" data-action="delete-field">
                 <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
