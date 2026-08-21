@@ -96,6 +96,29 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         if (onFieldUpdated) onFieldUpdated(field);
     };
 
+    const fieldTypeSelect = document.getElementById("fieldType");
+    fieldTypeSelect?.addEventListener("change", e => {
+        const newType = e.target.value;
+        const field = getSelectedField();
+        if (!field) return;
+
+        field.type = newType;
+        if (newType === "signature") {
+            field.height = Math.max(field.height, 36);
+        } else if (newType === "checkBox" || newType === "radioGroup") {
+            if (field.width > 60 || field.height > 60) {
+                field.width = 20;
+                field.height = 20;
+            }
+        } else if (newType === "dropdown" && (!field.options || field.options.length === 0)) {
+            field.options = ["Option 1", "Option 2", "Option 3"];
+        }
+
+        saveHistory();
+        populateProperties(field);
+        if (onFieldUpdated) onFieldUpdated(field);
+    });
+
     fieldNameInput?.addEventListener("input", e => syncChange(f => f.name = e.target.value));
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => f.defaultValue = e.target.value));
     fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value));

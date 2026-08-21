@@ -230,7 +230,14 @@ export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
     const showFontSize = (field.type === "textField" || field.type === "dropdown" || field.type === "dateField");
 
     hud.innerHTML = `
-        <span class="hud-type-badge">${typeLabel}</span>
+        <select id="hudTypeSelect" title="Change Field Type" style="background:#eff6ff; color:#0284c7; border:1px solid #bae6fd; font-size:11px; font-weight:700; border-radius:6px; padding:2px 6px; cursor:pointer; outline:none;">
+            <option value="textField" ${field.type === "textField" ? "selected" : ""}>Text</option>
+            <option value="dateField" ${field.type === "dateField" ? "selected" : ""}>Date</option>
+            <option value="dropdown" ${field.type === "dropdown" ? "selected" : ""}>Dropdown</option>
+            <option value="checkBox" ${field.type === "checkBox" ? "selected" : ""}>Checkbox</option>
+            <option value="radioGroup" ${field.type === "radioGroup" ? "selected" : ""}>Radio</option>
+            <option value="signature" ${field.type === "signature" ? "selected" : ""}>Signature</option>
+        </select>
         <span class="hud-divider"></span>
         <div class="hud-val-container">
             ${valueControlHtml}
@@ -272,6 +279,7 @@ export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
     hud.style.left = `${hudX}px`;
     hud.style.top = `${hudY}px`;
 
+    const typeSelect = hud.querySelector("#hudTypeSelect");
     const wInput = hud.querySelector("#hudWidthInput");
     const hInput = hud.querySelector("#hudHeightInput");
     const fsInput = hud.querySelector("#hudFontSizeInput");
@@ -283,6 +291,26 @@ export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
     const hLabel = hud.querySelector("#hudHeightLabel");
     const fsLabel = hud.querySelector("#hudFontSizeLabel");
     const closeBtn = hud.querySelector("#hudCloseBtn");
+
+    typeSelect?.addEventListener("change", e => {
+        const newType = e.target.value;
+        field.type = newType;
+        if (newType === "signature") {
+            field.height = Math.max(field.height, 36);
+        } else if (newType === "checkBox" || newType === "radioGroup") {
+            if (field.width > 60 || field.height > 60) {
+                field.width = 20;
+                field.height = 20;
+            }
+        } else if (newType === "dropdown" && (!field.options || field.options.length === 0)) {
+            field.options = ["Option 1", "Option 2", "Option 3"];
+        }
+        saveHistory();
+        renderOverlays(handlers);
+        if (handlers.onUpdated) handlers.onUpdated(field);
+        const newOverlay = document.getElementById(`overlay_${field.id}`);
+        if (newOverlay) openFieldQuickDimensionHUD(field, newOverlay, handlers);
+    });
 
     const refreshOverlayVisuals = () => {
         overlayEl.style.width = `${field.width}px`;
