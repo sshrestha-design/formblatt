@@ -26,17 +26,28 @@ const SEMANTIC_DICTIONARY = [
     { regex: /routing\s*n(?:o|um|umber)?|aba\s*routing|transit\s*n(?:o|um|umber)?/i, id: "routing_number_input", title: "Routing Number", type: "textField", score: 12 },
     { regex: /account\s*n(?:o|um|umber)?|bank\s*account/i, id: "account_number_input", title: "Account Number", type: "textField", score: 12 },
     { regex: /taxpayer\s*id|tin\b|ein\b/i, id: "taxpayer_id_input", title: "Taxpayer ID / EIN", type: "textField", score: 12 },
-    { regex: /ssn|social\s*security/i, id: "ssn_input", title: "Social Security Number (SSN)", type: "textField", score: 12 },
-    { regex: /filing\s*status|marital\s*status/i, id: "filing_status_input", title: "Filing / Marital Status", type: "dropdown", score: 10 },
+    { regex: /ssn|social\s*security/i, id: "ssn_input", title: "Social Security Number", type: "textField", score: 12 },
+    { regex: /filing\s*status|marital\s*status/i, id: "marital_status_input", title: "Marital Status", type: "textField", score: 10 },
+    { regex: /legal\s*sex|gender/i, id: "legal_sex_input", title: "Legal Sex", type: "textField", score: 10 },
+    { regex: /preferred\s*language|language/i, id: "preferred_language_input", title: "Preferred Language", type: "textField", score: 10 },
     { regex: /gross\s*income|annual\s*income|net\s*income/i, id: "annual_income_input", title: "Annual Income", type: "textField", score: 10 },
 
     // Healthcare & Medical Forms (Patient Intake, Insurance Claims, HIPAA)
     { regex: /patient\s*name/i, id: "patient_name_input", title: "Patient Name", type: "textField", autofill: "name", score: 12 },
     { regex: /patient\s*id|mrn\b|medical\s*record/i, id: "patient_id_input", title: "Patient ID / MRN", type: "textField", score: 12 },
-    { regex: /insurance\s*(?:company|provider|carrier|plan)/i, id: "insurance_provider_input", title: "Insurance Provider", type: "textField", score: 12 },
-    { regex: /policy\s*n(?:o|um|umber)?|group\s*n(?:o|um|umber)?|member\s*id/i, id: "insurance_policy_input", title: "Policy / Member ID", type: "textField", score: 12 },
+    { regex: /emergency\s*contact\s*name|emergency\s*contact/i, id: "emergency_contact_name", title: "Emergency Contact Name", type: "textField", autofill: "name", score: 12 },
+    { regex: /emergency\s*phone/i, id: "emergency_phone_input", title: "Emergency Phone", type: "textField", autofill: "phone", score: 12 },
+    { regex: /relationship\s*to\s*patient|relationship\s*to\s*policyholder|\brelationship\b/i, id: "relationship_input", title: "Relationship", type: "textField", score: 10 },
+    { regex: /primary\s*insurance|insurance\s*(?:company|provider|carrier|plan)/i, id: "insurance_provider_input", title: "Insurance Provider", type: "textField", score: 12 },
+    { regex: /policy\s*(?:\/|\s*)member\s*id|policy\s*n(?:o|um|umber)?|member\s*id/i, id: "insurance_policy_input", title: "Policy / Member ID", type: "textField", score: 12 },
+    { regex: /group\s*n(?:o|um|umber)?/i, id: "group_number_input", title: "Group Number", type: "textField", score: 12 },
+    { regex: /policyholder\s*name/i, id: "policyholder_name_input", title: "Policyholder Name", type: "textField", autofill: "name", score: 12 },
+    { regex: /policyholder\s*dob|policyholder\s*date\s*of\s*birth/i, id: "policyholder_dob_input", title: "Policyholder DOB", type: "dateField", score: 12 },
+    { regex: /known\s*allergies|allergies/i, id: "allergies_input", title: "Known Allergies", type: "textField", multiline: true, score: 11 },
+    { regex: /reaction\s*&?\s*severity|reaction/i, id: "reaction_severity_input", title: "Reaction & Severity", type: "textField", multiline: true, score: 11 },
+    { regex: /current\s*prescription|prescription\s*medications|medications/i, id: "medications_input", title: "Current Medications", type: "textField", multiline: true, score: 11 },
+    { regex: /reason\s*for\s*medication|prescribing\s*physician/i, id: "prescribing_physician_input", title: "Prescribing Physician / Reason", type: "textField", multiline: true, score: 11 },
     { regex: /primary\s*care|pcp|physician|doctor/i, id: "physician_name_input", title: "Primary Care Physician", type: "textField", score: 10 },
-    { regex: /medical\s*history|allergies|medications/i, id: "medical_history_input", title: "Medical History / Allergies", type: "textField", multiline: true, score: 10 },
 
     // HR & Employment Forms (I-9, Onboarding, NDAs, Timecards)
     { regex: /employee\s*id|staff\s*id|worker\s*id/i, id: "employee_id_input", title: "Employee ID", type: "textField", score: 12 },
@@ -63,24 +74,26 @@ const SEMANTIC_DICTIONARY = [
     // Standard Person & Contact Fields
     { regex: /first\s*name/i, id: "first_name_input", title: "First Name", type: "textField", autofill: "first_name", score: 10 },
     { regex: /last\s*name|surname/i, id: "last_name_input", title: "Last Name", type: "textField", autofill: "last_name", score: 10 },
-    { regex: /full\s*name|^name\b/i, id: "full_name_input", title: "Full Name", type: "textField", score: 10 },
+    { regex: /\bm\.?i\.?\b|middle\s*initial/i, id: "middle_initial_input", title: "Middle Initial", type: "textField", score: 10 },
+    { regex: /full\s*name|^name\b/i, id: "full_name_input", title: "Full Name", type: "textField", autofill: "name", score: 10 },
     { regex: /location|city|ort|standort/i, id: "location_input", title: "Location", type: "textField", autofill: "city", score: 10 },
+    { regex: /city,\s*state,\s*zip|city\s*state\s*zip/i, id: "city_state_zip_input", title: "City, State, ZIP", type: "textField", score: 10 },
     { regex: /e-?p?mail/i, id: "email_address_input", title: "Email Address", type: "textField", autofill: "email", score: 10 },
-    { regex: /\bphone\b|\bmobile\b|\bcell\b|\btelephone\b|\btel\b/i, id: "phone_number_input", title: "Phone Number", type: "textField", autofill: "phone", score: 10 },
-    { regex: /street|address\s*line/i, id: "street_address_input", title: "Street Address", type: "textField", autofill: "address1", score: 10 },
+    { regex: /primary\s*phone|home\s*phone|cell\s*phone|\bphone\b|\bmobile\b|\bcell\b|\btelephone\b|\btel\b/i, id: "phone_number_input", title: "Phone Number", type: "textField", autofill: "phone", score: 10 },
+    { regex: /home\s*street\s*address|street\s*address|home\s*address|address\s*line/i, id: "street_address_input", title: "Street Address", type: "textField", autofill: "address1", score: 10 },
     { regex: /address/i, id: "address_input", title: "Address", type: "textField", autofill: "address1", score: 10 },
     { regex: /state|province|region|bundesland/i, id: "state_input", title: "State / Province", type: "textField", autofill: "state", score: 10 },
     { regex: /zip|postal|postcode|plz/i, id: "zip_code_input", title: "Zip Code", type: "textField", autofill: "zip", score: 10 },
     { regex: /country|land/i, id: "country_input", title: "Country", type: "textField", autofill: "country", score: 10 },
-    { regex: /date\s*of\s*birth|dob|birth\s*date/i, id: "date_of_birth_input", title: "Date of Birth", type: "dateField", score: 10 },
-    { regex: /signature|sign\s*here|authorized\s*sign/i, id: "signature_input", title: "Applicant Signature", type: "signature", score: 10 },
+    { regex: /date\s*of\s*birth|dob|birth\s*date|\(mm\/dd\/yyyy\)/i, id: "date_of_birth_input", title: "Date of Birth", type: "dateField", score: 10 },
+    { regex: /patient\s*\/?\s*(?:legal\s*)?guardian\s*signature|signature|sign\s*here|authorized\s*sign/i, id: "signature_input", title: "Signature", type: "signature", score: 10 },
     { regex: /^date\b|date\s*signed|today.?s\s*date/i, id: "date_signed_input", title: "Date Signed", type: "dateField", score: 10 },
     { regex: /company|organization|employer/i, id: "company_name_input", title: "Company Name", type: "textField", autofill: "company", score: 10 },
     { regex: /title|position|occupation|role/i, id: "job_title_input", title: "Job Title", type: "textField", score: 10 },
     { regex: /comments|notes|remarks|message|description|explanation/i, id: "comments_input", title: "Additional Comments", type: "textField", multiline: true, score: 10 }
 ];
 
-const CONTACT_OR_RESUME_KEYWORDS = /(?:@|\.(?:com|org|net|io|edu|gov|co|uk|de)|https?:\/\/|\+?\d{2,4}[-\s]?\d{3,4}|\b(?:linkedin|github|twitter|portfolio|behance|dribbble|email|phone|location|tel|mobile|website|experience|education|skills|projects|summary|profile|awards|languages|hobbies)\b)/i;
+const CONTACT_OR_RESUME_KEYWORDS = /(?:@|\.(?:com|org|net|io|edu|gov|co|uk|de)|https?:\/\/|\+?\d{2,4}[-\s]?\d{3,4}|\b(?:linkedin|github|twitter|portfolio|behance|dribbble|website|experience|education|skills|projects|summary|profile|awards|languages|hobbies)\b)/i;
 
 function isHeadingLabel(text) {
     if (!text) return false;
@@ -100,6 +113,7 @@ function isHeadingLabel(text) {
         if (!isFieldKeyword) return true;
     }
 
+    // Numbers like "1. PATIENT DEMOGRAPHICS" or "2. EMERGENCY CONTACT"
     if (/^\d+[\.\)]\s*/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) return true;
     if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) return true;
 
@@ -121,7 +135,7 @@ export class TextOccupancyGrid {
         this.titleBlocks = rawBlocks.filter(tb => {
             const str = (tb.str || "").trim();
             if (!str) return false;
-            return (tb.height >= 16) || /^(?:invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order)$/i.test(str);
+            return (tb.height >= 18) || /^(?:invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order)$/i.test(str);
         });
         this.sectionTabBlocks = rawBlocks.filter(tb => {
             const str = (tb.str || "").trim();
@@ -130,24 +144,15 @@ export class TextOccupancyGrid {
     }
 
     isBlocked(box) {
-        // Strict title collision: reject any box that touches a document title
+        // Strict title collision: reject any box that touches a top document title
         for (let tb of this.titleBlocks) {
             const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
             const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
             if (xOverlap > 0 && yOverlap > 0) return true;
         }
 
-        // Strict section tab collision: reject any box that sits directly over a section tab/prompt
-        for (let sb of this.sectionTabBlocks) {
-            const xOverlap = Math.max(0, Math.min(box.x + box.width, sb.x + sb.width) - Math.max(box.x, sb.x));
-            const yOverlap = Math.max(0, Math.min(box.y + box.height, sb.y + sb.height) - Math.max(box.y, sb.y));
-            const overlapArea = xOverlap * yOverlap;
-            const blockArea = sb.width * sb.height;
-            if (overlapArea > (blockArea * 0.4) && box.width < 60) return true;
-        }
-
-        // Reject boxes placed in empty top margin
-        if (box.y < 45 && !box.type?.includes("signature")) return true;
+        // Reject boxes placed in empty top margin (< 40px)
+        if (box.y < 40 && !box.type?.includes("signature")) return true;
 
         return false;
     }
@@ -158,7 +163,6 @@ export class TextOccupancyGrid {
 // ============================================================================
 export class TopologicalTableSolver {
     static solveGrid(fields, rawBlocks, pageNum, usedNames) {
-        // 1. Find table header rows in rawBlocks
         const headerBlocks = rawBlocks.filter(tb => {
             const text = (tb.str || "").trim();
             return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b/i.test(text);
@@ -174,24 +178,20 @@ export class TopologicalTableSolver {
             hr.blocks.push(hb);
         });
 
-        // Find the header row that contains at least 2 table columns
         const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
         if (!mainHeaderRow) return fields;
 
         const tableTopY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 4);
         
-        // Find bottom boundary of this specific table
         const footerBlock = rawBlocks.find(tb => {
             const text = (tb.str || "").trim();
             return /subtotal|tax|balance\s*due|total\s*due/i.test(text) && tb.y > tableTopY;
         });
         const tableBottomY = footerBlock ? Math.round(footerBlock.y - 8) : Math.min(tableTopY + 280, 750);
 
-        // Build column definitions strictly from the table header blocks & table boundaries
         const colBands = [];
         const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
 
-        // Find table left and right bounds
         const leftAnchor = rawBlocks.find(tb => /^(?:from|terms|bill\s*to)$/i.test((tb.str || "").trim()));
         const tableLeftX = leftAnchor ? Math.round(leftAnchor.x) : 138;
 
@@ -217,15 +217,12 @@ export class TopologicalTableSolver {
             
             let colX, colW;
             if (i === 0) {
-                // First column (Description): spans from table left border to next column
                 colX = Math.max(10, tableLeftX + 2);
                 colW = nextHb ? Math.max(50, Math.round((nextHb.x - 4) - colX)) : Math.round(hb.width + 30);
             } else if (nextHb) {
-                // Middle columns (Quantity, Price): span between header bounds
                 colX = Math.round(hb.x - 2);
                 colW = Math.max(30, Math.round((nextHb.x - 4) - colX));
             } else {
-                // Last column (Amount): spans to table right boundary
                 colX = Math.round(hb.x - 2);
                 colW = Math.max(35, Math.round(tableRightX - 2 - colX));
             }
@@ -238,7 +235,6 @@ export class TopologicalTableSolver {
             });
         }
 
-        // Generate 12 clean uniform table rows spanning tableTopY to tableBottomY (SimplePDF style)
         const totalH = tableBottomY - tableTopY;
         const numRows = Math.max(10, Math.min(12, Math.round(totalH / 18.5)));
         const rowPitch = totalH / numRows;
@@ -248,11 +244,9 @@ export class TopologicalTableSolver {
             tableRows.push({ y: rY, height: 14 });
         }
 
-        // Filter out any previous fields that were inside the table header or data region
         const headerMinY = Math.round(mainHeaderRow.y - 12);
         const resultFields = fields.filter(f => f.y < headerMinY || f.y > tableBottomY);
 
-        // Generate fields for all rows and columns
         tableRows.forEach((row, rowIndex) => {
             colBands.forEach(col => {
                 const colHeader = col.headerText || "Column";
@@ -278,40 +272,6 @@ export class TopologicalTableSolver {
             });
         });
 
-        // Generate table summary fields (Subtotal, Tax, Balance Due) if present
-        const summaryKeywords = [
-            { regex: /subtotal/i, name: "subtotal_input" },
-            { regex: /\btax\b|sales\s*tax/i, name: "tax_amount_input" },
-            { regex: /balance\s*due|amount\s*due|\btotal\b/i, name: "balance_due_input" }
-        ];
-
-        summaryKeywords.forEach(kw => {
-            const block = rawBlocks.find(tb => kw.regex.test((tb.str || "").trim()) && tb.y >= (tableTopY + 40));
-            if (block) {
-                const amountCol = colBands[colBands.length - 1];
-                const sumX = amountCol ? amountCol.x : Math.round(block.x + block.width + 10);
-                const sumW = amountCol ? amountCol.width : 80;
-                const sem = DirectionalRaycaster.resolveSemanticProperties(kw.name, "textField", usedNames);
-
-                if (!resultFields.some(f => Math.abs(f.y - block.y) <= 12 && Math.abs(f.x - sumX) <= 30)) {
-                    resultFields.push({
-                        id: generateFieldId(),
-                        type: "textField",
-                        name: sem.name,
-                        x: Math.max(10, sumX),
-                        y: Math.max(10, Math.round(block.y - 2)),
-                        width: sumW,
-                        height: 16,
-                        page: pageNum,
-                        borderStyle: "solid",
-                        fillStyle: "white",
-                        multiline: false,
-                        dataFormat: "text"
-                    });
-                }
-            }
-        });
-
         return resultFields;
     }
 }
@@ -323,7 +283,18 @@ export class DirectionalRaycaster {
     static findLabelForBox(box, rawBlocks) {
         const boxMidY = box.y + (box.height / 2);
 
-        // 1. Top Ray: Look up for stacked labels within max 24px
+        // 1. Inside top of box: Look for text inside the box upper area
+        const insideTop = rawBlocks.filter(tb => {
+            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
+            return tb.x >= (box.x - 4) && (tb.x + tb.width) <= (box.x + box.width + 4) &&
+                   tb.y >= (box.y - 2) && tb.y <= (box.y + 18);
+        });
+        if (insideTop.length > 0) {
+            const decoded = sanitizeAndDecodeLabel(insideTop[0].str);
+            if (decoded) return insideTop[0].str;
+        }
+
+        // 2. Top Ray: Look up for stacked labels within max 24px
         const topBlocks = rawBlocks.filter(tb => {
             if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
             const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 24;
@@ -336,12 +307,12 @@ export class DirectionalRaycaster {
             if (decoded) return tb.str;
         }
 
-        // 2. Left Ray: Look left for inline labels within max 100px
+        // 3. Left Ray: Look left for inline labels within max 120px
         const leftBlocks = rawBlocks.filter(tb => {
             if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
             const tbMidY = tb.y + (tb.height / 2);
-            const isSameRow = Math.abs(tbMidY - boxMidY) <= 12;
-            const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 100;
+            const isSameRow = Math.abs(tbMidY - boxMidY) <= 14;
+            const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 120;
             return isSameRow && isToLeft;
         }).sort((a, b) => {
             const distA = box.x - (a.x + a.width);
@@ -354,34 +325,7 @@ export class DirectionalRaycaster {
             if (decoded) return tb.str;
         }
 
-        // 3. Score-weighted proximity search strictly within 30px radius
-        let bestLabel = null;
-        let highestScore = -1;
-
-        for (let tb of rawBlocks) {
-            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) continue;
-            const decoded = sanitizeAndDecodeLabel(tb.str);
-            if (!decoded) continue;
-
-            const tbMidY = tb.y + (tb.height / 2);
-            const distLeft = (box.x - (tb.x + tb.width));
-            const distTop = (box.y - (tb.y + tb.height));
-
-            const isLeft = distLeft >= -18 && distLeft <= 30 && Math.abs(tbMidY - boxMidY) <= 14;
-            const isTop = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15) && distTop >= 0 && distTop <= 20;
-
-            if (isLeft || isTop) {
-                const distance = isLeft ? distLeft : distTop;
-                const matchConfidence = decoded.score || 10;
-                const score = matchConfidence / (Math.pow(Math.max(1, distance), 2));
-                if (score > highestScore) {
-                    highestScore = score;
-                    bestLabel = tb.str;
-                }
-            }
-        }
-
-        return bestLabel;
+        return null;
     }
 
     static resolveSemanticProperties(rawLabel, defaultType = "textField", usedNames = new Set()) {
@@ -478,7 +422,7 @@ export async function autoDetectFields(scope = "current") {
             // Engine 1: Vector Drawing Path Detection
             const vectorElements = await extractVectorPaths(page, viewport, rawBlocks, occupancyGrid);
 
-            // Engine 2: Semantic Text Layout & Keyword Detection
+            // Engine 2: Semantic Text Layout & Checkbox / Colon Detection
             const textElements = scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid);
 
             // Engine 3: Fusion & Directional Raycasting
@@ -619,7 +563,7 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                         
                         const dx = Math.abs(curX - lastX);
                         const dy = Math.abs(curY - lastY);
-                        if (dx >= 40 && dy <= 4 && dx < (pageWidth * 0.95)) {
+                        if (dx >= 35 && dy <= 4 && dx < (pageWidth * 0.96)) {
                             const minX = Math.min(lastX, curX);
                             const minY = Math.min(lastY, curY);
                             const [tx, ty] = applyMatrix(minX, minY, currentMatrix);
@@ -627,8 +571,7 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                             const canvasX = tx;
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
-                            // Discard lines in top margin
-                            if (lineCanvasY >= 55 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 40) {
+                            if (lineCanvasY >= 45 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5 && canvasX <= (pageWidth - 15)) {
                                 const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, canvasW);
                                 if (!occupancyGrid.isBlocked(snapped)) {
                                     rawLines.push(snapped);
@@ -649,34 +592,32 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        // Discard boxes in top 55px margin or tall narrow vertical tabs (From, To tabs)
-                        if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
-                        if (boxW < 45 && boxH >= 24) continue;
-
-                        // Discard outer grouping containers that enclose 2 or more text lines
-                        if (boxH >= 35 && boxW >= 80 && rawBlocks) {
-                            const contained = rawBlocks.filter(tb => 
-                                tb.x >= (canvasX - 5) && (tb.x + tb.width) <= (canvasX + boxW + 5) &&
-                                tb.y >= (canvasY - 5) && (tb.y + tb.height) <= (canvasY + boxH + 5)
-                            );
-                            if (contained.length >= 2) continue;
+                        // Check for thin horizontal line drawn as filled rectangle
+                        if (boxH <= 3 && boxW >= 35 && boxW < (pageWidth * 0.96)) {
+                            const lineCanvasY = canvasY + boxH;
+                            if (lineCanvasY >= 45 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5) {
+                                const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, boxW);
+                                if (!occupancyGrid.isBlocked(snapped)) {
+                                    rawLines.push(snapped);
+                                }
+                            }
+                            continue;
                         }
 
-                        if (boxW >= 22 && boxH >= 12 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
-                            if (boxW < 22 && boxH < 22) continue;
-                            if (boxW >= (pageWidth * 0.40) && boxH <= 40) continue;
+                        if (canvasY < 45 || canvasY >= (pageHeight * 0.96)) continue;
+                        if (boxW < 20 || boxH < 12) continue;
+                        if (boxW >= (pageWidth * 0.94) && boxH >= (pageHeight * 0.85)) continue; // skip whole page border
 
-                            const box = {
-                                type: "text_box",
-                                x: Math.max(10, Math.round(canvasX)),
-                                y: Math.max(10, Math.round(canvasY)),
-                                width: Math.round(boxW),
-                                height: Math.round(boxH)
-                            };
+                        const box = {
+                            type: "text_box",
+                            x: Math.max(10, Math.round(canvasX)),
+                            y: Math.max(10, Math.round(canvasY)),
+                            width: Math.round(boxW),
+                            height: Math.round(boxH)
+                        };
 
-                            if (!occupancyGrid.isBlocked(box)) {
-                                vectorElements.push(box);
-                            }
+                        if (!occupancyGrid.isBlocked(box)) {
+                            vectorElements.push(box);
                         }
                     }
                 }
@@ -688,33 +629,31 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                 const canvasY = pageHeight - ty - boxH;
                 const canvasX = tx;
 
-                if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
-                if (boxW < 45 && boxH >= 24) continue;
-
-                // Discard outer grouping containers that enclose 2 or more text lines
-                if (boxH >= 35 && boxW >= 80 && rawBlocks) {
-                    const contained = rawBlocks.filter(tb => 
-                        tb.x >= (canvasX - 5) && (tb.x + tb.width) <= (canvasX + boxW + 5) &&
-                        tb.y >= (canvasY - 5) && (tb.y + tb.height) <= (canvasY + boxH + 5)
-                    );
-                    if (contained.length >= 2) continue;
+                if (boxH <= 3 && boxW >= 35 && boxW < (pageWidth * 0.96)) {
+                    const lineCanvasY = canvasY + boxH;
+                    if (lineCanvasY >= 45 && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5) {
+                        const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, boxW);
+                        if (!occupancyGrid.isBlocked(snapped)) {
+                            rawLines.push(snapped);
+                        }
+                    }
+                    continue;
                 }
 
-                if (boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
-                    if (boxW < 22 && boxH < 22) continue;
-                    if (boxW >= (pageWidth * 0.40) && boxH <= 40) continue;
+                if (canvasY < 45 || canvasY >= (pageHeight * 0.96)) continue;
+                if (boxW < 20 || boxH < 12) continue;
+                if (boxW >= (pageWidth * 0.94) && boxH >= (pageHeight * 0.85)) continue;
 
-                    const box = {
-                        type: "text_box",
-                        x: Math.max(10, Math.round(canvasX)),
-                        y: Math.max(10, Math.round(canvasY)),
-                        width: Math.round(boxW),
-                        height: Math.round(boxH)
-                    };
+                const box = {
+                    type: "text_box",
+                    x: Math.max(10, Math.round(canvasX)),
+                    y: Math.max(10, Math.round(canvasY)),
+                    width: Math.round(boxW),
+                    height: Math.round(boxH)
+                };
 
-                    if (!occupancyGrid.isBlocked(box)) {
-                        vectorElements.push(box);
-                    }
+                if (!occupancyGrid.isBlocked(box)) {
+                    vectorElements.push(box);
                 }
             }
         }
@@ -736,7 +675,7 @@ function applyMatrix(x, y, m) {
     ];
 }
 
-// ── Helper: Scan Text Layout & Colon Prompts ─────────────────────────
+// ── Helper: Scan Text Layout & Checkbox / Colon Detection ────────────
 function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
     const detected = [];
     const pageWidth = viewport.width;
@@ -749,28 +688,41 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
         const text = line.str.trim();
 
         if (isHeadingLabel(text)) continue;
-        if (line.y < 45 && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
+        if (line.y < 40 && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
         if (CONTACT_OR_RESUME_KEYWORDS.test(text) && !text.includes(":")) continue;
 
-        if (/^(\[\s*\]|\(\s*\)|[☐□✓])$/.test(text)) {
-            const nextOption = lines.find(l => 
-                l.x > (line.x + line.width) && (l.x - (line.x + line.width)) <= 35 && Math.abs(l.y - line.y) <= 8
-            );
-            const optLabel = nextOption ? nextOption.str.trim() : "checkbox";
+        // 1. INLINE BRACKET CHECKBOX DETECTION: [ ] Male [ ] Female or [ ] High Blood Pressure
+        const checkboxRegex = /(\[\s*\]|\(\s*\)|[☐□✓\u25A2\u25A1\u25EF\u25CB])\s*([a-zA-Z0-9\s\/\(\)\,\.\-\+]+?)(?=(?:\[\s*\]|\(\s*\)|[☐□✓\u25A2\u25A1\u25EF\u25CB]|$|\bLegal\b|\bMarital\b|[A-Z][a-z]+:))/g;
+        const cbMatches = [...text.matchAll(checkboxRegex)];
 
-            detected.push({
-                type: "checkBox",
-                rawLabel: optLabel,
-                x: Math.max(10, Math.round(line.x)),
-                y: Math.max(10, Math.round(line.y)),
-                width: 20,
-                height: 20,
-                borderStyle: "solid",
-                fillStyle: "white"
-            });
-            continue;
+        if (cbMatches.length > 0) {
+            for (const match of cbMatches) {
+                const optLabel = match[2].trim();
+                const charIdx = match.index;
+                const charX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
+                const charY = Math.round(line.y + (line.height - 15) / 2);
+
+                if (optLabel && optLabel.length > 0 && !isHeadingLabel(optLabel)) {
+                    detected.push({
+                        type: "checkBox",
+                        rawLabel: optLabel,
+                        x: Math.max(10, charX),
+                        y: Math.max(10, charY),
+                        width: 16,
+                        height: 16,
+                        borderStyle: "solid",
+                        fillStyle: "white"
+                    });
+                }
+            }
+
+            const textWithoutCB = text.replace(/(\[\s*\]|\(\s*\)|[☐□✓\u25A2\u25A1\u25EF\u25CB])\s*[a-zA-Z0-9\s\/\(\)\,\.\-\+]+/g, "").trim();
+            if (!textWithoutCB || textWithoutCB.length < 3) {
+                continue;
+            }
         }
 
+        // 2. UNDERLINE PROMPTS: e.g. "Signature: X _______________________" or "Date: _________"
         if (/[_]{3,}/.test(text) || /[.]{4,}/.test(text)) {
             const cleanLabel = text.replace(/[_.]/g, "").replace(/[:\s]+$/, "").trim();
             const labelWidth = cleanLabel.length > 0 ? (line.width * (cleanLabel.length / text.length)) : 0;
@@ -778,7 +730,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             const availableW = Math.max(80, (line.x + line.width) - startX);
 
             const isSig = /signature|sign/i.test(cleanLabel);
-            const isDate = /date|dob/i.test(cleanLabel);
+            const isDate = /date|dob|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
 
             detected.push({
                 type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
@@ -794,87 +746,65 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             continue;
         }
 
-        // ── Placeholder Lines (Company Name, Client Name, Address 1, Terms, Due Date) ──
-        const isPlaceholderLine = /^(?:company\s*name|client\s*name|client\s*email(?:\s*address)?|address\s*\d*|street\s*address|client\s*address\s*\d*|city,\s*state,\s*zip|zip\s*code|terms|due\s*date)$/i.test(text);
-        if (isPlaceholderLine) {
-            const isDate = /date|dob/i.test(text);
-            detected.push({
-                type: isDate ? "dateField" : "textField",
-                rawLabel: text,
-                x: Math.max(10, Math.round(line.x - 2)),
-                y: Math.max(10, Math.round(line.y - 1)),
-                width: Math.round(Math.max(105, Math.min(135, line.width + 25))),
-                height: 16,
-                borderStyle: "solid",
-                fillStyle: "white",
-                multiline: false,
-                ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
-            });
-            continue;
-        }
+        // 3. MULTI-COLON & SINGLE-COLON ROW PARSER: e.g. "Last Name: First Name: M.I.: Date of Birth:"
+        if (text.includes(":")) {
+            const labelRegex = /([a-zA-Z0-9\s\/\(\)\.\-\#]+?):/g;
+            const labelMatches = [...text.matchAll(labelRegex)];
 
-        const hasExplicitColon = text.endsWith(":") || text.includes(":");
-        if (hasExplicitColon) {
-            const parts = text.split(":");
-            const labelPart = parts[0].trim();
-            const afterColon = (parts[1] || "").trim();
+            if (labelMatches.length >= 1) {
+                for (let i = 0; i < labelMatches.length; i++) {
+                    const match = labelMatches[i];
+                    const nextMatch = labelMatches[i + 1];
+                    const labelPart = match[1].trim();
 
-            if (isHeadingLabel(labelPart)) continue;
-            if (/^(?:from|to|terms|due)$/i.test(labelPart)) continue;
+                    if (isHeadingLabel(labelPart)) continue;
+                    if (/^(?:from|to|terms|due)$/i.test(labelPart)) continue;
 
-            const isBillShip = /bill\s*to|ship\s*to|billed\s*to|deliver\s*to/i.test(labelPart);
-            if (isBillShip) {
-                const targetX = Math.round(line.x);
-                const targetY = Math.round(line.y + line.height + 4);
-                const availableWidth = Math.min(280, pageWidth - targetX - 35);
+                    const matchEndIdx = match.index + match[0].length;
+                    const nextStartIdx = nextMatch ? nextMatch.index : text.length;
 
-                detected.push({
-                    type: "textField",
-                    rawLabel: labelPart,
-                    x: Math.max(10, targetX),
-                    y: Math.max(10, targetY),
-                    width: Math.round(availableWidth),
-                    height: 60,
-                    borderStyle: "solid",
-                    fillStyle: "white",
-                    multiline: true
-                });
+                    const labelStartX = line.x + (match.index / Math.max(1, text.length)) * line.width;
+                    const labelEndX = line.x + (matchEndIdx / Math.max(1, text.length)) * line.width;
+                    const nextLabelX = nextMatch 
+                        ? (line.x + (nextStartIdx / Math.max(1, text.length)) * line.width)
+                        : (line.x + line.width);
+
+                    const targetX = Math.round(labelEndX + 4);
+                    let targetW = Math.max(40, Math.round(nextLabelX - targetX - 6));
+
+                    if (!nextMatch) {
+                        const rightNeighbor = lines.find(other => 
+                            other !== line && 
+                            Math.abs(other.y - line.y) <= 8 && 
+                            other.x > targetX
+                        );
+                        if (rightNeighbor) {
+                            targetW = Math.max(45, Math.min(200, (rightNeighbor.x - 10) - targetX));
+                        } else {
+                            targetW = Math.min(240, Math.max(60, pageWidth - targetX - 35));
+                        }
+                    }
+
+                    const isSig = /signature|sign/i.test(labelPart);
+                    const isDate = /date|dob|\(mm\/dd\/yyyy\)/i.test(labelPart);
+                    const isMulti = /comments|notes|remarks|allergies|medications|description|message/i.test(labelPart);
+
+                    if (targetX < (pageWidth - 25) && line.y > 40) {
+                        detected.push({
+                            type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
+                            rawLabel: labelPart,
+                            x: Math.max(10, targetX),
+                            y: Math.max(10, Math.round(line.y - 1)),
+                            width: Math.round(targetW),
+                            height: isSig ? 44 : (isMulti ? 55 : 24),
+                            borderStyle: "solid",
+                            fillStyle: "white",
+                            multiline: isMulti,
+                            ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
+                        });
+                    }
+                }
                 continue;
-            }
-
-            const targetX = Math.round(line.x + line.width + 6);
-            const targetY = Math.round(line.y - 1);
-
-            const rightNeighbor = lines.find(other => 
-                other !== line && 
-                Math.abs(other.y - line.y) <= 8 && 
-                other.x > (line.x + line.width + 6)
-            );
-
-            let fieldWidth = 160;
-            if (rightNeighbor) {
-                fieldWidth = Math.max(50, Math.min(200, (rightNeighbor.x - 10) - targetX));
-            } else {
-                fieldWidth = Math.min(240, Math.max(80, pageWidth - targetX - 35));
-            }
-
-            if (targetX < (pageWidth - 30) && line.y > 45) {
-                const isSig = /signature|sign/i.test(labelPart);
-                const isDate = /date|dob/i.test(labelPart);
-                const isMulti = /comments|notes|remarks|description|message/i.test(labelPart);
-
-                detected.push({
-                    type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
-                    rawLabel: labelPart,
-                    x: targetX,
-                    y: targetY,
-                    width: Math.round(fieldWidth),
-                    height: isSig ? 44 : (isMulti ? 60 : 24),
-                    borderStyle: "solid",
-                    fillStyle: "white",
-                    multiline: isMulti,
-                    ...(afterColon.length > 0 ? { defaultValue: afterColon } : (isDate ? { defaultValue: "MM/DD/YYYY" } : {}))
-                });
             }
         }
     }
@@ -976,9 +906,8 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
         if (isOverlappingAny(ve, fused)) continue;
 
         const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks);
-        // If a vector box has no associated label and is in the header area or very large, discard it!
-        if (!rawLabel && (ve.y < 120 || (ve.width * ve.height) > 5000)) continue;
-        if (ve.width < 36 && ve.height >= 28) continue;
+        if (!rawLabel && (ve.y < 120 || (ve.width * ve.height) > 6000)) continue;
+        if (ve.width < 30 && ve.height >= 28) continue;
 
         const effectiveLabel = rawLabel || `field_${usedNames.size + 1}`;
         if (isHeadingLabel(effectiveLabel)) continue;
