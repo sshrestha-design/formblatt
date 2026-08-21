@@ -1237,6 +1237,43 @@
                     <span id="multiSelectedCountBadge" style="font-size: 11px; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 12px; font-weight: 600; border: 1px solid #dbeafe;">2 Selected</span>
                 </div>
 
+                <!-- 0. Field Type Batch Converter -->
+                <div class="form-group" style="margin-bottom: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <span>Field Type</span>
+                        <span style="font-size: 9.5px; font-weight: 500; color: #0284c7; text-transform: none;">Batch Convert</span>
+                    </label>
+                    <select id="multiFieldType" style="font-size: 12px; padding: 6px 8px; width: 100%; border: 1.5px solid #38bdf8; border-radius: 6px; background: #ffffff; color: #0f172a; font-weight: 600; cursor: pointer; margin-bottom: 6px;">
+                        <option value="" disabled selected>Convert Selected Types...</option>
+                        <option value="textField">🔤 Text Field</option>
+                        <option value="checkBox">☑ Checkbox</option>
+                        <option value="radioGroup">🔘 Radio Button</option>
+                        <option value="dateField">📅 Date Field</option>
+                        <option value="signature">✍ Signature</option>
+                        <option value="dropdown">▾ Dropdown</option>
+                    </select>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="textField" title="Convert to Text Fields" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
+                            <i data-lucide="type" style="width: 12px; height: 12px; color: #2563eb;"></i> Text
+                        </button>
+                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="checkBox" title="Convert to Checkboxes" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
+                            <i data-lucide="check-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Checkbox
+                        </button>
+                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="radioGroup" title="Convert to Radio Buttons" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
+                            <i data-lucide="disc" style="width: 12px; height: 12px; color: #2563eb;"></i> Radio
+                        </button>
+                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="dateField" title="Convert to Date Fields" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
+                            <i data-lucide="calendar" style="width: 12px; height: 12px; color: #2563eb;"></i> Date
+                        </button>
+                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="signature" title="Convert to Signatures" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
+                            <i data-lucide="pen-tool" style="width: 12px; height: 12px; color: #7c3aed;"></i> Signature
+                        </button>
+                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="dropdown" title="Convert to Dropdowns" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
+                            <i data-lucide="chevron-down-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Dropdown
+                        </button>
+                    </div>
+                </div>
+
                 <!-- 1. Alignment & Distribution Toolbar (Compact Figma-style) -->
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Align & Distribute</label>
@@ -1593,6 +1630,32 @@
                 <i id="ctxGroupIcon" data-lucide="folder-plus" style="width:14px; height:14px;"></i>
                 <span id="ctxGroupLabel" class="ctx-label">Group Selected</span>
                 <span class="ctx-kbd">⌘G</span>
+            </button>
+            <div class="ctx-divider"></div>
+            <div class="ctx-header">Convert Type</div>
+            <button type="button" class="ctx-item" data-action="convert-textField">
+                <i data-lucide="type" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Convert to Text Field</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="convert-checkBox">
+                <i data-lucide="check-square" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Convert to Checkbox</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="convert-radioGroup">
+                <i data-lucide="disc" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Convert to Radio Button</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="convert-dateField">
+                <i data-lucide="calendar" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Convert to Date Field</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="convert-signature">
+                <i data-lucide="pen-tool" style="width:14px; height:14px; color:#7c3aed;"></i>
+                <span class="ctx-label">Convert to Signature</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="convert-dropdown">
+                <i data-lucide="chevron-down-square" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Convert to Dropdown</span>
             </button>
             <div id="ctxMultiTools" style="display: none;">
                 <div class="ctx-divider"></div>

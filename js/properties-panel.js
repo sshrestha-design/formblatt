@@ -488,6 +488,52 @@ function initMultiSelectTools(onUpdated) {
         if (onUpdated) onUpdated();
     };
 
+    // ── Batch Field Type Conversion ──────────────────────────────────
+    const convertBatchType = (newType) => {
+        if (!newType) return;
+        const sel = getSelected();
+        if (sel.length === 0) return;
+
+        sel.forEach(f => {
+            f.type = newType;
+            if (newType === "signature") {
+                f.height = Math.max(f.height, 44);
+                f.width = Math.max(f.width, 140);
+            } else if (newType === "checkBox" || newType === "radioGroup") {
+                f.width = 16;
+                f.height = 16;
+            } else if (newType === "dateField") {
+                if (!f.defaultValue) f.defaultValue = "YYYY-MM-DD";
+                f.height = Math.max(f.height, 22);
+            } else if (newType === "textField") {
+                f.height = Math.max(f.height, 22);
+                if (f.defaultValue === "YYYY-MM-DD") f.defaultValue = "";
+            } else if (newType === "dropdown") {
+                if (!f.options || f.options.length === 0) {
+                    f.options = ["Option 1", "Option 2", "Option 3"];
+                }
+            }
+        });
+
+        saveHistory(true);
+        if (onUpdated) onUpdated();
+    };
+
+    const multiTypeSelect = document.getElementById("multiFieldType");
+    if (multiTypeSelect) {
+        multiTypeSelect.addEventListener("change", e => {
+            convertBatchType(e.target.value);
+            e.target.value = "";
+        });
+    }
+
+    document.querySelectorAll(".multi-type-quick-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const targetType = btn.dataset.type;
+            if (targetType) convertBatchType(targetType);
+        });
+    });
+
     // ── Field Dimensions & Sizing (Batch Sizing) ─────────────────────
     const multiWInput = document.getElementById("multiFieldWidth");
     if (multiWInput) {

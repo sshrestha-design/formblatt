@@ -768,6 +768,33 @@ export function initContextMenu(handlers) {
                 }
                 saveHistory();
                 handlers.onSelectionChange();
+            } else if (action.startsWith("convert-")) {
+                const targetType = action.replace("convert-", "");
+                const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+                if (sel.length > 0) {
+                    sel.forEach(f => {
+                        f.type = targetType;
+                        if (targetType === "signature") {
+                            f.height = Math.max(f.height, 44);
+                            f.width = Math.max(f.width, 140);
+                        } else if (targetType === "checkBox" || targetType === "radioGroup") {
+                            f.width = 16;
+                            f.height = 16;
+                        } else if (targetType === "dateField") {
+                            if (!f.defaultValue) f.defaultValue = "YYYY-MM-DD";
+                            f.height = Math.max(f.height, 22);
+                        } else if (targetType === "textField") {
+                            f.height = Math.max(f.height, 22);
+                            if (f.defaultValue === "YYYY-MM-DD") f.defaultValue = "";
+                        } else if (targetType === "dropdown") {
+                            if (!f.options || f.options.length === 0) {
+                                f.options = ["Option 1", "Option 2", "Option 3"];
+                            }
+                        }
+                    });
+                    saveHistory(true);
+                    handlers.onSelectionChange();
+                }
             } else if (action === "align-left") {
                 const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
                 if (sel.length >= 2) {
