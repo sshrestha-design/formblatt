@@ -391,7 +391,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     // ------------------------------------------------------------------------
     for (const block of rawBlocks) {
         const text = block.str.trim();
-        if (re.test && re.test(text)) continue;
+        if (isTitleOrStatic(text)) continue;
         if (/\?$/.test(text) && !text.includes(":") && !/^(?:How likely|May we quote|Follow-up)/i.test(text) && !/(\[\s*\]|\(\s*\))/.test(text)) {
             const sem = resolveSemanticProps(text.slice(0, 30), "textField", usedNames);
             const areaField = {
