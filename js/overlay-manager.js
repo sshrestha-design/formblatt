@@ -150,10 +150,11 @@ export function renderOverlays(handlers) {
             }
         }
 
-        // Resize handle
-        if (state.selectedFieldIds.has(f.id) && state.selectedFieldIds.size === 1) {
+        // Resize handle on selected field(s)
+        if (state.selectedFieldIds.has(f.id)) {
             const handle = document.createElement("div");
             handle.className = "resize-handle";
+            handle.title = state.selectedFieldIds.size > 1 ? "Drag to resize all selected fields" : "Drag to resize field";
             handle.addEventListener("mousedown", e => {
                 e.stopPropagation();
                 if (handlers.onResizeStart) handlers.onResizeStart(e, f);
@@ -180,6 +181,36 @@ export function renderOverlays(handlers) {
 
         container.appendChild(div);
     });
+
+    // Multi-Selection Bounding Frame with unified group resize handle
+    const selectedFieldsOnPage = pageFields.filter(f => state.selectedFieldIds.has(f.id));
+    if (selectedFieldsOnPage.length > 1) {
+        const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
+        const minY = Math.min(...selectedFieldsOnPage.map(f => f.y));
+        const maxX = Math.max(...selectedFieldsOnPage.map(f => f.x + f.width));
+        const maxY = Math.max(...selectedFieldsOnPage.map(f => f.y + f.height));
+
+        const groupFrame = document.createElement("div");
+        groupFrame.className = "multi-selection-bounding-frame";
+        groupFrame.style.left = (minX - 4) + "px";
+        groupFrame.style.top = (minY - 4) + "px";
+        groupFrame.style.width = (maxX - minX + 8) + "px";
+        groupFrame.style.height = (maxY - minY + 8) + "px";
+
+        const cornerHandle = document.createElement("div");
+        cornerHandle.className = "resize-handle group-resize-handle";
+        cornerHandle.title = "Drag to resize all selected fields at once";
+        cornerHandle.addEventListener("mousedown", e => {
+            e.stopPropagation();
+            if (handlers.onResizeStart) {
+                const anchorField = selectedFieldsOnPage.find(f => f.id === state.lastSelectedFieldId) || selectedFieldsOnPage[0];
+                handlers.onResizeStart(e, anchorField);
+            }
+        });
+
+        groupFrame.appendChild(cornerHandle);
+        container.appendChild(groupFrame);
+    }
 }
 
 export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
