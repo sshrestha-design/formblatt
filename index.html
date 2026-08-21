@@ -822,9 +822,6 @@
     <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
         <header class="toolbar">
             <div style="position: absolute; left: 16px; height: 100%; display: flex; align-items: center; gap: 10px;">
-                <button id="backToHomeBtn" title="Back to Home Screen" style="display:flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 10px; border-radius:6px; cursor:pointer; height:28px;">
-                    <i data-lucide="home" style="width:13px; height:13px;"></i> Home
-                </button>
                 <button id="toggleSidebarBtn" class="btn-secondary" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" style="height: 28px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">
                     <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
                 </button>
@@ -911,12 +908,11 @@
                     <span>Fill & Test</span>
                 </button>
             </div>
-            <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; font-size: 12px; padding: 0 10px; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="keyboard" style="width: 14px; height: 14px;"></i>
-                <span>Shortcuts</span>
+            <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; width: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
+                <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
             </button>
-            <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 14px; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export AcroForm
+            <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 13px; display: flex; align-items: center; gap: 5px;">
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export PDF
             </button>
         </div>
     </header>
