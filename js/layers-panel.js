@@ -24,38 +24,38 @@ const FIELD_TYPE_STYLES = {
     },
     signature: {
         label: "Signature",
-        bg: "#faf5ff",
-        text: "#7c3aed",
-        border: "#e9d5ff",
-        solidBg: "#7c3aed"
+        bg: "#F3F4F6",
+        text: "#374151",
+        border: "#E5E7EB",
+        solidBg: "#4B5563"
     },
     dropdown: {
         label: "Dropdown",
-        bg: "#fffbeb",
-        text: "#d97706",
-        border: "#fde68a",
-        solidBg: "#d97706"
+        bg: "#F3F4F6",
+        text: "#374151",
+        border: "#E5E7EB",
+        solidBg: "#4B5563"
     },
     checkBox: {
         label: "Checkbox",
-        bg: "#ecfdf5",
-        text: "#059669",
-        border: "#a7f3d0",
-        solidBg: "#059669"
+        bg: "#F3F4F6",
+        text: "#374151",
+        border: "#E5E7EB",
+        solidBg: "#4B5563"
     },
     radioGroup: {
         label: "Radio",
-        bg: "#f0fdfa",
-        text: "#0d9488",
-        border: "#99f6e4",
-        solidBg: "#0d9488"
+        bg: "#F3F4F6",
+        text: "#374151",
+        border: "#E5E7EB",
+        solidBg: "#4B5563"
     },
     dateField: {
         label: "Date",
-        bg: "#fff1f2",
-        text: "#e11d48",
-        border: "#fecdd3",
-        solidBg: "#e11d48"
+        bg: "#F3F4F6",
+        text: "#374151",
+        border: "#E5E7EB",
+        solidBg: "#4B5563"
     }
 };
 
@@ -316,7 +316,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
 
     const badgeBg = style.bg;
     const badgeText = style.text;
-    const badgeBorder = isSelected ? "#38bdf8" : style.border;
+    const badgeBorder = isSelected ? "#cbd5e1" : style.border;
 
     const globalIdx = state.fields.findIndex(item => item.id === f.id) + 1;
 
@@ -526,7 +526,7 @@ export function updateLayerSelectionDOM() {
             if (badge) {
                 badge.style.background = style.bg;
                 badge.style.color = style.text;
-                badge.style.borderColor = isSelected ? "#38bdf8" : style.border;
+                badge.style.borderColor = isSelected ? "#cbd5e1" : style.border;
             }
             const nameEl = item.querySelector(".layer-name");
             if (nameEl) {
