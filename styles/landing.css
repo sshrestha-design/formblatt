@@ -526,8 +526,9 @@
 .hud-mini-type {
     font-size: 10.5px;
     font-weight: 800;
-    color: #059669;
-    background: #d1fae5;
+    color: #047857;
+    background: #ecfdf5;
+    border: 1px solid #a7f3d0;
     padding: 3px 8px;
     border-radius: 4px;
     letter-spacing: 0.05em;
@@ -535,8 +536,9 @@
 
 .hud-mini-dim {
     font-size: 11px;
-    color: #64748b;
-    font-weight: 600;
+    color: #475569;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 .hud-mini-btn {
@@ -700,10 +702,38 @@
     pointer-events: none;
 }
 
-/* Demarcate static preview controls from active editor controls */
-.hero-live-preview-widget .mini-input,
-.hero-live-preview-widget .mini-select,
-.hero-live-preview-widget .mini-checkbox,
+/* Template card hover overlay for explicit user intent */
+.template-hover-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s var(--ease-spring);
+    pointer-events: none;
+    z-index: 10;
+}
+.template-card:hover .template-hover-overlay {
+    opacity: 1;
+}
+.template-hover-btn {
+    background: #2563EB;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 8px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Static preview pills demarcated from active controls */
 .template-preview-box .tpl-pill {
     cursor: default !important;
     pointer-events: none !important;
