@@ -1,4 +1,4 @@
-// ── Precision Semantic PDF Form Field Auto-Detector (js/auto-detector.js) ─
+// ── Precision 4-Stage PDF Form Field Auto-Detector (js/auto-detector.js) ──
 import { state } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 
@@ -60,32 +60,11 @@ const SEMANTIC_DICTIONARY = [
     { regex: /governing\s*law|jurisdiction/i, id: "governing_law_input", title: "Governing Law", type: "textField", score: 10 },
     { regex: /witness\s*signature/i, id: "witness_signature_input", title: "Witness Signature", type: "signature", score: 12 },
 
-    // Education & Student Enrollment
-    { regex: /student\s*id|enrolment\s*n(?:o|um|umber)?/i, id: "student_id_input", title: "Student ID", type: "textField", score: 12 },
-    { regex: /parent\s*name|guardian\s*name/i, id: "parent_name_input", title: "Parent / Guardian Name", type: "textField", score: 10 },
-    { regex: /grade\s*level|school\s*year/i, id: "grade_level_input", title: "Grade Level", type: "textField", score: 10 },
-
-    // Government & Licensing (Passports, Driving Licenses)
-    { regex: /passport\s*n(?:o|um|umber)?/i, id: "passport_number_input", title: "Passport Number", type: "textField", score: 12 },
-    { regex: /driver.?s?\s*license|dl\s*n(?:o|um|umber)?/i, id: "dl_number_input", title: "Driver's License Number", type: "textField", score: 12 },
-    { regex: /expiry\s*date|expiration\s*date/i, id: "expiration_date_input", title: "Expiration Date", type: "dateField", score: 10 },
-
     // Standard Person & Contact Fields
     { regex: /first\s*name/i, id: "first_name_input", title: "First Name", type: "textField", autofill: "first_name", score: 10 },
     { regex: /last\s*name|surname/i, id: "last_name_input", title: "Last Name", type: "textField", autofill: "last_name", score: 10 },
     { regex: /full\s*name|^name\b/i, id: "full_name_input", title: "Full Name", type: "textField", score: 10 },
     { regex: /location|city|ort|standort/i, id: "location_input", title: "Location", type: "textField", autofill: "city", score: 10 },
-    { regex: /applied\s*for|applied\s*job|position\s*applied|target\s*role/i, id: "applied_job_input", title: "Applied Job", type: "textField", score: 10 },
-    { regex: /contract|contract\s*type/i, id: "contract_type_input", title: "Contract Type", type: "textField", score: 10 },
-    { regex: /availability|available\s*from|start\s*date|commence/i, id: "availability_input", title: "Availability", type: "textField", score: 10 },
-    { regex: /department|dept|division/i, id: "department_input", title: "Department", type: "textField", score: 10 },
-    { regex: /social\s*media|social|website|linkedin|portfolio/i, id: "social_media_input", title: "Social Media", type: "textField", score: 10 },
-    { regex: /proposed\s*salary|desired\s*salary/i, id: "proposed_salary_input", title: "Proposed Salary", type: "textField", score: 10 },
-    { regex: /expected\s*salary/i, id: "expected_salary_input", title: "Expected Salary", type: "textField", score: 10 },
-    { regex: /degree|qualification|major|bachelor|master|phd|diploma/i, id: "degree_input", title: "Degree / Major", type: "textField", score: 10 },
-    { regex: /salary|remuneration/i, id: "salary_input", title: "Salary", type: "textField", score: 5 },
-    { regex: /university|college|school|institution/i, id: "university_input", title: "University", type: "textField", score: 10 },
-    { regex: /experience|years\s*of\s*experience/i, id: "experience_input", title: "Years of Experience", type: "textField", score: 10 },
     { regex: /e-?p?mail/i, id: "email_address_input", title: "Email Address", type: "textField", autofill: "email", score: 10 },
     { regex: /\bphone\b|\bmobile\b|\bcell\b|\btelephone\b|\btel\b/i, id: "phone_number_input", title: "Phone Number", type: "textField", autofill: "phone", score: 10 },
     { regex: /street|address\s*line/i, id: "street_address_input", title: "Street Address", type: "textField", autofill: "address1", score: 10 },
@@ -98,66 +77,329 @@ const SEMANTIC_DICTIONARY = [
     { regex: /^date\b|date\s*signed|today.?s\s*date/i, id: "date_signed_input", title: "Date Signed", type: "dateField", score: 10 },
     { regex: /company|organization|employer/i, id: "company_name_input", title: "Company Name", type: "textField", autofill: "company", score: 10 },
     { regex: /title|position|occupation|role/i, id: "job_title_input", title: "Job Title", type: "textField", score: 10 },
-    { regex: /reference|referee/i, id: "reference_input", title: "Reference", type: "textField", score: 10 },
-    { regex: /comments|notes|remarks|message|description|explanation/i, id: "comments_input", title: "Additional Comments", type: "textField", multiline: true, score: 10 },
-    { regex: /emergency\s*contact/i, id: "emergency_contact_input", title: "Emergency Contact", type: "textField", score: 10 },
-    { regex: /ssn|social\s*security/i, id: "ssn_input", title: "SSN", type: "textField", score: 10 },
-    { regex: /gender|sex/i, id: "gender_input", title: "Gender", type: "textField", score: 10 },
-    { regex: /notice\s*period/i, id: "notice_period_input", title: "Notice Period", type: "textField", score: 10 },
-    { regex: /\byes\b/i, id: "opt_yes", title: "Yes", type: "checkBox", score: 10 },
-    { regex: /\bno\b/i, id: "opt_no", title: "No", type: "checkBox", score: 10 }
+    { regex: /comments|notes|remarks|message|description|explanation/i, id: "comments_input", title: "Additional Comments", type: "textField", multiline: true, score: 10 }
 ];
 
 const CONTACT_OR_RESUME_KEYWORDS = /(?:@|\.(?:com|org|net|io|edu|gov|co|uk|de)|https?:\/\/|\+?\d{2,4}[-\s]?\d{3,4}|\b(?:linkedin|github|twitter|portfolio|behance|dribbble|email|phone|location|tel|mobile|website|experience|education|skills|projects|summary|profile|awards|languages|hobbies)\b)/i;
-
-const FORM_CHOICE_KEYWORDS = /\b(?:yes|no|male|female|other|agree|accept|single|married|full\s*time|part\s*time|contract|mr|mrs|ms|dr|option|decline)\b/i;
-
-const HEADING_PATTERNS = /^(?:section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms\s*and\s*conditions|general\s*information|personal\s*information|employment\s*history|contact\s*details|applicant\s*information|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy\s*policy|terms\s*of\s*service|scope\s*of\s*work)\b/i;
 
 function isHeadingLabel(text) {
     if (!text) return false;
     const clean = text.trim().replace(/[:_.\s-]+$/, "");
     if (!clean || clean.length < 2) return false;
 
-    // Never classify invoice fields as headings
     if (/(?:invoice\s*n|inv\s*#|bill\s*to|ship\s*to|due\s*date|po\s*number|p\.o\.\s*#|subtotal|amount\s*due|balance\s*due|total\s*amount|payment\s*terms)/i.test(clean)) {
         return false;
     }
 
-    // Short section titles like "JOB", "CONTRACT", "LOCATION", "CONTACT", "DETAILS", "NOTES"
     if (/^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         return true;
     }
 
-    // Explicit heading & title keywords without colons or underlines
     if (/(?:pdf|form|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|general|personal|employment|contact|applicant|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document|summary|description|profile|record|details|information|page)/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         const isFieldKeyword = /^(?:first\s*name|last\s*name|full\s*name|name|email|phone|address|city|state|zip|date|dob|ssn|ein|title|company|country)$/i.test(clean);
-        if (!isFieldKeyword) {
-            return true;
-        }
+        if (!isFieldKeyword) return true;
     }
 
-    // Numbered headings like "1. Personal Information" or "2) Employment Details"
-    if (/^\d+[\.\)]\s*/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
-        return true;
-    }
+    if (/^\d+[\.\)]\s*/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) return true;
+    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) return true;
 
-    // Roman numerals or section numbering like "PART I", "PART 1", "SECTION A", "CHAPTER 2"
-    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) {
-        return true;
-    }
-
-    // ALL CAPS text without colons or underlines (e.g. "PDF FORM EXAMPLE", "TAXPAYER IDENTIFICATION NUMBER")
     if (/^[A-Z0-9\s\-\/\&]{5,}$/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
         const isShortFieldLabel = /^(?:SSN|EIN|DOB|NAME|CITY|ZIP|DATE|STATE|PHONE|EMAIL|TITLE|AGE|FAX|ID|QTY|PRICE|TAX|TOTAL|SUBTOTAL|INVOICE)$/i.test(clean);
-        if (!isShortFieldLabel) {
-            return true;
-        }
+        if (!isShortFieldLabel) return true;
     }
 
     return false;
 }
 
+// ============================================================================
+// STAGE 1: Spatial Obstacle & Text Occupancy Grid (Blocked Text Zones)
+// ============================================================================
+export class TextOccupancyGrid {
+    constructor(rawBlocks, pageHeight) {
+        this.pageHeight = pageHeight;
+        this.blockedZones = rawBlocks.filter(tb => {
+            const str = (tb.str || "").trim();
+            if (!str) return false;
+            if (/^[_.\s-]+$/.test(str) || /^\$?\d+[\d.,]*$/.test(str)) return false;
+            return true;
+        });
+    }
+
+    /**
+     * Strictly rejects candidate field box if Area(FieldBox ∩ BlockedTextZone) > 0 for headers (fontSize >= 16pt)
+     */
+    isBlocked(box, minRatio = 0.20) {
+        return this.blockedZones.some(tb => {
+            const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
+            const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
+            const overlapArea = xOverlap * yOverlap;
+
+            if (overlapArea <= 0) return false;
+
+            const isLargeHeader = (tb.height >= 16) || /invoice|factura|statement|receipt|w-?9|tax\s*form|purchase\s*order/i.test(tb.str);
+            if (isLargeHeader) {
+                const tbArea = tb.width * tb.height;
+                return (overlapArea / tbArea) > 0.20;
+            }
+
+            if (tb.str.endsWith(":") || /description|quantity|qty|price|amount|total|subtotal|notes|terms|due|date/i.test(tb.str)) {
+                return false;
+            }
+
+            const minArea = Math.min(box.width * box.height, tb.width * tb.height);
+            return minArea > 0 && (overlapArea / minArea) > minRatio;
+        });
+    }
+}
+
+// ============================================================================
+// STAGE 2: Topological Table & Grid Solver (2D Matrix Projector)
+// ============================================================================
+export class TopologicalTableSolver {
+    static solveGrid(fields, rawBlocks, pageNum, usedNames) {
+        const headerBlocks = rawBlocks.filter(tb => {
+            const text = (tb.str || "").trim();
+            return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
+        }).sort((a, b) => a.x - b.x);
+
+        const headerRows = [];
+        headerBlocks.forEach(hb => {
+            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 35);
+            if (!hr) {
+                hr = { y: hb.y, height: hb.height, blocks: [] };
+                headerRows.push(hr);
+            }
+            hr.blocks.push(hb);
+        });
+
+        const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
+        if (!mainHeaderRow && fields.length < 2) return fields;
+
+        const rowGroups = [];
+        for (let f of fields) {
+            let group = rowGroups.find(g => Math.abs(g.y - f.y) <= 12);
+            if (!group) {
+                group = { y: f.y, height: f.height, fields: [] };
+                rowGroups.push(group);
+            }
+            group.fields.push(f);
+        }
+
+        let tableRows = rowGroups.filter(g => g.fields.length >= 1).sort((a, b) => a.y - b.y);
+
+        if (tableRows.length < 2 && mainHeaderRow) {
+            const startY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 6);
+            const footerBlock = rawBlocks.find(tb => {
+                const text = (tb.str || "").trim();
+                return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > startY;
+            });
+            const endY = footerBlock ? Math.round(footerBlock.y - 12) : Math.min(startY + 240, 750);
+            
+            tableRows = [];
+            let currY = startY;
+            while (currY + 22 <= endY && tableRows.length < 10) {
+                tableRows.push({ y: currY, height: 22, fields: [] });
+                currY += 24;
+            }
+        }
+
+        if (tableRows.length < 1) return fields;
+
+        const minTableY = tableRows[0].y;
+        const activeHeaders = mainHeaderRow ? mainHeaderRow.blocks : headerBlocks.filter(tb => (minTableY - tb.y) <= 120 && (tb.y - minTableY) <= 25);
+
+        const colBands = [];
+        tableRows.forEach(row => {
+            row.fields.forEach(f => {
+                let col = colBands.find(c => Math.abs(c.x - f.x) <= 30);
+                if (!col) {
+                    col = { x: f.x, width: f.width, headerText: f.name || "col" };
+                    colBands.push(col);
+                }
+            });
+        });
+
+        activeHeaders.forEach(hb => {
+            let col = colBands.find(c => Math.abs(c.x - hb.x) <= 35 || (hb.x >= c.x - 10 && hb.x <= c.x + c.width + 10));
+            if (!col) {
+                const isDesc = /desc|item|details/i.test(hb.str);
+                const colW = isDesc ? 220 : Math.max(50, Math.round(hb.width + 20));
+                colBands.push({
+                    x: Math.round(hb.x - 2),
+                    width: colW,
+                    headerText: hb.str,
+                    isFromHeader: true
+                });
+            } else if (!col.headerText || col.headerText === "col") {
+                col.headerText = hb.str;
+            }
+        });
+
+        colBands.sort((a, b) => a.x - b.x);
+
+        const footerBlock = rawBlocks.find(tb => {
+            const text = (tb.str || "").trim();
+            return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > (minTableY + 40);
+        });
+        const maxTableY = footerBlock ? Math.round(footerBlock.y - 8) : Infinity;
+
+        const validTableRows = tableRows.filter(r => (r.y + r.height) <= maxTableY);
+        const resultFields = fields.filter(f => f.y < maxTableY);
+
+        validTableRows.forEach((row, rowIndex) => {
+            colBands.forEach(col => {
+                const hasFieldInCell = row.fields.some(f => Math.abs(f.x - col.x) <= 35 || (f.x >= col.x - 15 && f.x <= col.x + col.width + 15));
+                if (!hasFieldInCell) {
+                    const colHeader = col.headerText || "Column";
+                    const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
+
+                    const newField = {
+                        id: Date.now() + Math.random(),
+                        type: "textField",
+                        name: sem.name,
+                        x: Math.max(10, col.x),
+                        y: Math.max(10, row.y),
+                        width: col.width,
+                        height: Math.min(24, row.height || 22),
+                        page: pageNum,
+                        borderStyle: "solid",
+                        fillStyle: "white",
+                        multiline: false,
+                        autofill: sem.autofill || "",
+                        dataFormat: sem.dataFormat || "text"
+                    };
+
+                    resultFields.push(newField);
+                    row.fields.push(newField);
+                }
+            });
+        });
+
+        return resultFields;
+    }
+}
+
+// ============================================================================
+// STAGE 3: Directional Raycasting & Local Context Decay
+// ============================================================================
+export class DirectionalRaycaster {
+    static findLabelForBox(box, rawBlocks) {
+        const boxMidY = box.y + (box.height / 2);
+
+        // 1. Top Ray: Look up for stacked labels within max 24px
+        const topBlocks = rawBlocks.filter(tb => {
+            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
+            const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 24;
+            const isAlignedX = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15);
+            return isAbove && isAlignedX;
+        }).sort((a, b) => (box.y - (a.y + a.height)) - (box.y - (b.y + b.height)));
+
+        for (let tb of topBlocks) {
+            const decoded = sanitizeAndDecodeLabel(tb.str);
+            if (decoded) return tb.str;
+        }
+
+        // 2. Left Ray: Look left for inline labels within max 100px
+        const leftBlocks = rawBlocks.filter(tb => {
+            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
+            const tbMidY = tb.y + (tb.height / 2);
+            const isSameRow = Math.abs(tbMidY - boxMidY) <= 12;
+            const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 100;
+            return isSameRow && isToLeft;
+        }).sort((a, b) => {
+            const distA = box.x - (a.x + a.width);
+            const distB = box.x - (b.x + b.width);
+            return distA - distB;
+        });
+
+        for (let tb of leftBlocks) {
+            const decoded = sanitizeAndDecodeLabel(tb.str);
+            if (decoded) return tb.str;
+        }
+
+        // 3. Score-weighted proximity search strictly within 40px radius
+        let bestLabel = null;
+        let highestScore = -1;
+
+        for (let tb of rawBlocks) {
+            if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) continue;
+            const decoded = sanitizeAndDecodeLabel(tb.str);
+            if (!decoded) continue;
+
+            const tbMidY = tb.y + (tb.height / 2);
+            const distLeft = (box.x - (tb.x + tb.width));
+            const distTop = (box.y - (tb.y + tb.height));
+
+            const isLeft = distLeft >= -18 && distLeft <= 40 && Math.abs(tbMidY - boxMidY) <= 14;
+            const isTop = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15) && distTop >= 0 && distTop <= 24;
+
+            if (isLeft || isTop) {
+                const distance = isLeft ? distLeft : distTop;
+                const matchConfidence = decoded.score || 10;
+                const score = matchConfidence / (Math.pow(Math.max(1, distance), 2));
+                if (score > highestScore) {
+                    highestScore = score;
+                    bestLabel = tb.str;
+                }
+            }
+        }
+
+        return bestLabel;
+    }
+
+    static resolveSemanticProperties(rawLabel, defaultType = "textField", usedNames = new Set()) {
+        let clean = (rawLabel || "").trim().replace(/[:_.\s-]+$/, "");
+        let baseId = "";
+        let type = defaultType;
+        let multiline = false;
+        let autofill = "";
+        let defaultValue = "";
+
+        const match = sanitizeAndDecodeLabel(clean);
+        if (match) {
+            baseId = match.id;
+            if (match.type) type = match.type;
+            if (match.multiline) multiline = true;
+            if (match.autofill) autofill = match.autofill;
+            if (type === "dateField") defaultValue = "MM/DD/YYYY";
+        }
+
+        if (!baseId) {
+            if (type === "signature") baseId = "signature";
+            else if (type === "checkBox") baseId = "checkbox";
+            else if (type === "dateField") { baseId = "date"; defaultValue = "MM/DD/YYYY"; }
+            else baseId = "text_field";
+        }
+
+        let finalId = baseId;
+        let counter = 1;
+        while (usedNames.has(finalId)) {
+            counter++;
+            finalId = `${baseId}_${counter}`;
+        }
+        usedNames.add(finalId);
+
+        return { name: finalId, type, multiline, autofill, defaultValue };
+    }
+}
+
+// ============================================================================
+// STAGE 4: Underline & Baseline Snapper
+// ============================================================================
+export class UnderlineBaselineSnapper {
+    static snapToUnderline(lineCanvasY, canvasX, canvasW, lineHeight = 24) {
+        const height = Math.max(18, Math.min(24, Math.round(lineHeight * 0.8)));
+        const y = Math.round(lineCanvasY - height - 1); // box.bottom = underline.y - 1
+        return {
+            x: Math.max(10, Math.round(canvasX)),
+            y: Math.max(10, y),
+            width: Math.round(canvasW),
+            height
+        };
+    }
+}
+
+// ── Main Auto-Detect Engine Controller ──────────────────────────────
 export async function autoDetectFields(scope = "current") {
     if (!state.pdfDoc) {
         alert("Please load a PDF document first.");
@@ -178,33 +420,35 @@ export async function autoDetectFields(scope = "current") {
             const viewport = page.getViewport({ scale: 1.0 });
             const textContent = await page.getTextContent();
             
-            // Raw text items in canvas coordinate space
             const rawBlocks = textContent.items.map(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
                 const fontHeight = Math.abs(item.transform[3]) || item.height || 12;
-                const x = tx;
-                const y = viewport.height - ty - fontHeight;
-                const width = item.width;
-                const height = fontHeight;
-                const str = (item.str || "").trim();
-                return { x, y, width, height, str };
+                return {
+                    x: tx,
+                    y: viewport.height - ty - fontHeight,
+                    width: item.width,
+                    height: fontHeight,
+                    str: (item.str || "").trim()
+                };
             }).filter(tb => tb.str.length > 0);
+
+            const occupancyGrid = new TextOccupancyGrid(rawBlocks, viewport.height);
 
             // Engine 0: Native AcroForm Annotation Reader
             const acroFormFields = await extractExistingAnnotations(page, viewport, pageNum, usedNames);
 
             // Engine 1: Vector Drawing Path Detection
-            const vectorElements = await extractVectorPaths(page, viewport, rawBlocks);
+            const vectorElements = await extractVectorPaths(page, viewport, rawBlocks, occupancyGrid);
 
             // Engine 2: Semantic Text Layout & Keyword Detection
-            const textElements = scanTextLayout(rawBlocks, viewport, pageNum);
+            const textElements = scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid);
 
-            // Engine 3: Fusion & Semantic AcroForm ID Resolution
-            let merged = fuseDetections(acroFormFields, vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames);
+            // Engine 3: Fusion & Directional Raycasting
+            let merged = fuseDetections(acroFormFields, vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames, occupancyGrid);
 
-            // Engine 4: Table Column Grid Interpolator
-            merged = interpolateTableGridColumns(merged, rawBlocks, pageNum, usedNames);
+            // Engine 4: Topological Table Grid Solver
+            merged = TopologicalTableSolver.solveGrid(merged, rawBlocks, pageNum, usedNames);
             newFields.push(...merged);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
@@ -212,7 +456,6 @@ export async function autoDetectFields(scope = "current") {
     }
 
     if (newFields.length > 0) {
-        // Always replace existing fields on scanned pages with fresh, clean auto-detected fields
         state.fields = state.fields.filter(f => !pagesToScan.includes(f.page || 1));
         
         const uniqueNewFields = [];
@@ -232,7 +475,7 @@ export async function autoDetectFields(scope = "current") {
     return totalDetected;
 }
 
-// ── Engine 0: Native AcroForm Annotation Extraction ─────────────────
+// ── Helper: Extract Native AcroForms ─────────────────────────────────
 async function extractExistingAnnotations(page, viewport, pageNum, usedNames) {
     const fields = [];
     try {
@@ -243,36 +486,27 @@ async function extractExistingAnnotations(page, viewport, pageNum, usedNames) {
             if (annot.subtype !== "Widget" && !annot.fieldName) continue;
 
             const rect = annot.rect;
-            if (!rect || rect.length < 4) continue;
-
-            const pdfX = rect[0];
-            const pdfY = rect[1];
-            const pdfW = Math.abs(rect[2] - rect[0]);
-            const pdfH = Math.abs(rect[3] - rect[1]);
-
-            const canvasX = Math.round(pdfX);
-            const canvasY = Math.round(viewport.height - pdfY - pdfH);
-            const canvasW = Math.round(pdfW);
-            const canvasH = Math.round(pdfH);
-
-            if (canvasW < 10 || canvasH < 8) continue;
+            const [x1, y1, x2, y2] = rect;
+            const canvasX = Math.round(x1);
+            const canvasY = Math.round(viewport.height - y2);
+            const canvasW = Math.round(x2 - x1);
+            const canvasH = Math.round(y2 - y1);
 
             let type = "textField";
             let multiline = false;
 
             if (annot.fieldType === "Btn") {
-                type = "checkBox";
-            } else if (annot.fieldType === "Sig") {
-                type = "signature";
+                if (annot.checkBox || (annot.fieldFlags & 16)) type = "checkBox";
+                else if (annot.radioButton || (annot.fieldFlags & 32768)) type = "radioGroup";
+                else type = "signature";
+            } else if (annot.fieldType === "Tx") {
+                if (annot.fieldFlags & 4096) multiline = true;
             } else if (annot.fieldType === "Ch") {
                 type = "dropdown";
-            } else if (annot.fieldType === "Tx") {
-                type = "textField";
-                multiline = canvasH >= 40 || !!annot.multiLine;
             }
 
             const rawName = annot.fieldName || annot.alternativeText || `acro_${fields.length + 1}`;
-            const sem = resolveSemanticProperties(rawName, type, usedNames);
+            const sem = DirectionalRaycaster.resolveSemanticProperties(rawName, type, usedNames);
 
             fields.push({
                 id: Date.now() + Math.random(),
@@ -296,8 +530,8 @@ async function extractExistingAnnotations(page, viewport, pageNum, usedNames) {
     return fields;
 }
 
-// ── Engine 1: Vector Drawing Path Extraction ─────────────────────────
-async function extractVectorPaths(page, viewport, rawBlocks) {
+// ── Helper: Extract Vector Path Elements & Underlines ────────────────
+async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
     const vectorElements = [];
     const rawLines = [];
     const pageHeight = viewport.height;
@@ -348,7 +582,7 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         
                         const dx = Math.abs(curX - lastX);
                         const dy = Math.abs(curY - lastY);
-                        if (dx >= 20 && dy <= 3.5 && dx < (pageWidth * 0.95)) {
+                        if (dx >= 40 && dy <= 4 && dx < (pageWidth * 0.95)) {
                             const minX = Math.min(lastX, curX);
                             const minY = Math.min(lastY, curY);
                             const [tx, ty] = applyMatrix(minX, minY, currentMatrix);
@@ -356,21 +590,10 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                             const canvasX = tx;
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
-                            if (lineCanvasY >= (pageHeight * 0.04) && lineCanvasY <= (pageHeight * 0.94) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
-                                // Skip decorative section divider lines (line width >= 40% of page width without explicit prompt label)
-                                const isDecorativeDivider = canvasW >= (pageWidth * 0.40) || canvasW >= 240;
-                                const hasPromptLabel = rawBlocks.some(tb => {
-                                    const isSameBaseline = Math.abs((tb.y + tb.height / 2) - lineCanvasY) <= 10;
-                                    const isAtStart = Math.abs(tb.x - canvasX) <= 45;
-                                    return isSameBaseline && isAtStart && (tb.str.includes(":") || /[_]{3,}/.test(tb.str));
-                                });
-
-                                if (!isDecorativeDivider || hasPromptLabel) {
-                                    rawLines.push({
-                                        x: Math.max(10, Math.round(canvasX)),
-                                        y: Math.round(lineCanvasY),
-                                        width: Math.round(Math.min(canvasW, pageWidth - canvasX - 15))
-                                    });
+                            if (lineCanvasY >= (pageHeight * 0.03) && lineCanvasY <= (pageHeight * 0.96) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 40) {
+                                const snapped = UnderlineBaselineSnapper.snapToUnderline(lineCanvasY, canvasX, canvasW);
+                                if (!occupancyGrid.isBlocked(snapped)) {
+                                    rawLines.push(snapped);
                                 }
                             }
                         }
@@ -388,22 +611,23 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        // Skip top header and bottom footer background banner rectangles
                         if (canvasY <= (pageHeight * 0.05) || canvasY >= (pageHeight * 0.94)) continue;
 
                         if (boxW >= 22 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
-                            // Skip small decorative icon boxes (bullet points, contact icons)
                             if (boxW < 22 && boxH < 22) continue;
-                            // Skip wide background banner boxes (width > 45% of page width without form prompt)
                             if (boxW >= (pageWidth * 0.45) && boxH <= 40) continue;
 
-                            vectorElements.push({
+                            const box = {
                                 type: "text_box",
                                 x: Math.max(10, Math.round(canvasX)),
                                 y: Math.max(10, Math.round(canvasY)),
                                 width: Math.round(boxW),
                                 height: Math.round(boxH)
-                            });
+                            };
+
+                            if (!occupancyGrid.isBlocked(box)) {
+                                vectorElements.push(box);
+                            }
                         }
                     }
                 }
@@ -415,93 +639,29 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                 const canvasY = pageHeight - ty - boxH;
                 const canvasX = tx;
 
-                // Skip top header and bottom footer background banner rectangles
                 if (canvasY <= (pageHeight * 0.05) || canvasY >= (pageHeight * 0.94)) continue;
 
                 if (boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                     if (boxW < 22 && boxH < 22) continue;
                     if (boxW >= (pageWidth * 0.45) && boxH <= 40) continue;
 
-                    vectorElements.push({
+                    const box = {
                         type: "text_box",
                         x: Math.max(10, Math.round(canvasX)),
                         y: Math.max(10, Math.round(canvasY)),
                         width: Math.round(boxW),
                         height: Math.round(boxH)
-                    });
+                    };
+
+                    if (!occupancyGrid.isBlocked(box)) {
+                        vectorElements.push(box);
+                    }
                 }
             }
         }
 
-        // Process horizontal lines into table row cells and standalone underlines
         if (rawLines.length > 0) {
-            const sortedLines = [...rawLines].sort((a, b) => a.y - b.y);
-            const uniqueLines = [];
-            for (const l of sortedLines) {
-                if (!uniqueLines.some(u => Math.abs(u.y - l.y) <= 3 && Math.abs(u.x - l.x) <= 12)) {
-                    uniqueLines.push(l);
-                }
-            }
-
-            const usedIndices = new Set();
-            // 1. Detect stacked lines forming table row cells
-            for (let i = 0; i < uniqueLines.length - 1; i++) {
-                const top = uniqueLines[i];
-                const bot = uniqueLines[i + 1];
-                const gap = bot.y - top.y;
-
-                if (gap >= 14 && gap <= 45 && Math.abs(top.x - bot.x) <= 25) {
-                    vectorElements.push({
-                        type: "table_cell",
-                        x: Math.max(top.x, bot.x),
-                        y: top.y,
-                        width: Math.min(top.width, bot.width),
-                        height: gap
-                    });
-                    usedIndices.add(i);
-                    usedIndices.add(i + 1);
-                }
-            }
-
-            // 2. Standalone single underlines (no paired line within cell height)
-            for (let i = 0; i < uniqueLines.length; i++) {
-                if (!usedIndices.has(i)) {
-                    const l = uniqueLines[i];
-                    const lineMidY = l.y;
-
-                    const leftLabel = rawBlocks.find(tb => {
-                        const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 16 || (tb.y < l.y && (l.y - tb.y) <= 25);
-                        const isLeft = (tb.x <= l.x + l.width * 0.8) && (tb.x + tb.width >= l.x - 20);
-                        return isNearY && isLeft;
-                    });
-
-                    const lineText = leftLabel ? leftLabel.str.trim() : "";
-                    const isSectionHeader = isHeadingLabel(lineText) || /^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(lineText);
-                    const hasColonOrUnderline = lineText.includes(":") || /[_]{3,}/.test(lineText);
-
-                    // Standalone horizontal lines without an explicit colon prompt (":") or underline ("___"), or lines under section headings, are DECORATIVE DIVIDERS!
-                    if (isSectionHeader || !hasColonOrUnderline) {
-                        continue;
-                    }
-
-                    // If text label exists on the left, start field AFTER the label text!
-                    let startX = l.x;
-                    if (leftLabel && leftLabel.x < (l.x + l.width - 30)) {
-                        startX = Math.max(l.x, Math.round(leftLabel.x + leftLabel.width + 6));
-                    }
-                    const fieldW = Math.max(50, Math.round((l.x + l.width) - startX));
-
-                    if (fieldW >= 35 && startX < (pageWidth - 30)) {
-                        vectorElements.push({
-                            type: "line",
-                            x: Math.max(10, startX),
-                            y: Math.max(10, l.y - 24),
-                            width: Math.min(fieldW, pageWidth - startX - 15),
-                            height: 24
-                        });
-                    }
-                }
-            }
+            rawLines.forEach(l => vectorElements.push(l));
         }
     } catch(err) {
         console.warn("Vector extraction warning:", err);
@@ -517,33 +677,23 @@ function applyMatrix(x, y, m) {
     ];
 }
 
-// ── Engine 2: Semantic Text Layout & Keyword Scanning ────────────────
-function scanTextLayout(rawBlocks, viewport, pageNum) {
+// ── Helper: Scan Text Layout & Colon Prompts ─────────────────────────
+function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
     const detected = [];
     const pageWidth = viewport.width;
 
     if (rawBlocks.length === 0) return { detected, lines: [] };
 
     const lines = clusterIntoLines(rawBlocks);
-    const fontHeights = lines.map(l => l.height).sort((a, b) => a - b);
-    const medianFontHeight = fontHeights[Math.floor(fontHeights.length / 2)] || 12;
 
     for (let line of lines) {
         const text = line.str.trim();
 
-        // Skip giant banner headers (font height > 2.2x median) and section titles
-        if (line.height > (medianFontHeight * 2.2)) continue;
         if (isHeadingLabel(text)) continue;
-
-        // Skip top margin areas (top 2% of page) unless there is an explicit colon or underline
         if (line.y < (viewport.height * 0.02) && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
-
-        // Skip contact rows (emails, phones, locations, social links, headers)
         if (CONTACT_OR_RESUME_KEYWORDS.test(text) && !text.includes(":")) continue;
 
-        // A. True Checkbox Markers in text: "[ ]", "☐", "□", "( )"
         if (/^(\[\s*\]|\(\s*\)|[☐□✓])$/.test(text)) {
-            // Find option text to the right
             const nextOption = lines.find(l => 
                 l.x > (line.x + line.width) && (l.x - (line.x + line.width)) <= 35 && Math.abs(l.y - line.y) <= 8
             );
@@ -562,7 +712,6 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
             continue;
         }
 
-        // B. Blank Text Underlines (e.g. "Full Name: ____________________")
         if (/[_]{3,}/.test(text) || /[.]{4,}/.test(text)) {
             const cleanLabel = text.replace(/[_.]/g, "").replace(/[:\s]+$/, "").trim();
             const labelWidth = cleanLabel.length > 0 ? (line.width * (cleanLabel.length / text.length)) : 0;
@@ -578,7 +727,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
                 x: Math.max(10, startX),
                 y: Math.max(10, Math.round(line.y - 1)),
                 width: Math.round(Math.min(availableW, pageWidth - startX - 20)),
-                height: isSig ? 44 : 26,
+                height: isSig ? 44 : 24,
                 borderStyle: "solid",
                 fillStyle: "white",
                 ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
@@ -586,17 +735,14 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
             continue;
         }
 
-        // C. Explicit Colon Labels with Genuine Blank Space to the Right
         const hasExplicitColon = text.endsWith(":") || text.includes(":");
         if (hasExplicitColon) {
             const parts = text.split(":");
             const labelPart = parts[0].trim();
             const afterColon = (parts[1] || "").trim();
 
-            // If text already exists after the colon (e.g. "Name: John Doe" or "Email: sagar@gmail.com"), ignore it
             if (afterColon.length > 0) continue;
 
-            // Verify no other text line sits to the right
             const hasRightNeighbor = lines.some(other => {
                 if (other === line) return false;
                 const sameRow = Math.abs(other.y - line.y) <= 8;
@@ -622,7 +768,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
                         x: targetX,
                         y: targetY,
                         width: Math.round(fieldWidth),
-                        height: isSig ? 44 : (isMulti ? 60 : 26),
+                        height: isSig ? 44 : (isMulti ? 60 : 24),
                         borderStyle: "solid",
                         fillStyle: "white",
                         multiline: isMulti,
@@ -636,41 +782,12 @@ function scanTextLayout(rawBlocks, viewport, pageNum) {
     return { detected, lines };
 }
 
-// ── Helper: Check if string is OCR / subset-font garbled artifact ────
-function isArtifactString(str) {
-    if (!str) return true;
-    const clean = str.trim().replace(/[:_.\s-]+$/, "");
-    if (!clean || clean.length < 2) return true;
-
-    // 1. Two-letter standalone codes (e.g. "An", "Ao", "Ap", "Aq", "Qu", "Mo") that are NOT standard field abbreviations
-    if (/^[a-zA-Z]{1,2}$/.test(clean) && !/^(?:ID|PO|NO|RE|TO|US|UK)$/i.test(clean)) {
-        return true;
-    }
-
-    // 2. Pure numbers or high digit ratio
-    if (/^\d+(_\d+)*$/.test(clean) || (clean.replace(/[^0-9]/g, "").length / clean.length) > 0.35) return true;
-    
-    // 3. Subset font encoded character artifacts like "ilhogb46", "llhogb37", "abcde12"
-    if (/^[a-zA-Z]{3,}\d+$/.test(clean)) return true;
-
-    const lettersOnly = clean.replace(/[^a-zA-Z]/g, "");
-    if (lettersOnly.length >= 4) {
-        const vowels = lettersOnly.match(/[aeiouyAEIOUY]/g) || [];
-        const vowelRatio = vowels.length / lettersOnly.length;
-        if (vowelRatio < 0.22 || /[^aeiouyAEIOUY\s]{5,}/.test(lettersOnly)) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// ── Sanitize, Decode Subset-Font Artifacts, and Classify Label ───────
+// ── Helper: Label Sanitization & Decoding ────────────────────────────
 function sanitizeAndDecodeLabel(rawLabel) {
     if (!rawLabel) return null;
     const cleanStr = rawLabel.trim();
     if (!cleanStr || cleanStr.length < 2) return null;
 
-    // 1. First attempt direct exact match (shift = 0)
     const exactClean = cleanStr.replace(/^\d+[\.\s\)]*/, "").replace(/[:_.\s-]+$/, "").trim();
     for (const item of SEMANTIC_DICTIONARY) {
         if (item.regex.test(exactClean)) {
@@ -679,12 +796,12 @@ function sanitizeAndDecodeLabel(rawLabel) {
                 title: item.title,
                 type: item.type || "textField",
                 multiline: item.multiline || false,
-                autofill: item.autofill || ""
+                autofill: item.autofill || "",
+                score: item.score || 10
             };
         }
     }
 
-    // 2. Only attempt subset-font Caesar cipher decoding if the string is a genuine subset-font artifact
     if (isArtifactString(cleanStr)) {
         const priorityShifts = [29, -29, 3, -3, 1, -1];
         for (const shift of priorityShifts) {
@@ -712,119 +829,57 @@ function sanitizeAndDecodeLabel(rawLabel) {
                         title: item.title,
                         type: item.type || "textField",
                         multiline: item.multiline || false,
-                        autofill: item.autofill || ""
+                        autofill: item.autofill || "",
+                        score: item.score || 10
                     };
                 }
             }
         }
     }
 
-    // Direct words fallback for unmatched plain labels
     const words = exactClean.split(/\s+/).filter(w => /^[a-zA-Z0-9\/\-\(\)]+$/.test(w));
     if (words.length >= 1 && words.length <= 6) {
         const cleanWords = words.map(w => w.replace(/[^a-zA-Z0-9]/g, "")).filter(w => w.length > 0);
         if (cleanWords.length > 0) {
             const cleanId = cleanWords.join("_").toLowerCase() + "_input";
             const title = cleanWords.map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
-            return { id: cleanId, title: title, type: "textField" };
+            return { id: cleanId, title: title, type: "textField", score: 5 };
         }
     }
 
     return null;
 }
 
-// ── Helper: Find Nearest Static Text Label for Any Bounding Box ──────
-function findNearbyLabelForBox(box, rawBlocks) {
-    const boxMidY = box.y + (box.height / 2);
+function isArtifactString(str) {
+    if (!str) return false;
+    const clean = str.trim();
+    if (clean.length <= 1) return false;
+    if (/^\d+(_\d+)*$/.test(clean) || (clean.replace(/[^0-9]/g, "").length / clean.length) > 0.35) return true;
+    if (/^[a-zA-Z]{3,}\d+$/.test(clean)) return true;
 
-    // 1. Text block directly ABOVE the box within 35px (Column Headers: "Description", "Price", "QTY", "Total", "Tax")
-    const aboveBlocks = rawBlocks.filter(tb => {
-        if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
-        const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 35;
-        const isAlignedX = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15);
-        return isAbove && isAlignedX;
-    }).sort((a, b) => (box.y - (a.y + a.height)) - (box.y - (b.y + b.height)));
-
-    for (let tb of aboveBlocks) {
-        const decoded = sanitizeAndDecodeLabel(tb.str);
-        if (decoded) return tb.str;
+    const lettersOnly = clean.replace(/[^a-zA-Z]/g, "");
+    if (lettersOnly.length >= 4) {
+        const vowels = lettersOnly.match(/[aeiouyAEIOUY]/g) || [];
+        const vowelRatio = vowels.length / lettersOnly.length;
+        if (vowelRatio < 0.22 || /[^aeiouyAEIOUY\s]{5,}/.test(lettersOnly)) return true;
     }
-
-    // 2. Text block on the same row to the LEFT within 40px
-    const leftBlocks = rawBlocks.filter(tb => {
-        if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
-        const tbMidY = tb.y + (tb.height / 2);
-        const isSameRow = Math.abs(tbMidY - boxMidY) <= 12;
-        const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 40;
-        return isSameRow && isToLeft;
-    }).sort((a, b) => {
-        const dYa = Math.abs((a.y + a.height / 2) - boxMidY);
-        const dYb = Math.abs((b.y + b.height / 2) - boxMidY);
-        if (Math.abs(dYa - dYb) > 3) return dYa - dYb;
-        return (box.x - (a.x + a.width)) - (box.x - (b.x + b.width));
-    });
-
-    for (let tb of leftBlocks) {
-        const decoded = sanitizeAndDecodeLabel(tb.str);
-        if (decoded) return tb.str;
-    }
-
-    // Tight 40px max search distance — NEVER match distant keywords like SSN from 150px away!
-    let bestMatch = null;
-    let minDistance = 40;
-    for (let tb of rawBlocks) {
-        if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) continue;
-        const decoded = sanitizeAndDecodeLabel(tb.str);
-        if (!decoded) continue;
-
-        const tbMidY = tb.y + (tb.height / 2);
-        const isLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 40 && Math.abs(tbMidY - boxMidY) <= 14;
-        const isAbove = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15) && tb.y <= box.y && (box.y - (tb.y + tb.height)) <= 30;
-        if (isLeft || isAbove) {
-            const dist = isLeft ? (box.x - (tb.x + tb.width)) : (box.y - (tb.y + tb.height));
-            if (dist < minDistance) {
-                minDistance = dist;
-                bestMatch = tb.str;
-            }
-        }
-    }
-
-    return bestMatch;
+    return false;
 }
 
-// ── Engine 3: Fusion & Semantic AcroForm ID Resolution ───────────────
-function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, viewport, pageNum, usedNames) {
+// ── Helper: Fuse Detections with Directional Raycasting ───────────────
+function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, viewport, pageNum, usedNames, occupancyGrid) {
     const fused = [...acroFormFields];
-    const { detected: textDetections, lines } = textResult;
+    const { detected: textDetections } = textResult;
 
-    // 1. Process Vector Elements and pair with closest text labels
     for (let ve of vectorElements) {
-        if (overlapsAnyText(ve, rawBlocks)) continue;
-
-        // Skip vector elements that overlap any already fused field (e.g. AcroForm or earlier vector rectangle/table cell)
+        if (occupancyGrid.isBlocked(ve)) continue;
         if (isOverlappingAny(ve, fused)) continue;
 
-        // Skip any vector box that sits next to or under a section heading (like "JOB", "CONTRACT", "Location")
-        const isSectionHeaderBox = rawBlocks.some(tb => {
-            const str = tb.str ? tb.str.trim() : "";
-            if (!str || str.includes(":")) return false;
-            const cleanStr = str.replace(/[:_.\s-]+$/, "");
-            const isHeading = isHeadingLabel(cleanStr) || /^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references|personal\s*information|applicant\s*information|general\s*information|employment)$/i.test(cleanStr);
-            if (!isHeading) return false;
-
-            const sameRow = Math.abs((tb.y + tb.height / 2) - (ve.y + ve.height / 2)) <= 40 || Math.abs(tb.y - ve.y) <= 40;
-            const isNearX = Math.abs(tb.x - ve.x) <= 350 || (tb.x <= ve.x + ve.width + 350);
-            return sameRow && isNearX;
-        });
-        if (isSectionHeaderBox) continue;
-
-        const rawLabel = findNearbyLabelForBox(ve, rawBlocks) || `field_${usedNames.size + 1}`;
+        const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks) || `field_${usedNames.size + 1}`;
         if (isHeadingLabel(rawLabel)) continue;
 
-        const sem = resolveSemanticProperties(rawLabel, "textField", usedNames);
-
+        const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, "textField", usedNames);
         let finalType = sem.type;
-        // Non-square or wide boxes in tables (Price, QTY, Description, Total, Tax) are ALWAYS text fields!
         if ((finalType === "checkBox" || finalType === "radioGroup") && (ve.width > 35 || ve.height > 35 || Math.abs(ve.width - ve.height) > 12)) {
             finalType = "textField";
         }
@@ -842,26 +897,24 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
             fillStyle: "white",
             multiline: sem.multiline || ve.height >= 45,
             autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
             ...(sem.defaultValue ? { defaultValue: sem.defaultValue } : {})
         });
     }
 
-    // 2. Add text-based detections that were NOT covered by vector elements
     for (let td of textDetections) {
-        if (overlapsAnyText(td, rawBlocks)) continue;
+        if (occupancyGrid.isBlocked(td)) continue;
 
         const isCovered = fused.some(f => {
-            const sameRow = Math.abs(td.y - f.y) <= 16;
-            const sameArea = Math.abs(td.x - f.x) <= 220;
             const xOverlap = Math.max(0, Math.min(td.x + td.width, f.x + f.width) - Math.max(td.x, f.x));
             const yOverlap = Math.max(0, Math.min(td.y + td.height, f.y + f.height) - Math.max(td.y, f.y));
-            return (xOverlap * yOverlap) > 0 || (sameRow && sameArea);
+            return (xOverlap * yOverlap) > 0;
         });
 
         if (!isCovered) {
-            const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (findNearbyLabelForBox(td, rawBlocks) || `field_${usedNames.size + 1}`);
+            const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (DirectionalRaycaster.findLabelForBox(td, rawBlocks) || `field_${usedNames.size + 1}`);
             if (isHeadingLabel(rawLabel)) continue;
-            const sem = resolveSemanticProperties(rawLabel, td.type, usedNames);
+            const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, td.type, usedNames);
 
             fused.push({
                 id: Date.now() + Math.random(),
@@ -876,206 +929,13 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
                 fillStyle: td.fillStyle || "white",
                 multiline: td.multiline || sem.multiline || false,
                 autofill: sem.autofill || "",
+                dataFormat: sem.dataFormat || "text",
                 ...(td.defaultValue || sem.defaultValue ? { defaultValue: td.defaultValue || sem.defaultValue } : {})
             });
         }
     }
 
     return fused;
-}
-
-// ── Resolve Semantic AcroForm ID and Field Properties ────────────────
-function resolveSemanticProperties(rawLabel, defaultType = "textField", usedNames = new Set()) {
-    let clean = (rawLabel || "").trim().replace(/[:_.\s-]+$/, "");
-    let baseId = "";
-    let type = defaultType;
-    let multiline = false;
-    let autofill = "";
-    let defaultValue = "";
-
-    const match = sanitizeAndDecodeLabel(clean);
-    if (match) {
-        baseId = match.id;
-        if (match.type) type = match.type;
-        if (match.multiline) multiline = true;
-        if (match.autofill) autofill = match.autofill;
-        if (type === "dateField") defaultValue = "MM/DD/YYYY";
-    }
-
-    if (!baseId) {
-        if (type === "signature") baseId = "signature";
-        else if (type === "checkBox") baseId = "checkbox";
-        else if (type === "dateField") { baseId = "date"; defaultValue = "MM/DD/YYYY"; }
-        else baseId = "text_field";
-    }
-
-    let finalId = baseId;
-    let counter = 1;
-    while (usedNames.has(finalId)) {
-        counter++;
-        finalId = `${baseId}_${counter}`;
-    }
-    usedNames.add(finalId);
-
-    return { name: finalId, type, multiline, autofill, defaultValue };
-}
-
-// ── Engine 4: Table Column Grid Interpolator ─────────────────────────
-function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
-    // 1. Find table column headers printed on the page ("Item Description", "Quantity", "Price", "Amount", "Total")
-    const headerBlocks = rawBlocks.filter(tb => {
-        const text = (tb.str || "").trim();
-        return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
-    }).sort((a, b) => a.x - b.x);
-
-    // Group header blocks on the same table header band (+/- 35px tolerance)
-    const headerRows = [];
-    headerBlocks.forEach(hb => {
-        let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 35);
-        if (!hr) {
-            hr = { y: hb.y, height: hb.height, blocks: [] };
-            headerRows.push(hr);
-        }
-        hr.blocks.push(hb);
-    });
-
-    const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
-    if (!mainHeaderRow && fields.length < 2) return fields;
-
-    // Group existing fields into horizontal row bands (tolerance +/- 12px)
-    const rowGroups = [];
-    for (let f of fields) {
-        let group = rowGroups.find(g => Math.abs(g.y - f.y) <= 12);
-        if (!group) {
-            group = { y: f.y, height: f.height, fields: [] };
-            rowGroups.push(group);
-        }
-        group.fields.push(f);
-    }
-
-    let tableRows = rowGroups.filter(g => g.fields.length >= 1).sort((a, b) => a.y - b.y);
-
-    // If no row fields were detected, generate 10 uniform row baselines starting below the header row!
-    if (tableRows.length < 2 && mainHeaderRow) {
-        const startY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 6);
-        const footerBlock = rawBlocks.find(tb => {
-            const text = (tb.str || "").trim();
-            return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > startY;
-        });
-        const endY = footerBlock ? Math.round(footerBlock.y - 12) : Math.min(startY + 240, 750);
-        
-        tableRows = [];
-        let currY = startY;
-        while (currY + 22 <= endY && tableRows.length < 10) {
-            tableRows.push({ y: currY, height: 22, fields: [] });
-            currY += 24;
-        }
-    }
-
-    if (tableRows.length < 1) return fields;
-
-    const minTableY = tableRows[0].y;
-    const activeHeaders = mainHeaderRow ? mainHeaderRow.blocks : headerBlocks.filter(tb => (minTableY - tb.y) <= 120 && (tb.y - minTableY) <= 25);
-
-    // Build column bands from either detected vector fields OR printed header text
-    const colBands = [];
-
-    // 1. Column bands from existing fields
-    tableRows.forEach(row => {
-        row.fields.forEach(f => {
-            let col = colBands.find(c => Math.abs(c.x - f.x) <= 30);
-            if (!col) {
-                col = { x: f.x, width: f.width, headerText: f.name || "col" };
-                colBands.push(col);
-            }
-        });
-    });
-
-    // 2. Add column bands from header blocks (Quantity, Amount, Price, Description)
-    activeHeaders.forEach(hb => {
-        let col = colBands.find(c => Math.abs(c.x - hb.x) <= 35 || (hb.x >= c.x - 10 && hb.x <= c.x + c.width + 10));
-        if (!col) {
-            const isDesc = /desc|item|details/i.test(hb.str);
-            const colW = isDesc ? 220 : Math.max(50, Math.round(hb.width + 20));
-            colBands.push({
-                x: Math.round(hb.x - 2),
-                width: colW,
-                headerText: hb.str,
-                isFromHeader: true
-            });
-        } else if (!col.headerText || col.headerText === "col") {
-            col.headerText = hb.str;
-        }
-    });
-
-    colBands.sort((a, b) => a.x - b.x);
-
-    // Find bottom footer summary boundary (Subtotal, Tax, BALANCE DUE, Notes)
-    const footerBlock = rawBlocks.find(tb => {
-        const text = (tb.str || "").trim();
-        return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > (minTableY + 40);
-    });
-    const maxTableY = footerBlock ? Math.round(footerBlock.y - 8) : Infinity;
-
-    // Filter table rows so they NEVER exceed the bottom footer boundary!
-    const validTableRows = tableRows.filter(r => (r.y + r.height) <= maxTableY);
-
-    const resultFields = fields.filter(f => f.y < maxTableY);
-
-    // Generate missing fields for ALL valid table rows & columns
-    validTableRows.forEach((row, rowIndex) => {
-        colBands.forEach(col => {
-            const hasFieldInCell = row.fields.some(f => Math.abs(f.x - col.x) <= 35 || (f.x >= col.x - 15 && f.x <= col.x + col.width + 15));
-            if (!hasFieldInCell) {
-                const colHeader = col.headerText || "Column";
-                const sem = resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
-
-                const newField = {
-                    id: Date.now() + Math.random(),
-                    type: "textField",
-                    name: sem.name,
-                    x: Math.max(10, col.x),
-                    y: Math.max(10, row.y),
-                    width: col.width,
-                    height: Math.min(24, row.height || 22),
-                    page: pageNum,
-                    borderStyle: "solid",
-                    fillStyle: "white",
-                    multiline: false,
-                    autofill: sem.autofill || "",
-                    dataFormat: sem.dataFormat || "text"
-                };
-
-                resultFields.push(newField);
-                row.fields.push(newField);
-            }
-        });
-    });
-
-    return resultFields;
-}
-
-// ── Check if bounding box overlaps any printed text on the page ──────
-function overlapsAnyText(box, rawBlocks) {
-    return rawBlocks.some(tb => {
-        const str = (tb.str || "").trim();
-        // Underlines, dashes, sample zeroes ($0.00, 0), placeholders, and prompt labels do NOT block field creation!
-        if (!str || /^[_.\s-]+$/.test(str) || /^\$?\d+[\d.,]*$/.test(str) || /enter|notes|terms|due|date|select|option|click|signature|description|price|qty|total|amount/i.test(str)) {
-            return false;
-        }
-
-        const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
-        const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
-        const overlapArea = xOverlap * yOverlap;
-
-        if (overlapArea <= 0) return false;
-
-        const tbArea = tb.width * tb.height;
-
-        // Discard box ONLY if it covers static title banner text (like "INVOICE", "PURCHASE ORDER")
-        const isHeadingTitle = (tb.height >= 16) || /invoice|factura|statement|receipt|w-?9|tax\s*form/i.test(str);
-        return isHeadingTitle && (overlapArea / tbArea) > 0.25;
-    });
 }
 
 // ── Utilities ────────────────────────────────────────────────────────
