@@ -209,39 +209,21 @@ export async function autoDetectFields(scope = "current") {
     }
 
     if (newFields.length > 0) {
-        const existingPageFields = state.fields.filter(f => pagesToScan.includes(f.page || 1));
+        // Always replace existing fields on scanned pages with fresh, clean auto-detected fields
+        state.fields = state.fields.filter(f => !pagesToScan.includes(f.page || 1));
         
-        // Strict internal deduplication pass on newFields
         const uniqueNewFields = [];
         for (let nf of newFields) {
-            if (!isOverlappingAny(nf, uniqueNewFields) && !isOverlappingAny(nf, state.fields)) {
+            if (!isOverlappingAny(nf, uniqueNewFields)) {
                 uniqueNewFields.push(nf);
             }
         }
 
-        if (uniqueNewFields.length > 0) {
-            state.fields.push(...uniqueNewFields);
-            state.selectedFieldIds.clear();
-            uniqueNewFields.forEach(f => state.selectedFieldIds.add(f.id));
-            saveHistory();
-            totalDetected = uniqueNewFields.length;
-        } else if (existingPageFields.length > 0) {
-            // User re-ran auto-detect on current page: refresh fields with latest names & labels
-            state.fields = state.fields.filter(f => !pagesToScan.includes(f.page || 1));
-            
-            const dedupedReScan = [];
-            for (let nf of newFields) {
-                if (!isOverlappingAny(nf, dedupedReScan)) {
-                    dedupedReScan.push(nf);
-                }
-            }
-
-            state.fields.push(...dedupedReScan);
-            state.selectedFieldIds.clear();
-            dedupedReScan.forEach(f => state.selectedFieldIds.add(f.id));
-            saveHistory();
-            totalDetected = dedupedReScan.length;
-        }
+        state.fields.push(...uniqueNewFields);
+        state.selectedFieldIds.clear();
+        uniqueNewFields.forEach(f => state.selectedFieldIds.add(f.id));
+        saveHistory();
+        totalDetected = uniqueNewFields.length;
     }
 
     return totalDetected;
@@ -851,9 +833,9 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
             const isHeading = isHeadingLabel(cleanStr) || /^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references|personal\s*information|applicant\s*information|general\s*information|employment)$/i.test(cleanStr);
             if (!isHeading) return false;
 
-            const isNearY = Math.abs((tb.y + tb.height / 2) - (ve.y + ve.height / 2)) <= 28 || (tb.y <= ve.y && (ve.y - tb.y) <= 35);
-            const isNearX = Math.abs(tb.x - ve.x) <= 150 || (tb.x + tb.width >= ve.x - 20 && tb.x <= ve.x + ve.width + 20);
-            return isNearY && isNearX;
+            const sameRow = Math.abs((tb.y + tb.height / 2) - (ve.y + ve.height / 2)) <= 40 || Math.abs(tb.y - ve.y) <= 40;
+            const isNearX = Math.abs(tb.x - ve.x) <= 350 || (tb.x <= ve.x + ve.width + 350);
+            return sameRow && isNearX;
         });
         if (isSectionHeaderBox) continue;
 
