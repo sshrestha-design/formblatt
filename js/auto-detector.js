@@ -468,15 +468,16 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
 
                     const leftLabel = rawBlocks.find(tb => {
                         const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 16 || (tb.y < l.y && (l.y - tb.y) <= 25);
-                        const isLeft = tb.x <= (l.x + l.width * 0.6) && (tb.x + tb.width) >= (l.x - 12);
+                        const isLeft = (tb.x <= l.x + l.width * 0.8) && (tb.x + tb.width >= l.x - 20);
                         return isNearY && isLeft;
                     });
 
                     const lineText = leftLabel ? leftLabel.str.trim() : "";
                     const isSectionHeader = isHeadingLabel(lineText) || /^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(lineText);
+                    const hasColonOrUnderline = lineText.includes(":") || /[_]{3,}/.test(lineText);
 
-                    // Skip lines sitting under section headings OR wide lines (>= 200px) without a colon prompt label
-                    if (isSectionHeader || (l.width >= 200 && !lineText.includes(":") && !/[_]{3,}/.test(lineText))) {
+                    // Standalone horizontal lines without an explicit colon prompt (":") or underline ("___"), or lines under section headings, are DECORATIVE DIVIDERS!
+                    if (isSectionHeader || !hasColonOrUnderline) {
                         continue;
                     }
 
