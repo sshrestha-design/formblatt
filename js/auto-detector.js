@@ -256,12 +256,11 @@ export async function autoDetectFields(scope = "current") {
             const page = await state.pdfDoc.getPage(pageNum);
             const viewport = page.getViewport({ scale: 1.0 });
 
-            // 1. Authoritative AcroForm passthrough
+            // 1. Authoritative AcroForm passthrough — real widgets are trusted
+            // as-is, but a page having SOME real widgets doesn't mean the
+            // rest of the page has no blank fields left to detect. We run
+            // geometric detection seeded with the widget rects as occupied space.
             const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
-            if (widgetFields.length > 0) {
-                newFields.push(...widgetFields);
-                continue;
-            }
 
             const textContent = await page.getTextContent();
             
@@ -278,8 +277,8 @@ export async function autoDetectFields(scope = "current") {
                 };
             }).filter(tb => tb.str.length > 0);
 
-            const pageFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames);
-            newFields.push(...pageFields);
+            const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, widgetFields);
+            newFields.push(...widgetFields, ...geometricFields);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
@@ -307,8 +306,9 @@ export async function autoDetectFields(scope = "current") {
 // ============================================================================
 // 4. DETECTION PIPELINE
 // ============================================================================
-function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
-    const fields = [];
+function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = []) {
+    const fields = [...existingFields];
+    const seedCount = existingFields.length;
     const pageWidth = viewport.width;
     const pageHeight = viewport.height;
     const textLines = clusterIntoLines(rawBlocks);
@@ -710,7 +710,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
         }
     }
 
-    return fields;
+    return fields.slice(seedCount);
 }
 
 // ============================================================================

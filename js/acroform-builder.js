@@ -152,9 +152,10 @@ export async function buildPdf(options = {}) {
             } else if (f.type === "radioGroup") {
                 let rg;
                 try { rg = form.getRadioGroup(nm); } catch { rg = form.createRadioGroup(nm); }
-                rg.addOptionToPage(f.radioValue || "Option1", page, common);
+                const optionValue = f.radioValue || f.value || `option_${f.id}`;
+                rg.addOptionToPage(optionValue, page, common);
                 if (f.defaultChecked) {
-                    try { rg.select(f.radioValue || "Option1"); } catch(e) {}
+                    try { rg.select(optionValue); } catch(e) {}
                 }
 
             } else if (f.type === "signature") {
