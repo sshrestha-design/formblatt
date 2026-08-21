@@ -128,19 +128,32 @@ export function renderLayers(onSelect, onRerender) {
         });
 
         // ── Drag over group header: Drop to add to group ──────────────
-        header.addEventListener("dragover", e => {
+        // A depth counter avoids flicker: native dragenter/dragleave fire
+        // when the cursor crosses onto/off of child elements (icons, the
+        // rename button, the name span) inside the header, not just when
+        // truly leaving it — a plain dragover/dragleave toggle strobes the
+        // highlight on/off as the cursor moves across those children.
+        let groupDragDepth = 0;
+        header.addEventListener("dragenter", e => {
             e.preventDefault();
-            e.dataTransfer.dropEffect = "move";
+            groupDragDepth++;
             header.classList.add("drag-over-group");
         });
 
+        header.addEventListener("dragover", e => {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = "move";
+        });
+
         header.addEventListener("dragleave", () => {
-            header.classList.remove("drag-over-group");
+            groupDragDepth = Math.max(0, groupDragDepth - 1);
+            if (groupDragDepth === 0) header.classList.remove("drag-over-group");
         });
 
         header.addEventListener("drop", e => {
             e.preventDefault();
             e.stopPropagation();
+            groupDragDepth = 0;
             header.classList.remove("drag-over-group");
 
             if (currentDraggedFieldIds.length > 0) {
@@ -352,25 +365,34 @@ function createFieldLayerItem(f, onSelect, onRerender) {
 
     item.addEventListener("dragend", () => {
         item.classList.remove("is-dragging");
+        itemDragDepth = 0;
         currentDraggedFieldIds = [];
         document.querySelectorAll(".drag-over-group, .drag-over-ungroup, .drag-over-item").forEach(el => {
             el.classList.remove("drag-over-group", "drag-over-ungroup", "drag-over-item");
         });
     });
 
-    item.addEventListener("dragover", e => {
+    let itemDragDepth = 0;
+    item.addEventListener("dragenter", e => {
         e.preventDefault();
-        e.dataTransfer.dropEffect = "move";
+        itemDragDepth++;
         item.classList.add("drag-over-item");
     });
 
+    item.addEventListener("dragover", e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+    });
+
     item.addEventListener("dragleave", () => {
-        item.classList.remove("drag-over-item");
+        itemDragDepth = Math.max(0, itemDragDepth - 1);
+        if (itemDragDepth === 0) item.classList.remove("drag-over-item");
     });
 
     item.addEventListener("drop", e => {
         e.preventDefault();
         e.stopPropagation();
+        itemDragDepth = 0;
         item.classList.remove("drag-over-item");
 
         if (currentDraggedFieldIds.length > 0 && !currentDraggedFieldIds.includes(f.id)) {

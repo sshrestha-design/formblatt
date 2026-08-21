@@ -277,6 +277,21 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     initMultiSelectTools(onFieldUpdated);
 }
 
+// Lightweight width/height-only sync, used during live drag/resize on the
+// canvas (fires at mousemove frequency). Unlike populateProperties(), this
+// touches only the two inputs that can actually change mid-drag/resize —
+// position (x/y) isn't shown in this panel at all, and everything else
+// (badges, signature buttons, typography, dropdown options, checkboxes)
+// is unaffected by moving or resizing a field, so re-syncing it on every
+// mousemove was pure wasted reflow.
+export function syncDimensionInputsLive(field) {
+    if (!field) return;
+    const widthInput = document.getElementById("width");
+    const heightInput = document.getElementById("height");
+    if (widthInput && document.activeElement !== widthInput) widthInput.value = field.width || "";
+    if (heightInput && document.activeElement !== heightInput) heightInput.value = field.height || "";
+}
+
 export function populateProperties(field) {
     const emptyPanel = document.getElementById("rightPanelEmpty");
     const singleProps = document.getElementById("fieldProps");

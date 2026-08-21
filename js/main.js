@@ -3,7 +3,7 @@ import { state, getSelectedField, setSelectedField, copySelectedFields, pasteCli
 import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
-import { initPropertiesPanel, populateProperties } from "./properties-panel.js";
+import { initPropertiesPanel, populateProperties, syncDimensionInputsLive } from "./properties-panel.js";
 import { renderOverlays, updateOverlayPositionsDirectly } from "./overlay-manager.js";
 import { initCanvasController, handleFieldMouseDown, handleResizeStart } from "./canvas-controller.js";
 import { initLandingController, showLandingScreen, renderLandingReviews } from "./landing-controller.js";
@@ -74,7 +74,10 @@ const canvasHandlers = {
     },
     onFieldMoving: () => {
         updateOverlayPositionsDirectly();
-        populateProperties(getSelectedField());
+        // Lightweight sync during live drag/resize (fires per mousemove) —
+        // full populateProperties() here was the source of the canvas jank,
+        // re-touching ~25 unrelated DOM nodes on every tick.
+        syncDimensionInputsLive(getSelectedField());
     },
     onFieldUpdated: () => {
         refreshUI();
