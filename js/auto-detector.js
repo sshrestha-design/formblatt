@@ -320,34 +320,38 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             if (/^[\s]*(?:Web Portal|Phone Support|First Time|Monthly|Standard|Full-Time)/i.test(textAfter)) continue;
             if (/select\s*all|select\s*one/i.test(cleanLabel)) continue;
 
-            // Find physical item in line where colon occurs
-            const matchColonStr = m[0]; // e.g. "Name:" or "Date (YYYY-MM-DD):"
-            let promptEndX = line.x + line.width;
+            // Find exact physical right edge of the prompt
+            let promptEndX = line.x;
+            let runningStr = "";
             for (const it of line.items) {
-                if (it.str.includes(":") && matchColonStr.includes(it.str.replace(/.*[:]/, ":"))) {
-                    promptEndX = it.x + it.width;
-                    break;
+                runningStr += (runningStr ? " " : "") + it.str;
+                if (it.str.includes(":") || (cleanLabel.length > 0 && runningStr.includes(cleanLabel))) {
+                    promptEndX = Math.max(promptEndX, it.x + it.width);
+                    if (it.str.includes(":")) break;
                 }
             }
 
-            const targetX = Math.round(promptEndX + 4);
+            const targetX = Math.round(promptEndX + 6);
+            let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
+            let targetH = isSig ? 38 : (isMulti ? 50 : 20);
+            let targetW = isDate ? 95 : (isSig ? 200 : (isMulti ? 300 : 150));
 
-            // Find the closest next text item on the current line to clamp width snugly
-            let nextItemX = pageWidth - 25;
-            for (const it of rawBlocks) {
-                if (Math.abs(it.y - line.y) <= 7 && it.x > targetX + 4) {
-                    nextItemX = Math.min(nextItemX, it.x);
+            // Strict collision avoidance: clamp targetW against ALL text blocks on the page
+            let maxAllowedX = pageWidth - 25;
+            for (const tb of rawBlocks) {
+                if (tb.x > targetX + 2) {
+                    const vOverlap = Math.max(0, Math.min(targetY + targetH, tb.y + tb.height) - Math.max(targetY, tb.y));
+                    if (vOverlap > 3) {
+                        maxAllowedX = Math.min(maxAllowedX, tb.x);
+                    }
                 }
             }
 
-            const availableW = Math.max(35, nextItemX - targetX - 8);
+            targetW = Math.max(35, Math.min(targetW, maxAllowedX - targetX - 8));
+
             const isSig = /signature|sign/i.test(cleanLabel);
             const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
             const isMulti = /comments|notes|remarks|responsibilities|description/i.test(cleanLabel);
-
-            let targetW = isDate ? Math.min(95, availableW) : (isSig ? Math.min(200, availableW) : (isMulti ? Math.min(300, availableW) : Math.min(150, availableW)));
-            let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
-            let targetH = isSig ? 38 : (isMulti ? 50 : 20);
 
             const sem = resolveSemanticProps(cleanLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
@@ -364,8 +368,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 fillStyle: "white",
                 multiline: isMulti || sem.multiline || false,
                 autofill: sem.autofill || "",
-                dataFormat: sem.dataFormat || "text",
-                ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
+                dataFormat: isDate ? "date" : (sem.dataFormat || "text")
             };
 
             if (!isOverlapping(newField, fields, 0.35)) {
