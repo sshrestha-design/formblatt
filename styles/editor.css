@@ -278,7 +278,7 @@
     background: #ffffff;
     border-radius: 5px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 1px rgba(0, 0, 0, 0.04);
-    transition: transform 0.24s cubic-bezier(0.34, 1.45, 0.7, 1), opacity 0.15s ease;
+    transition: transform 0.16s cubic-bezier(0.34, 1.45, 0.7, 1), opacity 0.12s ease;
     will-change: transform;
     pointer-events: none;
     z-index: 1;
@@ -296,22 +296,22 @@
     opacity: 0;
 }
 
-/* ── Disney-Inspired Micro-Animation Keyframes (Anticipation + Stretch + Overshoot) ── */
+/* ── Disney-Inspired Micro-Animation Keyframes (Snappy 180ms) ── */
 @keyframes disneyGliderToNone {
     0% {
         transform: translateX(0%) scaleX(1) scaleY(1);
     }
     20% {
-        /* Anticipation: wind-up / micro-drawback */
-        transform: translateX(-4.5%) scaleX(0.93) scaleY(1.04);
+        /* Snappy Anticipation wind-up */
+        transform: translateX(-4%) scaleX(0.94) scaleY(1.03);
     }
     60% {
         /* Squash & stretch during flight */
-        transform: translateX(64%) scaleX(1.14) scaleY(0.92);
+        transform: translateX(64%) scaleX(1.12) scaleY(0.94);
     }
     82% {
-        /* Overshoot past destination */
-        transform: translateX(103.5%) scaleX(0.97) scaleY(1.02);
+        /* Gentle micro-overshoot */
+        transform: translateX(103%) scaleX(0.98) scaleY(1.01);
     }
     100% {
         /* Rebound & settle */
@@ -324,16 +324,16 @@
         transform: translateX(100%) scaleX(1) scaleY(1);
     }
     20% {
-        /* Anticipation: wind-up / micro-drawback */
-        transform: translateX(104.5%) scaleX(0.93) scaleY(1.04);
+        /* Snappy Anticipation wind-up */
+        transform: translateX(104%) scaleX(0.94) scaleY(1.03);
     }
     60% {
         /* Squash & stretch during flight */
-        transform: translateX(36%) scaleX(1.14) scaleY(0.92);
+        transform: translateX(36%) scaleX(1.12) scaleY(0.94);
     }
     82% {
-        /* Overshoot past destination */
-        transform: translateX(-3.5%) scaleX(0.97) scaleY(1.02);
+        /* Gentle micro-overshoot */
+        transform: translateX(-3%) scaleX(0.98) scaleY(1.01);
     }
     100% {
         /* Rebound & settle */
@@ -342,22 +342,22 @@
 }
 
 .segmented-toggle.anim-none .segmented-glider {
-    animation: disneyGliderToNone 0.28s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: disneyGliderToNone 0.18s cubic-bezier(0.2, 1, 0.4, 1) forwards;
 }
 
 .segmented-toggle.anim-solid .segmented-glider {
-    animation: disneyGliderToSolid 0.28s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: disneyGliderToSolid 0.18s cubic-bezier(0.2, 1, 0.4, 1) forwards;
 }
 
 @keyframes disneySwatchPop {
     0% {
-        transform: scale(0.82);
+        transform: scale(0.85);
     }
     45% {
-        transform: scale(1.22);
+        transform: scale(1.2);
     }
     75% {
-        transform: scale(0.95);
+        transform: scale(0.96);
     }
     100% {
         transform: scale(1);
@@ -365,7 +365,7 @@
 }
 
 .color-swatch-btn.just-clicked {
-    animation: disneySwatchPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: disneySwatchPop 0.16s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .segmented-opt {
