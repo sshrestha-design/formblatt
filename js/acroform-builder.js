@@ -27,10 +27,21 @@ export async function buildPdf(options = {}) {
         if (f.autofill && (!f.name || f.name.startsWith("field_") || f.name.startsWith("textField_") || f.name.startsWith("input_"))) {
             nm = f.autofill;
         }
-        if (!nm || usedNames.has(nm)) {
-            nm = `${nm || "field"}_${f.id}`;
+        // NOTE: radioGroup fields are exempt from the collision-rename below.
+        // Multiple option fields in the SAME group are *supposed* to share one
+        // name — that shared name is exactly how pdf-lib knows they belong to
+        // the same mutually-exclusive RadioGroup (see form.getRadioGroup(nm) /
+        // rg.addOptionToPage(...) further down). Force-renaming every option
+        // after the first would silently split each row into isolated,
+        // single-option radio groups instead of one real group.
+        if (f.type !== "radioGroup") {
+            if (!nm || usedNames.has(nm)) {
+                nm = `${nm || "field"}_${f.id}`;
+            }
+            usedNames.add(nm);
+        } else if (!nm) {
+            nm = `radioGroup_${f.id}`;
         }
-        usedNames.add(nm);
 
         // Coordinate inversion (PDF origin is bottom-left)
         const pdfY = pageHeight - f.y - f.height;
