@@ -147,6 +147,8 @@ export function showEditorScreen(onReady) {
             if (onReady) onReady();
         });
     }
+    const shortcutBar = document.getElementById("editorShortcutBar");
+    if (shortcutBar) shortcutBar.style.display = "flex";
     if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
@@ -288,6 +290,22 @@ export function initLandingController(onLoaded) {
             }
         });
     }
+
+    // Interactive Demo Playground Event Handlers
+    const demoNameInput = document.getElementById("demoNameInput");
+    const demoSigPreview = document.getElementById("demoSigPreview");
+    if (demoNameInput && demoSigPreview) {
+        demoNameInput.addEventListener("input", e => {
+            const val = e.target.value.trim();
+            demoSigPreview.textContent = val.length > 0 ? val : "Alex Morgan";
+        });
+    }
+
+    // Dismiss Floating Editor Shortcut Bar
+    document.getElementById("closeShortcutBarBtn")?.addEventListener("click", () => {
+        const bar = document.getElementById("editorShortcutBar");
+        if (bar) bar.style.display = "none";
+    });
 
     // Sample Document Cards & Intermediary Preview Modal
     let pendingTemplateKey = null;
