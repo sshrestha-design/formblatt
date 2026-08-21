@@ -885,14 +885,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        // Toggle Left Sidebar (Ctrl+\ / Cmd+\)
+        if ((e.ctrlKey || e.metaKey) && e.key === "\\") {
+            e.preventDefault();
+            const leftPanel = document.querySelector(".left-panel");
+            if (leftPanel) leftPanel.classList.toggle("collapsed");
+            return;
+        }
+
         // Delete Selected
         if (e.key === "Backspace" || e.key === "Delete") {
             if (state.selectedFieldIds.size > 0) {
                 e.preventDefault();
+                const deletedCount = state.selectedFieldIds.size;
                 state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
                 setSelectedField(null);
                 saveHistory();
                 refreshUI();
+                showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
             }
             return;
         }
@@ -958,7 +968,43 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    // Toggle Sidebar Button
+    document.getElementById("toggleSidebarBtn")?.addEventListener("click", () => {
+        const leftPanel = document.querySelector(".left-panel");
+        if (leftPanel) leftPanel.classList.toggle("collapsed");
+    });
+
     // Default to landing screen
     showLandingScreen();
     if (typeof lucide !== "undefined") lucide.createIcons();
 });
+
+// Transient Undo Toast Notification
+function showUndoToast(msg) {
+    let toast = document.getElementById("transientUndoToast");
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "transientUndoToast";
+        toast.className = "transient-undo-toast";
+        toast.style.cssText = "position: fixed; bottom: 24px; right: 24px; z-index: 1100; background: #0f172a; color: #ffffff; padding: 10px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); transition: opacity 0.25s ease;";
+        document.body.appendChild(toast);
+    }
+    toast.innerHTML = `
+        <span>${msg}</span>
+        <button id="toastUndoBtn" style="background: #2563eb; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+            Undo (Ctrl+Z)
+        </button>
+    `;
+    toast.style.display = "flex";
+    toast.style.opacity = "1";
+
+    document.getElementById("toastUndoBtn")?.addEventListener("click", () => {
+        undo(refreshUI);
+        toast.style.display = "none";
+    });
+
+    clearTimeout(window.undoToastTimeout);
+    window.undoToastTimeout = setTimeout(() => {
+        if (toast) toast.style.display = "none";
+    }, 4500);
+}
