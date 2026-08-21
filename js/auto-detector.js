@@ -423,16 +423,35 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     for (const block of rawBlocks) {
         const text = block.str.trim();
         if (isTitleOrStatic(text)) continue;
-        if (/\?$/.test(text) && !text.includes(":") && !/^(?:How likely|May we quote|Follow-up)/i.test(text) && !/(\[\s*\]|\(\s*\))/.test(text)) {
+        if (/\?$/.test(text) && !text.includes(":") && !/^(?:How likely|May we quote|Follow-up|Rate|Please rate)/i.test(text) && !/(\[\s*\]|\(\s*\))/.test(text)) {
+            // Skip if question is part of a rating scale / NPS matrix with options below
+            const hasRatingScaleBelow = rawBlocks.some(tb => {
+                return tb.y > block.y && tb.y <= block.y + 40 && (/^[(\[]|☐|□|\b(?:Extremely|Likely|Poor|Excellent|Strongly|Disagree|Agree)\b/i.test(tb.str));
+            });
+            if (hasRatingScaleBelow) continue;
+
+            const targetAreaY = Math.max(10, Math.round(block.y + block.height + 2));
+
+            // Clamp height against the next text block below
+            let nextBlockY = viewport.height - 35;
+            for (const tb of rawBlocks) {
+                if (tb.y > targetAreaY + 2) {
+                    nextBlockY = Math.min(nextBlockY, tb.y);
+                }
+            }
+
+            const availH = Math.round(nextBlockY - targetAreaY - 6);
+            if (availH < 18) continue; // Not enough vertical room without overlapping next question
+
             const sem = resolveSemanticProps(text.slice(0, 30), "textField", usedNames);
             const areaField = {
                 id: generateFieldId(),
                 type: "textField",
                 name: sem.name,
                 x: Math.max(10, block.x),
-                y: Math.max(10, block.y + block.height + 2),
+                y: targetAreaY,
                 width: Math.round(pageWidth - block.x - 45),
-                height: 28,
+                height: Math.min(45, Math.max(22, availH)),
                 page: pageNum,
                 borderStyle: "solid",
                 fillStyle: "white",
