@@ -17,10 +17,10 @@ import { formatFieldDisplayName } from "./overlay-manager.js";
 const FIELD_TYPE_STYLES = {
     textField: {
         label: "Text Field",
-        bg: "#eff6ff",
-        text: "#0284c7",
-        border: "#bfdbfe",
-        solidBg: "#0284c7"
+        bg: "#F3F4F6",
+        text: "#374151",
+        border: "#E5E7EB",
+        solidBg: "#4B5563"
     },
     signature: {
         label: "Signature",
