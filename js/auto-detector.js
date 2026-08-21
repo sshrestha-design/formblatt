@@ -338,6 +338,15 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 charOffset += it.str.length + 1;
             }
 
+            // Skip prompt if it is a choice group header (has checkboxes directly on line or below)
+            const hasCheckboxesBelow = rawBlocks.some(tb => {
+                const isBelow = tb.y > line.y && (tb.y - line.y) <= 22;
+                const isAligned = tb.x >= promptEndX - 60 && tb.x <= promptEndX + 140;
+                const isBox = /^[(\[]|☐|□|✓|✔|○|●|■/.test(tb.str);
+                return isBelow && isAligned && isBox;
+            });
+            if (hasCheckboxesBelow) continue;
+
             const targetX = Math.round(promptEndX + 6);
             let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
             let targetH = isSig ? 38 : (isMulti ? 50 : 20);
@@ -354,7 +363,13 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 }
             }
 
-            targetW = Math.max(35, Math.min(targetW, maxAllowedX - targetX - 8));
+            const availableW = maxAllowedX - targetX - 8;
+            if (availableW < 30) {
+                // Not enough horizontal room for a field without colliding into next label
+                continue;
+            }
+
+            targetW = Math.min(targetW, availableW);
 
             const sem = resolveSemanticProps(cleanLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
