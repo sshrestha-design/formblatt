@@ -238,6 +238,11 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     // AFFORDANCE 1: Standalone & Labelled Checkboxes & Radios (with Fieldset Groups)
     // ------------------------------------------------------------------------
     for (const line of textLines) {
+        // Skip date format placeholder brackets like [ YYYY - MM - DD ]
+        if (/\[\s*(?:yyyy|mm|dd)[^\]]*\]/i.test(line.str)) {
+            continue;
+        }
+
         // Detect group prompt / legend if line starts with "Prompt:" before choices
         let linePrompt = "";
         const colonIdx = line.str.indexOf(":");
