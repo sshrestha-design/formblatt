@@ -152,13 +152,11 @@ export async function importProjectJson(file, onLoaded) {
                 const es = document.getElementById("emptyState");
                 if (es) es.style.display = "none";
 
-                import("./pdf-engine.js").then(async mod => {
-                    await mod.goToPage(1);
-                    saveHistory();
-                    import("./landing-controller.js").then(landingMod => {
-                        landingMod.showEditorScreen(onLoaded);
-                    });
-                });
+                const pdfEngineMod = await import("./pdf-engine.js");
+                await pdfEngineMod.goToPage(1);
+                saveHistory();
+                const landingMod = await import("./landing-controller.js");
+                landingMod.showEditorScreen(onLoaded);
                 return;
             }
         }
