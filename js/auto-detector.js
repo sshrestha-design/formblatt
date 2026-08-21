@@ -298,6 +298,23 @@ export async function autoDetectFields(scope = "current") {
         state.selectedFieldIds.clear();
         saveHistory();
         totalDetected = finalUnique.length;
+
+        // Debug aid: which heuristic produced each field. Open devtools
+        // console after running Auto-Detect to see this table — it's the
+        // fastest way to pin down which affordance is generating a
+        // specific stray/misplaced field (match it by x/y against what
+        // you see on the canvas).
+        console.table(finalUnique.map(f => ({
+            id: f.id,
+            type: f.type,
+            name: f.name,
+            page: f.page,
+            x: f.x,
+            y: f.y,
+            width: f.width,
+            height: f.height,
+            detectedBy: f.detectedBy || f.sourcedFrom || "unknown"
+        })));
     }
 
     return totalDetected;
@@ -381,7 +398,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                         fillStyle: "white",
                         multiline: false,
                         autofill: "",
-                        dataFormat: "text"
+                        dataFormat: "text",
+                        detectedBy: "affordance1_checkbox_radio"
                     };
 
                     if (!isOverlapping(newField, fields, 0.4)) {
@@ -518,7 +536,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 fillStyle: "white",
                 multiline: isMulti || sem.multiline || false,
                 autofill: sem.autofill || "",
-                dataFormat: isDate ? "date" : (sem.dataFormat || "text")
+                dataFormat: isDate ? "date" : (sem.dataFormat || "text"),
+                detectedBy: "affordance2_colon_prompt"
             };
 
             if (!isOverlapping(newField, fields, 0.35)) {
@@ -568,7 +587,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 fillStyle: "white",
                 multiline: true,
                 autofill: "",
-                dataFormat: "text"
+                dataFormat: "text",
+                detectedBy: "affordance3_open_question"
             };
 
             if (!isOverlapping(areaField, fields, 0.35)) {
@@ -733,7 +753,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                             fillStyle: "white",
                             multiline: false,
                             autofill: "",
-                            dataFormat: (col.id === "amount" || col.id === "unit_price") ? "currency" : ((col.id === "qty") ? "number" : "text")
+                            dataFormat: (col.id === "amount" || col.id === "unit_price") ? "currency" : ((col.id === "qty") ? "number" : "text"),
+                            detectedBy: `affordance4_table_col-${col.id}_row-${rowNum}`
                         };
 
                         if (!isOverlapping(cellField, fields, 0.35)) {
