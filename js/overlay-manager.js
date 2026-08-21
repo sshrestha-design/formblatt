@@ -178,16 +178,37 @@ export function renderOverlays(handlers) {
             div.appendChild(handle);
         }
 
-        // Double-click for In-Place Quick Dimension & Setup HUD
-        div.addEventListener("dblclick", e => {
-            e.stopPropagation();
-            if (f.type === "signature" && !f.signatureImage) {
-                openSignatureModal(f, () => {
+        // Accessibility & Keyboard Navigation (Form Design Patterns Ch. 1 & 3)
+        div.tabIndex = 0;
+        div.setAttribute("role", f.type === "checkBox" ? "checkbox" : (f.type === "radioGroup" ? "radio" : (f.type === "dropdown" ? "combobox" : "textbox")));
+        div.setAttribute("aria-label", f.name || "Form field");
+        if (f.type === "checkBox") {
+            div.setAttribute("aria-checked", f.defaultChecked ? "true" : "false");
+        }
+
+        div.addEventListener("focus", () => {
+            if (!state.selectedFieldIds.has(f.id)) {
+                state.selectedFieldIds.clear();
+                state.selectedFieldIds.add(f.id);
+                renderOverlays(handlers);
+                if (handlers.onSelect) handlers.onSelect(f);
+            }
+        });
+
+        div.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") {
+                if (f.type === "checkBox") {
+                    e.preventDefault();
+                    f.defaultChecked = !f.defaultChecked;
                     renderOverlays(handlers);
                     if (handlers.onUpdated) handlers.onUpdated(f);
-                });
-            } else {
-                openFieldQuickDimensionHUD(f, div, handlers);
+                } else if (f.type === "signature" && !f.signatureImage) {
+                    e.preventDefault();
+                    openSignatureModal(f, () => {
+                        renderOverlays(handlers);
+                        if (handlers.onUpdated) handlers.onUpdated(f);
+                    });
+                }
             }
         });
 
