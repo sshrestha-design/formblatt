@@ -216,8 +216,9 @@ export class TopologicalTableSolver {
             }
         }
 
-        // Filter out any previous fields that were inside the table data region
-        const resultFields = fields.filter(f => f.y < tableTopY || f.y > tableBottomY);
+        // Filter out any previous fields that were inside the table header or data region
+        const headerMinY = Math.round(mainHeaderRow.y - 12);
+        const resultFields = fields.filter(f => f.y < headerMinY || f.y > tableBottomY);
 
         // Generate fields for all rows and columns
         tableRows.forEach((row, rowIndex) => {
@@ -636,8 +637,9 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        // Discard boxes in top 55px margin
+                        // Discard boxes in top 55px margin or tall narrow vertical tabs (From, To tabs)
                         if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
+                        if (boxW < 36 && boxH >= 28) continue;
 
                         if (boxW >= 22 && boxH >= 12 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                             if (boxW < 22 && boxH < 22) continue;
@@ -666,6 +668,7 @@ async function extractVectorPaths(page, viewport, rawBlocks, occupancyGrid) {
                 const canvasX = tx;
 
                 if (canvasY < 55 || canvasY >= (pageHeight * 0.94)) continue;
+                if (boxW < 36 && boxH >= 28) continue;
 
                 if (boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                     if (boxW < 22 && boxH < 22) continue;
@@ -925,9 +928,11 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
         const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks);
         // If a vector box has no associated label and is in the header area or very large, discard it!
         if (!rawLabel && (ve.y < 120 || (ve.width * ve.height) > 5000)) continue;
+        if (ve.width < 36 && ve.height >= 28) continue;
 
         const effectiveLabel = rawLabel || `field_${usedNames.size + 1}`;
         if (isHeadingLabel(effectiveLabel)) continue;
+        if (/^(?:from|to|bill\s*from|bill\s*to)$/i.test(effectiveLabel) && ve.width < 50) continue;
 
         const sem = DirectionalRaycaster.resolveSemanticProperties(effectiveLabel, "textField", usedNames);
         let finalType = sem.type;
