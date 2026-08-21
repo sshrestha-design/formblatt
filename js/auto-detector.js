@@ -922,9 +922,27 @@ function resolveSemanticProperties(rawLabel, defaultType = "textField", usedName
 
 // ── Engine 4: Table Column Grid Interpolator ─────────────────────────
 function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
-    if (fields.length < 2) return fields;
+    // 1. Find table column headers printed on the page ("Item Description", "Quantity", "Price", "Amount", "Total")
+    const headerBlocks = rawBlocks.filter(tb => {
+        const text = (tb.str || "").trim();
+        return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
+    }).sort((a, b) => a.x - b.x);
 
-    // Group fields into horizontal row bands (tolerance +/- 12px)
+    // Group header blocks on the same baseline
+    const headerRows = [];
+    headerBlocks.forEach(hb => {
+        let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 14);
+        if (!hr) {
+            hr = { y: hb.y, height: hb.height, blocks: [] };
+            headerRows.push(hr);
+        }
+        hr.blocks.push(hb);
+    });
+
+    const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
+    if (!mainHeaderRow && fields.length < 2) return fields;
+
+    // Group existing fields into horizontal row bands (tolerance +/- 12px)
     const rowGroups = [];
     for (let f of fields) {
         let group = rowGroups.find(g => Math.abs(g.y - f.y) <= 12);
@@ -935,18 +953,29 @@ function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
         group.fields.push(f);
     }
 
-    // Require at least 2 stacked rows to qualify as a table
-    const tableRows = rowGroups.filter(g => g.fields.length >= 1).sort((a, b) => a.y - b.y);
-    if (tableRows.length < 2) return fields;
+    let tableRows = rowGroups.filter(g => g.fields.length >= 1).sort((a, b) => a.y - b.y);
 
-    // Find table column headers printed in text blocks above the table
+    // If no row fields were detected, generate 10 uniform row baselines starting below the header row!
+    if (tableRows.length < 2 && mainHeaderRow) {
+        const startY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 6);
+        const footerBlock = rawBlocks.find(tb => {
+            const text = (tb.str || "").trim();
+            return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > startY;
+        });
+        const endY = footerBlock ? Math.round(footerBlock.y - 12) : Math.min(startY + 240, 750);
+        
+        tableRows = [];
+        let currY = startY;
+        while (currY + 22 <= endY && tableRows.length < 10) {
+            tableRows.push({ y: currY, height: 22, fields: [] });
+            currY += 24;
+        }
+    }
+
+    if (tableRows.length < 1) return fields;
+
     const minTableY = tableRows[0].y;
-    const headerBlocks = rawBlocks.filter(tb => {
-        const text = (tb.str || "").trim();
-        const isHeaderWord = /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
-        const isNearHeaderBand = (minTableY - tb.y) <= 120 && (tb.y - minTableY) <= 25;
-        return isHeaderWord && isNearHeaderBand;
-    }).sort((a, b) => a.x - b.x);
+    const activeHeaders = mainHeaderRow ? mainHeaderRow.blocks : headerBlocks.filter(tb => (minTableY - tb.y) <= 120 && (tb.y - minTableY) <= 25);
 
     // Build column bands from either detected vector fields OR printed header text
     const colBands = [];
@@ -963,10 +992,11 @@ function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
     });
 
     // 2. Add column bands from header blocks (Quantity, Amount, Price, Description)
-    headerBlocks.forEach(hb => {
+    activeHeaders.forEach(hb => {
         let col = colBands.find(c => Math.abs(c.x - hb.x) <= 35 || (hb.x >= c.x - 10 && hb.x <= c.x + c.width + 10));
         if (!col) {
-            const colW = Math.max(50, Math.round(hb.width + 16));
+            const isDesc = /desc|item|details/i.test(hb.str);
+            const colW = isDesc ? 220 : Math.max(50, Math.round(hb.width + 20));
             colBands.push({
                 x: Math.round(hb.x - 2),
                 width: colW,
@@ -1028,8 +1058,11 @@ function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
 // ── Check if bounding box overlaps any printed text on the page ──────
 function overlapsAnyText(box, rawBlocks) {
     return rawBlocks.some(tb => {
-        // Underlines ("_____") or dashes ("-----") are valid input line graphic indicators
-        if (/^[_.\s-]+$/.test(tb.str)) return false;
+        const str = (tb.str || "").trim();
+        // Underlines, dashes, sample zeroes ($0.00, 0), placeholders, and prompt labels do NOT block field creation!
+        if (!str || /^[_.\s-]+$/.test(str) || /^\$?\d+[\d.,]*$/.test(str) || /enter|notes|terms|due|date|select|option|click|signature|description|price|qty|total|amount/i.test(str)) {
+            return false;
+        }
 
         const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
         const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
@@ -1037,14 +1070,11 @@ function overlapsAnyText(box, rawBlocks) {
 
         if (overlapArea <= 0) return false;
 
-        const boxArea = box.width * box.height;
         const tbArea = tb.width * tb.height;
 
-        // Discard any candidate box that overlaps printed prompt text (e.g. "Payment Terms:", "Notes:", "Invoice")
-        const minArea = Math.min(boxArea, tbArea);
-        const overlapRatio = minArea > 0 ? (overlapArea / minArea) : 0;
-
-        return overlapRatio > 0.15;
+        // Discard box ONLY if it covers static title banner text (like "INVOICE", "PURCHASE ORDER")
+        const isHeadingTitle = (tb.height >= 16) || /invoice|factura|statement|receipt|w-?9|tax\s*form/i.test(str);
+        return isHeadingTitle && (overlapArea / tbArea) > 0.25;
     });
 }
 
