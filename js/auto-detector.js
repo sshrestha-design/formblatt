@@ -38,6 +38,29 @@ const SEMANTIC_DICTIONARY = [
     { regex: /preferred\s*language|language/i, id: "preferred_language_input", title: "Preferred Language", type: "textField", score: 10 },
     { regex: /gross\s*income|annual\s*income|net\s*income/i, id: "annual_income_input", title: "Annual Income", type: "textField", score: 10 },
 
+    // HR & Employment & Application Forms
+    { regex: /position\s*(?:applied\s*for|desired|title)|applied\s*position/i, id: "position_applied_for_input", title: "Position Applied For", type: "textField", score: 12 },
+    { regex: /desired\s*(?:salary|wage|pay)|hourly\s*(?:rate|wage)|pay\s*rate/i, id: "desired_salary_input", title: "Desired Salary / Wage", type: "textField", score: 12 },
+    { regex: /date\s*available(?:\s*to\s*start)?|available\s*start\s*date|start\s*date/i, id: "start_date_input", title: "Date Available to Start", type: "dateField", score: 12 },
+    { regex: /employment\s*status|status/i, id: "employment_status_input", title: "Employment Status", type: "textField", score: 10 },
+    { regex: /supervisor\s*(?:name\s*)?(?:&|\/|\s*and\s*)?\s*title|supervisor\s*name/i, id: "supervisor_name_title_input", title: "Supervisor Name & Title", type: "textField", score: 12 },
+    { regex: /supervisor\s*phone/i, id: "supervisor_phone_input", title: "Supervisor Phone", type: "textField", autofill: "phone", score: 11 },
+    { regex: /key\s*responsibilities|responsibilities|job\s*duties|duties/i, id: "key_responsibilities_input", title: "Key Responsibilities", type: "textField", multiline: true, score: 12 },
+    { regex: /reason\s*for\s*leaving/i, id: "reason_for_leaving_input", title: "Reason for Leaving", type: "textField", multiline: true, score: 12 },
+    { regex: /previous\s*employer|employer\s*name|company\s*name/i, id: "employer_name_input", title: "Employer / Company Name", type: "textField", autofill: "organization", score: 12 },
+    { regex: /dates\s*employed|employment\s*dates|dates\s*of\s*employment/i, id: "dates_employed_input", title: "Dates Employed (From / To)", type: "textField", score: 12 },
+    { regex: /starting\s*pay|starting\s*salary/i, id: "starting_pay_input", title: "Starting Pay", type: "textField", score: 11 },
+    { regex: /ending\s*pay|ending\s*salary/i, id: "ending_pay_input", title: "Ending Pay", type: "textField", score: 11 },
+    { regex: /high\s*school|college|university|school\s*name/i, id: "school_name_input", title: "High School / College / University", type: "textField", score: 11 },
+    { regex: /degree\s*(?:&|\/|\s*and\s*)?\s*major|highest\s*degree|major/i, id: "degree_major_input", title: "Degree & Major", type: "textField", score: 11 },
+    { regex: /graduation\s*year|year\s*graduated/i, id: "graduation_year_input", title: "Graduation Year", type: "textField", score: 11 },
+    { regex: /authorized\s*to\s*work|work\s*authorization/i, id: "work_authorized_input", title: "Work Authorization", type: "textField", score: 11 },
+    { regex: /require\s*sponsorship|sponsorship/i, id: "require_sponsorship_input", title: "Require Sponsorship", type: "textField", score: 11 },
+    { regex: /felony|convicted/i, id: "felony_conviction_input", title: "Felony Conviction", type: "textField", score: 11 },
+    { regex: /print\s*name|printed\s*name|applicant\s*name/i, id: "printed_name_input", title: "Printed Name", type: "textField", autofill: "name", score: 12 },
+    { regex: /applicant\s*signature|employee\s*signature|signature\s*of\s*applicant/i, id: "applicant_signature_input", title: "Applicant Signature", type: "signature", score: 12 },
+    { regex: /date\s*of\s*application|application\s*date/i, id: "application_date_input", title: "Date of Application", type: "dateField", score: 12 },
+
     // Healthcare & Medical Forms (Patient Intake, Insurance Claims, HIPAA)
     { regex: /patient\s*name/i, id: "patient_name_input", title: "Patient Name", type: "textField", autofill: "name", score: 12 },
     { regex: /patient\s*id|mrn\b|medical\s*record/i, id: "patient_id_input", title: "Patient ID / MRN", type: "textField", score: 12 },
@@ -55,7 +78,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /reason\s*for\s*medication|prescribing\s*physician/i, id: "prescribing_physician_input", title: "Prescribing Physician / Reason", type: "textField", multiline: true, score: 11 },
     { regex: /accessibility\s*accommodations|accommodations/i, id: "accessibility_accommodations_input", title: "Accessibility Accommodations", type: "textField", multiline: true, score: 11 },
 
-    // HR & Employment & Conference Registration Forms
+    // Conference & Event Registration
     { regex: /prefix/i, id: "prefix_input", title: "Prefix", type: "textField", score: 10 },
     { regex: /badge\s*name|nickname/i, id: "badge_name_input", title: "Badge Name / Nickname", type: "textField", score: 11 },
     { regex: /job\s*title|role/i, id: "job_title_input", title: "Job Title / Role", type: "textField", autofill: "organization-title", score: 11 },
@@ -64,7 +87,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /mobile\s*phone|cell\s*phone/i, id: "mobile_phone_input", title: "Mobile Phone Number", type: "textField", autofill: "phone", score: 12 },
     { regex: /country\s*(?:\/|\s*)region|country/i, id: "country_region_input", title: "Country / Region", type: "textField", autofill: "country", score: 11 },
 
-    // Real Estate, Rental & Property Management (Lease Agreements, Rental Apps)
+    // Real Estate & Rental
     { regex: /property\s*address|premises|unit\s*#|apt\s*#/i, id: "property_address_input", title: "Property Address", type: "textField", autofill: "address1", score: 12 },
     { regex: /monthly\s*rent|rent\s*amount/i, id: "monthly_rent_input", title: "Monthly Rent", type: "textField", score: 12 },
     { regex: /security\s*deposit|deposit\s*amount/i, id: "security_deposit_input", title: "Security Deposit", type: "textField", score: 10 },
@@ -72,7 +95,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /tenant|lessee/i, id: "tenant_name_input", title: "Tenant Name", type: "textField", score: 10 },
     { regex: /lease\s*start|move-?in\s*date/i, id: "move_in_date_input", title: "Move-In Date", type: "dateField", score: 10 },
 
-    // Legal, Contracts & Agreements (NDAs, SLA, Release Forms)
+    // Legal, Contracts & Agreements
     { regex: /effective\s*date|execution\s*date/i, id: "effective_date_input", title: "Effective Date", type: "dateField", score: 12 },
     { regex: /disclosing\s*party|party\s*a/i, id: "disclosing_party_input", title: "Disclosing Party", type: "textField", score: 10 },
     { regex: /receiving\s*party|party\s*b/i, id: "receiving_party_input", title: "Receiving Party", type: "textField", score: 10 },
@@ -82,8 +105,8 @@ const SEMANTIC_DICTIONARY = [
     // Standard Person & Contact Fields
     { regex: /first\s*name/i, id: "first_name_input", title: "First Name", type: "textField", autofill: "first_name", score: 10 },
     { regex: /last\s*name|surname/i, id: "last_name_input", title: "Last Name", type: "textField", autofill: "last_name", score: 10 },
-    { regex: /\bm\.?i\.?\b|middle\s*initial/i, id: "middle_initial_input", title: "Middle Initial", type: "textField", score: 10 },
-    { regex: /full\s*name|^name\b/i, id: "full_name_input", title: "Full Name", type: "textField", autofill: "name", score: 10 },
+    { regex: /\bm\.?i\.?\b|middle\s*initial|middle\s*name/i, id: "middle_initial_input", title: "Middle Initial", type: "textField", score: 10 },
+    { regex: /full\s*legal\s*name|legal\s*name|full\s*name|^name\b/i, id: "full_name_input", title: "Full Legal Name", type: "textField", autofill: "name", score: 10 },
     { regex: /city,\s*state,\s*postal\s*code|city,\s*state,\s*zip|city\s*state\s*zip/i, id: "city_state_zip_input", title: "City, State, Postal Code", type: "textField", score: 10 },
     { regex: /location|city|ort|standort/i, id: "location_input", title: "Location", type: "textField", autofill: "city", score: 10 },
     { regex: /e-?p?mail/i, id: "email_address_input", title: "Email Address", type: "textField", autofill: "email", score: 10 },
@@ -94,41 +117,39 @@ const SEMANTIC_DICTIONARY = [
     { regex: /postal\s*code|zip\s*code|zip|postal|postcode|plz/i, id: "zip_code_input", title: "Postal Code", type: "textField", autofill: "zip", score: 10 },
     { regex: /date\s*of\s*birth|dob|birth\s*date|\(mm\/dd\/yyyy\)/i, id: "date_of_birth_input", title: "Date of Birth", type: "dateField", score: 10 },
     { regex: /cardholder\s*\/?\s*attendee\s*signature|signature|sign\s*here|authorized\s*sign/i, id: "signature_input", title: "Signature", type: "signature", score: 10 },
-    { regex: /^date\b|date\s*signed|today.?s\s*date/i, id: "date_signed_input", title: "Date Signed", type: "dateField", score: 10 },
+    { regex: /^date\b|date\s*signed|today.?s\s*date|\(yyyy-mm-dd\)/i, id: "date_signed_input", title: "Date Signed", type: "dateField", score: 10 },
     { regex: /comments|notes|remarks|message|description|explanation/i, id: "comments_input", title: "Additional Comments", type: "textField", multiline: true, score: 10 }
 ];
 
-const CONTACT_OR_RESUME_KEYWORDS = /(?:@|\.(?:com|org|net|io|edu|gov|co|uk|de)|https?:\/\/|\+?\d{2,4}[-\s]?\d{3,4}|\b(?:linkedin|github|twitter|portfolio|behance|dribbble|website|experience|education|skills|projects|summary|profile|awards|languages|hobbies)\b)/i;
+const CONTACT_OR_RESUME_KEYWORDS = /(?:@|\.(?:com|org|net|io|edu|gov|co|uk|de)|https?:\/\/|\+?\d{2,4}[-\s]?\d{3,4}|\b(?:linkedin|github|twitter|portfolio|behance|dribbble|website|experience|skills|projects|summary|awards|languages|hobbies)\b)/i;
 
 function isHeadingLabel(text) {
     if (!text) return false;
     const clean = text.trim().replace(/[:_.\s-]+$/, "");
     if (!clean || clean.length < 2) return false;
 
-    if (/(?:invoice\s*n|inv\s*#|bill\s*to|ship\s*to|due\s*date|po\s*number|p\.o\.\s*#|subtotal|amount\s*due|balance\s*due|total\s*amount|payment\s*terms|\bterms\b|\bdue\b)/i.test(clean)) {
+    // Never filter out actual form prompts
+    if (/(?:signature|date|name|email|phone|address|city|state|zip|ssn|dob|position|employer|company|title|supervisor|salary|wage|education|degree|school|contact|card|amount|due|invoice|po\s*#|reason|responsibilities|authorized|felony|license)/i.test(clean)) {
+        // If it is a numbered section heading like "1. ATTENDEE INFORMATION" or "4. EMPLOYMENT HISTORY", check
+        if (/^\d+[\.\)]\s*(?:ATTENDEE|REGISTRATION|EMPLOYMENT\s*HISTORY|EDUCATION\s*HISTORY|CERTIFICATION|PERSONAL\s*INFO|CONTACT\s*INFO|GENERAL\s*INFO)/i.test(clean)) {
+            return true;
+        }
         return false;
     }
 
-    if (/^(?:job|contract|location|contact|details|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
+    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) return true;
+
+    if (/^(?:contract|details|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(clean) && !text.includes(":") && !/[_]{2,}/.test(text)) {
         return true;
     }
 
-    if (/(?:pdf|form|example|sample|demonstration|section|part|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|general|personal|employment|contact|applicant|signature\s*section|certification|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document|summary|profile|record|details|information|page)/i.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
-        const isFieldKeyword = /^(?:first\s*name|last\s*name|full\s*name|name|email|phone|address|city|state|zip|date|dob|ssn|ein|title|company|country)$/i.test(clean);
-        if (!isFieldKeyword) return true;
-    }
-
-    // Numbered headings like "1. ATTENDEE INFORMATION", "2. REGISTRATION PASS TYPE"
-    if (/^\d+[\.\)]\s*/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) return true;
-    if (/^(?:SECTION|PART|CHAPTER|HEADER|TITLE|SCHEDULE|EXHIBIT|APPENDIX)\s*[\dABCDEFIVX]+/i.test(clean)) return true;
-
-    if (/^[A-Z0-9\s\-\/\&]{5,}$/.test(clean) && !text.includes(":") && !/[_]{3,}/.test(text)) {
-        const isShortFieldLabel = /^(?:SSN|EIN|DOB|NAME|CITY|ZIP|DATE|STATE|PHONE|EMAIL|TITLE|AGE|FAX|ID|QTY|PRICE|TAX|TOTAL|SUBTOTAL|INVOICE)$/i.test(clean);
-        if (!isShortFieldLabel) return true;
+    if (/(?:pdf|form|example|sample|demonstration|chapter|header|heading|overview|instructions|notice|declaration|statement|agreement|terms|conditions|schedule|table\s*of\s*contents|disclaimer|privacy|policy|service|scope|appendix|exhibit|attachment|document)/i.test(clean) && !text.includes(":") && !/[_]{2,}/.test(text)) {
+        return true;
     }
 
     return false;
 }
+
 
 // ============================================================================
 // STAGE 1: Spatial Obstacle & Text Occupancy Grid (Blocked Text Zones)
@@ -688,7 +709,7 @@ function applyMatrix(x, y, m) {
     ];
 }
 
-// ── Helper: Precision 4-Phase Semantic Text Layout & Element Parser ──
+// ── Helper: Precision 5-Phase Semantic Text Layout & Element Parser ──
 function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
     const detected = [];
     const pageWidth = viewport.width;
@@ -701,16 +722,16 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
         const text = line.str.trim();
 
         if (isHeadingLabel(text)) continue;
-        if (line.y < 40 && !line.str.includes(":") && !/[_]{3,}/.test(line.str)) continue;
+        if (line.y < 40 && !line.str.includes(":") && !/[_]{2,}/.test(line.str)) continue;
         if (CONTACT_OR_RESUME_KEYWORDS.test(text) && !text.includes(":")) continue;
 
         // Tracks consumed character ranges [start, end] on this line to prevent collisions
         const consumedRanges = [];
 
         // -------------------------------------------------------------
-        // Phase 1: Checkbox & Radio Button Extraction
+        // Phase 1: Checkbox & Radio Button Extraction (Unicode & ASCII)
         // -------------------------------------------------------------
-        const cbRegex = /(\[\s*\]|\(\s*\)|[☐□✓\u25A2\u25A1\u25EF\u25CB]|\[\s*[xX]\s*\]|\(\s*[•*]\s*\))\s*([a-zA-Z0-9\s\/\(\)\,\.\-\+\$\#]+?)(?=(?:\[\s*\]|\(\s*\)|[☐□✓\u25A2\u25A1\u25EF\u25CB]|\[\s*[xX]\s*\]|\(\s*[•*]\s*\)|$|\b(?:First Name|Last Name|Cardholder|Card Type|Expiration|CVV|Billing|City|Date|Signature|Badge|Job|Organization|Work|Mobile|Country)\b|(?<=\s)[A-Z][a-zA-Z\s\/]+:))/g;
+        const cbRegex = /(\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756]|\[\s*[xX•*]\s*\]|\(\s*[xX•*•]\s*\))\s*([a-zA-Z0-9\s\/\(\)\,\.\-\+\$\#]+?)(?=(?:\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756]|\[\s*[xX•*]\s*\]|\(\s*[xX•*•]\s*\)|$|\b(?:First Name|Last Name|Cardholder|Card Type|Expiration|CVV|Billing|City|Date|Signature|Badge|Job|Organization|Work|Mobile|Country|Status|Location|Supervisor|Key Responsibilities|Starting Pay|Ending Pay|High School|Degree)\b|(?<=\s)[A-Z][a-zA-Z\s\/]+:))/g;
         
         let cbMatch;
         while ((cbMatch = cbRegex.exec(text)) !== null) {
@@ -741,7 +762,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
         // -------------------------------------------------------------
         // Phase 2: Bracket Input Boxes (e.g. [ - - - ], [ MM / YY ], [   ])
         // -------------------------------------------------------------
-        const bracketBoxRegex = /\[\s*([-–—\s]{2,}|MM\s*\/\s*YY|DD\s*\/\s*MM|YYYY|YY|CVC|CVV|\s{2,})\s*\]/gi;
+        const bracketBoxRegex = /\[\s*([-–—\s]{2,}|MM\s*\/\s*YY|DD\s*\/\s*MM|YYYY|YY|CVC|CVV|\$\s*|\s{2,})\s*\]/gi;
         let bbMatch;
         while ((bbMatch = bracketBoxRegex.exec(text)) !== null) {
             const charIdx = bbMatch.index;
@@ -773,9 +794,9 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
         }
 
         // -------------------------------------------------------------
-        // Phase 3: Underlines & Signatures (e.g. "Signature: X ________________", "Date: _______")
+        // Phase 3: Underlines, Dashes & Signatures (e.g. "Signature: X ________________", "Date: _______")
         // -------------------------------------------------------------
-        const underlineRegex = /([_]{3,}|[.]{4,})/g;
+        const underlineRegex = /([_]{2,}|(?:_\s*){3,}|[.]{3,}|[-–—]{3,})/g;
         let ulMatch;
         while ((ulMatch = underlineRegex.exec(text)) !== null) {
             const charIdx = ulMatch.index;
@@ -790,7 +811,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             const width = Math.max(80, Math.round((matchLen / Math.max(1, text.length)) * line.width));
 
             const isSig = /signature|sign/i.test(rawLabel);
-            const isDate = /date|dob|\(mm\/dd\/yyyy\)/i.test(rawLabel);
+            const isDate = /date|dob|\(mm\/dd\/yyyy\)|\(yyyy-mm-dd\)/i.test(rawLabel);
 
             detected.push({
                 type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
@@ -806,7 +827,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
         }
 
         // -------------------------------------------------------------
-        // Phase 4: Text Prompt / Colon Labels (e.g. "First Name:", "Badge Name / Nickname:", "Work Email Address:")
+        // Phase 4: Text Prompt / Colon Labels
         // -------------------------------------------------------------
         if (text.includes(":")) {
             const labelRegex = /([a-zA-Z0-9\s\/\(\)\.\-\#\$]+?):/g;
@@ -823,26 +844,24 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                 const matchStartIdx = match.index;
                 const matchEndIdx = match.index + match[0].length;
 
-                // Check if this label is followed immediately by checkboxes/radios or bracket boxes
                 const followedByCheckbox = consumedRanges.some(r => 
                     r.type === "checkbox" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
                 );
-                if (followedByCheckbox) {
-                    // Group title like "Prefix:", "Payment Method:", "Card Type:", "Dietary Requirements:" -> DO NOT create text field
-                    continue;
-                }
+                if (followedByCheckbox) continue;
+
+                const followedByBracketBox = consumedRanges.some(r => 
+                    r.type === "bracketBox" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
+                );
+                if (followedByBracketBox) continue;
 
                 const followedByUnderline = consumedRanges.some(r => 
                     r.type === "underline" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
                 );
-                if (followedByUnderline) {
-                    continue;
-                }
+                if (followedByUnderline) continue;
 
                 const insideConsumed = consumedRanges.some(r => matchStartIdx >= r.start && matchEndIdx <= r.end);
                 if (insideConsumed) continue;
 
-                // Calculate field bounds
                 const nextStartIdx = nextMatch ? nextMatch.index : text.length;
                 const labelEndX = line.x + (matchEndIdx / Math.max(1, text.length)) * line.width;
                 const nextLabelX = nextMatch 
@@ -882,6 +901,52 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                         multiline: isMulti,
                         ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
                     });
+                }
+            }
+        }
+
+        // -------------------------------------------------------------
+        // Phase 5: Stacked & Multi-Column Prompts Without Colons
+        // -------------------------------------------------------------
+        if (!text.includes(":") && consumedRanges.length === 0 && text.length >= 3 && !isHeadingLabel(text)) {
+            const isSig = /applicant\s*signature|employee\s*signature|witness\s*signature|^signature\b|sign\s*here/i.test(text);
+            const isDate = /date\s*signed|today.?s\s*date|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|^date\b/i.test(text);
+            const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(text);
+
+            const decoded = sanitizeAndDecodeLabel(text);
+            if (decoded || isSig || isDate) {
+                const targetX = Math.round(line.x + line.width + 8);
+                const availableW = Math.max(60, pageWidth - targetX - 25);
+                
+                if (targetX < (pageWidth - 60) && availableW >= 60) {
+                    detected.push({
+                        type: isSig ? "signature" : (isDate ? "dateField" : (decoded?.type || "textField")),
+                        rawLabel: text,
+                        x: Math.max(10, targetX),
+                        y: Math.max(10, Math.round(line.y - 1)),
+                        width: Math.min(isSig ? 240 : (isDate ? 140 : 220), availableW),
+                        height: isSig ? 44 : (isMulti ? 55 : 24),
+                        borderStyle: "solid",
+                        fillStyle: "white",
+                        multiline: isMulti || decoded?.multiline || false,
+                        ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
+                    });
+                } else {
+                    const belowY = Math.round(line.y + line.height + 2);
+                    if (belowY < (viewport.height - 35)) {
+                        detected.push({
+                            type: isSig ? "signature" : (isDate ? "dateField" : (decoded?.type || "textField")),
+                            rawLabel: text,
+                            x: Math.max(10, Math.round(line.x)),
+                            y: Math.max(10, belowY),
+                            width: Math.min(Math.max(160, Math.round(line.width)), pageWidth - line.x - 25),
+                            height: isSig ? 44 : (isMulti ? 55 : 24),
+                            borderStyle: "solid",
+                            fillStyle: "white",
+                            multiline: isMulti || decoded?.multiline || false,
+                            ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
+                        });
+                    }
                 }
             }
         }
