@@ -371,13 +371,13 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                             const canvasX = tx;
                             const canvasW = dx * Math.abs(currentMatrix[0] || 1);
 
-                            if (lineCanvasY >= (pageHeight * 0.02) && lineCanvasY <= (pageHeight * 0.93) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
-                                // Skip decorative full-width section divider lines (line width >= 65% of page width without prompt label)
-                                const isDecorativeDivider = canvasW >= (pageWidth * 0.65) || canvasW >= 380;
+                            if (lineCanvasY >= (pageHeight * 0.04) && lineCanvasY <= (pageHeight * 0.94) && canvasX >= 5 && canvasX <= (pageWidth - 20) && canvasW >= 20) {
+                                // Skip decorative section divider lines (line width >= 40% of page width without explicit prompt label)
+                                const isDecorativeDivider = canvasW >= (pageWidth * 0.40) || canvasW >= 240;
                                 const hasPromptLabel = rawBlocks.some(tb => {
-                                    const isNearY = Math.abs((tb.y + tb.height / 2) - lineCanvasY) <= 18;
-                                    const isNearX = Math.abs(tb.x - canvasX) <= 120;
-                                    return isNearY && isNearX && (tb.str.includes(":") || /[_]{3,}/.test(tb.str));
+                                    const isSameBaseline = Math.abs((tb.y + tb.height / 2) - lineCanvasY) <= 10;
+                                    const isAtStart = Math.abs(tb.x - canvasX) <= 45;
+                                    return isSameBaseline && isAtStart && (tb.str.includes(":") || /[_]{3,}/.test(tb.str));
                                 });
 
                                 if (!isDecorativeDivider || hasPromptLabel) {
@@ -403,9 +403,14 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        if (canvasY >= (pageHeight * 0.02) && canvasY <= (pageHeight * 0.93) && boxW >= 22 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
+                        // Skip top header and bottom footer background banner rectangles
+                        if (canvasY <= (pageHeight * 0.05) || canvasY >= (pageHeight * 0.94)) continue;
+
+                        if (boxW >= 22 && boxH >= 12 && boxH <= 200 && boxW <= (pageWidth * 0.95)) {
                             // Skip small decorative icon boxes (bullet points, contact icons)
                             if (boxW < 22 && boxH < 22) continue;
+                            // Skip wide background banner boxes (width > 45% of page width without form prompt)
+                            if (boxW >= (pageWidth * 0.45) && boxH <= 40) continue;
 
                             vectorElements.push({
                                 type: "text_box",
@@ -425,8 +430,12 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                 const canvasY = pageHeight - ty - boxH;
                 const canvasX = tx;
 
-                if (canvasY >= (pageHeight * 0.16) && boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
+                // Skip top header and bottom footer background banner rectangles
+                if (canvasY <= (pageHeight * 0.05) || canvasY >= (pageHeight * 0.94)) continue;
+
+                if (boxW >= 22 && boxH >= 15 && boxH <= 160 && boxW <= (pageWidth * 0.92)) {
                     if (boxW < 22 && boxH < 22) continue;
+                    if (boxW >= (pageWidth * 0.45) && boxH <= 40) continue;
 
                     vectorElements.push({
                         type: "text_box",
@@ -475,22 +484,19 @@ async function extractVectorPaths(page, viewport, rawBlocks) {
                     const l = uniqueLines[i];
                     const lineMidY = l.y;
 
-                    // Skip decorative section divider lines sitting under section headings (e.g. "JOB", "CONTRACT", "LOCATION")
-                    const isHeadingLine = rawBlocks.some(tb => {
-                        const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 20 || (tb.y <= l.y && (l.y - tb.y) <= 32);
-                        const isNearX = tb.x <= (l.x + l.width * 0.8) && (tb.x + tb.width) >= (l.x - 15);
-                        return isNearY && isNearX && isHeadingLabel(tb.str);
-                    });
-                    if (isHeadingLine) continue;
-
                     const leftLabel = rawBlocks.find(tb => {
                         const isNearY = Math.abs((tb.y + tb.height / 2) - lineMidY) <= 16 || (tb.y < l.y && (l.y - tb.y) <= 25);
                         const isLeft = tb.x <= (l.x + l.width * 0.6) && (tb.x + tb.width) >= (l.x - 12);
                         return isNearY && isLeft;
                     });
 
-                    // Skip lines sitting under section headings (e.g. "JOB", "CONTRACT", "LOCATION")
-                    if (leftLabel && isHeadingLabel(leftLabel.str)) continue;
+                    const lineText = leftLabel ? leftLabel.str.trim() : "";
+                    const isSectionHeader = isHeadingLabel(lineText) || /^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references)$/i.test(lineText);
+
+                    // Skip lines sitting under section headings OR wide lines (>= 200px) without a colon prompt label
+                    if (isSectionHeader || (l.width >= 200 && !lineText.includes(":") && !/[_]{3,}/.test(lineText))) {
+                        continue;
+                    }
 
                     // If text label exists on the left, start field AFTER the label text!
                     let startX = l.x;
