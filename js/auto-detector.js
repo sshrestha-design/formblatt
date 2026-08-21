@@ -1,5 +1,5 @@
 // ── Geometric-First PDF Form Field Auto-Detector (js/auto-detector.js) ──
-// SimplePDF / Acrobat visual affordance architecture
+// Precision visual affordance architecture with multi-field coordinate solvers
 import { state, generateFieldId } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 
@@ -111,6 +111,20 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
     usedNames.add(finalId);
 
     return { name: finalId, type, multiline, autofill, defaultValue };
+}
+
+function getSemanticMaxWidth(label) {
+    if (/date|dob|birth/i.test(label)) return 110;
+    if (/phone|mobile|cell|fax/i.test(label)) return 130;
+    if (/zip|postal|state|province/i.test(label)) return 85;
+    if (/\bm\.?i\.?\b|middle\s*initial/i.test(label)) return 45;
+    if (/ssn|tax|ein|id\b|badge|code|cvv|cvc/i.test(label)) return 110;
+    if (/salary|pay|rate|amount|price|total|fee|deposit/i.test(label)) return 120;
+    if (/email/i.test(label)) return 220;
+    if (/signature|sign/i.test(label)) return 220;
+    if (/street|address/i.test(label)) return 320;
+    if (/comments|notes|remarks|responsibilities|description/i.test(label)) return 380;
+    return 190;
 }
 
 // ============================================================================
@@ -326,9 +340,20 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
         while ((match = cbGlyphRegex.exec(text)) !== null) {
             const optLabel = match[2].trim();
             const charIdx = match.index;
-            const charX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
-            const charY = Math.round(line.y + (line.height - 16) / 2);
+            
+            // Locate physical item corresponding to this character offset
+            let charX = line.x;
+            let runningLen = 0;
+            for (const it of line.items) {
+                if (charIdx >= runningLen && charIdx < runningLen + it.str.length + 1) {
+                    const localOffset = charIdx - runningLen;
+                    charX = Math.round(it.x + (localOffset / Math.max(1, it.str.length)) * it.width);
+                    break;
+                }
+                runningLen += it.str.length + 1;
+            }
 
+            const charY = Math.round(line.y + (line.height - 16) / 2);
             const sem = resolveSemanticProps(optLabel, "checkBox", usedNames);
             fields.push({
                 id: generateFieldId(),
@@ -366,11 +391,34 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             const labelMatch = textBefore.match(/([a-zA-Z0-9\s\/\(\)\.\-\#\$X]+?)[:\s]*$/);
             const rawLabel = labelMatch ? labelMatch[1].replace(/^[X\s]+/, "").trim() : "fill_line";
 
-            const startX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
-            const width = Math.max(65, Math.round((matchLen / Math.max(1, text.length)) * line.width));
+            // Locate physical start X and next item
+            let startX = line.x;
+            let runningLen = 0;
+            let matchedItemIdx = -1;
+            for (let idx = 0; idx < line.items.length; idx++) {
+                const it = line.items[idx];
+                if (charIdx >= runningLen && charIdx < runningLen + it.str.length + 1) {
+                    const localOffset = charIdx - runningLen;
+                    startX = Math.round(it.x + (localOffset / Math.max(1, it.str.length)) * it.width);
+                    matchedItemIdx = idx;
+                    break;
+                }
+                runningLen += it.str.length + 1;
+            }
 
             const isSig = /signature|sign/i.test(rawLabel) || /^X\s*$/i.test(textBefore.trim());
             const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(rawLabel);
+            const maxSemanticW = getSemanticMaxWidth(rawLabel);
+
+            // Bounded width: check if there is a neighbor item to the right
+            let width = Math.max(50, Math.round((matchLen / Math.max(1, text.length)) * line.width));
+            if (matchedItemIdx >= 0 && matchedItemIdx < line.items.length - 1) {
+                const nextItem = line.items[matchedItemIdx + 1];
+                if (nextItem.x > startX) {
+                    width = Math.min(width, Math.max(40, nextItem.x - startX - 6));
+                }
+            }
+            width = Math.min(width, maxSemanticW, pageWidth - startX - 20);
 
             const sem = resolveSemanticProps(rawLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
@@ -380,7 +428,7 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
                 name: sem.name,
                 x: Math.max(10, startX),
                 y: Math.max(10, Math.round(line.y - (isSig ? 12 : 2))),
-                width: Math.min(width, pageWidth - startX - 20),
+                width: Math.round(width),
                 height: isSig ? 44 : 24,
                 page: pageNum,
                 borderStyle: "solid",
@@ -393,11 +441,10 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
         }
     }
 
-    // Also snap vector horizontal lines (Underlines drawn as vector strokes)
+    // Vector horizontal lines (Underlines drawn as vector strokes)
     for (const vLine of vectorGeometry.lines) {
         if (fields.some(f => Math.abs(f.y + f.height - vLine.y) <= 8 && Math.abs(f.x - vLine.x) <= 25)) continue;
 
-        // Find nearest text label to the left or immediately above
         const labelBlock = rawBlocks.find(tb => {
             const isToLeft = (tb.x + tb.width) <= (vLine.x + 15) && (vLine.x - (tb.x + tb.width)) <= 180 && Math.abs(tb.y - (vLine.y - 18)) <= 14;
             const isAbove = Math.abs(tb.x - vLine.x) <= 40 && tb.y < vLine.y && (vLine.y - tb.y) <= 28;
@@ -409,6 +456,7 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
 
         const isSig = /signature|sign/i.test(rawLabel) || /^X\b/i.test(rawLabel);
         const isDate = /date|dob/i.test(rawLabel);
+        const maxSemanticW = getSemanticMaxWidth(rawLabel);
 
         const sem = resolveSemanticProps(rawLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
@@ -418,7 +466,7 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             name: sem.name,
             x: Math.max(10, vLine.x),
             y: Math.max(10, Math.round(vLine.y - (isSig ? 38 : 22))),
-            width: Math.min(vLine.width, pageWidth - vLine.x - 20),
+            width: Math.round(Math.min(vLine.width, maxSemanticW, pageWidth - vLine.x - 20)),
             height: isSig ? 44 : 24,
             page: pageNum,
             borderStyle: "solid",
@@ -442,7 +490,17 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             const charIdx = bbMatch.index;
             const matchLen = bbMatch[0].length;
 
-            const boxX = Math.round(line.x + (charIdx / Math.max(1, text.length)) * line.width);
+            let boxX = line.x;
+            let runningLen = 0;
+            for (const it of line.items) {
+                if (charIdx >= runningLen && charIdx < runningLen + it.str.length + 1) {
+                    const localOffset = charIdx - runningLen;
+                    boxX = Math.round(it.x + (localOffset / Math.max(1, it.str.length)) * it.width);
+                    break;
+                }
+                runningLen += it.str.length + 1;
+            }
+
             const boxW = Math.max(50, Math.round((matchLen / Math.max(1, text.length)) * line.width));
             const boxY = Math.round(line.y - 1);
 
@@ -461,7 +519,7 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
                 name: sem.name,
                 x: Math.max(10, boxX),
                 y: Math.max(10, boxY),
-                width: Math.round(isCVV ? Math.min(boxW, 65) : boxW),
+                width: Math.round(isCVV ? Math.min(boxW, 65) : Math.min(boxW, 140)),
                 height: 22,
                 page: pageNum,
                 borderStyle: "solid",
@@ -478,7 +536,6 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
     for (const box of vectorGeometry.boxes) {
         if (fields.some(f => isOverlappingBox(f, box, 0.4))) continue;
 
-        // Find label inside top or to left of cell
         const insideLabel = rawBlocks.find(tb => 
             tb.x >= box.x - 2 && (tb.x + tb.width) <= box.x + box.width + 4 &&
             tb.y >= box.y - 2 && tb.y <= box.y + 16
@@ -513,75 +570,121 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
     }
 
     // ------------------------------------------------------------------------
-    // AFFORDANCE 4: Key-Value Colon Prompts & Multi-Column Slices
+    // AFFORDANCE 4: Key-Value Colon Prompts & Multi-Field Same-Line Slices
     // ------------------------------------------------------------------------
     for (const line of textLines) {
         const text = line.str.trim();
         if (isSectionHeader(text)) continue;
         if (!text.includes(":")) continue;
 
-        const labelRegex = /([a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?):/g;
-        const labelMatches = [...text.matchAll(labelRegex)];
+        // Extract all discrete colon prompt items on this line
+        const promptItems = [];
 
-        for (let i = 0; i < labelMatches.length; i++) {
-            const match = labelMatches[i];
-            const nextMatch = labelMatches[i + 1];
-            const labelPart = match[1].trim();
+        // Check each physical item in line.items first
+        line.items.forEach(it => {
+            if (it.str.includes(":") && !isSectionHeader(it.str)) {
+                promptItems.push({
+                    str: it.str,
+                    x: it.x,
+                    width: it.width,
+                    y: it.y,
+                    height: it.height
+                });
+            }
+        });
 
-            if (isSectionHeader(labelPart)) continue;
-            if (/^(?:from|to|terms|due)$/i.test(labelPart)) continue;
+        // Fallback: If line.items was a single combined block with multiple colons
+        if (promptItems.length === 0 || (promptItems.length === 1 && (text.match(/:/g) || []).length > 1)) {
+            promptItems.length = 0;
+            const regex = /([a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?):/g;
+            let m;
+            while ((m = regex.exec(text)) !== null) {
+                const labelStr = m[1].trim();
+                if (isSectionHeader(labelStr)) continue;
+                const matchStart = m.index;
+                const matchEnd = m.index + m[0].length;
+                
+                // Approximate physical X from line.items or character offset
+                let startX = line.x;
+                let runningLen = 0;
+                for (const it of line.items) {
+                    if (matchStart >= runningLen && matchStart < runningLen + it.str.length + 1) {
+                        const localOff = matchStart - runningLen;
+                        startX = Math.round(it.x + (localOff / Math.max(1, it.str.length)) * it.width);
+                        break;
+                    }
+                    runningLen += it.str.length + 1;
+                }
+                const labelW = Math.max(30, Math.round((m[0].length / Math.max(1, text.length)) * line.width));
 
-            const matchEndIdx = match.index + match[0].length;
-            const nextStartIdx = nextMatch ? nextMatch.index : text.length;
+                promptItems.push({
+                    str: m[0],
+                    labelOnly: labelStr,
+                    x: startX,
+                    width: labelW,
+                    y: line.y,
+                    height: line.height
+                });
+            }
+        }
 
-            // Check if label already has a complete printed constant (e.g. "$0.670 / mile", "FRM-7160", "2.4")
-            const textAfter = text.slice(matchEndIdx, nextStartIdx).trim();
-            const isPrintedConstant = !nextMatch && textAfter.length > 0 &&
-                !/^[_.\-—\s\[\(\$\€\£\¥]+$/.test(textAfter) &&
-                !/^[\$\€\£\¥]\s*$/.test(textAfter) &&
-                !/^(?:miles|usd|eur|aud|cad|gbp)$/i.test(textAfter) &&
-                /[a-zA-Z0-9]{2,}/.test(textAfter);
+        // Process prompts on this line with precise multi-field bounding
+        for (let i = 0; i < promptItems.length; i++) {
+            const curPrompt = promptItems[i];
+            const nextPrompt = promptItems[i + 1];
+            const cleanLabel = (curPrompt.labelOnly || curPrompt.str).replace(/[:_.\s-]+$/, "").trim();
 
-            if (isPrintedConstant) continue;
+            if (isSectionHeader(cleanLabel)) continue;
+            if (/^(?:from|to|terms|due)$/i.test(cleanLabel)) continue;
 
-            // Check if followed by checkboxes/radios (Group headers like "Direct Deposit on File? [ ] YES [ ] NO", "Prefix: ( ) Mr")
-            const isFollowedByCheckbox = /^\s*(?:\[\s*\]|\(\s*\)|[☐□✓✔✗✘\u25A0-\u25AF\u25CB-\u25EF\u25C6\u25C7\u25FC\u25FD\u25FE\u25FF\u2B1C\u2B1D\u2B24\u2B55\u2713\u2714\u2717\u2718\u2756])/i.test(textAfter);
-            if (isFollowedByCheckbox) continue;
+            const labelRight = curPrompt.x + curPrompt.width;
+            const isSig = /signature|sign/i.test(cleanLabel);
+            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
+            const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(cleanLabel);
+            const maxSemanticW = getSemanticMaxWidth(cleanLabel);
 
-            // Calculate precise bounds
-            const labelEndX = line.x + (matchEndIdx / Math.max(1, text.length)) * line.width;
-            const nextLabelX = nextMatch
-                ? (line.x + (nextStartIdx / Math.max(1, text.length)) * line.width)
-                : (line.x + line.width);
+            let targetX = labelRight + 4;
+            let targetW = maxSemanticW;
+            let targetY = line.y - (isSig ? 10 : 2);
+            let targetH = isSig ? 44 : (isMulti ? 55 : 24);
 
-            const targetX = Math.round(labelEndX + 4);
-            let targetW = Math.max(45, Math.round(nextLabelX - targetX - 6));
-
-            if (!nextMatch) {
-                const rightNeighbor = textLines.find(other => 
-                    other !== line && Math.abs(other.y - line.y) <= 8 && other.x > targetX
-                );
-                if (rightNeighbor) {
-                    targetW = Math.max(45, Math.min(220, (rightNeighbor.x - 8) - targetX));
+            if (nextPrompt) {
+                // Multiple fields on the same line: STRICTLY BOUNDED between current label and next label!
+                const availableGap = nextPrompt.x - labelRight;
+                if (availableGap >= 25) {
+                    // Inline input field
+                    targetX = labelRight + 4;
+                    targetW = Math.min(maxSemanticW, Math.max(35, availableGap - 8));
                 } else {
-                    targetW = Math.min(240, Math.max(60, pageWidth - targetX - 30));
+                    // Column header stacked with input below
+                    targetX = curPrompt.x;
+                    targetW = Math.min(maxSemanticW, Math.max(50, nextPrompt.x - curPrompt.x - 6));
+                    targetY = line.y + curPrompt.height + 2;
+                    targetH = isSig ? 44 : 22;
+                }
+            } else {
+                // Last prompt on the line
+                if (i > 0) {
+                    // Match the width of previous column
+                    const prevPrompt = promptItems[i - 1];
+                    const prevColW = curPrompt.x - prevPrompt.x;
+                    targetW = Math.min(maxSemanticW, Math.max(50, prevColW));
+                } else {
+                    // Single prompt on line: strictly bounded by semantic width (NEVER stretches full-page)
+                    targetW = Math.min(maxSemanticW, pageWidth - targetX - 30);
                 }
             }
 
-            const isSig = /signature|sign/i.test(labelPart);
-            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(labelPart);
-            const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(labelPart);
-
-            const sem = resolveSemanticProps(labelPart, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
+            const sem = resolveSemanticProps(cleanLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
             const newField = {
                 id: generateFieldId(),
                 type: isSig ? "signature" : (isDate ? "dateField" : sem.type),
                 name: sem.name,
-                x: Math.max(10, targetX),
-                y: Math.max(10, Math.round(line.y - (isSig ? 10 : 2))),
+                x: Math.max(10, Math.round(targetX)),
+                y: Math.max(10, Math.round(targetY)),
                 width: Math.round(targetW),
-                height: isSig ? 44 : (isMulti ? 55 : 24),
+                height: targetH,
                 page: pageNum,
                 borderStyle: "solid",
                 fillStyle: "white",
