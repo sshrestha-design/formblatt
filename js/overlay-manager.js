@@ -165,8 +165,7 @@ export function renderOverlays(handlers) {
         const isSelected = state.selectedFieldIds.has(f.id);
         const isMultiSelect = state.selectedFieldIds.size > 1;
 
-        // Resize handle: only shown on individual item when exactly 1 field is selected.
-        // When multiple items are selected, the clean outer bounding frame handles resizing.
+        // Resize handle & Magnetic Corner/Edge Snap Points
         if (isSelected && !isMultiSelect) {
             const handle = document.createElement("div");
             handle.className = "resize-handle";
@@ -176,6 +175,23 @@ export function renderOverlays(handlers) {
                 if (handlers.onResizeStart) handlers.onResizeStart(e, f, "se");
             });
             div.appendChild(handle);
+
+            // 7 Corner & Edge Magnetic Anchor Points
+            const snapPoints = [
+                { pos: "snap-tl", title: "Top-Left Snap Point" },
+                { pos: "snap-tm", title: "Top-Center Snap Point" },
+                { pos: "snap-tr", title: "Top-Right Snap Point" },
+                { pos: "snap-ml", title: "Left-Center Snap Point" },
+                { pos: "snap-mr", title: "Right-Center Snap Point" },
+                { pos: "snap-bl", title: "Bottom-Left Snap Point" },
+                { pos: "snap-bm", title: "Bottom-Center Snap Point" }
+            ];
+            snapPoints.forEach(sp => {
+                const pt = document.createElement("div");
+                pt.className = `edge-snap-point ${sp.pos}`;
+                pt.title = sp.title;
+                div.appendChild(pt);
+            });
         }
 
         // Accessibility & Keyboard Navigation (Form Design Patterns Ch. 1 & 3)
