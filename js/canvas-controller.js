@@ -226,36 +226,127 @@ function checkSnapping(x, y, width, height, others, textBlocks = []) {
     const left = x, right = x + width, centerX = x + width / 2;
     const top = y, bottom = y + height, centerY = y + height / 2;
 
-    // 1. Snap to other form fields
-    for (let o of others) {
+    let minDiffX = SNAP_THRESHOLD;
+    let minDiffY = SNAP_THRESHOLD;
+
+    // 1. Snap to other form fields (All 4 Corners, Center & Cross-Edges)
+    for (const o of others) {
         const oLeft = o.x, oRight = o.x + o.width, oCenterX = o.x + o.width / 2;
         const oTop = o.y, oBottom = o.y + o.height, oCenterY = o.y + o.height / 2;
 
-        if (Math.abs(left - oLeft) < SNAP_THRESHOLD) { snapX = oLeft - left; guideX = oLeft; }
-        else if (Math.abs(right - oRight) < SNAP_THRESHOLD) { snapX = oRight - right; guideX = oRight; }
-        else if (Math.abs(centerX - oCenterX) < SNAP_THRESHOLD) { snapX = oCenterX - centerX; guideX = oCenterX; }
+        // --- Horizontal / X-Axis Alignments ---
+        // Left to Left
+        if (Math.abs(left - oLeft) < minDiffX) {
+            minDiffX = Math.abs(left - oLeft);
+            snapX = oLeft - left;
+            guideX = oLeft;
+        }
+        // Right to Right
+        if (Math.abs(right - oRight) < minDiffX) {
+            minDiffX = Math.abs(right - oRight);
+            snapX = oRight - right;
+            guideX = oRight;
+        }
+        // Left to Right (Side-by-side)
+        if (Math.abs(left - oRight) < minDiffX) {
+            minDiffX = Math.abs(left - oRight);
+            snapX = oRight - left;
+            guideX = oRight;
+        }
+        // Right to Left (Side-by-side)
+        if (Math.abs(right - oLeft) < minDiffX) {
+            minDiffX = Math.abs(right - oLeft);
+            snapX = oLeft - right;
+            guideX = oLeft;
+        }
+        // Center to Center
+        if (Math.abs(centerX - oCenterX) < minDiffX) {
+            minDiffX = Math.abs(centerX - oCenterX);
+            snapX = oCenterX - centerX;
+            guideX = oCenterX;
+        }
 
-        if (Math.abs(top - oTop) < SNAP_THRESHOLD) { snapY = oTop - top; guideY = oTop; }
-        else if (Math.abs(bottom - oBottom) < SNAP_THRESHOLD) { snapY = oBottom - bottom; guideY = oBottom; }
-        else if (Math.abs(centerY - oCenterY) < SNAP_THRESHOLD) { snapY = oCenterY - centerY; guideY = oCenterY; }
+        // --- Vertical / Y-Axis Alignments ---
+        // Top to Top
+        if (Math.abs(top - oTop) < minDiffY) {
+            minDiffY = Math.abs(top - oTop);
+            snapY = oTop - top;
+            guideY = oTop;
+        }
+        // Bottom to Bottom
+        if (Math.abs(bottom - oBottom) < minDiffY) {
+            minDiffY = Math.abs(bottom - oBottom);
+            snapY = oBottom - bottom;
+            guideY = oBottom;
+        }
+        // Top to Bottom (Stacked rows)
+        if (Math.abs(top - oBottom) < minDiffY) {
+            minDiffY = Math.abs(top - oBottom);
+            snapY = oBottom - top;
+            guideY = oBottom;
+        }
+        // Bottom to Top (Stacked rows)
+        if (Math.abs(bottom - oTop) < minDiffY) {
+            minDiffY = Math.abs(bottom - oTop);
+            snapY = oTop - bottom;
+            guideY = oTop;
+        }
+        // Center to Center
+        if (Math.abs(centerY - oCenterY) < minDiffY) {
+            minDiffY = Math.abs(centerY - oCenterY);
+            snapY = oCenterY - centerY;
+            guideY = oCenterY;
+        }
     }
 
     // 2. Snap to background document text blocks (column edges & baselines)
     if (guideX === null || guideY === null) {
-        for (let tb of textBlocks) {
+        for (const tb of textBlocks) {
             const tbLeft = Math.round(tb.x);
             const tbRight = Math.round(tb.x + tb.width);
             const tbTop = Math.round(tb.y);
-            const tbBaseline = Math.round(tb.y + tb.height);
+            const tbBottom = Math.round(tb.y + tb.height);
 
             if (guideX === null) {
-                if (Math.abs(left - tbLeft) < SNAP_THRESHOLD) { snapX = tbLeft - left; guideX = tbLeft; }
-                else if (Math.abs(left - (tbRight + 12)) < SNAP_THRESHOLD) { snapX = (tbRight + 12) - left; guideX = tbRight + 12; }
+                // Left aligned to text start
+                if (Math.abs(left - tbLeft) < minDiffX) {
+                    minDiffX = Math.abs(left - tbLeft);
+                    snapX = tbLeft - left;
+                    guideX = tbLeft;
+                }
+                // Left aligned after prompt (+6px padding)
+                else if (Math.abs(left - (tbRight + 6)) < minDiffX) {
+                    minDiffX = Math.abs(left - (tbRight + 6));
+                    snapX = (tbRight + 6) - left;
+                    guideX = tbRight + 6;
+                }
+                // Right aligned to text end
+                else if (Math.abs(right - tbRight) < minDiffX) {
+                    minDiffX = Math.abs(right - tbRight);
+                    snapX = tbRight - right;
+                    guideX = tbRight;
+                }
             }
 
             if (guideY === null) {
-                if (Math.abs(top - tbTop) < SNAP_THRESHOLD) { snapY = tbTop - top; guideY = tbTop; }
-                else if (Math.abs(bottom - tbBaseline) < SNAP_THRESHOLD) { snapY = tbBaseline - bottom; guideY = tbBaseline; }
+                // Top aligned to text top
+                if (Math.abs(top - tbTop) < minDiffY) {
+                    minDiffY = Math.abs(top - tbTop);
+                    snapY = tbTop - top;
+                    guideY = tbTop;
+                }
+                // Bottom aligned to text baseline
+                else if (Math.abs(bottom - tbBottom) < minDiffY) {
+                    minDiffY = Math.abs(bottom - tbBottom);
+                    snapY = tbBottom - bottom;
+                    guideY = tbBottom;
+                }
+                // Top placed below label (+4px padding)
+                else if (Math.abs(top - (tbBottom + 4)) < minDiffY) {
+                    minDiffY = Math.abs(top - (tbBottom + 4));
+                    snapY = (tbBottom + 4) - top;
+                    guideY = tbBottom + 4;
+                }
             }
         }
     }
@@ -616,19 +707,43 @@ function handleFieldResize(e, handlers) {
     const dy = (e.clientY - state.resizeStartPos.y) / state.currentScale;
     const dir = state.resizeDirection || "se";
 
-    if (state.initialFieldDims && state.initialFieldDims.size > 0) {
+    const field = state.fields.find(f => f.id === state.resizeFieldId) || getSelectedField();
+    if (!field) return;
+
+    const baseDim = state.resizeStartDim || { width: field.width, height: field.height };
+    let newW = dir.includes("e") ? Math.max(16, Math.round(baseDim.width + dx)) : field.width;
+    let newH = dir.includes("s") ? Math.max(14, Math.round(baseDim.height + dy)) : field.height;
+
+    // Smart magnetic corner & edge snapping during resize (unless holding Alt)
+    if (!e.altKey) {
+        const otherFields = getFieldsForCurrentPage().filter(f => f.id !== field.id && !state.selectedFieldIds.has(f.id));
+        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
+        const snaps = checkSnapping(field.x, field.y, newW, newH, otherFields, pageTextBlocks);
+
+        if (dir.includes("e") && snaps.guideX !== null) {
+            newW = Math.max(16, Math.round(newW + snaps.snapX));
+        }
+        if (dir.includes("s") && snaps.guideY !== null) {
+            newH = Math.max(14, Math.round(newH + snaps.snapY));
+        }
+        showGuides(snaps.guideX, snaps.guideY);
+    } else {
+        hideGuides();
+    }
+
+    if (state.initialFieldDims && state.initialFieldDims.size > 1) {
+        const deltaW = newW - baseDim.width;
+        const deltaH = newH - baseDim.height;
         state.initialFieldDims.forEach((dim, id) => {
             const f = state.fields.find(item => item.id === id);
             if (f) {
-                if (dir.includes("e")) f.width = Math.max(16, Math.round(dim.width + dx));
-                if (dir.includes("s")) f.height = Math.max(14, Math.round(dim.height + dy));
+                if (dir.includes("e")) f.width = Math.max(16, Math.round(dim.width + deltaW));
+                if (dir.includes("s")) f.height = Math.max(14, Math.round(dim.height + deltaH));
             }
         });
     } else {
-        const field = state.fields.find(f => f.id === state.resizeFieldId);
-        if (!field) return;
-        if (dir.includes("e")) field.width = Math.max(16, Math.round(state.resizeStartDim.width + dx));
-        if (dir.includes("s")) field.height = Math.max(14, Math.round(state.resizeStartDim.height + dy));
+        field.width = newW;
+        field.height = newH;
     }
 
     handlers.onFieldMoving();
