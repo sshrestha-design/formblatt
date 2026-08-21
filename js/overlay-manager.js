@@ -33,16 +33,28 @@ export function renderOverlays(handlers) {
         // ── LIVE INTERACTIVE FILL & TEST MODE ────────────────────────────
         if (state.editorMode === "fill") {
             div.classList.add("fill-mode");
-            div.style.border = f.borderStyle === "none" ? "1px solid rgba(0,0,0,0.12)" : "1.5px solid rgba(37,99,235,0.45)";
-            div.style.background = f.fillStyle === "transparent" ? "rgba(255,255,255,0.4)" : "#ffffff";
-            div.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
+
+            const isChoice = (f.type === "checkBox" || f.type === "radioGroup");
+            if (isChoice) {
+                div.style.border = "none";
+                div.style.background = "transparent";
+                div.style.boxShadow = "none";
+                div.style.display = "flex";
+                div.style.alignItems = "center";
+                div.style.justifyContent = "center";
+            } else {
+                div.style.border = f.borderStyle === "none" ? "1px solid rgba(0,0,0,0.12)" : "1px solid #94a3b8";
+                div.style.borderRadius = "3px";
+                div.style.background = f.fillStyle === "transparent" ? "rgba(255,255,255,0.7)" : "#ffffff";
+                div.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+            }
 
             if (f.type === "checkBox") {
                 const cb = document.createElement("input");
                 cb.type = "checkbox";
                 cb.className = "fill-input-checkbox";
                 cb.checked = !!f.defaultChecked;
-                cb.style.cssText = "width: 100%; height: 100%; margin: 0; cursor: pointer; accent-color: #2563eb;";
+                cb.style.cssText = "width: 14px; height: 14px; margin: 0; cursor: pointer; accent-color: #2563eb;";
                 cb.addEventListener("change", () => {
                     f.defaultChecked = cb.checked;
                     f.value = cb.checked ? (f.value || "Yes") : "";
@@ -56,7 +68,7 @@ export function renderOverlays(handlers) {
                 rb.className = "fill-input-radio";
                 rb.value = f.radioValue || f.value || `option_${f.id}`;
                 rb.checked = !!f.defaultChecked;
-                rb.style.cssText = "width: 100%; height: 100%; margin: 0; cursor: pointer; accent-color: #2563eb;";
+                rb.style.cssText = "width: 14px; height: 14px; margin: 0; cursor: pointer; accent-color: #2563eb;";
                 rb.addEventListener("change", () => {
                     const groupFields = state.fields.filter(item => item.name === f.name);
                     groupFields.forEach(item => { item.defaultChecked = (item.id === f.id); });
