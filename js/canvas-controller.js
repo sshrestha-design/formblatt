@@ -523,9 +523,10 @@ export function handleFieldMouseDown(e, field, handlers) {
     });
 }
 
-export function handleResizeStart(e, field) {
+export function handleResizeStart(e, field, direction = "se") {
     state.isResizing = true;
     state.resizeFieldId = field.id;
+    state.resizeDirection = direction;
     state.resizeStartPos = { x: e.clientX, y: e.clientY };
     state.resizeStartDim = { width: field.width, height: field.height };
 
@@ -543,20 +544,21 @@ export function handleResizeStart(e, field) {
 function handleFieldResize(e, handlers) {
     const dx = (e.clientX - state.resizeStartPos.x) / state.currentScale;
     const dy = (e.clientY - state.resizeStartPos.y) / state.currentScale;
+    const dir = state.resizeDirection || "se";
 
     if (state.initialFieldDims && state.initialFieldDims.size > 0) {
         state.initialFieldDims.forEach((dim, id) => {
             const f = state.fields.find(item => item.id === id);
             if (f) {
-                f.width = Math.max(16, Math.round(dim.width + dx));
-                f.height = Math.max(16, Math.round(dim.height + dy));
+                if (dir.includes("e")) f.width = Math.max(16, Math.round(dim.width + dx));
+                if (dir.includes("s")) f.height = Math.max(14, Math.round(dim.height + dy));
             }
         });
     } else {
         const field = state.fields.find(f => f.id === state.resizeFieldId);
         if (!field) return;
-        field.width = Math.max(16, Math.round(state.resizeStartDim.width + dx));
-        field.height = Math.max(16, Math.round(state.resizeStartDim.height + dy));
+        if (dir.includes("e")) field.width = Math.max(16, Math.round(state.resizeStartDim.width + dx));
+        if (dir.includes("s")) field.height = Math.max(14, Math.round(state.resizeStartDim.height + dy));
     }
 
     handlers.onFieldMoving();

@@ -62,8 +62,8 @@
 }
 
 .field-overlay.selected {
-    border: 2px solid #2563eb !important;
-    box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.25), 0 4px 14px rgba(37, 99, 235, 0.16);
+    border: 1.5px solid #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
     z-index: 50;
 }
 
@@ -81,50 +81,63 @@
 
 .resize-handle {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 9px;
-    height: 9px;
-    background: #2563eb;
-    border-top-left-radius: 3px;
+    bottom: -3px;
+    right: -3px;
+    width: 7px;
+    height: 7px;
+    background: #ffffff;
+    border: 1.5px solid #2563eb;
+    border-radius: 2px;
     cursor: se-resize;
     pointer-events: auto;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    z-index: 60;
     transition: transform var(--anim-fast), background var(--anim-fast);
-    transform-origin: bottom right;
 }
 
 .resize-handle:hover {
     transform: scale(1.35);
-    background: #1d4ed8;
+    background: #2563eb;
 }
 
 .multi-selection-bounding-frame {
     position: absolute;
-    border: 1.5px dashed #2563eb;
-    border-radius: 4px;
+    border: 1.5px solid #2563eb;
+    border-radius: 3px;
     pointer-events: none;
     z-index: 95;
-    background: rgba(37, 99, 235, 0.03);
+    background: rgba(37, 99, 235, 0.02);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
 }
 
 .group-resize-handle {
     position: absolute;
-    bottom: -6px;
-    right: -6px;
-    width: 12px;
-    height: 12px;
-    background: #2563eb;
-    border: 2px solid #ffffff;
-    border-radius: 3px;
-    cursor: se-resize;
+    width: 8px;
+    height: 8px;
+    background: #ffffff;
+    border: 1.5px solid #2563eb;
+    border-radius: 2px;
     pointer-events: auto;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     z-index: 100;
+    transition: transform 0.12s ease, background 0.12s ease;
+}
+
+.group-resize-handle.group-handle-se {
+    cursor: se-resize;
+}
+
+.group-resize-handle.group-handle-e {
+    cursor: ew-resize;
+}
+
+.group-resize-handle.group-handle-s {
+    cursor: ns-resize;
 }
 
 .group-resize-handle:hover {
     transform: scale(1.35);
-    background: #1d4ed8;
+    background: #2563eb;
 }
 
 /* ── Magnetic Alignment Guidelines ───────────────────────────── */
