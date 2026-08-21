@@ -56,6 +56,7 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
     let type = defaultType;
     let multiline = false;
     let autofill = "";
+    let dataFormat = "text";
 
     for (const item of GENERIC_PATTERNS) {
         if (item.regex.test(clean)) {
@@ -65,6 +66,19 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
             if (item.autofill) autofill = item.autofill;
             break;
         }
+    }
+
+    // Determine semantic data format (Adam Silver Chapter 2 & 3)
+    if (type === "dateField" || /date|dob/i.test(baseId || clean)) {
+        dataFormat = "date";
+    } else if (/amount|price|subtotal|tax|total|cost|fee|rate/i.test(baseId || clean)) {
+        dataFormat = "currency";
+    } else if (/qty|quantity|units|hours|miles|number|num|#|ssn|zip|postal/i.test(baseId || clean)) {
+        dataFormat = "number";
+    } else if (/email/i.test(baseId || clean)) {
+        dataFormat = "email";
+    } else if (/phone|tel|mobile|cell|fax/i.test(baseId || clean)) {
+        dataFormat = "phone";
     }
 
     if (!baseId) {
@@ -92,7 +106,7 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
     }
     usedNames.add(finalId);
 
-    return { name: finalId, type, multiline, autofill };
+    return { name: finalId, type, multiline, autofill, dataFormat };
 }
 
 // ============================================================================
@@ -221,9 +235,19 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
     const textLines = clusterIntoLines(rawBlocks);
 
     // ------------------------------------------------------------------------
-    // AFFORDANCE 1: Standalone & Labelled Checkboxes & Radios
+    // AFFORDANCE 1: Standalone & Labelled Checkboxes & Radios (with Fieldset Groups)
     // ------------------------------------------------------------------------
     for (const line of textLines) {
+        // Detect group prompt / legend if line starts with "Prompt:" before choices
+        let linePrompt = "";
+        const colonIdx = line.str.indexOf(":");
+        if (colonIdx !== -1) {
+            const beforeColon = line.str.slice(0, colonIdx).trim();
+            if (beforeColon.length < 35 && !isUniversalStaticText(beforeColon)) {
+                linePrompt = beforeColon;
+            }
+        }
+
         let wIdx = 0;
         while (wIdx < line.items.length) {
             const item = line.items[wIdx];
@@ -256,12 +280,14 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
 
                 if (!isUniversalStaticText(optLabel)) {
                     const isRadio = markerType === "radioGroup";
-                    const sem = resolveSemanticProps(optLabel, isRadio ? "radioGroup" : "checkBox", usedNames);
+                    const effectiveLabel = linePrompt ? (isRadio ? linePrompt : `${linePrompt} ${optLabel}`) : optLabel;
+                    const sem = resolveSemanticProps(effectiveLabel, isRadio ? "radioGroup" : "checkBox", isRadio ? new Set() : usedNames);
 
                     const newField = {
                         id: generateFieldId(),
                         type: isRadio ? "radioGroup" : "checkBox",
                         name: sem.name,
+                        value: optLabel,
                         x: Math.max(10, markerX),
                         y: Math.max(10, markerY),
                         width: 16,
