@@ -201,7 +201,10 @@ export async function autoDetectFields(scope = "current") {
             const textElements = scanTextLayout(rawBlocks, viewport, pageNum);
 
             // Engine 3: Fusion & Semantic AcroForm ID Resolution
-            const merged = fuseDetections(acroFormFields, vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames);
+            let merged = fuseDetections(acroFormFields, vectorElements, textElements, rawBlocks, viewport, pageNum, usedNames);
+
+            // Engine 4: Table Column Grid Interpolator
+            merged = interpolateTableGridColumns(merged, rawBlocks, pageNum, usedNames);
             newFields.push(...merged);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
@@ -751,11 +754,11 @@ function sanitizeAndDecodeLabel(rawLabel) {
 function findNearbyLabelForBox(box, rawBlocks) {
     const boxMidY = box.y + (box.height / 2);
 
-    // 1. Text block directly ABOVE the box (Column Headers: "Description", "Price", "QTY", "Total", "Tax")
+    // 1. Text block directly ABOVE the box within 35px (Column Headers: "Description", "Price", "QTY", "Total", "Tax")
     const aboveBlocks = rawBlocks.filter(tb => {
         if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
-        const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 55;
-        const isAlignedX = (tb.x + tb.width >= box.x - 20) && (tb.x <= box.x + box.width + 20);
+        const isAbove = tb.y < box.y && (box.y - (tb.y + tb.height)) <= 35;
+        const isAlignedX = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15);
         return isAbove && isAlignedX;
     }).sort((a, b) => (box.y - (a.y + a.height)) - (box.y - (b.y + b.height)));
 
@@ -764,12 +767,12 @@ function findNearbyLabelForBox(box, rawBlocks) {
         if (decoded) return tb.str;
     }
 
-    // 2. Text block on the same row to the LEFT
+    // 2. Text block on the same row to the LEFT within 40px
     const leftBlocks = rawBlocks.filter(tb => {
         if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) return false;
         const tbMidY = tb.y + (tb.height / 2);
-        const isSameRow = Math.abs(tbMidY - boxMidY) <= 14;
-        const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 250;
+        const isSameRow = Math.abs(tbMidY - boxMidY) <= 12;
+        const isToLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 40;
         return isSameRow && isToLeft;
     }).sort((a, b) => {
         const dYa = Math.abs((a.y + a.height / 2) - boxMidY);
@@ -783,27 +786,19 @@ function findNearbyLabelForBox(box, rawBlocks) {
         if (decoded) return tb.str;
     }
 
-    if (leftBlocks.length > 0) {
-        const combined = leftBlocks.map(b => b.str).join(" ");
-        if (!isHeadingLabel(combined) && !isArtifactString(combined)) {
-            const decoded = sanitizeAndDecodeLabel(combined);
-            if (decoded) return combined;
-        }
-    }
-
-    // 3. Fallback: closest valid text block within 150px
+    // Tight 40px max search distance — NEVER match distant keywords like SSN from 150px away!
     let bestMatch = null;
-    let minDistance = Infinity;
+    let minDistance = 40;
     for (let tb of rawBlocks) {
         if (isHeadingLabel(tb.str) || isArtifactString(tb.str)) continue;
         const decoded = sanitizeAndDecodeLabel(tb.str);
         if (!decoded) continue;
 
         const tbMidY = tb.y + (tb.height / 2);
-        const isLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 250 && Math.abs(tbMidY - boxMidY) <= 20;
-        const isAbove = (tb.x + tb.width >= box.x - 20) && (tb.x <= box.x + box.width + 20) && tb.y <= box.y && (box.y - (tb.y + tb.height)) <= 55;
+        const isLeft = (tb.x + tb.width) <= (box.x + 18) && (box.x - (tb.x + tb.width)) <= 40 && Math.abs(tbMidY - boxMidY) <= 14;
+        const isAbove = (tb.x + tb.width >= box.x - 15) && (tb.x <= box.x + box.width + 15) && tb.y <= box.y && (box.y - (tb.y + tb.height)) <= 30;
         if (isLeft || isAbove) {
-            const dist = isLeft ? (box.x - (tb.x + tb.width)) : ((box.y - (tb.y + tb.height)) * 1.5);
+            const dist = isLeft ? (box.x - (tb.x + tb.width)) : (box.y - (tb.y + tb.height));
             if (dist < minDistance) {
                 minDistance = dist;
                 bestMatch = tb.str;
@@ -942,15 +937,126 @@ function resolveSemanticProperties(rawLabel, defaultType = "textField", usedName
     return { name: finalId, type, multiline, autofill, defaultValue };
 }
 
+// ── Engine 4: Table Column Grid Interpolator ─────────────────────────
+function interpolateTableGridColumns(fields, rawBlocks, pageNum, usedNames) {
+    if (fields.length < 2) return fields;
+
+    // Group fields into horizontal row bands (tolerance +/- 12px)
+    const rowGroups = [];
+    for (let f of fields) {
+        let group = rowGroups.find(g => Math.abs(g.y - f.y) <= 12);
+        if (!group) {
+            group = { y: f.y, height: f.height, fields: [] };
+            rowGroups.push(group);
+        }
+        group.fields.push(f);
+    }
+
+    // Require at least 2 stacked rows to qualify as a table
+    const tableRows = rowGroups.filter(g => g.fields.length >= 1).sort((a, b) => a.y - b.y);
+    if (tableRows.length < 2) return fields;
+
+    // Find table column headers printed in text blocks above the table
+    const minTableY = tableRows[0].y;
+    const headerBlocks = rawBlocks.filter(tb => {
+        const text = (tb.str || "").trim();
+        const isHeaderWord = /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b|\btax\b/i.test(text);
+        const isAboveTable = tb.y < minTableY && (minTableY - tb.y) <= 120;
+        return isHeaderWord && isAboveTable;
+    }).sort((a, b) => a.x - b.x);
+
+    // Build column bands from either detected vector fields OR printed header text
+    const colBands = [];
+
+    // 1. Column bands from existing fields
+    tableRows.forEach(row => {
+        row.fields.forEach(f => {
+            let col = colBands.find(c => Math.abs(c.x - f.x) <= 30);
+            if (!col) {
+                col = { x: f.x, width: f.width, headerText: f.name || "col" };
+                colBands.push(col);
+            }
+        });
+    });
+
+    // 2. Add column bands from header blocks (Quantity, Amount, Price, Description)
+    headerBlocks.forEach(hb => {
+        let col = colBands.find(c => Math.abs(c.x - hb.x) <= 35 || (hb.x >= c.x - 10 && hb.x <= c.x + c.width + 10));
+        if (!col) {
+            const colW = Math.max(50, Math.round(hb.width + 16));
+            colBands.push({
+                x: Math.round(hb.x - 2),
+                width: colW,
+                headerText: hb.str,
+                isFromHeader: true
+            });
+        } else if (!col.headerText || col.headerText === "col") {
+            col.headerText = hb.str;
+        }
+    });
+
+    colBands.sort((a, b) => a.x - b.x);
+
+    // Find bottom footer summary boundary (Subtotal, Tax, BALANCE DUE, Notes)
+    const footerBlock = rawBlocks.find(tb => {
+        const text = (tb.str || "").trim();
+        return /subtotal|tax|balance\s*due|notes|terms|payment/i.test(text) && tb.y > (minTableY + 40);
+    });
+    const maxTableY = footerBlock ? Math.round(footerBlock.y - 8) : Infinity;
+
+    // Filter table rows so they NEVER exceed the bottom footer boundary!
+    const validTableRows = tableRows.filter(r => (r.y + r.height) <= maxTableY);
+
+    const resultFields = fields.filter(f => f.y < maxTableY);
+
+    // Generate missing fields for ALL valid table rows & columns
+    validTableRows.forEach((row, rowIndex) => {
+        colBands.forEach(col => {
+            const hasFieldInCell = row.fields.some(f => Math.abs(f.x - col.x) <= 35 || (f.x >= col.x - 15 && f.x <= col.x + col.width + 15));
+            if (!hasFieldInCell) {
+                const colHeader = col.headerText || "Column";
+                const sem = resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
+
+                const newField = {
+                    id: Date.now() + Math.random(),
+                    type: "textField",
+                    name: sem.name,
+                    x: Math.max(10, col.x),
+                    y: Math.max(10, row.y),
+                    width: col.width,
+                    height: Math.min(24, row.height || 22),
+                    page: pageNum,
+                    borderStyle: "solid",
+                    fillStyle: "white",
+                    multiline: false,
+                    autofill: sem.autofill || "",
+                    dataFormat: sem.dataFormat || "text"
+                };
+
+                resultFields.push(newField);
+                row.fields.push(newField);
+            }
+        });
+    });
+
+    return resultFields;
+}
+
 // ── Check if bounding box overlaps any printed text on the page ──────
 function overlapsAnyText(box, rawBlocks) {
     return rawBlocks.some(tb => {
         if (/^[_.\s-]+$/.test(tb.str)) return false;
+
         const xOverlap = Math.max(0, Math.min(box.x + box.width, tb.x + tb.width) - Math.max(box.x, tb.x));
         const yOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
         const overlapArea = xOverlap * yOverlap;
         const tbArea = tb.width * tb.height;
-        return tbArea > 0 && (overlapArea / tbArea) > 0.12;
+
+        // Discard any box that sits on top of large header titles ("Invoice", "Tax Form", "Statement")
+        const isHeaderTitle = (tb.height >= 15) || /invoice|factura|statement|receipt|w-?9|tax|balance\s*due/i.test(tb.str);
+        if (isHeaderTitle && overlapArea > 0) return true;
+
+        return tbArea > 0 && (overlapArea / tbArea) > 0.08;
     });
 }
 
