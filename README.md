@@ -1,110 +1,106 @@
-# JustForms — Client-Side Interactive PDF Form Builder & AcroForm Compiler
+# JustForms
 
-[![Live Production App](https://img.shields.io/badge/Live%20App-justforms.vercel.app-2563eb?style=for-the-badge&logo=vercel)](https://justforms.vercel.app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-059669?style=for-the-badge)](https://github.com/sshrestha-design/justforms)
-[![GitHub Repository](https://img.shields.io/badge/GitHub-sshrestha--design%2Fjustforms-0f172a?style=for-the-badge&logo=github)](https://github.com/sshrestha-design/justforms)
-
-> **Designed by Sagar Shrestha © 2026. 100% Open Source (MIT License).**  
-> Live Production URL: **[https://justforms.vercel.app](https://justforms.vercel.app)**  
-> GitHub Repository: **[https://github.com/sshrestha-design/justforms](https://github.com/sshrestha-design/justforms)**
+> **Client-Side Interactive PDF Form Builder & ISO 32000 AcroForm Compiler**  
+> Designed by Sagar Shrestha © 2026. Released under the MIT License.  
+> Live App: [justforms.vercel.app](https://justforms.vercel.app) | Repository: [github.com/sshrestha-design/justforms](https://github.com/sshrestha-design/justforms)
 
 ---
 
-## 🌟 Overview
+## Overview
 
-**JustForms** is a high-performance, 100% client-side web application for visually designing, editing, and compiling interactive PDF AcroForms. Transform static PDF documents into fully fillable PDF forms with text fields, date pickers, dropdown choice menus, checkboxes, radio groups, and digital signature pads—entirely inside your browser with **zero server storage**.
+**JustForms** is a high-performance, client-side web application for designing, editing, and compiling interactive PDF AcroForms. Transform static PDF documents into fillable PDF forms with text fields, date pickers, dropdown menus, checkboxes, radio groups, and digital signature pads—processed entirely inside the browser with no server storage.
 
-### ✨ Key Features
+### Key Capabilities
 
-- 🔒 **100% Client-Side Privacy**: All processing runs locally in browser memory using PDF.js and PDF-Lib. Your confidential documents never touch any remote server.
-- ⚡ **Auto-Detection Engine**: Detects underlying vector lines and form field boxes across 4 detection strategies for 1-click automatic form generation.
-- ✍️ **Dual Signature Modes**: Freehand smooth Bezier drawing or real-time cursive handwriting generation.
-- 🎯 **Figma-Style Canvas**: Magnetic alignment snapping, marquee lasso selection, `Alt + Drag` field cloning, and 14×14px precision resize handles.
-- 📐 **Collapsible Power-User Workspace**: Collapsible sidebars (`Cmd + \` / `Ctrl + \`), 64px edge padding, and transient `Cmd + Z` undo toasts.
-- 📄 **Standard ISO 32000 Output**: Exports standard AcroForm PDFs compatible with Adobe Acrobat, Apple Preview, Google Chrome, Edge, and DocuSign.
+- **Client-Side Privacy**: Processing runs locally in browser memory using PDF.js and PDF-Lib. Documents and form data are never uploaded to external servers.
+- **Auto-Detection Engine**: Analyzes underlying vector lines and text boundaries across 4 detection strategies for automatic form field generation.
+- **Dual Signature Modes**: Supports freehand Bezier drawing and real-time cursive handwriting generation.
+- **Canvas Authoring**: Features magnetic alignment snapping, marquee lasso selection, `Alt + Drag` field cloning, and precision resize handles.
+- **Workspace Customization**: Includes collapsible sidebars (`Cmd + \` / `Ctrl + \`), margin padding, and transient deletion undo actions.
+- **Standard ISO 32000 Output**: Exports AcroForm PDFs compatible with Adobe Acrobat, Apple Preview, Google Chrome, Edge, and DocuSign.
 
 ---
 
-## 📁 Codebase Architecture & Directory Structure
+## Codebase Architecture
 
-Built with native **ES Modules** and modular CSS:
+The project is structured using native ES Modules and modular CSS:
 
 ```
 pdf_form_builder_web/
-├── index.html                   # Semantic HTML shell & UI entry point
-├── styles/                      # Modular domain-specific stylesheets
-│   ├── base.css                 # CSS variables, typography, reset, design tokens
-│   ├── landing.css              # Landing page hero, dropzone, template gallery, bento grid
-│   ├── editor.css               # Workspace layout, toolbar, left layers, right properties
-│   ├── canvas.css               # Canvas viewport, field overlays, snapping guides, handles
-│   ├── modals.css               # Live PDF preview iframe modal, digital signature pad
-│   └── main.css                 # Master stylesheet importing all modular CSS files
+├── index.html                   # Semantic HTML shell and UI layout
+├── styles/                      # Domain-specific stylesheets
+│   ├── base.css                 # CSS variables, design tokens, and resets
+│   ├── landing.css              # Landing page hero, dropzone, and templates
+│   ├── editor.css               # Workspace layout and panel styles
+│   ├── canvas.css               # Viewport, field overlays, and guides
+│   ├── modals.css               # Live PDF preview and signature pad
+│   └── main.css                 # Master stylesheet import
 ├── js/                          # Native ES Module architecture
-│   ├── constants.js             # Default field sizes, type schemas, snap thresholds
-│   ├── state.js                 # Central reactive application state (fields, active tool, zoom)
-│   ├── pdf-engine.js            # PDF.js rasterizer, page navigation & high-DPI scaling
-│   ├── acroform-builder.js      # pdf-lib AcroForm compiler & PDF download handler
-│   ├── canvas-controller.js     # Drag, resize, marquee lasso, magnetic snapping, pan & zoom
-│   ├── overlay-manager.js       # Field overlays rendering, badges, resize handles
-│   ├── layers-panel.js          # Layers panel list, selection sync, inline renaming
-│   ├── properties-panel.js      # Right-side property inspector & multi-field alignment
-│   ├── auto-detector.js        # 4-engine PDF field auto-detection algorithm
-│   ├── signature-pad.js         # Freehand signature canvas & cursive handwriting engine
-│   ├── templates-engine.js      # Sample templates (W-9, NDA, Intake, Job) & vector generator
-│   ├── landing-controller.js    # Landing page view switcher, interactive dropzone
-│   ├── storage-manager.js       # History stack (Undo/Redo), project JSON import/export
-│   └── main.js                  # Main application orchestrator & event bus
+│   ├── constants.js             # Default field sizes and schemas
+│   ├── state.js                 # Central application state management
+│   ├── pdf-engine.js            # PDF.js rendering and page scaling
+│   ├── acroform-builder.js      # pdf-lib AcroForm compilation engine
+│   ├── canvas-controller.js     # Drag, resize, snapping, and pan/zoom
+│   ├── overlay-manager.js       # Field overlay rendering and handles
+│   ├── layers-panel.js          # Layer stack management and renaming
+│   ├── properties-panel.js      # Field property inspector and alignment
+│   ├── auto-detector.js         # PDF field auto-detection algorithm
+│   ├── signature-pad.js         # Freehand drawing and cursive engine
+│   ├── templates-engine.js      # Vector document generator presets
+│   ├── landing-controller.js    # View router and dropzone controller
+│   ├── storage-manager.js       # History stack (Undo/Redo) and project I/O
+│   └── main.js                  # Application orchestrator and key bindings
 ├── vercel.json                  # Production deployment configuration
-├── .vercelignore                # Vercel deployment ignore rules
+├── .vercelignore                # Vercel ignore rules
 └── README.md                    # Project documentation
 ```
 
 ---
 
-## 🛠️ Subsystem Breakdown
+## Subsystem Reference
 
 | Module | Responsibility |
 | :--- | :--- |
-| **`js/state.js`** | Single source of truth for reactive state: document bytes, current page, active tool, selected fields, zoom, and history stack. |
-| **`js/pdf-engine.js`** | Manages PDF.js canvas rendering, page navigation, and debounced 120fps GPU transform zooming. |
-| **`js/acroform-builder.js`** | Compiles canvas form elements into standard PDF AcroForm fields and embeds high-resolution PNG signature stamps using `pdf-lib`. |
-| **`js/auto-detector.js`** | Runs 4 detection engines (Native AcroForms, Vector Path Analysis, Text Boundary Pairing, & Visual Grid Fallback). |
-| **`js/canvas-controller.js`** | Handles mouse & touch interactions: single/multi field dragging, `Option/Alt + Drag` cloning, marquee lasso selection, and magnetic alignment snapping. |
-| **`js/overlay-manager.js`** | Generates DOM overlays for placed form elements with live border/fill styles. |
-| **`js/layers-panel.js`** | Manages left layer stack, double-click inline renaming, and page badge routing. |
-| **`js/properties-panel.js`** | Live data-binding for field names, defaults, autofill tags, required flags, and multi-field horizontal/vertical distribution. |
-| **`js/signature-pad.js`** | Signature capture modal supporting smooth freehand bezier drawing and dynamic cursive handwriting generation. |
-| **`js/storage-manager.js`** | Handles undo/redo history stacks and complete `.jform` project export/import. |
-| **`js/main.js`** | Central application entry point wiring keyboard shortcuts, toolbar actions, and subsystem lifecycles. |
+| **`js/state.js`** | Single source of truth for reactive state (document bytes, page index, tools, selected fields, zoom). |
+| **`js/pdf-engine.js`** | Manages PDF.js canvas rendering, page navigation, and GPU transform scaling. |
+| **`js/acroform-builder.js`** | Compiles canvas form elements into standard PDF AcroForm fields using `pdf-lib`. |
+| **`js/auto-detector.js`** | Runs 4 detection engines (Native AcroForms, Vector Analysis, Text Pairing, Grid Fallback). |
+| **`js/canvas-controller.js`** | Handles canvas interactions (dragging, cloning, lasso marquee, magnetic snapping). |
+| **`js/overlay-manager.js`** | Renders DOM overlays for placed form elements with live styling. |
+| **`js/layers-panel.js`** | Manages the left layer list and inline field renaming. |
+| **`js/properties-panel.js`** | Manages field properties, autofill tags, required flags, and distribution tools. |
+| **`js/signature-pad.js`** | Controls signature capture with freehand drawing and cursive font generation. |
+| **`js/storage-manager.js`** | Manages undo/redo history stacks and `.jform` project file export/import. |
+| **`js/main.js`** | Central entry point wiring global events, shortcuts, and application initialization. |
 
 ---
 
-## ⌨️ Keyboard Shortcuts Reference
+## Keyboard Shortcuts
 
 | Shortcut | Action |
 | :--- | :--- |
 | **`V`** | Select Tool |
-| **`H`** or **Hold Spacebar** | Hand Tool (Pan viewport) |
+| **`H`** or **Spacebar** | Hand Tool (Pan Viewport) |
 | **`T`** | Text Field Tool |
 | **`D`** | Dropdown Tool |
 | **`C`** | Checkbox Tool |
 | **`R`** | Radio Group Tool |
 | **`S`** | Digital Signature Tool |
-| **`Cmd / Ctrl + \`** | Toggle Left Workspace Sidebar |
-| **`Option / Alt + Drag`** | Instant Field Duplicate (Figma-style) |
+| **`Cmd / Ctrl + \`** | Toggle Workspace Sidebar |
+| **`Option / Alt + Drag`** | Duplicate Field |
 | **`Cmd / Ctrl + Z`** | Undo |
 | **`Cmd / Ctrl + Shift + Z`** / **`Ctrl + Y`** | Redo |
 | **`Backspace`** / **`Delete`** | Delete Selected Field(s) |
 | **`[`** / **`PageUp`** | Previous Page |
 | **`]`** / **`PageDown`** | Next Page |
-| **`?`** or **`Shift + /`** | Open Keyboard Shortcuts Help Modal |
+| **`?`** or **`Shift + /`** | Open Shortcuts Modal |
 
 ---
 
-## 🚀 Local Development & Deployment
+## Development & Deployment
 
 ### Local Setup
-Run any static web server inside the repository directory:
+Run any static HTTP server in the repository directory:
 
 ```bash
 # Python 3
@@ -114,15 +110,17 @@ python3 -m http.server 3000
 npx serve .
 ```
 
-Open **`http://localhost:3000`** in your browser.
+Open `http://localhost:3000` in your web browser.
 
-### Deploying to Vercel
+### Deployment
+Deploy to Vercel production:
+
 ```bash
 npx vercel --prod
 ```
 
 ---
 
-## 📄 License
+## License
 
-Distributed under the **MIT License**. Created by **Sagar Shrestha** © 2026.
+Distributed under the MIT License. Created by Sagar Shrestha © 2026.
