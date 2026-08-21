@@ -1293,6 +1293,45 @@
                     </div>
                 </div>
 
+                <!-- Field Dimensions & Sizing (Batch Sizing) -->
+                <div class="form-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <label style="font-size: 11px; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 4px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
+                        <i data-lucide="scaling" style="width: 12px; height: 12px;"></i> Field Dimensions & Size
+                    </label>
+                    <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px;">Width (px)</label>
+                            <input type="number" id="multiFieldWidth" placeholder="Mixed" min="16" max="1000" style="font-size: 12px; padding: 6px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
+                        <div class="form-group" style="flex: 1; margin: 0;">
+                            <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px;">Height (px)</label>
+                            <input type="number" id="multiFieldHeight" placeholder="Mixed" min="16" max="1000" style="font-size: 12px; padding: 6px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
+                    </div>
+                    
+                    <!-- Equalize / Match Size Buttons -->
+                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                        <button id="multiMatchWidthBtn" type="button" class="btn-secondary" title="Make all selected fields have the same width" style="flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #0284c7;"></i> Match Width
+                        </button>
+                        <button id="multiMatchHeightBtn" type="button" class="btn-secondary" title="Make all selected fields have the same height" style="flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #0284c7;"></i> Match Height
+                        </button>
+                        <button id="multiMatchBothBtn" type="button" class="btn-secondary" title="Make all selected fields have the exact same size" style="flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                            <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #0284c7;"></i> Match Both
+                        </button>
+                    </div>
+
+                    <!-- Quick Preset Heights -->
+                    <div style="display: flex; gap: 4px;">
+                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="18" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">18px</button>
+                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="22" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">22px</button>
+                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="24" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">24px</button>
+                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="28" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">28px</button>
+                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="40" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">40px</button>
+                    </div>
+                </div>
+
                 <!-- 2. Quick Box Border Style -->
                 <div class="form-group" style="margin-bottom: 12px;">
                     <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Box Border Style</label>
