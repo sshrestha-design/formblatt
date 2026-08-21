@@ -574,6 +574,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         } else if (e.key === "Escape") {
             if (exportModal && exportModal.style.display !== "none") closeExportModal();
             if (saveProjectModal && saveProjectModal.style.display !== "none") closeSaveProjectModal();
+            const leaveModal = document.getElementById("leaveEditorModal");
+            if (leaveModal && leaveModal.style.display !== "none") leaveModal.style.display = "none";
         }
     });
 

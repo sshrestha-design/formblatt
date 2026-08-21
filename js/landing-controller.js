@@ -2,13 +2,30 @@
 import { state } from "./state.js";
 import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
-import { saveHistory } from "./storage-manager.js";
+import { saveHistory, exportProjectJson } from "./storage-manager.js";
 
-export function showLandingScreen() {
-    const landing = document.getElementById("landingScreen");
+export function showLandingScreen(force = false) {
     const editor = document.getElementById("appEditorScreen");
+    const isEditorActive = editor && editor.style.display !== "none";
+    const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
+
+    // If leaving from active editor with fields in progress, warn the user first
+    if (!force && isEditorActive && hasUnsavedWork) {
+        const leaveModal = document.getElementById("leaveEditorModal");
+        if (leaveModal) {
+            leaveModal.style.display = "flex";
+            if (typeof lucide !== "undefined") lucide.createIcons();
+            return;
+        }
+    }
+
+    const landing = document.getElementById("landingScreen");
     if (landing) landing.style.display = "block";
     if (editor) editor.style.display = "none";
+
+    const leaveModal = document.getElementById("leaveEditorModal");
+    if (leaveModal) leaveModal.style.display = "none";
+
     renderLandingReviews();
     if (typeof lucide !== "undefined") lucide.createIcons();
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -214,9 +231,33 @@ export async function loadTemplate(key, onLoaded) {
 export function initLandingController(onLoaded) {
     // Navigation to home & smooth anchor scrolling
     document.getElementById("landingLogoBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
-    document.getElementById("backToHomeBtn")?.addEventListener("click", showLandingScreen);
-    document.getElementById("editorBrandLogo")?.addEventListener("click", showLandingScreen);
-    document.getElementById("menuHomeBtn")?.addEventListener("click", showLandingScreen);
+    document.getElementById("backToHomeBtn")?.addEventListener("click", () => showLandingScreen(false));
+    document.getElementById("editorBrandLogo")?.addEventListener("click", () => showLandingScreen(false));
+    document.getElementById("menuHomeBtn")?.addEventListener("click", () => showLandingScreen(false));
+
+    // Leave Editor Unsaved Changes Modal Actions
+    const leaveModal = document.getElementById("leaveEditorModal");
+    const closeLeaveModal = () => {
+        if (leaveModal) leaveModal.style.display = "none";
+    };
+
+    document.getElementById("cancelLeaveEditorBtn")?.addEventListener("click", closeLeaveModal);
+    
+    document.getElementById("discardAndLeaveEditorBtn")?.addEventListener("click", () => {
+        closeLeaveModal();
+        showLandingScreen(true);
+    });
+
+    document.getElementById("saveAndLeaveEditorBtn")?.addEventListener("click", () => {
+        const baseName = (state.fileName || "interactive_form").replace(/\.pdf$/i, "");
+        exportProjectJson(baseName);
+        closeLeaveModal();
+        showLandingScreen(true);
+    });
+
+    leaveModal?.addEventListener("click", e => {
+        if (e.target === leaveModal) closeLeaveModal();
+    });
 
     // Header Modal Triggers
     document.getElementById("landingFeedbackBtn")?.addEventListener("click", () => {
