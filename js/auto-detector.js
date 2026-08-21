@@ -350,9 +350,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             const targetX = Math.round(promptEndX + 6);
             let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
             let targetH = isSig ? 38 : (isMulti ? 50 : 20);
-            let targetW = isDate ? 95 : (isSig ? 200 : (isMulti ? 300 : 150));
 
-            // Strict collision avoidance: clamp targetW against ALL text blocks on the page
+            // Strict collision avoidance: clamp available width against ALL text blocks on the page
             let maxAllowedX = pageWidth - 25;
             for (const tb of rawBlocks) {
                 if (tb.x > targetX + 2) {
@@ -369,14 +368,37 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 continue;
             }
 
-            targetW = Math.min(targetW, availableW);
-
             const sem = resolveSemanticProps(cleanLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
+            const fieldType = isSig ? "signature" : (isDate ? "dateField" : sem.type);
+            const fieldName = sem.name;
+            const isSingleOnLine = (maxAllowedX >= pageWidth - 45);
+
+            // Calculate optimal natural field width
+            let preferredW = 160;
+            if (isDate || /date|dob/i.test(fieldName)) {
+                preferredW = 95;
+            } else if (isSig) {
+                preferredW = 180;
+            } else if (/phone|tel|fax|mobile/i.test(fieldName)) {
+                preferredW = 130;
+            } else if (/state/i.test(fieldName)) {
+                preferredW = 55;
+            } else if (/zip|postal|code/i.test(fieldName)) {
+                preferredW = 75;
+            } else if (/ssn|social|tax_id|ein/i.test(fieldName)) {
+                preferredW = 110;
+            } else if (/amount|price|unit|qty|quantity/i.test(fieldName)) {
+                preferredW = 85;
+            } else if (isMulti || (isSingleOnLine && /comments|notes|description|responsibilities|address|street/i.test(fieldName))) {
+                preferredW = Math.min(380, availableW);
+            }
+
+            const targetW = Math.max(35, Math.min(preferredW, availableW));
 
             const newField = {
                 id: generateFieldId(),
-                type: isSig ? "signature" : (isDate ? "dateField" : sem.type),
-                name: sem.name,
+                type: fieldType,
+                name: fieldName,
                 x: Math.max(10, targetX),
                 y: targetY,
                 width: Math.round(targetW),
