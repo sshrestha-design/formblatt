@@ -320,46 +320,34 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
             if (/^[\s]*(?:Web Portal|Phone Support|First Time|Monthly|Standard|Full-Time)/i.test(textAfter)) continue;
             if (/select\s*all|select\s*one/i.test(cleanLabel)) continue;
 
-            const matchStart = m.index;
-            let startX = line.x;
-            let runningLen = 0;
+            // Find physical item in line where colon occurs
+            const matchColonStr = m[0]; // e.g. "Name:" or "Date (YYYY-MM-DD):"
+            let promptEndX = line.x + line.width;
             for (const it of line.items) {
-                if (matchStart >= runningLen && matchStart < runningLen + it.str.length + 1) {
-                    const localOff = matchStart - runningLen;
-                    startX = Math.round(it.x + (localOff / Math.max(1, it.str.length)) * it.width);
+                if (it.str.includes(":") && matchColonStr.includes(it.str.replace(/.*[:]/, ":"))) {
+                    promptEndX = it.x + it.width;
                     break;
                 }
-                runningLen += it.str.length + 1;
             }
 
-            const labelW = Math.max(30, Math.round((m[0].length / Math.max(1, text.length)) * line.width));
+            const targetX = Math.round(promptEndX + 4);
+
+            // Find the closest next text item on the current line to clamp width snugly
+            let nextItemX = pageWidth - 25;
+            for (const it of rawBlocks) {
+                if (Math.abs(it.y - line.y) <= 7 && it.x > targetX + 4) {
+                    nextItemX = Math.min(nextItemX, it.x);
+                }
+            }
+
+            const availableW = Math.max(35, nextItemX - targetX - 8);
             const isSig = /signature|sign/i.test(cleanLabel);
             const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
             const isMulti = /comments|notes|remarks|responsibilities|description/i.test(cleanLabel);
 
-            let targetX = startX + labelW + 4;
-            let targetW = isDate ? 110 : (isSig ? 220 : (isMulti ? 320 : 160));
-            let targetY = line.y + (isSig ? -10 : 0);
-            let targetH = isSig ? 44 : (isMulti ? 55 : 22);
-
-            // Clamp to next prompt on same line
-            if (i < promptMatches.length - 1) {
-                const nextMatch = promptMatches[i + 1];
-                const nextMatchStart = nextMatch.index;
-                let nextX = line.x + line.width;
-                let runL = 0;
-                for (const it of line.items) {
-                    if (nextMatchStart >= runL && nextMatchStart < runL + it.str.length + 1) {
-                        const lOff = nextMatchStart - runL;
-                        nextX = Math.round(it.x + (lOff / Math.max(1, it.str.length)) * it.width);
-                        break;
-                    }
-                    runL += it.str.length + 1;
-                }
-                targetW = Math.min(targetW, Math.max(40, nextX - targetX - 6));
-            } else {
-                targetW = Math.min(targetW, pageWidth - targetX - 25);
-            }
+            let targetW = isDate ? Math.min(95, availableW) : (isSig ? Math.min(200, availableW) : (isMulti ? Math.min(300, availableW) : Math.min(150, availableW)));
+            let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
+            let targetH = isSig ? 38 : (isMulti ? 50 : 20);
 
             const sem = resolveSemanticProps(cleanLabel, isSig ? "signature" : (isDate ? "dateField" : "textField"), usedNames);
 
@@ -367,8 +355,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                 id: generateFieldId(),
                 type: isSig ? "signature" : (isDate ? "dateField" : sem.type),
                 name: sem.name,
-                x: Math.max(10, Math.round(targetX)),
-                y: Math.max(10, Math.round(targetY)),
+                x: Math.max(10, targetX),
+                y: targetY,
                 width: Math.round(targetW),
                 height: targetH,
                 page: pageNum,
