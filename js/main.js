@@ -4,7 +4,7 @@ import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
 import { initPropertiesPanel, populateProperties } from "./properties-panel.js";
-import { renderOverlays } from "./overlay-manager.js";
+import { renderOverlays, updateOverlayPositionsDirectly } from "./overlay-manager.js";
 import { initCanvasController, handleFieldMouseDown, handleResizeStart } from "./canvas-controller.js";
 import { initLandingController, showLandingScreen, renderLandingReviews } from "./landing-controller.js";
 import { initSignaturePad } from "./signature-pad.js";
@@ -48,7 +48,7 @@ const canvasHandlers = {
         refreshUI();
     },
     onFieldMoving: () => {
-        renderOverlays(overlayHandlers);
+        updateOverlayPositionsDirectly();
         populateProperties(getSelectedField());
     },
     onFieldUpdated: () => {

@@ -481,6 +481,7 @@ export function handleFieldMouseDown(e, field, handlers) {
         return;
     }
 
+    e.preventDefault();
     e.stopPropagation();
     if (state.activeTool === "hand") return;
 
@@ -500,7 +501,8 @@ export function handleFieldMouseDown(e, field, handlers) {
         return;
     }
 
-    if (e.shiftKey || e.ctrlKey || e.metaKey) {
+    let selectionChanged = false;
+    if (e.shiftKey || e.ctrlKey || (e.metaKey && !e.altKey)) {
         if (state.selectedFieldIds.has(field.id)) {
             state.selectedFieldIds.delete(field.id);
             if (state.lastSelectedFieldId === field.id) {
@@ -510,17 +512,22 @@ export function handleFieldMouseDown(e, field, handlers) {
             state.selectedFieldIds.add(field.id);
             state.lastSelectedFieldId = field.id;
         }
+        selectionChanged = true;
     } else {
         if (!state.selectedFieldIds.has(field.id)) {
             setSelectedField(field.id);
+            selectionChanged = true;
         } else {
             state.lastSelectedFieldId = field.id;
         }
     }
-    handlers.onSelectionChange();
 
-    // Alt + Drag Instant Clone
-    if (e.altKey || e.metaKey) {
+    if (selectionChanged) {
+        handlers.onSelectionChange();
+    }
+
+    // Alt + Drag Instant Clone (Option key on Mac / Alt on Windows)
+    if (e.altKey) {
         state.isDuplicating = true;
         duplicateSelectedFields();
         handlers.onSelectionChange();

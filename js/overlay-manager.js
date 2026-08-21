@@ -237,6 +237,38 @@ export function renderOverlays(handlers) {
     }
 }
 
+export function updateOverlayPositionsDirectly() {
+    const pageFields = getFieldsForCurrentPage();
+    
+    state.selectedFieldIds.forEach(id => {
+        const f = pageFields.find(item => item.id === id);
+        if (f) {
+            const overlayEl = document.getElementById(`overlay_${f.id}`);
+            if (overlayEl) {
+                overlayEl.style.left = f.x + "px";
+                overlayEl.style.top = f.y + "px";
+                overlayEl.style.width = f.width + "px";
+                overlayEl.style.height = f.height + "px";
+            }
+        }
+    });
+
+    const selectedFieldsOnPage = pageFields.filter(f => state.selectedFieldIds.has(f.id));
+    if (selectedFieldsOnPage.length > 1) {
+        const frame = document.querySelector(".multi-selection-bounding-frame");
+        if (frame) {
+            const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
+            const minY = Math.min(...selectedFieldsOnPage.map(f => f.y));
+            const maxX = Math.max(...selectedFieldsOnPage.map(f => f.x + f.width));
+            const maxY = Math.max(...selectedFieldsOnPage.map(f => f.y + f.height));
+            frame.style.left = (minX - 3) + "px";
+            frame.style.top = (minY - 3) + "px";
+            frame.style.width = (maxX - minX + 6) + "px";
+            frame.style.height = (maxY - minY + 6) + "px";
+        }
+    }
+}
+
 export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
     document.querySelectorAll(".canvas-quick-dimension-hud").forEach(h => h.remove());
 
