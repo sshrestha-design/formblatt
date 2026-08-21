@@ -168,12 +168,12 @@ export class TopologicalTableSolver {
     static solveGrid(fields, rawBlocks, pageNum, usedNames) {
         const headerBlocks = rawBlocks.filter(tb => {
             const text = (tb.str || "").trim();
-            return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b/i.test(text);
+            return /^(?:item|description|item\s*description|qty|quantity|unit\s*price|price|rate|amount|line\s*total)$/i.test(text);
         }).sort((a, b) => a.x - b.x);
 
         const headerRows = [];
         headerBlocks.forEach(hb => {
-            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 15);
+            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 8);
             if (!hr) {
                 hr = { y: hb.y, height: hb.height, blocks: [] };
                 headerRows.push(hr);
@@ -181,7 +181,14 @@ export class TopologicalTableSolver {
             hr.blocks.push(hb);
         });
 
-        const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
+        // Require at least 3 distinct invoice table column headers on the same line
+        const mainHeaderRow = headerRows.find(hr => {
+            if (hr.blocks.length < 3) return false;
+            const texts = hr.blocks.map(b => (b.str || "").trim().toLowerCase());
+            const hasDesc = texts.some(t => t.includes("desc") || t.includes("item"));
+            const hasQtyOrPrice = texts.some(t => t.includes("qty") || t.includes("quant") || t.includes("price") || t.includes("rate") || t.includes("amount"));
+            return hasDesc && hasQtyOrPrice;
+        });
         if (!mainHeaderRow) return fields;
 
         const tableTopY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 4);
@@ -825,13 +832,6 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                     continue;
                 }
 
-                const followedByBracketBox = consumedRanges.some(r => 
-                    r.type === "bracketBox" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
-                );
-                if (followedByBracketBox) {
-                    continue;
-                }
-
                 const followedByUnderline = consumedRanges.some(r => 
                     r.type === "underline" && r.start >= matchEndIdx && (r.start - matchEndIdx) <= 25
                 );
@@ -866,8 +866,8 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                 }
 
                 const isSig = /signature|sign/i.test(labelPart);
-                const isDate = /date|dob|\(mm\/dd\/yyyy\)/i.test(labelPart);
-                const isMulti = /comments|notes|remarks|allergies|medications|description|message/i.test(labelPart);
+                const isDate = /date|dob|\(mm\/dd\/yyyy\)|\(yyyy-mm-dd\)/i.test(labelPart);
+                const isMulti = /comments|notes|remarks|allergies|medications|responsibilities|reason\s*for|description|message/i.test(labelPart);
 
                 if (targetX < (pageWidth - 25) && line.y > 40) {
                     detected.push({
@@ -976,20 +976,54 @@ function isArtifactString(str) {
     return false;
 }
 
-// ── Helper: Fuse Detections with Directional Raycasting ───────────────
 function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, viewport, pageNum, usedNames, occupancyGrid) {
     const fused = [...acroFormFields];
     const { detected: textDetections } = textResult;
+
+    for (let td of textDetections) {
+        if (occupancyGrid.isBlocked(td)) continue;
+        if (isOverlappingAny(td, fused)) continue;
+
+        const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (DirectionalRaycaster.findLabelForBox(td, rawBlocks) || `field_${usedNames.size + 1}`);
+        if (isHeadingLabel(rawLabel)) continue;
+        const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, td.type, usedNames);
+
+        fused.push({
+            id: generateFieldId(),
+            type: td.type || sem.type,
+            name: sem.name,
+            x: td.x,
+            y: td.y,
+            width: td.width,
+            height: td.height,
+            page: pageNum,
+            borderStyle: td.borderStyle || "solid",
+            fillStyle: td.fillStyle || "white",
+            multiline: td.multiline || sem.multiline || false,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            ...(td.defaultValue || sem.defaultValue ? { defaultValue: td.defaultValue || sem.defaultValue } : {})
+        });
+    }
 
     for (let ve of vectorElements) {
         if (occupancyGrid.isBlocked(ve)) continue;
         if (isOverlappingAny(ve, fused)) continue;
 
-        const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks);
-        if (!rawLabel && (ve.y < 120 || (ve.width * ve.height) > 6000)) continue;
-        if (ve.width < 30 && ve.height >= 28) continue;
+        const touchesExisting = fused.some(f => {
+            const xOverlap = Math.max(0, Math.min(ve.x + ve.width, f.x + f.width) - Math.max(ve.x, f.x));
+            const yOverlap = Math.max(0, Math.min(ve.y + ve.height, f.y + f.height) - Math.max(ve.y, f.y));
+            return (xOverlap > 0 && yOverlap > 0);
+        });
+        if (touchesExisting) continue;
 
-        const effectiveLabel = rawLabel || `field_${usedNames.size + 1}`;
+        if (ve.width > (viewport.width * 0.38) && ve.height > 25) continue;
+        if (ve.height > 35) continue;
+
+        const rawLabel = DirectionalRaycaster.findLabelForBox(ve, rawBlocks);
+        if (!rawLabel) continue;
+
+        const effectiveLabel = rawLabel;
         if (isHeadingLabel(effectiveLabel)) continue;
         if (/^(?:from|to|bill\s*from|bill\s*to)$/i.test(effectiveLabel) && ve.width < 50) continue;
 
@@ -1017,38 +1051,6 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
         });
     }
 
-    for (let td of textDetections) {
-        if (occupancyGrid.isBlocked(td)) continue;
-
-        const isCovered = fused.some(f => {
-            const xOverlap = Math.max(0, Math.min(td.x + td.width, f.x + f.width) - Math.max(td.x, f.x));
-            const yOverlap = Math.max(0, Math.min(td.y + td.height, f.y + f.height) - Math.max(td.y, f.y));
-            return (xOverlap * yOverlap) > 0;
-        });
-
-        if (!isCovered) {
-            const rawLabel = (td.rawLabel && td.rawLabel !== "text") ? td.rawLabel : (DirectionalRaycaster.findLabelForBox(td, rawBlocks) || `field_${usedNames.size + 1}`);
-            if (isHeadingLabel(rawLabel)) continue;
-            const sem = DirectionalRaycaster.resolveSemanticProperties(rawLabel, td.type, usedNames);
-
-            fused.push({
-                id: generateFieldId(),
-                type: td.type || sem.type,
-                name: sem.name,
-                x: td.x,
-                y: td.y,
-                width: td.width,
-                height: td.height,
-                page: pageNum,
-                borderStyle: td.borderStyle || "solid",
-                fillStyle: td.fillStyle || "white",
-                multiline: td.multiline || sem.multiline || false,
-                autofill: sem.autofill || "",
-                dataFormat: sem.dataFormat || "text",
-                ...(td.defaultValue || sem.defaultValue ? { defaultValue: td.defaultValue || sem.defaultValue } : {})
-            });
-        }
-    }
 
     return fused;
 }
