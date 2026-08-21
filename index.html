@@ -173,31 +173,28 @@
                 <p class="hero-subtitle">
                     Drag & drop any PDF to add fillable text fields, checkboxes, dropdowns, and digital signatures in seconds.
                 </p>
-                <div class="hero-cta-group" style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;">
-                    <label class="hero-btn-primary" style="cursor: pointer;">
-                        <i data-lucide="file-up" style="width:18px; height:18px;"></i>
-                        <span>Upload PDF Document</span>
-                        <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                    </label>
-                    <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; font-size: 14px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;" title="Open a previously saved editable JustForms project backup file">
-                        <i data-lucide="folder-open" style="width:18px; height:18px; color:#0284c7;"></i>
-                        <span>Open Saved Project (.jform file)</span>
-                        <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                    </label>
-                </div>
 
                 <!-- Primary Visual Hero Anchor: Drag & Drop Dropzone -->
                 <div class="hero-dropzone" id="heroDropzone">
                     <div class="dropzone-inner">
                         <div class="dropzone-icon-box">
-                            <i data-lucide="cloud-upload" style="width:28px; height:28px; color:#2563eb;"></i>
+                            <i data-lucide="cloud-upload" style="width:30px; height:30px; color:#2563eb;"></i>
                         </div>
                         <div class="dropzone-text">
-                            <strong style="font-size: 16.5px; display: block; margin-bottom: 4px; color: #0f172a;">Drag & drop your PDF or project file here</strong>
-                            <span style="color: #64748b; font-size: 13.5px;">or <span class="dropzone-browse">browse files</span> from your device</span>
-                            <div class="dropzone-format-pills" style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px;">
-                                <span style="background:#eff6ff; color:#2563eb; padding:5px 16px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #bfdbfe;" title="Standard PDF Document">📄 .pdf (Standard PDF)</span>
-                                <span style="background:#eff6ff; color:#2563eb; padding:5px 16px; border-radius:20px; font-size:12px; font-weight:700; border:1px solid #bfdbfe;" title="Editable JustForms Project Backup File">💾 .jform (Saved Project)</span>
+                            <strong style="font-size: 18px; display: block; margin-bottom: 6px; color: #0f172a; font-weight: 700; letter-spacing: -0.3px;">Drag & drop your PDF file here</strong>
+                            <span style="color: #64748b; font-size: 13.5px;">or choose an option below to browse files from your device</span>
+                            
+                            <div class="hero-cta-group" style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; margin-bottom: 0;">
+                                <label class="hero-btn-primary" style="cursor: pointer; margin: 0;">
+                                    <i data-lucide="file-up" style="width:16px; height:16px;"></i>
+                                    <span>Browse PDF File</span>
+                                    <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                                </label>
+                                <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; font-size: 13.5px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;" title="Open a previously saved editable JustForms project backup file">
+                                    <i data-lucide="folder-open" style="width:16px; height:16px; color:#0284c7;"></i>
+                                    <span>Open Saved Project (.jform)</span>
+                                    <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                                </label>
                             </div>
                         </div>
                     </div>
