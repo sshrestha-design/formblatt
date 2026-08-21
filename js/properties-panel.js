@@ -537,14 +537,53 @@ function initMultiSelectTools(onUpdated) {
     });
 
     // ── 1-Click Batch Border Changes ─────────────────────────────────
-    document.getElementById("multiBorderSolidBtn")?.addEventListener("click", () => batchUpdate(f => f.borderStyle = "solid"));
-    document.getElementById("multiBorderNoneBtn")?.addEventListener("click", () => batchUpdate(f => f.borderStyle = "none"));
+    const btnSolid = document.getElementById("multiBorderSolidBtn");
+    const btnNone = document.getElementById("multiBorderNoneBtn");
+    btnSolid?.addEventListener("click", () => {
+        btnSolid.style.background = "#ffffff";
+        btnSolid.style.color = "#1e293b";
+        btnSolid.style.fontWeight = "600";
+        btnSolid.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+        if (btnNone) {
+            btnNone.style.background = "transparent";
+            btnNone.style.color = "#64748b";
+            btnNone.style.fontWeight = "500";
+            btnNone.style.boxShadow = "none";
+        }
+        batchUpdate(f => f.borderStyle = "solid", true);
+    });
+    btnNone?.addEventListener("click", () => {
+        btnNone.style.background = "#ffffff";
+        btnNone.style.color = "#1e293b";
+        btnNone.style.fontWeight = "600";
+        btnNone.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+        if (btnSolid) {
+            btnSolid.style.background = "transparent";
+            btnSolid.style.color = "#64748b";
+            btnSolid.style.fontWeight = "500";
+            btnSolid.style.boxShadow = "none";
+        }
+        batchUpdate(f => f.borderStyle = "none", true);
+    });
 
-    // ── 1-Click Batch Box Fill / Background ──────────────────────────
-    document.getElementById("multiFillWhiteBtn")?.addEventListener("click", () => batchUpdate(f => f.fillStyle = "white"));
-    document.getElementById("multiFillTintBtn")?.addEventListener("click", () => batchUpdate(f => f.fillStyle = "tint"));
-    document.getElementById("multiFillYellowBtn")?.addEventListener("click", () => batchUpdate(f => f.fillStyle = "yellow"));
-    document.getElementById("multiFillTransBtn")?.addEventListener("click", () => batchUpdate(f => f.fillStyle = "transparent"));
+    // ── 1-Click Batch Box Fill / Background Swatches ──────────────────
+    const swatches = [
+        { id: "multiFillWhiteBtn", fill: "white" },
+        { id: "multiFillTintBtn", fill: "tint" },
+        { id: "multiFillYellowBtn", fill: "yellow" },
+        { id: "multiFillTransBtn", fill: "transparent" }
+    ];
+    swatches.forEach(sw => {
+        const btn = document.getElementById(sw.id);
+        btn?.addEventListener("click", () => {
+            swatches.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (el) el.style.outline = (s.id === sw.id) ? "2px solid #2563eb" : "none";
+                if (el) el.style.outlineOffset = "2px";
+            });
+            batchUpdate(f => f.fillStyle = sw.fill, true);
+        });
+    });
 
     // ── Batch Text, Typography & Alignment ───────────────────────────
     document.getElementById("multiDefaultValue")?.addEventListener("input", e => {

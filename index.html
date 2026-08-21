@@ -1262,117 +1262,87 @@
             </div>
             
             <div id="multiSelectProps" style="display: none;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
-                    <h2 style="font-size: 14px; margin: 0; font-weight: 700; color: #1e293b;">Batch Editing</h2>
-                    <span id="multiSelectedCountBadge" style="font-size: 11px; background: #e0f2fe; color: #0284c7; padding: 2px 8px; border-radius: 12px; font-weight: 600;">2 Selected</span>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                    <span style="font-size: 13px; margin: 0; font-weight: 700; color: #1e293b;">Batch Editing</span>
+                    <span id="multiSelectedCountBadge" style="font-size: 11px; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 12px; font-weight: 600; border: 1px solid #dbeafe;">2 Selected</span>
                 </div>
 
-                <!-- 1. Alignment & Spacing Distribution (Placed prominently at top) -->
-                <div class="form-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <label style="font-size: 11px; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 4px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
-                        <i data-lucide="layout-grid" style="width: 12px; height: 12px;"></i> Alignment & Spacing
-                    </label>
-                    <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                        <button id="alignLeftBtn" class="btn-secondary" title="Align Left Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="align-left" style="width: 14px; height: 14px;"></i></button>
-                        <button id="alignCenterBtn" class="btn-secondary" title="Align Centers Horizontally" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="align-center" style="width: 14px; height: 14px;"></i></button>
-                        <button id="alignRightBtn" class="btn-secondary" title="Align Right Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="align-right" style="width: 14px; height: 14px;"></i></button>
+                <!-- 1. Alignment & Distribution Toolbar (Compact Figma-style) -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Align & Distribute</label>
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; flex-direction: column; gap: 4px;">
+                        <div style="display: flex; justify-content: space-between; gap: 2px;">
+                            <button id="alignLeftBtn" class="tool-btn" title="Align Left Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="align-left" style="width: 14px; height: 14px;"></i></button>
+                            <button id="alignCenterBtn" class="tool-btn" title="Align Centers Horizontally" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="align-center" style="width: 14px; height: 14px;"></i></button>
+                            <button id="alignRightBtn" class="tool-btn" title="Align Right Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="align-right" style="width: 14px; height: 14px;"></i></button>
+                            <button id="alignTopBtn" class="tool-btn" title="Align Top Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="arrow-up-to-line" style="width: 14px; height: 14px;"></i></button>
+                            <button id="alignMiddleBtn" class="tool-btn" title="Align Centers Vertically" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="fold-vertical" style="width: 14px; height: 14px;"></i></button>
+                            <button id="alignBottomBtn" class="tool-btn" title="Align Bottom Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="arrow-down-to-line" style="width: 14px; height: 14px;"></i></button>
+                        </div>
+                        <div style="display: flex; gap: 4px; border-top: 1px solid #e2e8f0; padding-top: 4px;">
+                            <button id="distributeVerticalBtn" class="btn-secondary" title="Distribute Vertical Spacing Evenly" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
+                                <i data-lucide="distribute-vertical" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute V
+                            </button>
+                            <button id="distributeHorizontalBtn" class="btn-secondary" title="Distribute Horizontal Spacing Evenly" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
+                                <i data-lucide="distribute-horizontal" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute H
+                            </button>
+                        </div>
                     </div>
-                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                        <button id="alignTopBtn" class="btn-secondary" title="Align Top Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="arrow-up-to-line" style="width: 14px; height: 14px;"></i></button>
-                        <button id="alignMiddleBtn" class="btn-secondary" title="Align Centers Vertically" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="fold-vertical" style="width: 14px; height: 14px;"></i></button>
-                        <button id="alignBottomBtn" class="btn-secondary" title="Align Bottom Edges" style="padding: 6px; flex: 1; font-size: 11px; display: flex; align-items: center; justify-content: center;"><i data-lucide="arrow-down-to-line" style="width: 14px; height: 14px;"></i></button>
+                </div>
+
+                <!-- 2. Dimensions & Sizing -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Dimensions (px)</label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                        <div style="flex: 1; position: relative;">
+                            <span style="position: absolute; left: 8px; top: 7px; font-size: 11px; color: #94a3b8; font-weight: 600;">W</span>
+                            <input type="number" id="multiFieldWidth" placeholder="Mixed" min="16" max="2000" style="padding: 6px 8px 6px 24px; font-size: 12px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
+                        <div style="flex: 1; position: relative;">
+                            <span style="position: absolute; left: 8px; top: 7px; font-size: 11px; color: #94a3b8; font-weight: 600;">H</span>
+                            <input type="number" id="multiFieldHeight" placeholder="Mixed" min="16" max="1000" style="padding: 6px 8px 6px 24px; font-size: 12px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                        </div>
                     </div>
-                    <!-- Spacing Distribution Tools -->
                     <div style="display: flex; gap: 6px;">
-                        <button id="distributeVerticalBtn" class="btn-secondary" title="Distribute Vertical Spacing Evenly" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <i data-lucide="distribute-vertical" style="width: 13px; height: 13px; color: #0284c7;"></i> Distribute V
+                        <button id="multiMatchWidthBtn" type="button" class="btn-secondary" title="Equalize Widths" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
+                            <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
                         </button>
-                        <button id="distributeHorizontalBtn" class="btn-secondary" title="Distribute Horizontal Spacing Evenly" style="flex: 1; padding: 6px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <i data-lucide="distribute-horizontal" style="width: 13px; height: 13px; color: #0284c7;"></i> Distribute H
+                        <button id="multiMatchHeightBtn" type="button" class="btn-secondary" title="Equalize Heights" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
+                            <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
+                        </button>
+                        <button id="multiMatchBothBtn" type="button" class="btn-secondary" title="Equalize Both Width & Height" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
+                            <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
                         </button>
                     </div>
                 </div>
 
-                <!-- Field Dimensions & Sizing (Batch Sizing) -->
-                <div class="form-group" style="margin-bottom: 14px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                    <label style="font-size: 11px; font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 4px; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">
-                        <i data-lucide="scaling" style="width: 12px; height: 12px;"></i> Field Dimensions & Size
-                    </label>
-                    <div class="form-row" style="display: flex; gap: 8px; margin-bottom: 8px;">
-                        <div class="form-group" style="flex: 1; margin: 0;">
-                            <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px;">Width (px)</label>
-                            <input type="number" id="multiFieldWidth" placeholder="Mixed" min="16" max="1000" style="font-size: 12px; padding: 6px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                        </div>
-                        <div class="form-group" style="flex: 1; margin: 0;">
-                            <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 2px;">Height (px)</label>
-                            <input type="number" id="multiFieldHeight" placeholder="Mixed" min="16" max="1000" style="font-size: 12px; padding: 6px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                <!-- 3. Appearance & Style (Sleek Swatches & Border) -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Appearance</label>
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <span style="font-size: 11px; color: #475569; font-weight: 500;">Border:</span>
+                        <div style="display: inline-flex; background: #f1f5f9; padding: 2px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                            <button id="multiBorderSolidBtn" type="button" style="padding: 2px 10px; font-size: 11px; border: none; background: #ffffff; border-radius: 4px; font-weight: 600; color: #1e293b; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">Solid</button>
+                            <button id="multiBorderNoneBtn" type="button" style="padding: 2px 10px; font-size: 11px; border: none; background: transparent; border-radius: 4px; font-weight: 500; color: #64748b; cursor: pointer;">None</button>
                         </div>
                     </div>
-                    
-                    <!-- Equalize / Match Size Buttons -->
-                    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                        <button id="multiMatchWidthBtn" type="button" class="btn-secondary" title="Make all selected fields have the same width" style="flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #0284c7;"></i> Match Width
-                        </button>
-                        <button id="multiMatchHeightBtn" type="button" class="btn-secondary" title="Make all selected fields have the same height" style="flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #0284c7;"></i> Match Height
-                        </button>
-                        <button id="multiMatchBothBtn" type="button" class="btn-secondary" title="Make all selected fields have the exact same size" style="flex: 1; padding: 5px 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                            <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #0284c7;"></i> Match Both
-                        </button>
-                    </div>
-
-                    <!-- Quick Preset Heights -->
-                    <div style="display: flex; gap: 4px;">
-                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="18" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">18px</button>
-                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="22" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">22px</button>
-                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="24" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">24px</button>
-                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="28" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">28px</button>
-                        <button type="button" class="multi-quick-height-btn btn-secondary" data-height="40" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">40px</button>
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 11px; color: #475569; font-weight: 500;">Background:</span>
+                        <div style="display: flex; gap: 6px;">
+                            <button id="multiFillWhiteBtn" type="button" title="White Background" style="width: 22px; height: 22px; border-radius: 50%; background: #ffffff; border: 1.5px solid #cbd5e1; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);"></button>
+                            <button id="multiFillTintBtn" type="button" title="Soft Blue Tint" style="width: 22px; height: 22px; border-radius: 50%; background: #dbeafe; border: 1.5px solid #3b82f6; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);"></button>
+                            <button id="multiFillYellowBtn" type="button" title="Soft Yellow" style="width: 22px; height: 22px; border-radius: 50%; background: #fef08a; border: 1.5px solid #eab308; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.06);"></button>
+                            <button id="multiFillTransBtn" type="button" title="Transparent" style="width: 22px; height: 22px; border-radius: 50%; background: #f8fafc; border: 1.5px dashed #94a3b8; cursor: pointer;"></button>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 2. Quick Box Border Style -->
+                <!-- 4. Typography -->
                 <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Box Border Style</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                        <button id="multiBorderSolidBtn" type="button" class="btn-secondary" style="font-size: 11.5px; padding: 6px; border-radius: 6px; font-weight: 600;">
-                            <i data-lucide="square" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> Solid Box
-                        </button>
-                        <button id="multiBorderNoneBtn" type="button" class="btn-secondary" style="font-size: 11.5px; padding: 6px; border-radius: 6px; font-weight: 600;">
-                            <i data-lucide="minus" style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i> No Border
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 3. Quick Box Fill / Background -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Box Fill / Background</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-                        <button id="multiFillWhiteBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #ffffff; color: #334155; border: 1px solid #cbd5e1;">
-                            ⚪ White
-                        </button>
-                        <button id="multiFillTintBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe;">
-                            🔵 Tinted Blue
-                        </button>
-                        <button id="multiFillYellowBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">
-                            🟡 Soft Yellow
-                        </button>
-                        <button id="multiFillTransBtn" type="button" class="btn-secondary" style="font-size: 11px; padding: 6px; border-radius: 6px; background: #f8fafc; color: #475569; border: 1px dashed #cbd5e1;">
-                            ⚪ Transparent
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 4. Batch Text & Typography -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 11px; font-weight: 600; color: #475569; display: block; margin-bottom: 4px;">Default Text (All Selected)</label>
-                    <input type="text" id="multiDefaultValue" placeholder="Mixed" style="font-size: 12px; padding: 6px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 8px;">
-                    
-                    <div class="form-group" style="margin-bottom: 8px;">
-                        <label style="font-size: 11px; font-weight: 600;">Font Family</label>
-                        <select id="multiFontFamily" style="font-size: 12px; padding: 6px; width: 100%;">
-                            <option value="" style="color: #64748b; font-style: italic;">Mixed</option>
+                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Typography</label>
+                    <div style="margin-bottom: 6px;">
+                        <select id="multiFontFamily" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                            <option value="" style="color: #64748b; font-style: italic;">Font (Mixed)</option>
                             <option value="helvetica">Calibri / Helvetica</option>
                             <option value="times">Times New Roman</option>
                             <option value="courier">Courier Monospace</option>
@@ -1380,51 +1350,48 @@
                             <option value="times-italic">Times New Roman Italic</option>
                         </select>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group" style="width: 48%;">
-                            <label style="font-size: 11px; font-weight: 600;">Font Size</label>
-                            <input type="number" id="multiFontSize" placeholder="Mixed" min="6" max="72" style="font-size: 12px; padding: 6px;">
+                    <div style="display: flex; gap: 8px;">
+                        <div style="flex: 1;">
+                            <input type="number" id="multiFontSize" placeholder="Size (pt)" min="6" max="72" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
                         </div>
-                        <div class="form-group" style="width: 48%;">
-                            <label style="font-size: 11px; font-weight: 600;">Alignment</label>
-                            <select id="multiTextAlignment" style="font-size: 12px; padding: 6px;">
-                                <option value="" style="color: #64748b; font-style: italic;">Mixed</option>
+                        <div style="flex: 1;">
+                            <select id="multiTextAlignment" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                                <option value="" style="color: #64748b; font-style: italic;">Align</option>
                                 <option value="left">Left</option>
                                 <option value="center">Center</option>
                                 <option value="right">Right</option>
                             </select>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 4px; margin-top: 6px;">
-                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="9" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">9pt</button>
-                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="11" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">11pt</button>
-                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="12" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">12pt</button>
-                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="14" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">14pt</button>
-                        <button type="button" class="multi-quick-size-btn btn-secondary" data-size="18" style="flex: 1; padding: 4px 2px; font-size: 11px; border-radius: 4px;">18pt</button>
-                    </div>
                 </div>
 
-                <!-- 5. Batch Required Toggle -->
-                <div class="form-group" style="margin-bottom: 12px; background: #f8fafc; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #334155; font-weight: 600; cursor: pointer;">
+                <!-- 5. Default Text -->
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Default Text</label>
+                    <input type="text" id="multiDefaultValue" placeholder="Apply text to all selected" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
+                </div>
+
+                <!-- 6. Required Checkbox -->
+                <div style="margin-bottom: 14px; background: #f8fafc; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
+                    <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #334155; font-weight: 500; cursor: pointer;">
                         <input type="checkbox" id="multiFieldRequired"> Make All Selected Required
                     </label>
                 </div>
 
-                <!-- 6. Group & Batch Actions -->
-                <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-                    <button id="multiGroupBtn" type="button" style="flex: 1; background: #eff6ff; color: #0284c7; border: 1px solid #bae6fd; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i> Group Selected
+                <!-- 7. Actions -->
+                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <button id="multiGroupBtn" type="button" style="flex: 1; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i> Group
                     </button>
-                    <button id="multiUngroupBtn" type="button" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Ungroup Selected">
-                        <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i>
+                    <button id="multiUngroupBtn" type="button" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Ungroup Selected">
+                        <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i> Ungroup
                     </button>
                 </div>
-                
-                <button id="deleteMultiBtn" style="width: 100%; background: #fff; color: #ef4444; border: 1px solid #fca5a5; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                    <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete All Selected
-                </button>
+                <div>
+                    <button id="deleteMultiBtn" type="button" style="width: 100%; background: #fff5f5; color: #dc2626; border: 1px solid #fecaca; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete Selected
+                    </button>
+                </div>
             </div>
         </aside>
     </div>
