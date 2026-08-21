@@ -682,3 +682,21 @@ body.is-scrubbing * {
     background: #0369a1;
     border-color: #0369a1;
 }
+
+/* ── Hand / Pan Tool Cursor Styles ───────────────────────────── */
+body.tool-hand .center-canvas,
+body.tool-hand .canvas-container,
+body.tool-hand .overlay-container,
+body.tool-hand .field-overlay,
+body.is-space-panning .center-canvas,
+body.is-space-panning .canvas-container,
+body.is-space-panning .overlay-container,
+body.is-space-panning .field-overlay {
+    cursor: grab !important;
+}
+
+body.is-panning,
+body.is-panning * {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
