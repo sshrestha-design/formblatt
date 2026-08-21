@@ -1250,3 +1250,123 @@
     color: #64748b;
     font-weight: 500;
 }
+
+/* ── Progressive Fallback Mobile Architecture (< 768px) ───────────── */
+.mobile-hero-card {
+    display: none;
+}
+
+.mobile-handoff-bar {
+    display: none;
+}
+
+.mobile-editor-notice {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .hero-dropzone {
+        display: none !important;
+    }
+
+    .mobile-hero-card {
+        display: block;
+        max-width: 600px;
+        margin: 20px auto 0;
+        background: #ffffff;
+        border: 1.5px solid #bfdbfe;
+        border-radius: 16px;
+        padding: 24px 20px;
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+        text-align: center;
+    }
+
+    .mobile-hero-icon-box {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        background: #eff6ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 12px;
+    }
+
+    .mobile-hero-test-btn {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .mobile-hero-share-btn {
+        background: #ffffff;
+        color: #1e293b;
+        border: 1.5px solid #cbd5e1;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    /* Fixed Glassmorphism Handoff Bottom Sheet Bar */
+    .mobile-handoff-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 999;
+        padding: 12px 16px;
+        background: rgba(15, 23, 42, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .mobile-handoff-inner {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .mobile-handoff-text {
+        font-size: 12px;
+        font-weight: 600;
+        color: #f1f5f9;
+    }
+
+    .mobile-share-btn {
+        background: #2563eb;
+        color: #ffffff;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+}

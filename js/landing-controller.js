@@ -307,6 +307,33 @@ export function initLandingController(onLoaded) {
         if (bar) bar.style.display = "none";
     });
 
+    // Mobile Device Handoff & Web Share API Handlers
+    const handleDeviceShare = async () => {
+        const shareData = {
+            title: "JustForms — Client-Side PDF Form Builder",
+            text: "Create fillable PDF AcroForms on desktop without server uploads!",
+            url: window.location.href
+        };
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {}
+        } else {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                alert("✨ Link copied to clipboard! Open on desktop to create fillable forms.");
+            } catch (e) {
+                alert("Share Link: " + window.location.href);
+            }
+        }
+    };
+
+    document.getElementById("mobileHeroShareBtn")?.addEventListener("click", handleDeviceShare);
+    document.getElementById("mobileBottomShareBtn")?.addEventListener("click", handleDeviceShare);
+    document.getElementById("mobileExploreFormsBtn")?.addEventListener("click", () => {
+        document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" });
+    });
+
     // Sample Document Cards & Intermediary Preview Modal
     let pendingTemplateKey = null;
     const sampleModal = document.getElementById("samplePreviewModal");

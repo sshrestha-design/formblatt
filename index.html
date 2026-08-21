@@ -207,6 +207,23 @@
                             </div>
                         </div>
                     </div>
+                <!-- Mobile Optimized Hero Card (< 768px Viewports) -->
+                <div class="mobile-hero-card">
+                    <div class="mobile-hero-icon-box">
+                        <i data-lucide="monitor" style="width: 26px; height: 26px; color: #2563eb;"></i>
+                    </div>
+                    <div class="mobile-hero-text">
+                        <strong style="font-size: 15.5px; color: #0f172a; display: block; margin-bottom: 4px;">Turn PDFs into Fillable Forms on your Mac/PC</strong>
+                        <p style="font-size: 12.5px; color: #64748b; margin: 0 0 14px; line-height: 1.5;">Authoring & drag-and-drop placement works best on desktop. Test & fill sample forms right here on mobile!</p>
+                        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+                            <button type="button" class="mobile-hero-test-btn" id="mobileExploreFormsBtn">
+                                <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i> Explore Sample Forms
+                            </button>
+                            <button type="button" class="mobile-hero-share-btn" id="mobileHeroShareBtn">
+                                <i data-lucide="share-2" style="width: 14px; height: 14px;"></i> Send Link to Desktop
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Desktop vs Mobile Workflow Notice -->
@@ -1778,6 +1795,19 @@
     
     <!-- Floating Global Tool Stamp Cursor Follower -->
     <div id="floatingToolStamp" class="floating-tool-stamp" style="display: none;"></div>
+
+    <!-- Persistent Mobile Device Handoff Bottom Sheet (< 768px Viewports) -->
+    <div id="mobileHandoffBar" class="mobile-handoff-bar">
+        <div class="mobile-handoff-inner">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <i data-lucide="laptop" style="width: 15px; height: 15px; color: #60a5fa;"></i>
+                <span class="mobile-handoff-text">Need to create a form on PC/Mac?</span>
+            </div>
+            <button id="mobileBottomShareBtn" class="mobile-share-btn">
+                <i data-lucide="share-2" style="width: 13px; height: 13px;"></i> Share Link
+            </button>
+        </div>
+    </div>
 
     <script type="module" src="js/main.js"></script>
 </body>
