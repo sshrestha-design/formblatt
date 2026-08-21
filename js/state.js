@@ -25,6 +25,7 @@ export const state = {
     lastSelectedFieldId: null,
     fieldCounter: 1,
     activeTool: "select",
+    editorMode: "design", // "design" | "fill"
     clipboard: [],
 
     // History (Undo / Redo)
@@ -220,5 +221,22 @@ export function addNextTableRow() {
     state.selectedFieldIds.clear();
     newIds.forEach(id => state.selectedFieldIds.add(id));
     return newIds;
+}
+
+export function setEditorMode(mode = "design") {
+    state.editorMode = mode;
+    if (mode === "fill") {
+        state.selectedFieldIds.clear();
+        state.activeTool = "select";
+    }
+}
+
+export function clearAllTestValues() {
+    state.fields.forEach(f => {
+        f.value = "";
+        f.defaultValue = "";
+        f.defaultChecked = false;
+        f.signatureImage = null;
+    });
 }
 

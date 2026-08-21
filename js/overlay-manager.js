@@ -30,6 +30,140 @@ export function renderOverlays(handlers) {
         div.style.width = f.width + "px";
         div.style.height = f.height + "px";
 
+        // ── LIVE INTERACTIVE FILL & TEST MODE ────────────────────────────
+        if (state.editorMode === "fill") {
+            div.classList.add("fill-mode");
+            div.style.border = f.borderStyle === "none" ? "1px solid rgba(0,0,0,0.12)" : "1.5px solid rgba(37,99,235,0.45)";
+            div.style.background = f.fillStyle === "transparent" ? "rgba(255,255,255,0.4)" : "#ffffff";
+            div.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
+
+            if (f.type === "checkBox") {
+                const cb = document.createElement("input");
+                cb.type = "checkbox";
+                cb.className = "fill-input-checkbox";
+                cb.checked = !!f.defaultChecked;
+                cb.style.cssText = "width: 100%; height: 100%; margin: 0; cursor: pointer; accent-color: #2563eb;";
+                cb.addEventListener("change", () => {
+                    f.defaultChecked = cb.checked;
+                    f.value = cb.checked ? (f.value || "Yes") : "";
+                    saveHistory();
+                });
+                div.appendChild(cb);
+            } else if (f.type === "radioGroup") {
+                const rb = document.createElement("input");
+                rb.type = "radio";
+                rb.name = f.name || "radiogroup";
+                rb.className = "fill-input-radio";
+                rb.value = f.radioValue || f.value || `option_${f.id}`;
+                rb.checked = !!f.defaultChecked;
+                rb.style.cssText = "width: 100%; height: 100%; margin: 0; cursor: pointer; accent-color: #2563eb;";
+                rb.addEventListener("change", () => {
+                    const groupFields = state.fields.filter(item => item.name === f.name);
+                    groupFields.forEach(item => { item.defaultChecked = (item.id === f.id); });
+                    saveHistory();
+                });
+                div.appendChild(rb);
+            } else if (f.type === "dropdown") {
+                const sel = document.createElement("select");
+                sel.className = "fill-input-select";
+                sel.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, f.height - 4)}px; font-family: inherit; padding: 0 4px; outline: none; cursor: pointer; color: #0f172a;`;
+                const opts = (f.options && f.options.length) ? f.options : ["Select..."];
+                opts.forEach(opt => {
+                    const optEl = document.createElement("option");
+                    optEl.value = opt;
+                    optEl.textContent = opt;
+                    if (opt === (f.value || f.defaultValue)) optEl.selected = true;
+                    sel.appendChild(optEl);
+                });
+                sel.addEventListener("change", () => {
+                    f.value = sel.value;
+                    f.defaultValue = sel.value;
+                    saveHistory();
+                });
+                div.appendChild(sel);
+            } else if (f.type === "signature") {
+                if (f.signatureImage) {
+                    div.innerHTML = `
+                        <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+                            <img src="${f.signatureImage}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
+                            <button class="fill-clear-sig-btn" title="Clear signature" style="position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:#ef4444; color:#fff; border:none; font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
+                        </div>
+                    `;
+                    div.querySelector(".fill-clear-sig-btn")?.addEventListener("click", e => {
+                        e.stopPropagation();
+                        f.signatureImage = null;
+                        renderOverlays(handlers);
+                        saveHistory();
+                    });
+                } else {
+                    const signBtn = document.createElement("div");
+                    signBtn.className = "fill-sign-prompt";
+                    signBtn.style.cssText = "width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#2563eb; cursor:pointer; font-size:11px; font-weight:600; background:rgba(239,246,255,0.8);";
+                    signBtn.innerHTML = `<span>✍ Sign Here</span>`;
+                    signBtn.addEventListener("click", e => {
+                        e.stopPropagation();
+                        openSignatureModal(f, () => {
+                            renderOverlays(handlers);
+                            saveHistory();
+                        });
+                    });
+                    div.appendChild(signBtn);
+                }
+            } else if (f.type === "dateField" || f.dataFormat === "date") {
+                const dateInput = document.createElement("input");
+                dateInput.type = "date";
+                dateInput.className = "fill-input-date";
+                dateInput.value = f.value || f.defaultValue || "";
+                dateInput.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, f.height - 4)}px; font-family: inherit; padding: 0 4px; outline: none; box-sizing: border-box; color: #0f172a;`;
+                dateInput.addEventListener("input", () => {
+                    f.value = dateInput.value;
+                    f.defaultValue = dateInput.value;
+                    saveHistory();
+                });
+                div.appendChild(dateInput);
+            } else if (f.multiline) {
+                const ta = document.createElement("textarea");
+                ta.className = "fill-input-textarea";
+                ta.value = f.value || f.defaultValue || "";
+                ta.placeholder = f.placeholder || "";
+                ta.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, Math.max(10, f.height / 3))}px; font-family: inherit; padding: 4px; outline: none; resize: none; box-sizing: border-box; line-height: 1.3; color: #0f172a;`;
+                ta.addEventListener("input", () => {
+                    f.value = ta.value;
+                    f.defaultValue = ta.value;
+                    saveHistory();
+                });
+                div.appendChild(ta);
+            } else {
+                const inp = document.createElement("input");
+                inp.type = f.dataFormat === "email" ? "email" : (f.dataFormat === "phone" ? "tel" : (f.dataFormat === "number" ? "number" : "text"));
+                inp.className = "fill-input-text";
+                inp.value = f.value || f.defaultValue || "";
+                inp.placeholder = f.placeholder || "";
+                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, f.height - 4)}px; font-family: inherit; padding: 0 5px; outline: none; box-sizing: border-box; text-align: ${f.textAlignment || "left"}; color: #0f172a;`;
+
+                if (f.dataFormat === "currency") {
+                    inp.addEventListener("blur", () => {
+                        let val = inp.value.trim().replace(/[^0-9.-]/g, "");
+                        if (val && !isNaN(Number(val))) {
+                            inp.value = "$" + Number(val).toFixed(2);
+                            f.value = inp.value;
+                            f.defaultValue = inp.value;
+                        }
+                    });
+                }
+
+                inp.addEventListener("input", () => {
+                    f.value = inp.value;
+                    f.defaultValue = inp.value;
+                    saveHistory();
+                });
+                div.appendChild(inp);
+            }
+
+            container.appendChild(div);
+            return;
+        }
+
         // Border & fill styles
         if (f.borderStyle === "none") {
             div.style.border = "1.5px dashed rgba(148, 163, 184, 0.5)";
