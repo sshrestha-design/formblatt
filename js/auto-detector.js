@@ -592,17 +592,23 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames) {
                     const rowNum = rIdx + 1;
 
                     for (const col of columns) {
-                        if (col.id === "item_no" || col.id === "taxable") continue;
+                        if (col.id === "item_no") continue;
 
-                        const sem = resolveSemanticProps(`${col.name}_${rowNum}`, "textField", usedNames);
+                        const isCheckboxCol = (col.id === "taxable" || col.id === "receipt");
+                        const cellType = isCheckboxCol ? "checkBox" : "textField";
+                        const sem = resolveSemanticProps(`${col.name}_${rowNum}`, cellType, usedNames);
+
+                        const cellWidth = isCheckboxCol ? 16 : col.width;
+                        const cellX = isCheckboxCol ? Math.round(col.x + Math.max(0, (col.width - 16) / 2)) : col.x;
+
                         const cellField = {
                             id: generateFieldId(),
-                            type: "textField",
+                            type: cellType,
                             name: sem.name,
-                            x: col.x,
+                            x: cellX,
                             y: rowY,
-                            width: col.width,
-                            height: 18,
+                            width: cellWidth,
+                            height: isCheckboxCol ? 16 : 18,
                             page: pageNum,
                             borderStyle: "solid",
                             fillStyle: "white",
