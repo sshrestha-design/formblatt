@@ -1,5 +1,5 @@
 // ── Main Application Orchestrator (js/main.js) ─────────────────
-import { state, getSelectedField, setSelectedField, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "./state.js";
+import { state, getSelectedField, setSelectedField, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues } from "./state.js";
 import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
@@ -30,6 +30,31 @@ function refreshUI() {
     );
     populateProperties(getSelectedField());
     if (typeof lucide !== "undefined") lucide.createIcons();
+}
+
+export function switchEditorMode(mode = "design") {
+    if (mode === "fill" && !state.pdfDoc) {
+        alert("Please upload a PDF document first before testing form fields.");
+        return;
+    }
+    setEditorMode(mode);
+    const isFill = (mode === "fill");
+    document.body.classList.toggle("mode-fill", isFill);
+
+    const modeDesignBtn = document.getElementById("modeDesignBtn");
+    const modeFillBtn = document.getElementById("modeFillBtn");
+    const fillModeBanner = document.getElementById("fillModeBanner");
+
+    if (modeDesignBtn) modeDesignBtn.classList.toggle("active", !isFill);
+    if (modeFillBtn) {
+        modeFillBtn.classList.toggle("active", isFill);
+        modeFillBtn.classList.toggle("mode-fill-active", isFill);
+    }
+    if (fillModeBanner) {
+        fillModeBanner.style.display = isFill ? "flex" : "none";
+    }
+
+    refreshUI();
 }
 
 const overlayHandlers = {
@@ -618,6 +643,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     docTitleInlineInput?.addEventListener("blur", commitInlineRename);
 
+    // ── Mode Switcher & Fill & Test Mode Actions ────────────────────
+    document.getElementById("modeDesignBtn")?.addEventListener("click", () => switchEditorMode("design"));
+    document.getElementById("modeFillBtn")?.addEventListener("click", () => switchEditorMode("fill"));
+    document.getElementById("fillExitBtn")?.addEventListener("click", () => switchEditorMode("design"));
+    document.getElementById("fillResetDataBtn")?.addEventListener("click", () => {
+        if (confirm("Reset and clear all entered test data?")) {
+            clearAllTestValues();
+            refreshUI();
+        }
+    });
+    document.getElementById("fillExportPdfBtn")?.addEventListener("click", async () => {
+        await downloadAcroForm();
+    });
+
     const previewBtn = document.getElementById("previewBtn");
     const previewModal = document.getElementById("previewModal");
     const previewIframe = document.getElementById("previewIframe");
@@ -756,6 +795,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         if ((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) {
             e.preventDefault();
             toggleLeftSidebar();
+            return;
+        }
+
+        // Toggle Fill & Test Mode (Ctrl+P / Cmd+P or Alt+P)
+        if ((e.ctrlKey || e.metaKey || e.altKey) && e.key.toLowerCase() === "p") {
+            e.preventDefault();
+            switchEditorMode(state.editorMode === "fill" ? "design" : "fill");
+            return;
+        }
+
+        // Escape exits Fill Mode if active
+        if (e.key === "Escape" && state.editorMode === "fill") {
+            e.preventDefault();
+            switchEditorMode("design");
             return;
         }
 

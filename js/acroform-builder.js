@@ -104,8 +104,9 @@ export async function buildPdf(options = {}) {
                 } catch(e) {}
 
                 // Set text value if present
-                if (f.defaultValue) {
-                    try { tf.setText(String(f.defaultValue)); } catch(e) {}
+                const textVal = (f.value !== undefined && f.value !== "") ? f.value : f.defaultValue;
+                if (textVal !== undefined && textVal !== "") {
+                    try { tf.setText(String(textVal)); } catch(e) {}
                 }
 
                 // Add to page and compile vector appearance
@@ -143,7 +144,8 @@ export async function buildPdf(options = {}) {
                 dd.addToPage(page, common);
 
                 try {
-                    if (f.defaultValue && opts.includes(f.defaultValue)) dd.select(f.defaultValue);
+                    const chosen = (f.value !== undefined && f.value !== "") ? f.value : f.defaultValue;
+                    if (chosen && opts.includes(chosen)) dd.select(chosen);
                     else if (opts.length > 0) dd.select(opts[0]);
                 } catch(e) {}
 

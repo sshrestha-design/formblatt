@@ -901,12 +901,22 @@
         </div>
         
         <div style="position: absolute; right: 16px; display: flex; gap: 8px; align-items: center;">
+            <div class="mode-segmented-toggle" id="modeSegmentedToggle">
+                <button id="modeDesignBtn" type="button" class="mode-toggle-btn active" title="Design Mode (Build & Arrange Fields)">
+                    <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
+                    <span>Design</span>
+                </button>
+                <button id="modeFillBtn" type="button" class="mode-toggle-btn" title="Fill & Test Mode (Interactive Form Testing - Ctrl+P)">
+                    <i data-lucide="play" style="width: 12px; height: 12px;"></i>
+                    <span>Fill & Test</span>
+                </button>
+            </div>
             <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; font-size: 12px; padding: 0 10px; display: flex; align-items: center; gap: 5px;">
                 <i data-lucide="keyboard" style="width: 14px; height: 14px;"></i>
                 <span>Shortcuts</span>
             </button>
             <button id="previewBtn" class="btn-secondary" style="height: 32px; font-size: 12px; padding: 0 12px; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="play" style="width: 13px; height: 13px;"></i> Preview
+                <i data-lucide="eye" style="width: 13px; height: 13px;"></i> Preview PDF
             </button>
             <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 14px; display: flex; align-items: center; gap: 5px;">
                 <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export AcroForm
@@ -2013,6 +2023,25 @@
             </div>
             <button id="mobileBottomShareBtn" class="mobile-share-btn">
                 <i data-lucide="share-2" style="width: 13px; height: 13px;"></i> Share Link
+            </button>
+        </div>
+    </div>
+
+    <!-- Floating Fill & Test Mode Helper Banner HUD -->
+    <div id="fillModeBanner" class="fill-mode-banner" style="display: none;">
+        <div class="fill-mode-badge">
+            <span class="live-pulse-dot"></span>
+            <span>Fill & Test Mode Active</span>
+        </div>
+        <div class="fill-mode-actions">
+            <button id="fillResetDataBtn" type="button" class="fill-hud-btn" title="Reset all test values">
+                <i data-lucide="rotate-ccw" style="width: 12px; height: 12px;"></i> Clear Data
+            </button>
+            <button id="fillExportPdfBtn" type="button" class="fill-hud-btn primary" title="Export PDF with filled values">
+                <i data-lucide="download" style="width: 12px; height: 12px;"></i> Export Filled PDF
+            </button>
+            <button id="fillExitBtn" type="button" class="fill-hud-btn close" title="Exit to Design Mode (Esc)">
+                <i data-lucide="x" style="width: 12px; height: 12px;"></i> Exit
             </button>
         </div>
     </div>

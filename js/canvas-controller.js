@@ -471,6 +471,7 @@ export function initCanvasController(handlers) {
 
     // CenterCanvas Background MouseDown (supports dragging from canvas padding & margins)
     centerCanvas?.addEventListener("mousedown", e => {
+        if (state.editorMode === "fill") return;
         if (e.button === 2) return; // Right-click handled by contextmenu
 
         if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
@@ -490,6 +491,7 @@ export function initCanvasController(handlers) {
 
     // Canvas Background MouseDown
     container?.addEventListener("mousedown", e => {
+        if (state.editorMode === "fill") return;
         if (e.button === 2) {
             // Right click: do nothing on mousedown, contextmenu event handles opening the menu
             return;
@@ -590,6 +592,10 @@ let lastFieldClickTime = 0;
 let lastFieldClickId = null;
 
 export function handleFieldMouseDown(e, field, handlers) {
+    if (state.editorMode === "fill") {
+        return; // Allow native input focus, typing, and checkbox/radio toggling
+    }
+
     if (e.button === 2) {
         // Right-click on field: select it if not already selected, do NOT initiate drag
         if (!state.selectedFieldIds.has(field.id) && !state.selectedFieldIds.has(String(field.id)) && !state.selectedFieldIds.has(Number(field.id))) {
