@@ -165,32 +165,29 @@ export function renderOverlays(handlers) {
         const isSelected = state.selectedFieldIds.has(f.id);
         const isMultiSelect = state.selectedFieldIds.size > 1;
 
-        // Resize handle & Magnetic Corner/Edge Snap Points
+        // 8 Interactive Corner & Edge Resize Handles on the Field Box Itself
         if (isSelected && !isMultiSelect) {
-            const handle = document.createElement("div");
-            handle.className = "resize-handle";
-            handle.title = "Drag to resize field";
-            handle.addEventListener("mousedown", e => {
-                e.stopPropagation();
-                if (handlers.onResizeStart) handlers.onResizeStart(e, f, "se");
-            });
-            div.appendChild(handle);
-
-            // 7 Corner & Edge Magnetic Anchor Points
-            const snapPoints = [
-                { pos: "snap-tl", title: "Top-Left Snap Point" },
-                { pos: "snap-tm", title: "Top-Center Snap Point" },
-                { pos: "snap-tr", title: "Top-Right Snap Point" },
-                { pos: "snap-ml", title: "Left-Center Snap Point" },
-                { pos: "snap-mr", title: "Right-Center Snap Point" },
-                { pos: "snap-bl", title: "Bottom-Left Snap Point" },
-                { pos: "snap-bm", title: "Bottom-Center Snap Point" }
+            const resizeHandles = [
+                { dir: "nw", className: "handle-nw", title: "Resize Top-Left" },
+                { dir: "n",  className: "handle-n",  title: "Resize Top" },
+                { dir: "ne", className: "handle-ne", title: "Resize Top-Right" },
+                { dir: "e",  className: "handle-e",  title: "Resize Right" },
+                { dir: "se", className: "handle-se", title: "Resize Bottom-Right" },
+                { dir: "s",  className: "handle-s",  title: "Resize Bottom" },
+                { dir: "sw", className: "handle-sw", title: "Resize Bottom-Left" },
+                { dir: "w",  className: "handle-w",  title: "Resize Left" }
             ];
-            snapPoints.forEach(sp => {
-                const pt = document.createElement("div");
-                pt.className = `edge-snap-point ${sp.pos}`;
-                pt.title = sp.title;
-                div.appendChild(pt);
+
+            resizeHandles.forEach(h => {
+                const handle = document.createElement("div");
+                handle.className = `resize-handle ${h.className}`;
+                handle.title = h.title;
+                handle.addEventListener("mousedown", e => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (handlers.onResizeStart) handlers.onResizeStart(e, f, h.dir);
+                });
+                div.appendChild(handle);
             });
         }
 

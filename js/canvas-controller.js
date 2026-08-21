@@ -689,16 +689,16 @@ export function handleResizeStart(e, field, direction = "se") {
     state.resizeFieldId = field.id;
     state.resizeDirection = direction;
     state.resizeStartPos = { x: e.clientX, y: e.clientY };
-    state.resizeStartDim = { width: field.width, height: field.height };
+    state.resizeStartDim = { x: field.x, y: field.y, width: field.width, height: field.height };
 
     state.initialFieldDims = new Map();
     if (state.selectedFieldIds.has(field.id)) {
         state.selectedFieldIds.forEach(id => {
             const f = state.fields.find(item => item.id === id);
-            if (f) state.initialFieldDims.set(id, { width: f.width, height: f.height });
+            if (f) state.initialFieldDims.set(id, { x: f.x, y: f.y, width: f.width, height: f.height });
         });
     } else {
-        state.initialFieldDims.set(field.id, { width: field.width, height: field.height });
+        state.initialFieldDims.set(field.id, { x: field.x, y: field.y, width: field.width, height: field.height });
     }
 }
 
@@ -710,41 +710,69 @@ function handleFieldResize(e, handlers) {
     const field = state.fields.find(f => f.id === state.resizeFieldId) || getSelectedField();
     if (!field) return;
 
-    const baseDim = state.resizeStartDim || { width: field.width, height: field.height };
-    let newW = dir.includes("e") ? Math.max(16, Math.round(baseDim.width + dx)) : field.width;
-    let newH = dir.includes("s") ? Math.max(14, Math.round(baseDim.height + dy)) : field.height;
+    const base = state.resizeStartDim || { x: field.x, y: field.y, width: field.width, height: field.height };
+    let newX = base.x;
+    let newY = base.y;
+    let newW = base.width;
+    let newH = base.height;
+
+    // Horizontal resize
+    if (dir.includes("e")) {
+        newW = Math.max(16, Math.round(base.width + dx));
+    } else if (dir.includes("w")) {
+        const potentialW = Math.round(base.width - dx);
+        if (potentialW >= 16) {
+            newX = Math.round(base.x + dx);
+            newW = potentialW;
+        } else {
+            newW = 16;
+            newX = base.x + base.width - 16;
+        }
+    }
+
+    // Vertical resize
+    if (dir.includes("s")) {
+        newH = Math.max(14, Math.round(base.height + dy));
+    } else if (dir.includes("n")) {
+        const potentialH = Math.round(base.height - dy);
+        if (potentialH >= 14) {
+            newY = Math.round(base.y + dy);
+            newH = potentialH;
+        } else {
+            newH = 14;
+            newY = base.y + base.height - 14;
+        }
+    }
 
     // Smart magnetic corner & edge snapping during resize (unless holding Alt)
     if (!e.altKey) {
         const otherFields = getFieldsForCurrentPage().filter(f => f.id !== field.id && !state.selectedFieldIds.has(f.id));
         const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
-        const snaps = checkSnapping(field.x, field.y, newW, newH, otherFields, pageTextBlocks);
+        const snaps = checkSnapping(newX, newY, newW, newH, otherFields, pageTextBlocks);
 
         if (dir.includes("e") && snaps.guideX !== null) {
             newW = Math.max(16, Math.round(newW + snaps.snapX));
+        } else if (dir.includes("w") && snaps.guideX !== null) {
+            newX = Math.round(newX + snaps.snapX);
+            newW = Math.max(16, Math.round(base.x + base.width - newX));
         }
+
         if (dir.includes("s") && snaps.guideY !== null) {
             newH = Math.max(14, Math.round(newH + snaps.snapY));
+        } else if (dir.includes("n") && snaps.guideY !== null) {
+            newY = Math.round(newY + snaps.snapY);
+            newH = Math.max(14, Math.round(base.y + base.height - newY));
         }
+
         showGuides(snaps.guideX, snaps.guideY, snaps.snapPointX, snaps.snapPointY);
     } else {
         hideGuides();
     }
 
-    if (state.initialFieldDims && state.initialFieldDims.size > 1) {
-        const deltaW = newW - baseDim.width;
-        const deltaH = newH - baseDim.height;
-        state.initialFieldDims.forEach((dim, id) => {
-            const f = state.fields.find(item => item.id === id);
-            if (f) {
-                if (dir.includes("e")) f.width = Math.max(16, Math.round(dim.width + deltaW));
-                if (dir.includes("s")) f.height = Math.max(14, Math.round(dim.height + deltaH));
-            }
-        });
-    } else {
-        field.width = newW;
-        field.height = newH;
-    }
+    field.x = newX;
+    field.y = newY;
+    field.width = newW;
+    field.height = newH;
 
     handlers.onFieldMoving();
 }
