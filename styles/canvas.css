@@ -111,26 +111,34 @@
     display: block;
 }
 
+/* ── 8-Direction Resize Handles on Field Box ─────────────────── */
 .resize-handle {
     position: absolute;
-    bottom: -3px;
-    right: -3px;
-    width: 7px;
-    height: 7px;
+    width: 7.5px;
+    height: 7.5px;
     background: #ffffff;
     border: 1.5px solid #2563eb;
     border-radius: 2px;
-    cursor: se-resize;
     pointer-events: auto;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
-    z-index: 60;
-    transition: transform var(--anim-fast), background var(--anim-fast);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    z-index: 70;
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .resize-handle:hover {
-    transform: scale(1.35);
+    transform: scale(1.4);
     background: #2563eb;
+    border-color: #ffffff;
 }
+
+.resize-handle.handle-nw { top: -4px; left: -4px; cursor: nwse-resize; }
+.resize-handle.handle-n  { top: -4px; left: calc(50% - 3.75px); cursor: ns-resize; }
+.resize-handle.handle-ne { top: -4px; right: -4px; cursor: nesw-resize; }
+.resize-handle.handle-e  { top: calc(50% - 3.75px); right: -4px; cursor: ew-resize; }
+.resize-handle.handle-se { bottom: -4px; right: -4px; cursor: nwse-resize; }
+.resize-handle.handle-s  { bottom: -4px; left: calc(50% - 3.75px); cursor: ns-resize; }
+.resize-handle.handle-sw { bottom: -4px; left: -4px; cursor: nesw-resize; }
+.resize-handle.handle-w  { top: calc(50% - 3.75px); left: -4px; cursor: ew-resize; }
 
 .multi-selection-bounding-frame {
     position: absolute;
