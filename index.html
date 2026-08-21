@@ -821,11 +821,11 @@
     <!-- ═════════════════════════════════════════════════════════════ -->
     <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
         <header class="toolbar">
-            <div style="position: absolute; left: 16px; height: 100%; display: flex; align-items: center; gap: 10px;">
+            <div class="toolbar-left">
                 <button id="toggleSidebarBtn" class="btn-secondary" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" style="height: 28px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">
                     <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
                 </button>
-                <span style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.5px; color: var(--text-color); cursor:pointer; display:flex; align-items:center; gap:6px;" id="editorBrandLogo">
+                <span style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.5px; color: var(--text-color); cursor:pointer; display:flex; align-items:center; gap:6px;" id="editorBrandLogo" title="JustForms Dashboard">
                     <span style="width:22px; height:22px; border-radius:5px; background:linear-gradient(135deg, #0284c7, #2563eb); display:inline-flex; align-items:center; justify-content:center; color:white;">
                         <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
@@ -867,55 +867,57 @@
                 </div>
             </div>
         
-        <div class="segmented-toolbar">
-            <button class="tool-btn active" data-tool="select" title="Select (V)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
-            </button>
-            <button class="tool-btn" data-tool="hand" title="Hand Tool / Pan (H or hold Spacebar)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
-            </button>
-            <div class="tool-divider"></div>
-            <button class="tool-btn" data-tool="textField" title="Text Field (T)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
-            </button>
-            <button class="tool-btn" data-tool="dropdown" title="Drop Down (D)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 10l5 5 5-5"/></svg>
-            </button>
-            <button class="tool-btn" data-tool="checkBox" title="Check Box (C)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12l2 2 4-4"/></svg>
-            </button>
-            <button class="tool-btn" data-tool="radioGroup" title="Radio Group (R)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
-            </button>
-            <button class="tool-btn" data-tool="signature" title="Signature Field (S)">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L20 7.5V13"/><path d="M12 18s1.5-2 3-2 3 2 4.5 2"/><path d="M7 14s2-3 4-3 3 3 5 3"/></svg>
-            </button>
-            <div class="tool-divider"></div>
-            <button id="autoDetectBtn" title="Auto-Detect Form Fields & Signatures" style="height: 28px; font-size: 11.5px; padding: 0 10px; display: flex; align-items: center; gap: 5px; background: #ffffff; color: #6366f1; border: 1px solid #c7d2fe; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">
-                <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
-                <span>Auto-Detect</span>
-            </button>
-        </div>
-        
-        <div style="position: absolute; right: 16px; display: flex; gap: 8px; align-items: center;">
-            <div class="mode-segmented-toggle" id="modeSegmentedToggle">
-                <button id="modeDesignBtn" type="button" class="mode-toggle-btn active" title="Design Mode (Build & Arrange Fields)">
-                    <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
-                    <span>Design</span>
+            <div class="toolbar-center">
+                <div class="segmented-toolbar">
+                    <button class="tool-btn active" data-tool="select" title="Select (V)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="hand" title="Hand Tool / Pan (H or hold Spacebar)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
+                    </button>
+                    <div class="tool-divider"></div>
+                    <button class="tool-btn" data-tool="textField" title="Text Field (T)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="dropdown" title="Drop Down (D)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 10l5 5 5-5"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="checkBox" title="Check Box (C)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12l2 2 4-4"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="radioGroup" title="Radio Group (R)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="signature" title="Signature Field (S)">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L20 7.5V13"/><path d="M12 18s1.5-2 3-2 3 2 4.5 2"/><path d="M7 14s2-3 4-3 3 3 5 3"/></svg>
+                    </button>
+                    <div class="tool-divider"></div>
+                    <button id="autoDetectBtn" title="Auto-Detect Form Fields & Signatures" style="height: 28px; font-size: 11.5px; padding: 0 9px; display: flex; align-items: center; gap: 4px; background: #ffffff; color: #6366f1; border: 1px solid #c7d2fe; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">
+                        <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+                        <span>Auto-Detect</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="toolbar-right">
+                <div class="mode-segmented-toggle" id="modeSegmentedToggle">
+                    <button id="modeDesignBtn" type="button" class="mode-toggle-btn active" title="Design Mode (Build & Arrange Fields)">
+                        <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
+                        <span>Design</span>
+                    </button>
+                    <button id="modeFillBtn" type="button" class="mode-toggle-btn" title="Fill & Test Mode (Interactive Form Testing - Ctrl+P)">
+                        <i data-lucide="play" style="width: 12px; height: 12px;"></i>
+                        <span>Fill & Test</span>
+                    </button>
+                </div>
+                <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; width: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
+                    <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
-                <button id="modeFillBtn" type="button" class="mode-toggle-btn" title="Fill & Test Mode (Interactive Form Testing - Ctrl+P)">
-                    <i data-lucide="play" style="width: 12px; height: 12px;"></i>
-                    <span>Fill & Test</span>
+                <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 13px; display: flex; align-items: center; gap: 5px;">
+                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export PDF
                 </button>
             </div>
-            <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; width: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
-                <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
-            </button>
-            <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 13px; display: flex; align-items: center; gap: 5px;">
-                <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export PDF
-            </button>
-        </div>
-    </header>
+        </header>
 
     <div class="workspace">
         <aside class="left-panel">

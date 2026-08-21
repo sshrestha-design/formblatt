@@ -549,18 +549,18 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
     // ------------------------------------------------------------------------
     // AFFORDANCE 3: Multi-Line Open Questions & Feedback Prompts (Question?)
     // ------------------------------------------------------------------------
-    for (const block of rawBlocks) {
-        const text = block.str.trim();
+    for (const line of textLines) {
+        const text = line.str.trim();
         if (isUniversalStaticText(text)) continue;
 
         if (/\?$/.test(text) && !text.includes(":") && !/(\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/.test(text)) {
-            // Skip if question is part of a rating scale with choice markers below
+            // Skip if question is followed by choice markers anywhere on or below
             const hasRatingScaleBelow = rawBlocks.some(tb => {
-                return tb.y > block.y && tb.y <= block.y + 40 && (/^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str));
+                return tb.y > line.y && tb.y <= line.y + 40 && (/^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str));
             });
             if (hasRatingScaleBelow) continue;
 
-            const targetAreaY = Math.max(10, Math.round(block.y + block.height + 2));
+            const targetAreaY = Math.max(10, Math.round(line.y + line.height + 2));
 
             // Clamp height against the next text block below
             let nextBlockY = viewport.height - 35;
@@ -578,9 +578,9 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 id: generateFieldId(),
                 type: "textField",
                 name: sem.name,
-                x: Math.max(10, block.x),
+                x: Math.max(10, line.x),
                 y: targetAreaY,
-                width: Math.round(pageWidth - block.x - 45),
+                width: Math.round(pageWidth - line.x - 45),
                 height: Math.min(45, Math.max(22, availH)),
                 page: pageNum,
                 borderStyle: "solid",
