@@ -1,5 +1,5 @@
 // ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/canvas-controller.js) ─
-import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage } from "./state.js";
+import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId } from "./state.js";
 import { DEFAULT_FIELD_SIZES, SNAP_THRESHOLD } from "./constants.js";
 import { setTransformScale, getPageTextBlocks } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
@@ -174,7 +174,7 @@ async function createFieldAt(type, x, y, handlers) {
     const smartName = await inferSmartFieldName(type, targetX, targetY, def.width, def.height);
 
     const field = {
-        id: Date.now(),
+        id: generateFieldId(),
         type: type,
         name: smartName,
         x: targetX,
@@ -568,7 +568,7 @@ function duplicateSelectedFields() {
         const orig = state.fields.find(f => f.id === id);
         if (orig) {
             const clone = JSON.parse(JSON.stringify(orig));
-            clone.id = Date.now() + Math.random();
+            clone.id = generateFieldId();
             clone.name = (orig.name || "field") + "_copy";
             clone.x += 15;
             clone.y += 15;

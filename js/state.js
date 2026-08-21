@@ -139,6 +139,12 @@ export function cleanupEmptyGroups() {
     state.groups = state.groups.filter(g => activeGroupIds.has(g.id));
 }
 
+let idCounter = 1;
+export function generateFieldId(prefix = "fld") {
+    idCounter++;
+    return `${prefix}_${Date.now()}_${idCounter}_${Math.random().toString(36).substring(2, 8)}`;
+}
+
 export function copySelectedFields() {
     const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
     if (sel.length === 0) return;
@@ -150,7 +156,7 @@ export function pasteClipboardFields() {
     const newIds = [];
     state.clipboard.forEach(orig => {
         const clone = JSON.parse(JSON.stringify(orig));
-        clone.id = Date.now() + Math.random();
+        clone.id = generateFieldId();
         clone.name = (orig.name || "field") + "_copy";
         clone.x = Math.max(0, orig.x + 15);
         clone.y = Math.max(0, orig.y + 15);
