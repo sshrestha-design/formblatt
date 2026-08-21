@@ -1221,13 +1221,18 @@
                 </div>
 
                 <!-- Sticky Action buttons footer -->
-                <div class="properties-actions-footer">
-                    <button id="duplicateFieldBtn" type="button" class="btn-secondary" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Duplicate
+                <div class="properties-actions-footer" style="display: flex; flex-direction: column; gap: 8px;">
+                    <button id="addTableRowBtn" type="button" class="btn-secondary" style="width: 100%; padding: 7px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; background: #f0fdf4; border-color: #bbf7d0; color: #166534;" title="Clone all columns on this row to create the next table line item (Form Design Patterns Ch. 9)">
+                        <i data-lucide="plus-circle" style="width: 13px; height: 13px; color: #16a34a;"></i> + Add Next Table Row
                     </button>
-                    <button id="deleteFieldBtn" type="button" style="flex: 1; background: #fff; color: #ef4444; border: 1px solid #fca5a5; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete
-                    </button>
+                    <div style="display: flex; gap: 8px; width: 100%;">
+                        <button id="duplicateFieldBtn" type="button" class="btn-secondary" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Duplicate
+                        </button>
+                        <button id="deleteFieldBtn" type="button" style="flex: 1; background: #fff; color: #ef4444; border: 1px solid #fca5a5; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete
+                        </button>
+                    </div>
                 </div>
             </div>
             

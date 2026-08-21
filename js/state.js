@@ -174,3 +174,51 @@ export function duplicateSelectedFields() {
     copySelectedFields();
     return pasteClipboardFields();
 }
+
+// "Add Another" Repeatable Table Row Pattern (Form Design Patterns Ch. 9)
+export function addNextTableRow() {
+    const selectedField = getSelectedField();
+    if (!selectedField) return [];
+
+    const pageNum = selectedField.page || 1;
+    const sameRowFields = state.fields.filter(f => (f.page || 1) === pageNum && Math.abs(f.y - selectedField.y) <= 4);
+    if (sameRowFields.length === 0) return [];
+
+    sameRowFields.sort((a, b) => a.x - b.x);
+
+    const rowH = Math.max(...sameRowFields.map(f => f.height || 18));
+    const deltaY = rowH + 4;
+    const newY = selectedField.y + deltaY;
+
+    const newIds = [];
+    const usedNames = new Set(state.fields.map(f => f.name));
+
+    sameRowFields.forEach(orig => {
+        const clone = JSON.parse(JSON.stringify(orig));
+        clone.id = generateFieldId();
+
+        const match = (orig.name || "").match(/^(.*?)_(\d+)$/);
+        let newName = "";
+        if (match) {
+            newName = `${match[1]}_${parseInt(match[2]) + 1}`;
+        } else {
+            newName = `${orig.name || "item"}_2`;
+        }
+
+        while (usedNames.has(newName)) {
+            const m = newName.match(/^(.*?)_(\d+)$/);
+            newName = m ? `${m[1]}_${parseInt(m[2]) + 1}` : `${newName}_next`;
+        }
+        usedNames.add(newName);
+
+        clone.name = newName;
+        clone.y = newY;
+        state.fields.push(clone);
+        newIds.push(clone.id);
+    });
+
+    state.selectedFieldIds.clear();
+    newIds.forEach(id => state.selectedFieldIds.add(id));
+    return newIds;
+}
+
