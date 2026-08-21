@@ -150,14 +150,18 @@ export function renderOverlays(handlers) {
             }
         }
 
-        // Resize handle on selected field(s)
-        if (state.selectedFieldIds.has(f.id)) {
+        const isSelected = state.selectedFieldIds.has(f.id);
+        const isMultiSelect = state.selectedFieldIds.size > 1;
+
+        // Resize handle: only shown on individual item when exactly 1 field is selected.
+        // When multiple items are selected, the clean outer bounding frame handles resizing.
+        if (isSelected && !isMultiSelect) {
             const handle = document.createElement("div");
             handle.className = "resize-handle";
-            handle.title = state.selectedFieldIds.size > 1 ? "Drag to resize all selected fields" : "Drag to resize field";
+            handle.title = "Drag to resize field";
             handle.addEventListener("mousedown", e => {
                 e.stopPropagation();
-                if (handlers.onResizeStart) handlers.onResizeStart(e, f);
+                if (handlers.onResizeStart) handlers.onResizeStart(e, f, "se");
             });
             div.appendChild(handle);
         }
@@ -182,7 +186,7 @@ export function renderOverlays(handlers) {
         container.appendChild(div);
     });
 
-    // Multi-Selection Bounding Frame with unified group resize handle
+    // Multi-Selection Bounding Frame with unified Figma/Canva-style resize handles
     const selectedFieldsOnPage = pageFields.filter(f => state.selectedFieldIds.has(f.id));
     if (selectedFieldsOnPage.length > 1) {
         const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
@@ -192,23 +196,32 @@ export function renderOverlays(handlers) {
 
         const groupFrame = document.createElement("div");
         groupFrame.className = "multi-selection-bounding-frame";
-        groupFrame.style.left = (minX - 4) + "px";
-        groupFrame.style.top = (minY - 4) + "px";
-        groupFrame.style.width = (maxX - minX + 8) + "px";
-        groupFrame.style.height = (maxY - minY + 8) + "px";
+        groupFrame.style.left = (minX - 3) + "px";
+        groupFrame.style.top = (minY - 3) + "px";
+        groupFrame.style.width = (maxX - minX + 6) + "px";
+        groupFrame.style.height = (maxY - minY + 6) + "px";
 
-        const cornerHandle = document.createElement("div");
-        cornerHandle.className = "resize-handle group-resize-handle";
-        cornerHandle.title = "Drag to resize all selected fields at once";
-        cornerHandle.addEventListener("mousedown", e => {
-            e.stopPropagation();
-            if (handlers.onResizeStart) {
-                const anchorField = selectedFieldsOnPage.find(f => f.id === state.lastSelectedFieldId) || selectedFieldsOnPage[0];
-                handlers.onResizeStart(e, anchorField);
-            }
+        const handles = [
+            { dir: "se", cursor: "se-resize", style: "bottom: -4px; right: -4px;" },
+            { dir: "e", cursor: "ew-resize", style: "top: calc(50% - 4px); right: -4px;" },
+            { dir: "s", cursor: "ns-resize", style: "bottom: -4px; left: calc(50% - 4px);" }
+        ];
+
+        handles.forEach(h => {
+            const handleEl = document.createElement("div");
+            handleEl.className = `group-resize-handle group-handle-${h.dir}`;
+            handleEl.style.cssText = h.style;
+            handleEl.title = `Drag to resize all selected fields (${h.dir === 'e' ? 'Width' : h.dir === 's' ? 'Height' : 'Width & Height'})`;
+            handleEl.addEventListener("mousedown", e => {
+                e.stopPropagation();
+                if (handlers.onResizeStart) {
+                    const anchorField = selectedFieldsOnPage.find(f => f.id === state.lastSelectedFieldId) || selectedFieldsOnPage[0];
+                    handlers.onResizeStart(e, anchorField, h.dir);
+                }
+            });
+            groupFrame.appendChild(handleEl);
         });
 
-        groupFrame.appendChild(cornerHandle);
         container.appendChild(groupFrame);
     }
 }
