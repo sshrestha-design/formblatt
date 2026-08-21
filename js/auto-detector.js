@@ -862,6 +862,19 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                 const insideConsumed = consumedRanges.some(r => matchStartIdx >= r.start && matchEndIdx <= r.end);
                 if (insideConsumed) continue;
 
+                // Check if this label already has a complete static printed value (e.g. "Standard Reimbursement Rate: $0.670 / mile", "FORM REF: FRM-7160", "REVISION: 2.4")
+                if (!nextMatch) {
+                    const remainder = text.slice(matchEndIdx).trim();
+                    const isStaticRateOrCode = remainder.length > 0 && 
+                        !/^[_.\-—\s\[\(\$\€\£\¥]+$/.test(remainder) && 
+                        !/^[\$\€\£\¥]\s*$/.test(remainder) &&
+                        !/^(?:miles|usd|eur|aud|cad|gbp)$/i.test(remainder) &&
+                        /[a-zA-Z0-9]{2,}/.test(remainder);
+                    if (isStaticRateOrCode) {
+                        continue;
+                    }
+                }
+
                 const nextStartIdx = nextMatch ? nextMatch.index : text.length;
                 const labelEndX = line.x + (matchEndIdx / Math.max(1, text.length)) * line.width;
                 const nextLabelX = nextMatch 
@@ -870,6 +883,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
 
                 const targetX = Math.round(labelEndX + 4);
                 let targetW = Math.max(45, Math.round(nextLabelX - targetX - 6));
+
 
                 if (!nextMatch) {
                     const rightNeighbor = lines.find(other => 
