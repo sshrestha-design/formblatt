@@ -154,204 +154,163 @@ export class TextOccupancyGrid {
 }
 
 // ============================================================================
-// STAGE 2: Topological Table & Grid Solver (Multi-Domain 2D Matrix Projector)
+// STAGE 2: Topological Table & Grid Solver (2D Matrix Projector)
 // ============================================================================
 export class TopologicalTableSolver {
     static solveGrid(fields, rawBlocks, pageNum, usedNames) {
-        if (!rawBlocks || rawBlocks.length === 0) return fields;
+        // 1. Find table header rows in rawBlocks
+        const headerBlocks = rawBlocks.filter(tb => {
+            const text = (tb.str || "").trim();
+            return /item|description|details|quantity|\bqty\b|unit|price|rate|amount|line\s*total|\btotal\b/i.test(text);
+        }).sort((a, b) => a.x - b.x);
 
-        // 1. Identify table header candidate blocks across all domains
-        // (Invoice, Medical, Employment, Education, Schedule, Tax, Timesheet, Inventory, General)
-        const TABLE_KEYWORD_REGEX = /^(?:item|items|description|details|quantity|qty|unit|price|rate|amount|line\s*total|total|discount|date|day|task|activity|hours|hrs|time|role|position|employer|company|institution|school|degree|major|gpa|condition|medication|dosage|frequency|treatment|reaction|asset|category|account|sku|status|notes|service|services|fee|cost|subtotal)$/i;
-
-        const candidateBlocks = rawBlocks.filter(tb => {
-            const str = (tb.str || "").trim();
-            if (!str || str.length > 40) return false;
-            if (tb.height > 18) return false; // Exclude document page titles
-            return TABLE_KEYWORD_REGEX.test(str) || (str.length >= 2 && str.length <= 25 && !str.includes(":") && !str.includes("$"));
+        const headerRows = [];
+        headerBlocks.forEach(hb => {
+            let hr = headerRows.find(r => Math.abs(r.y - hb.y) <= 15);
+            if (!hr) {
+                hr = { y: hb.y, height: hb.height, blocks: [] };
+                headerRows.push(hr);
+            }
+            hr.blocks.push(hb);
         });
 
-        // 2. Group candidate blocks into horizontal rows (within 10px Y tolerance)
-        const rawHeaderRows = [];
-        candidateBlocks.forEach(cb => {
-            let row = rawHeaderRows.find(r => Math.abs(r.y - cb.y) <= 10);
-            if (!row) {
-                row = { y: cb.y, height: cb.height, blocks: [] };
-                rawHeaderRows.push(row);
-            }
-            row.blocks.push(cb);
+        // Find the header row that contains at least 2 table columns
+        const mainHeaderRow = headerRows.find(hr => hr.blocks.length >= 2);
+        if (!mainHeaderRow) return fields;
+
+        const tableTopY = Math.round(mainHeaderRow.y + mainHeaderRow.height + 4);
+        
+        // Find bottom boundary of this specific table
+        const footerBlock = rawBlocks.find(tb => {
+            const text = (tb.str || "").trim();
+            return /subtotal|tax|balance\s*due|total\s*due/i.test(text) && tb.y > tableTopY;
         });
+        const tableBottomY = footerBlock ? Math.round(footerBlock.y - 8) : Math.min(tableTopY + 280, 750);
 
-        // 3. Filter for genuine table header rows:
-        // A genuine header row must have at least 2 distinct columns with horizontal spacing,
-        // and at least one block matching table semantic keywords OR >= 3 separated column labels.
-        const validHeaderRows = rawHeaderRows.filter(hr => {
-            if (hr.blocks.length < 2) return false;
-            // Sort blocks left to right
-            hr.blocks.sort((a, b) => a.x - b.x);
-            // Deduplicate overlapping or adjacent sub-words in the same block
-            const uniqueCols = [];
-            hr.blocks.forEach(b => {
-                const prev = uniqueCols[uniqueCols.length - 1];
-                if (!prev || (b.x - (prev.x + prev.width)) >= 12) {
-                    uniqueCols.push(b);
-                }
-            });
-            hr.blocks = uniqueCols;
-            if (hr.blocks.length < 2) return false;
+        // Build column definitions strictly from the table header blocks & table boundaries
+        const colBands = [];
+        const sortedHeaderBlocks = [...mainHeaderRow.blocks].sort((a, b) => a.x - b.x);
 
-            const hasTableKeyword = hr.blocks.some(b => TABLE_KEYWORD_REGEX.test((b.str || "").trim()));
-            const isWideSpread = (hr.blocks[hr.blocks.length - 1].x - hr.blocks[0].x) >= 120;
-            return (hasTableKeyword && isWideSpread) || (hr.blocks.length >= 3 && isWideSpread);
-        }).sort((a, b) => a.y - b.y);
+        // Find table left and right bounds
+        const leftAnchor = rawBlocks.find(tb => /^(?:from|terms|bill\s*to)$/i.test((tb.str || "").trim()));
+        const tableLeftX = leftAnchor ? Math.round(leftAnchor.x) : 138;
 
-        if (validHeaderRows.length === 0) return fields;
+        const tableRightX = footerBlock 
+            ? Math.round(footerBlock.x + footerBlock.width + 55) 
+            : Math.round(sortedHeaderBlocks[sortedHeaderBlocks.length - 1].x + sortedHeaderBlocks[sortedHeaderBlocks.length - 1].width + 30);
 
-        let resultFields = [...fields];
+        const colHeaderMap = {
+            "Item Description": "Description",
+            "Description": "Description",
+            "Quantity": "Quantity",
+            "Qty": "Quantity",
+            "Price": "Unit Price",
+            "Unit Price": "Unit Price",
+            "Rate": "Unit Price",
+            "Amount": "Line Amount",
+            "Total": "Line Amount"
+        };
 
-        // Process each detected table independently
-        for (let tIdx = 0; tIdx < validHeaderRows.length; tIdx++) {
-            const headerRow = validHeaderRows[tIdx];
-            const sortedHeaderBlocks = headerRow.blocks;
-            const nextHeaderRow = validHeaderRows[tIdx + 1];
-
-            const tableTopY = Math.round(headerRow.y + headerRow.height + 4);
-
-            // Find bottom boundary of this specific table:
-            // 1. Up to the next table header row
-            // 2. Or up to a summary/footer block (subtotal, total, signature, notes)
-            // 3. Or up to a section heading
-            // 4. Or default bounded height
-            const maxBottomY = nextHeaderRow ? Math.round(nextHeaderRow.y - 14) : 760;
-            const footerBlock = rawBlocks.find(tb => {
-                const text = (tb.str || "").trim();
-                return /subtotal|sales\s*tax|balance\s*due|total\s*due|grand\s*total|authorized\s*signature|notes\s*:/i.test(text) 
-                    && tb.y > tableTopY && tb.y <= maxBottomY;
-            });
-
-            const nextHeadingBlock = rawBlocks.find(tb => {
-                return isHeadingLabel(tb.str) && tb.y > (tableTopY + 30) && tb.y <= maxBottomY;
-            });
-
-            let tableBottomY = maxBottomY;
-            if (footerBlock) {
-                tableBottomY = Math.round(footerBlock.y - 6);
-            } else if (nextHeadingBlock) {
-                tableBottomY = Math.round(nextHeadingBlock.y - 10);
-            } else {
-                tableBottomY = Math.min(tableTopY + 280, maxBottomY);
-            }
-
-            // Ensure table has meaningful height
-            if (tableBottomY - tableTopY < 30) continue;
-
-            // Determine table left & right bounds dynamically
-            const leftHeaderX = sortedHeaderBlocks[0].x;
-            const rightHeaderEnd = sortedHeaderBlocks[sortedHeaderBlocks.length - 1].x + sortedHeaderBlocks[sortedHeaderBlocks.length - 1].width;
+        for (let i = 0; i < sortedHeaderBlocks.length; i++) {
+            const hb = sortedHeaderBlocks[i];
+            const nextHb = sortedHeaderBlocks[i + 1];
             
-            // Derive document content left margin near this table
-            const nearbyLeftBlock = rawBlocks.find(tb => tb.y >= (headerRow.y - 80) && tb.y <= headerRow.y && tb.x < leftHeaderX && tb.x >= 20);
-            const tableLeftX = nearbyLeftBlock ? Math.max(10, Math.round(nearbyLeftBlock.x)) : Math.max(10, Math.round(leftHeaderX - 10));
-            const tableRightX = footerBlock ? Math.round(footerBlock.x + footerBlock.width + 50) : Math.max(rightHeaderEnd + 30, 520);
-
-            // Construct column bands
-            const colBands = [];
-            for (let i = 0; i < sortedHeaderBlocks.length; i++) {
-                const hb = sortedHeaderBlocks[i];
-                const nextHb = sortedHeaderBlocks[i + 1];
-                let colX, colW;
-
-                if (i === 0) {
-                    colX = Math.max(10, tableLeftX + 2);
-                    colW = nextHb ? Math.max(45, Math.round((nextHb.x - 4) - colX)) : Math.round(hb.width + 30);
-                } else if (nextHb) {
-                    colX = Math.round(hb.x - 2);
-                    colW = Math.max(30, Math.round((nextHb.x - 4) - colX));
-                } else {
-                    colX = Math.round(hb.x - 2);
-                    colW = Math.max(35, Math.round(tableRightX - 2 - colX));
-                }
-
-                const rawHeader = (hb.str || "").trim().replace(/[:_]+$/, "");
-                colBands.push({
-                    x: colX,
-                    width: colW,
-                    headerText: rawHeader || `col_${i + 1}`
-                });
+            let colX, colW;
+            if (i === 0) {
+                // First column (Description): spans from table left border to next column
+                colX = Math.max(10, tableLeftX + 2);
+                colW = nextHb ? Math.max(50, Math.round((nextHb.x - 4) - colX)) : Math.round(hb.width + 30);
+            } else if (nextHb) {
+                // Middle columns (Quantity, Price): span between header bounds
+                colX = Math.round(hb.x - 2);
+                colW = Math.max(30, Math.round((nextHb.x - 4) - colX));
+            } else {
+                // Last column (Amount): spans to table right boundary
+                colX = Math.round(hb.x - 2);
+                colW = Math.max(35, Math.round(tableRightX - 2 - colX));
             }
 
-            // Calculate dynamic uniform rows
-            const totalH = tableBottomY - tableTopY;
-            const targetPitch = 19; // Comfortable standard row height
-            const numRows = Math.max(3, Math.min(16, Math.round(totalH / targetPitch)));
-            const rowPitch = totalH / numRows;
+            const headerKey = (hb.str || "").trim();
+            colBands.push({
+                x: colX,
+                width: colW,
+                headerText: colHeaderMap[headerKey] || headerKey || "Column"
+            });
+        }
 
-            // Remove any overlapping pre-detected boxes inside this table grid zone
-            const headerMinY = Math.round(headerRow.y - 8);
-            resultFields = resultFields.filter(f => f.y < headerMinY || f.y > tableBottomY);
+        // Generate 12 clean uniform table rows spanning tableTopY to tableBottomY (SimplePDF style)
+        const totalH = tableBottomY - tableTopY;
+        const numRows = Math.max(10, Math.min(12, Math.round(totalH / 18.5)));
+        const rowPitch = totalH / numRows;
+        const tableRows = [];
+        for (let r = 0; r < numRows; r++) {
+            const rY = Math.round(tableTopY + (r * rowPitch) + 2);
+            tableRows.push({ y: rY, height: 14 });
+        }
 
-            // Generate cells for this table
-            for (let r = 0; r < numRows; r++) {
-                const rY = Math.round(tableTopY + (r * rowPitch) + 2);
-                const rH = Math.max(13, Math.min(17, Math.round(rowPitch - 4)));
+        // Filter out any previous fields that were inside the table header or data region
+        const headerMinY = Math.round(mainHeaderRow.y - 12);
+        const resultFields = fields.filter(f => f.y < headerMinY || f.y > tableBottomY);
 
-                colBands.forEach(col => {
-                    const colHeaderClean = col.headerText.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || "col";
-                    const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeaderClean}_row${r + 1}`, "textField", usedNames);
+        // Generate fields for all rows and columns
+        tableRows.forEach((row, rowIndex) => {
+            colBands.forEach(col => {
+                const colHeader = col.headerText || "Column";
+                const sem = DirectionalRaycaster.resolveSemanticProperties(`${colHeader}_${rowIndex + 1}`, "textField", usedNames);
 
+                const newField = {
+                    id: generateFieldId(),
+                    type: "textField",
+                    name: sem.name,
+                    x: Math.max(10, col.x),
+                    y: Math.max(10, row.y),
+                    width: col.width,
+                    height: row.height,
+                    page: pageNum,
+                    borderStyle: "solid",
+                    fillStyle: "white",
+                    multiline: false,
+                    autofill: sem.autofill || "",
+                    dataFormat: "text"
+                };
+
+                resultFields.push(newField);
+            });
+        });
+
+        // Generate table summary fields (Subtotal, Tax, Balance Due) if present
+        const summaryKeywords = [
+            { regex: /subtotal/i, name: "subtotal_input" },
+            { regex: /\btax\b|sales\s*tax/i, name: "tax_amount_input" },
+            { regex: /balance\s*due|amount\s*due|\btotal\b/i, name: "balance_due_input" }
+        ];
+
+        summaryKeywords.forEach(kw => {
+            const block = rawBlocks.find(tb => kw.regex.test((tb.str || "").trim()) && tb.y >= (tableTopY + 40));
+            if (block) {
+                const amountCol = colBands[colBands.length - 1];
+                const sumX = amountCol ? amountCol.x : Math.round(block.x + block.width + 10);
+                const sumW = amountCol ? amountCol.width : 80;
+                const sem = DirectionalRaycaster.resolveSemanticProperties(kw.name, "textField", usedNames);
+
+                if (!resultFields.some(f => Math.abs(f.y - block.y) <= 12 && Math.abs(f.x - sumX) <= 30)) {
                     resultFields.push({
                         id: generateFieldId(),
                         type: "textField",
                         name: sem.name,
-                        x: Math.max(10, col.x),
-                        y: Math.max(10, rY),
-                        width: col.width,
-                        height: rH,
+                        x: Math.max(10, sumX),
+                        y: Math.max(10, Math.round(block.y - 2)),
+                        width: sumW,
+                        height: 16,
                         page: pageNum,
                         borderStyle: "solid",
                         fillStyle: "white",
                         multiline: false,
-                        autofill: sem.autofill || "",
                         dataFormat: "text"
                     });
-                });
+                }
             }
-
-            // If summary keywords exist near the footer of this table, add summary fields
-            if (footerBlock) {
-                const summaryKeywords = [
-                    { regex: /subtotal/i, name: "subtotal_input" },
-                    { regex: /\btax\b|sales\s*tax/i, name: "tax_amount_input" },
-                    { regex: /balance\s*due|amount\s*due|\btotal\b/i, name: "balance_due_input" }
-                ];
-                summaryKeywords.forEach(kw => {
-                    const block = rawBlocks.find(tb => kw.regex.test((tb.str || "").trim()) && tb.y >= (tableTopY + 30) && tb.y <= (tableBottomY + 60));
-                    if (block) {
-                        const amountCol = colBands[colBands.length - 1];
-                        const sumX = amountCol ? amountCol.x : Math.round(block.x + block.width + 10);
-                        const sumW = amountCol ? amountCol.width : 80;
-                        const sem = DirectionalRaycaster.resolveSemanticProperties(kw.name, "textField", usedNames);
-
-                        if (!resultFields.some(f => Math.abs(f.y - block.y) <= 12 && Math.abs(f.x - sumX) <= 30)) {
-                            resultFields.push({
-                                id: generateFieldId(),
-                                type: "textField",
-                                name: sem.name,
-                                x: Math.max(10, sumX),
-                                y: Math.max(10, Math.round(block.y - 2)),
-                                width: sumW,
-                                height: 16,
-                                page: pageNum,
-                                borderStyle: "solid",
-                                fillStyle: "white",
-                                multiline: false,
-                                dataFormat: "text"
-                            });
-                        }
-                    }
-                });
-            }
-        }
+        });
 
         return resultFields;
     }
