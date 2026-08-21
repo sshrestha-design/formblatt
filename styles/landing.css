@@ -255,30 +255,31 @@
     box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
-/* Card Surface: Hero Dropzone */
+/* Card Surface: Executive Modern Dropzone */
 .hero-dropzone {
     max-width: 640px;
     margin: 32px auto 0 auto;
-    border: 2px dashed #3b82f6;
-    border-radius: 20px;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    padding: 44px 32px;
+    border: 1.5px dashed #94a3b8;
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 40px 32px;
     cursor: pointer;
-    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.08);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .hero-dropzone:hover {
-    border-color: #1d4ed8;
-    background: #f0f9ff;
+    border-color: #2563eb;
+    background: #f8fafc;
     transform: translateY(-2px);
-    box-shadow: 0 18px 45px rgba(37, 99, 235, 0.18);
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.12);
 }
 .hero-dropzone.dragover {
-    border-color: #1d4ed8;
+    border-color: #2563eb;
+    border-style: solid;
     background: #eff6ff;
-    transform: scale(1.02) translateY(-3px);
-    box-shadow: 0 0 50px rgba(37, 99, 235, 0.35);
+    transform: scale(1.01) translateY(-2px);
+    box-shadow: 0 16px 40px rgba(37, 99, 235, 0.2);
 }
 .hero-dropzone.dragover .dropzone-icon-box {
     animation: iconBounce 0.5s infinite alternate cubic-bezier(0.36, 0, 0.66, -0.56);
