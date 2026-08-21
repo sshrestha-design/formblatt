@@ -1,5 +1,5 @@
 // ── Geometric-First PDF Form Field Auto-Detector (js/auto-detector.js) ──
-// Precision visual affordance architecture with multi-field coordinate solvers
+// Precision visual affordance & topological vector grid engine
 import { state, generateFieldId } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 
@@ -22,6 +22,9 @@ const SEMANTIC_DICTIONARY = [
     { regex: /mileage\s*total|mileage\s*allowance/i, id: "mileage_total_amount", title: "Mileage Total Amount", type: "textField" },
     { regex: /less\s*cash\s*advance|cash\s*advance/i, id: "cash_advance_received", title: "Cash Advance Received", type: "textField" },
     { regex: /total\s*business\s*miles|miles\s*driven/i, id: "total_business_miles", title: "Total Business Miles", type: "textField" },
+    { regex: /merchant|vendor/i, id: "merchant_vendor", title: "Merchant / Vendor", type: "textField" },
+    { regex: /expense\s*category|category/i, id: "expense_category", title: "Expense Category", type: "textField" },
+    { regex: /business\s*purpose|purpose|attendees/i, id: "business_purpose", title: "Business Purpose / Attendees", type: "textField" },
 
     // Expense & Claim Form Fields
     { regex: /employee\s*full\s*name|employee\s*name/i, id: "employee_full_name", title: "Employee Full Name", type: "textField", autofill: "name" },
@@ -58,13 +61,18 @@ const SEMANTIC_DICTIONARY = [
     { regex: /last\s*name|surname/i, id: "last_name", title: "Last Name", type: "textField", autofill: "last_name" },
     { regex: /\bm\.?i\.?\b|middle\s*initial|middle\s*name/i, id: "middle_initial", title: "Middle Initial", type: "textField" },
     { regex: /full\s*legal\s*name|legal\s*name|full\s*name|^name\b/i, id: "full_name", title: "Full Name", type: "textField", autofill: "name" },
+    { regex: /badge\s*name|nickname/i, id: "badge_name", title: "Badge Name", type: "textField" },
+    { regex: /job\s*title|role/i, id: "job_title", title: "Job Title", type: "textField", autofill: "organization-title" },
+    { regex: /organization|company/i, id: "organization", title: "Organization", type: "textField", autofill: "organization" },
+    { regex: /work\s*email|business\s*email/i, id: "work_email", title: "Work Email", type: "textField", autofill: "email" },
+    { regex: /mobile\s*phone|cell\s*phone|primary\s*phone|\bphone\b/i, id: "phone_number", title: "Phone Number", type: "textField", autofill: "phone" },
+    { regex: /country\s*\/?\s*region|country/i, id: "country_region", title: "Country / Region", type: "textField", autofill: "country" },
     { regex: /street\s*address|home\s*address|address\s*line/i, id: "street_address", title: "Street Address", type: "textField", autofill: "address1" },
     { regex: /city,\s*state,\s*postal\s*code|city,\s*state,\s*zip|city\s*state\s*zip/i, id: "city_state_zip", title: "City, State, Zip", type: "textField" },
     { regex: /city|location/i, id: "city", title: "City", type: "textField", autofill: "city" },
     { regex: /state|province/i, id: "state_region", title: "State", type: "textField", autofill: "state" },
     { regex: /postal\s*code|zip\s*code|zip\b/i, id: "zip_code", title: "Zip Code", type: "textField", autofill: "zip" },
     { regex: /e-?p?mail/i, id: "email_address", title: "Email Address", type: "textField", autofill: "email" },
-    { regex: /primary\s*phone|cell\s*phone|mobile\s*phone|\bphone\b|\bmobile\b/i, id: "phone_number", title: "Phone Number", type: "textField", autofill: "phone" },
     { regex: /date\s*of\s*birth|dob|birth\s*date/i, id: "date_of_birth", title: "Date of Birth", type: "dateField" },
     { regex: /comments|notes|remarks|message|description/i, id: "comments", title: "Comments", type: "textField", multiline: true }
 ];
@@ -164,7 +172,7 @@ export async function autoDetectFields(scope = "current") {
                 };
             }).filter(tb => tb.str.length > 0);
 
-            // Extract vector lines & path drawings
+            // Extract vector lines, intersections & grid table cells
             const vectorGeometry = await extractVectorGeometry(page, viewport);
 
             // Run 4-Affordance Geometric Detection Pipeline
@@ -197,10 +205,11 @@ export async function autoDetectFields(scope = "current") {
 }
 
 // ============================================================================
-// 3. VECTOR GEOMETRY EXTRACTOR (Strokes, Rectangles & Underlines)
+// 3. VECTOR GEOMETRY & TOPOLOGICAL GRID EXTRACTOR
 // ============================================================================
 async function extractVectorGeometry(page, viewport) {
     const lines = [];
+    const vLines = [];
     const boxes = [];
     const pageHeight = viewport.height;
     const pageWidth = viewport.width;
@@ -245,6 +254,7 @@ async function extractVectorGeometry(page, viewport) {
                         const dx = Math.abs(curX - lastX);
                         const dy = Math.abs(curY - lastY);
 
+                        // Horizontal line
                         if (dx >= 25 && dy <= 3) {
                             const minX = Math.min(lastX, curX);
                             const minY = Math.min(lastY, curY);
@@ -255,7 +265,21 @@ async function extractVectorGeometry(page, viewport) {
                             const canvasW = dx * Math.abs(matrix[0] || 1);
 
                             if (canvasY >= 35 && canvasY <= (pageHeight - 20) && canvasW >= 25) {
-                                lines.push({ x: Math.round(canvasX), y: Math.round(canvasY), width: Math.round(canvasW) });
+                                lines.push({ x: Math.round(canvasX), y: Math.round(canvasY), width: Math.round(canvasW), x2: Math.round(canvasX + canvasW) });
+                            }
+                        }
+                        // Vertical line
+                        else if (dy >= 16 && dx <= 3) {
+                            const minX = Math.min(lastX, curX);
+                            const minY = Math.min(lastY, curY);
+                            const tx = matrix[0] * minX + matrix[2] * minY + matrix[4];
+                            const ty = matrix[1] * minX + matrix[3] * minY + matrix[5];
+                            const canvasY = pageHeight - (ty + dy * Math.abs(matrix[3] || 1));
+                            const canvasX = tx;
+                            const canvasH = dy * Math.abs(matrix[3] || 1);
+
+                            if (canvasY >= 35 && canvasH >= 16) {
+                                vLines.push({ x: Math.round(canvasX), y: Math.round(canvasY), height: Math.round(canvasH), y2: Math.round(canvasY + canvasH) });
                             }
                         }
                         lastX = curX;
@@ -273,14 +297,11 @@ async function extractVectorGeometry(page, viewport) {
                         const canvasY = pageHeight - ty - boxH;
                         const canvasX = tx;
 
-                        // Check for thin horizontal line drawn as filled rectangle
                         if (boxH <= 3 && boxW >= 25 && boxW < (pageWidth * 0.96)) {
-                            lines.push({ x: Math.round(canvasX), y: Math.round(canvasY + boxH), width: Math.round(boxW) });
-                            continue;
-                        }
-
-                        // Check for small discrete input box or table cell
-                        if (boxW >= 12 && boxH >= 12 && boxH <= 45 && boxW <= (pageWidth * 0.40)) {
+                            lines.push({ x: Math.round(canvasX), y: Math.round(canvasY + boxH), width: Math.round(boxW), x2: Math.round(canvasX + boxW) });
+                        } else if (boxW <= 3 && boxH >= 16) {
+                            vLines.push({ x: Math.round(canvasX), y: Math.round(canvasY), height: Math.round(boxH), y2: Math.round(canvasY + boxH) });
+                        } else if (boxW >= 12 && boxH >= 12 && boxH <= 45 && boxW <= (pageWidth * 0.40)) {
                             boxes.push({
                                 x: Math.round(canvasX),
                                 y: Math.round(canvasY),
@@ -300,7 +321,9 @@ async function extractVectorGeometry(page, viewport) {
                 const canvasX = tx;
 
                 if (boxH <= 3 && boxW >= 25 && boxW < (pageWidth * 0.96)) {
-                    lines.push({ x: Math.round(canvasX), y: Math.round(canvasY + boxH), width: Math.round(boxW) });
+                    lines.push({ x: Math.round(canvasX), y: Math.round(canvasY + boxH), width: Math.round(boxW), x2: Math.round(canvasX + boxW) });
+                } else if (boxW <= 3 && boxH >= 16) {
+                    vLines.push({ x: Math.round(canvasX), y: Math.round(canvasY), height: Math.round(boxH), y2: Math.round(canvasY + boxH) });
                 } else if (boxW >= 12 && boxH >= 12 && boxH <= 45 && boxW <= (pageWidth * 0.40)) {
                     boxes.push({
                         x: Math.round(canvasX),
@@ -308,6 +331,38 @@ async function extractVectorGeometry(page, viewport) {
                         width: Math.round(boxW),
                         height: Math.round(boxH)
                     });
+                }
+            }
+        }
+
+        // Compute Grid Table Cells from intersecting horizontal & vertical lines
+        const yLevels = [...new Set(lines.map(l => Math.round(l.y)))].sort((a, b) => a - b);
+        const xLevels = [...new Set(vLines.map(l => Math.round(l.x)))].sort((a, b) => a - b);
+
+        for (let rIdx = 0; rIdx < yLevels.length - 1; rIdx++) {
+            const yTop = yLevels[rIdx];
+            const yBot = yLevels[rIdx + 1];
+            const rowH = yBot - yTop;
+            if (rowH < 12 || rowH > 48) continue;
+
+            const spanningX = xLevels.filter(x => 
+                vLines.some(vl => Math.abs(vl.x - x) <= 4 && vl.y <= yTop + 4 && vl.y2 >= yBot - 4)
+            );
+
+            if (spanningX.length >= 2) {
+                for (let cIdx = 0; cIdx < spanningX.length - 1; cIdx++) {
+                    const xLeft = spanningX[cIdx];
+                    const xRight = spanningX[cIdx + 1];
+                    const colW = xRight - xLeft;
+                    if (colW >= 20 && colW <= (pageWidth * 0.50)) {
+                        boxes.push({
+                            x: xLeft,
+                            y: yTop,
+                            width: colW,
+                            height: rowH,
+                            isGridCell: true
+                        });
+                    }
                 }
             }
         }
@@ -341,7 +396,6 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             const optLabel = match[2].trim();
             const charIdx = match.index;
             
-            // Locate physical item corresponding to this character offset
             let charX = line.x;
             let runningLen = 0;
             for (const it of line.items) {
@@ -354,10 +408,12 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             }
 
             const charY = Math.round(line.y + (line.height - 16) / 2);
-            const sem = resolveSemanticProps(optLabel, "checkBox", usedNames);
+            const isRadio = match[1].includes("(") || /^(?:mr|ms|dr|prof|visa|mc|amex|credit|wire|purchase)/i.test(optLabel);
+            const sem = resolveSemanticProps(optLabel, isRadio ? "radioGroup" : "checkBox", usedNames);
+
             fields.push({
                 id: generateFieldId(),
-                type: "checkBox",
+                type: isRadio ? "radioGroup" : "checkBox",
                 name: sem.name,
                 x: Math.max(10, charX),
                 y: Math.max(10, charY),
@@ -391,7 +447,6 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             const labelMatch = textBefore.match(/([a-zA-Z0-9\s\/\(\)\.\-\#\$X]+?)[:\s]*$/);
             const rawLabel = labelMatch ? labelMatch[1].replace(/^[X\s]+/, "").trim() : "fill_line";
 
-            // Locate physical start X and next item
             let startX = line.x;
             let runningLen = 0;
             let matchedItemIdx = -1;
@@ -410,7 +465,6 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(rawLabel);
             const maxSemanticW = getSemanticMaxWidth(rawLabel);
 
-            // Bounded width: check if there is a neighbor item to the right
             let width = Math.max(50, Math.round((matchLen / Math.max(1, text.length)) * line.width));
             if (matchedItemIdx >= 0 && matchedItemIdx < line.items.length - 1) {
                 const nextItem = line.items[matchedItemIdx + 1];
@@ -532,37 +586,54 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
         }
     }
 
-    // Vector Table & Form Cells (Discrete drawn cell boxes)
+    // Process Vector Table & Grid Cells
     for (const box of vectorGeometry.boxes) {
         if (fields.some(f => isOverlappingBox(f, box, 0.4))) continue;
 
-        const insideLabel = rawBlocks.find(tb => 
+        // Check text inside cell
+        const insideItems = rawBlocks.filter(tb => 
             tb.x >= box.x - 2 && (tb.x + tb.width) <= box.x + box.width + 4 &&
-            tb.y >= box.y - 2 && tb.y <= box.y + 16
+            tb.y >= box.y - 2 && tb.y <= box.y + box.height + 4
         );
-        const leftLabel = rawBlocks.find(tb =>
-            (tb.x + tb.width) <= box.x + 8 && (box.x - (tb.x + tb.width)) <= 140 &&
-            Math.abs(tb.y - box.y) <= 12
-        );
+        const cellText = insideItems.map(it => it.str).join(" ").trim();
 
-        const rawLabel = insideLabel ? insideLabel.str : (leftLabel ? leftLabel.str : "cell");
-        if (isSectionHeader(rawLabel)) continue;
+        // Check if this is a table header banner row (e.g. "Date Expense Category Merchant...")
+        if (box.height <= 20 && /^(?:date|category|merchant|purpose|amount|receipt|item)/i.test(cellText)) {
+            continue;
+        }
 
-        const isDate = /date|dob/i.test(rawLabel);
-        const sem = resolveSemanticProps(rawLabel, isDate ? "dateField" : "textField", usedNames);
+        // Find column header above this cell if cell is empty
+        let effectiveLabel = cellText;
+        if (!effectiveLabel) {
+            const aboveHeader = rawBlocks.find(tb => 
+                Math.abs(tb.x - box.x) <= 25 && tb.y < box.y && (box.y - (tb.y + tb.height)) <= 180 &&
+                !isSectionHeader(tb.str)
+            );
+            if (aboveHeader) effectiveLabel = aboveHeader.str;
+        }
+        if (!effectiveLabel) effectiveLabel = "cell";
+        if (isSectionHeader(effectiveLabel)) continue;
+
+        const isDate = /date|dob/i.test(effectiveLabel);
+        const sem = resolveSemanticProps(effectiveLabel, isDate ? "dateField" : "textField", usedNames);
+
+        // If cell has top prompt text, position input below prompt text
+        const hasTopPrompt = cellText.includes(":") || (insideItems.length > 0 && insideItems[0].y <= box.y + 14);
+        const targetY = hasTopPrompt ? Math.round(box.y + 12) : Math.round(box.y + 2);
+        const targetH = hasTopPrompt ? Math.max(16, box.height - 14) : Math.max(16, box.height - 4);
 
         fields.push({
             id: generateFieldId(),
             type: isDate ? "dateField" : sem.type,
             name: sem.name,
             x: Math.max(10, box.x + 2),
-            y: Math.max(10, box.y + 2),
-            width: Math.max(30, box.width - 4),
-            height: Math.max(16, box.height - 4),
+            y: Math.max(10, targetY),
+            width: Math.max(25, box.width - 4),
+            height: targetH,
             page: pageNum,
             borderStyle: "solid",
             fillStyle: "white",
-            multiline: sem.multiline || box.height >= 40,
+            multiline: sem.multiline || targetH >= 40,
             autofill: sem.autofill || "",
             dataFormat: "text",
             ...(isDate ? { defaultValue: "YYYY-MM-DD" } : {})
@@ -577,10 +648,7 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
         if (isSectionHeader(text)) continue;
         if (!text.includes(":")) continue;
 
-        // Extract all discrete colon prompt items on this line
         const promptItems = [];
-
-        // Check each physical item in line.items first
         line.items.forEach(it => {
             if (it.str.includes(":") && !isSectionHeader(it.str)) {
                 promptItems.push({
@@ -593,7 +661,6 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             }
         });
 
-        // Fallback: If line.items was a single combined block with multiple colons
         if (promptItems.length === 0 || (promptItems.length === 1 && (text.match(/:/g) || []).length > 1)) {
             promptItems.length = 0;
             const regex = /([a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?):/g;
@@ -602,9 +669,7 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
                 const labelStr = m[1].trim();
                 if (isSectionHeader(labelStr)) continue;
                 const matchStart = m.index;
-                const matchEnd = m.index + m[0].length;
                 
-                // Approximate physical X from line.items or character offset
                 let startX = line.x;
                 let runningLen = 0;
                 for (const it of line.items) {
@@ -628,7 +693,6 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             }
         }
 
-        // Process prompts on this line with precise multi-field bounding
         for (let i = 0; i < promptItems.length; i++) {
             const curPrompt = promptItems[i];
             const nextPrompt = promptItems[i + 1];
@@ -649,28 +713,22 @@ function detectVisualAffordances(rawBlocks, vectorGeometry, viewport, pageNum, u
             let targetH = isSig ? 44 : (isMulti ? 55 : 24);
 
             if (nextPrompt) {
-                // Multiple fields on the same line: STRICTLY BOUNDED between current label and next label!
                 const availableGap = nextPrompt.x - labelRight;
                 if (availableGap >= 25) {
-                    // Inline input field
                     targetX = labelRight + 4;
                     targetW = Math.min(maxSemanticW, Math.max(35, availableGap - 8));
                 } else {
-                    // Column header stacked with input below
                     targetX = curPrompt.x;
                     targetW = Math.min(maxSemanticW, Math.max(50, nextPrompt.x - curPrompt.x - 6));
                     targetY = line.y + curPrompt.height + 2;
                     targetH = isSig ? 44 : 22;
                 }
             } else {
-                // Last prompt on the line
                 if (i > 0) {
-                    // Match the width of previous column
                     const prevPrompt = promptItems[i - 1];
                     const prevColW = curPrompt.x - prevPrompt.x;
                     targetW = Math.min(maxSemanticW, Math.max(50, prevColW));
                 } else {
-                    // Single prompt on line: strictly bounded by semantic width (NEVER stretches full-page)
                     targetW = Math.min(maxSemanticW, pageWidth - targetX - 30);
                 }
             }
@@ -739,12 +797,10 @@ function isSectionHeader(text) {
     const clean = text.trim();
     if (clean.length < 2) return false;
 
-    // Numbered Section Banners (e.g. "1. EMPLOYEE & CLAIM DETAILS", "2. ITEMIZED EXPENSE ENTRIES")
     if (/^\d+[\.\)]\s*[A-Z\s\&\(\)\/]+$/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
         return true;
     }
 
-    // Document header metadata
     if (/^(?:FORM\s*REF|REVISION|STATUS)\s*:/i.test(clean)) {
         return true;
     }
