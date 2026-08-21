@@ -1900,6 +1900,39 @@
         </div>
     </div>
 
+    <!-- Leave Editor Unsaved Changes Confirmation Modal -->
+    <div id="leaveEditorModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 480px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 45px -10px rgba(15,23,42,0.25);">
+            <!-- Modal Header -->
+            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; border: 1px solid #fecaca; flex-shrink: 0;">
+                    <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div>
+                    <h3 style="margin: 0 0 4px 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Leave Form Editor?</h3>
+                    <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.5;">
+                        You have an active document in progress. Returning to the home screen will reset your workspace unless you save your project.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+                <button type="button" id="saveAndLeaveEditorBtn" class="btn-primary" style="padding: 10px 16px; font-size: 13px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i data-lucide="save" style="width: 15px; height: 15px;"></i>
+                    <span>Save Project (.jform) & Go Home</span>
+                </button>
+                <button type="button" id="discardAndLeaveEditorBtn" style="padding: 9px 16px; font-size: 12.5px; border-radius: 8px; font-weight: 600; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+                    <span>Discard Changes & Go Home</span>
+                </button>
+                <button type="button" id="cancelLeaveEditorBtn" class="btn-secondary" style="padding: 9px 16px; font-size: 12.5px; border-radius: 8px; margin-top: 2px;">
+                    Cancel (Keep Editing)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Floating Success Toast Notification -->
     <div id="exportSuccessToast" class="export-success-toast" style="display: none;">
         <div class="toast-icon">
