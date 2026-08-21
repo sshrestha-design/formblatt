@@ -233,10 +233,10 @@
                             <span class="widget-dot red"></span>
                             <span class="widget-dot yellow"></span>
                             <span class="widget-dot green"></span>
-                            <span class="widget-title">JustForms Canvas — Interactive Live Preview</span>
+                            <span class="widget-title">JustForms Canvas — Interactive Live Playground</span>
                         </div>
-                        <span class="widget-badge" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">
-                            <i data-lucide="eye" style="width: 12px; height: 12px;"></i> STATIC DEMO PREVIEW
+                        <span class="widget-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
+                            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> LIVE PLAYGROUND — TRY TYPING!
                         </span>
                     </div>
 
@@ -251,32 +251,33 @@
                                 <div class="mini-field-group-row">
                                     <div class="mini-field-box active-demo">
                                         <span class="mini-field-tag">Text Field</span>
-                                        <label class="mini-label">Full Name of Recipient</label>
-                                        <input type="text" class="mini-input" value="Alex Morgan" placeholder="Enter full name..." readonly tabindex="-1">
+                                        <label class="mini-label" for="demoNameInput">Full Name of Recipient</label>
+                                        <input type="text" id="demoNameInput" class="mini-input" value="Alex Morgan" placeholder="Type your name here to test...">
                                     </div>
                                     <div class="mini-field-box">
                                         <span class="mini-field-tag">Dropdown</span>
-                                        <label class="mini-label">Designation / Role</label>
-                                        <select class="mini-select" disabled tabindex="-1">
+                                        <label class="mini-label" for="demoRoleSelect">Designation / Role</label>
+                                        <select id="demoRoleSelect" class="mini-select">
                                             <option>Senior Software Engineer</option>
                                             <option>Legal Counsel</option>
                                             <option>Product Manager</option>
+                                            <option>Executive Director</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div class="mini-field-group-row">
                                     <div class="mini-field-box">
-                                        <label class="mini-label-check">
-                                            <input type="checkbox" class="mini-checkbox" checked disabled tabindex="-1">
+                                        <label class="mini-label-check" style="cursor: pointer;">
+                                            <input type="checkbox" id="demoAgreeCheck" class="mini-checkbox" checked>
                                             <span>I agree to the non-disclosure terms and client-side privacy policy</span>
                                         </label>
                                     </div>
                                     <div class="mini-field-box mini-sig-box">
                                         <span class="mini-field-tag sig-tag">Digital Signature</span>
-                                        <label class="mini-label">Recipient Signature</label>
+                                        <label class="mini-label">Recipient Signature Preview</label>
                                         <div class="mini-sig-preview">
-                                            <span class="sig-font">Alex Morgan</span>
+                                            <span class="sig-font" id="demoSigPreview">Alex Morgan</span>
                                             <span class="sig-status">✓ Verified</span>
                                         </div>
                                     </div>
@@ -809,6 +810,21 @@
                     <div id="fieldPlacementGhost" class="field-placement-ghost" style="display: none;"></div>
                 </div>
             </main>
+
+            <!-- Subtle Floating Keyboard Shortcut Tooltip Helper Bar (Dismissible & Non-Intrusive) -->
+            <div id="editorShortcutBar" class="editor-shortcut-bar" style="position: absolute; bottom: 54px; left: 50%; transform: translateX(-50%); z-index: 90; display: none; align-items: center; gap: 10px; padding: 6px 14px; background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); color: #ffffff; font-size: 11.5px; font-weight: 600; pointer-events: auto;">
+                <span style="color: #60a5fa; font-weight: 700; display: flex; align-items: center; gap: 4px;">
+                    <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #60a5fa;"></i> Quick Shortcuts:
+                </span>
+                <span style="color: #e2e8f0; font-size: 11px;"><kbd style="background: rgba(255,255,255,0.2); color: #fff; padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: inherit;">T</kbd> Text</span>
+                <span style="color: #e2e8f0; font-size: 11px;"><kbd style="background: rgba(255,255,255,0.2); color: #fff; padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: inherit;">S</kbd> Signature</span>
+                <span style="color: #e2e8f0; font-size: 11px;"><kbd style="background: rgba(255,255,255,0.2); color: #fff; padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: inherit;">C</kbd> Checkbox</span>
+                <span style="color: #e2e8f0; font-size: 11px;"><kbd style="background: rgba(255,255,255,0.2); color: #fff; padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: inherit;">D</kbd> Dropdown</span>
+                <span style="color: #e2e8f0; font-size: 11px;"><kbd style="background: rgba(255,255,255,0.2); color: #fff; padding: 1px 5px; border-radius: 4px; font-weight: 700; font-family: inherit;">Space</kbd> Pan</span>
+                <button type="button" id="closeShortcutBarBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 2px; margin-left: 4px; display: flex; align-items: center; border-radius: 50%;" title="Dismiss">
+                    <i data-lucide="x" style="width: 13px; height: 13px;"></i>
+                </button>
+            </div>
 
             <!-- Docked Bottom Toolbar Frame (NEVER overlays canvas inputs) -->
             <footer class="canvas-docked-footer" style="height: 42px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; z-index: 20; box-shadow: 0 -1px 3px rgba(0,0,0,0.03);">
