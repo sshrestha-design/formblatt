@@ -97,6 +97,50 @@
     margin: 0 8px;
 }
 
+/* ── Auto-Detect Button ──────────────────────────────────────────
+   Previously fell back to the generic .btn-secondary (8px/16px
+   padding, no fixed height), so it sat visually disconnected from
+   the crisp 32px pill controls around it. This gives it its own
+   identity as the toolbar's signature "smart" action. */
+#autoDetectBtn {
+    height: 32px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7c3aed;
+    background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%);
+    border: 1px solid #ddd6fe;
+    box-shadow: 0 1px 2px rgba(124, 58, 237, 0.06);
+    white-space: nowrap;
+    transition: transform var(--anim-fast), box-shadow var(--anim-fast), background var(--anim-fast), border-color var(--anim-fast);
+}
+
+#autoDetectBtn:hover {
+    background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
+    border-color: #c4b5fd;
+    box-shadow: 0 3px 10px rgba(124, 58, 237, 0.18);
+    transform: translateY(-1px);
+}
+
+#autoDetectBtn:active {
+    transform: scale(0.965) translateY(0);
+    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.12);
+}
+
+#autoDetectBtn svg,
+#autoDetectBtn i,
+#autoDetectBtn [data-lucide] {
+    width: 14px;
+    height: 14px;
+    color: #7c3aed;
+    flex-shrink: 0;
+}
+
 .tool-btn {
     background: transparent;
     border: none;
@@ -944,6 +988,26 @@
     color: #ffffff !important;
     border-color: #2563eb !important;
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+}
+
+/* ── Toolbar control height alignment ────────────────────────────
+   Direct-child controls of the toolbar (e.g. #generatePdfBtn, which
+   otherwise inherits base.css's .btn-primary padding with no fixed
+   height) are pinned to the same 32px row-height as .tool-btn and
+   .mode-segmented-toggle. Scoped to direct children only, so the
+   24px inner buttons of .mode-segmented-toggle are untouched. */
+.toolbar-left > button,
+.toolbar-right > button {
+    height: 32px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+#generatePdfBtn {
+    padding: 0 16px;
+    font-size: 12.5px;
 }
 
 /* ── Workspace in Fill Mode ──────────────────────────────────── */
