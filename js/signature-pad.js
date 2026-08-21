@@ -155,16 +155,22 @@ export function openSignatureModal(field, onAdopt) {
                     alert("Please type your signature first.");
                     return;
                 }
-                // Render text onto offscreen high-res 2x canvas
+                // Render text onto an offscreen canvas sized to match the target
+                // field's aspect ratio, so acroform-builder.js doesn't have to
+                // stretch/squash it when it draws the image at f.width/f.height.
+                const fieldW = (currentSigField && currentSigField.width) || 200;
+                const fieldH = (currentSigField && currentSigField.height) || 60;
+                const RENDER_SCALE = 3; // supersample for a crisp PNG
                 const tempCanvas = document.createElement("canvas");
-                tempCanvas.width = 600;
-                tempCanvas.height = 180;
+                tempCanvas.width = Math.max(1, Math.round(fieldW * RENDER_SCALE));
+                tempCanvas.height = Math.max(1, Math.round(fieldH * RENDER_SCALE));
                 const tCtx = tempCanvas.getContext("2d");
-                tCtx.font = "italic 52px 'Caveat, 'Cedarville Cursive, cursive, serif";
+                const fontSize = Math.round(tempCanvas.height * 0.5);
+                tCtx.font = `italic ${fontSize}px "Caveat", "Cedarville Cursive", cursive, serif`;
                 tCtx.fillStyle = "#0f172a";
                 tCtx.textAlign = "center";
                 tCtx.textBaseline = "middle";
-                tCtx.fillText(text, 300, 90);
+                tCtx.fillText(text, tempCanvas.width / 2, tempCanvas.height / 2);
                 dataUrl = tempCanvas.toDataURL("image/png");
             }
 
