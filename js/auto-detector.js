@@ -741,7 +741,25 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
             const labelPart = parts[0].trim();
             const afterColon = (parts[1] || "").trim();
 
-            if (afterColon.length > 0) continue;
+            const isBillShip = /bill\s*to|ship\s*to|billed\s*to|deliver\s*to/i.test(labelPart);
+            if (isBillShip) {
+                const targetX = Math.round(line.x);
+                const targetY = Math.round(line.y + line.height + 4);
+                const availableWidth = Math.min(280, pageWidth - targetX - 35);
+
+                detected.push({
+                    type: "textField",
+                    rawLabel: labelPart,
+                    x: Math.max(10, targetX),
+                    y: Math.max(10, targetY),
+                    width: Math.round(availableWidth),
+                    height: 60,
+                    borderStyle: "solid",
+                    fillStyle: "white",
+                    multiline: true
+                });
+                continue;
+            }
 
             const hasRightNeighbor = lines.some(other => {
                 if (other === line) return false;
@@ -750,7 +768,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                 return sameRow && isRight;
             });
 
-            if (!hasRightNeighbor && line.x < (pageWidth * 0.6)) {
+            if (!hasRightNeighbor && line.x < (pageWidth * 0.75)) {
                 const targetX = Math.round(line.x + line.width + 6);
                 const targetY = Math.round(line.y - 1);
                 const availableWidth = Math.max(80, pageWidth - targetX - 35);
@@ -759,9 +777,9 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                 const isDate = /date|dob/i.test(labelPart);
                 const isMulti = /comments|notes|remarks|description|message/i.test(labelPart);
 
-                const fieldWidth = Math.min(isMulti ? 380 : 250, availableWidth);
+                const fieldWidth = Math.min(isMulti ? 380 : (afterColon.length > 0 ? 140 : 250), availableWidth);
 
-                if (fieldWidth >= 60 && targetX < (pageWidth - 40)) {
+                if (fieldWidth >= 50 && targetX < (pageWidth - 40)) {
                     detected.push({
                         type: isSig ? "signature" : (isDate ? "dateField" : "textField"),
                         rawLabel: labelPart,
@@ -772,7 +790,7 @@ function scanTextLayout(rawBlocks, viewport, pageNum, occupancyGrid) {
                         borderStyle: "solid",
                         fillStyle: "white",
                         multiline: isMulti,
-                        ...(isDate ? { defaultValue: "MM/DD/YYYY" } : {})
+                        ...(afterColon.length > 0 ? { defaultValue: afterColon } : (isDate ? { defaultValue: "MM/DD/YYYY" } : {}))
                     });
                 }
             }
