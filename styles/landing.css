@@ -257,42 +257,41 @@
 
 /* Card Surface: Hero Dropzone */
 .hero-dropzone {
-    max-width: 660px;
-    margin: 0 auto;
-    border: 2px dashed #93C5FD;
-    border-radius: 16px;
-    background: #FFFFFF;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    padding: 34px 26px;
+    max-width: 680px;
+    margin: 36px auto 0 auto;
+    border: 2px dashed #3b82f6;
+    border-radius: 18px;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    padding: 40px 32px;
     cursor: pointer;
+    box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12), 0 0 0 6px rgba(37, 99, 235, 0.05);
     animation: dropzoneIdlePulse 3.5s ease-in-out infinite;
     transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
 @keyframes dropzoneIdlePulse {
     0%, 100% {
-        border-color: #93C5FD;
-        box-shadow: 0 4px 20px rgba(37, 99, 235, 0.05), 0 0 0 0 rgba(37, 99, 235, 0);
+        border-color: #3b82f6;
+        box-shadow: 0 12px 32px rgba(37, 99, 235, 0.12), 0 0 0 6px rgba(37, 99, 235, 0.05);
     }
     50% {
-        border-color: #2563EB;
-        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.18), 0 0 0 8px rgba(37, 99, 235, 0.08);
+        border-color: #1d4ed8;
+        box-shadow: 0 16px 40px rgba(37, 99, 235, 0.22), 0 0 0 10px rgba(37, 99, 235, 0.1);
     }
 }
 
 .hero-dropzone:hover {
-    border-color: #2563EB;
-    background: #F0F9FF;
+    border-color: #1d4ed8;
+    background: #f0f9ff;
     transform: translateY(-2px);
-    box-shadow: 0 14px 35px rgba(37, 99, 235, 0.18);
+    box-shadow: 0 18px 45px rgba(37, 99, 235, 0.22);
     animation: none;
 }
 .hero-dropzone.dragover {
-    border-color: #1D4ED8;
-    background: #EFF6FF;
-    transform: scale(1.03) translateY(-3px);
-    box-shadow: 0 0 40px rgba(37, 99, 235, 0.35);
+    border-color: #1d4ed8;
+    background: #eff6ff;
+    transform: scale(1.02) translateY(-3px);
+    box-shadow: 0 0 50px rgba(37, 99, 235, 0.35);
     animation: none;
 }
 .hero-dropzone.dragover .dropzone-icon-box {
@@ -301,10 +300,10 @@
     color: #ffffff;
 }
 
-/* ── Live Interactive Hero Canvas Preview Widget ───────────────── */
+/* ── Live Interactive Canvas Preview Widget ───────────────── */
 .hero-live-preview-widget {
-    max-width: 680px;
-    margin: 28px auto 0 auto;
+    max-width: 760px;
+    margin: 10px auto 0 auto;
     background: #ffffff;
     border: 1px solid #e2e8f0;
     border-radius: 16px;
@@ -653,40 +652,71 @@
 .template-card {
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 14px;
+    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-    transition: transform var(--anim-norm), box-shadow var(--anim-norm), border-color var(--anim-norm);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s var(--ease-spring), box-shadow 0.2s var(--ease-spring), border-color 0.2s ease;
     display: flex;
     flex-direction: column;
     cursor: pointer;
     will-change: transform;
 }
 .template-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 16px 32px -4px rgba(15, 23, 42, 0.1);
-    border-color: #93C5FD;
+    transform: translateY(-4px);
+    box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(37, 99, 235, 0.25);
+    border-color: #2563EB;
 }
 .template-card:active {
-    transform: scale(0.985);
+    transform: scale(0.988);
 }
 .template-preview-box {
-    background: #FAFAFA;
-    border-bottom: 1px solid #F1F5F9;
-    padding: 16px;
-    height: 140px;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    padding: 18px 16px;
+    height: 130px;
     display: flex;
     flex-direction: column;
     gap: 8px;
     justify-content: center;
+    position: relative;
+    pointer-events: none;
+    user-select: none;
 }
+
+.static-preview-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Demarcate static preview controls from active editor controls */
+.hero-live-preview-widget .mini-input,
+.hero-live-preview-widget .mini-select,
+.hero-live-preview-widget .mini-checkbox,
+.template-preview-box .tpl-pill {
+    cursor: default !important;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
 .tpl-mini-header {
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
     color: #0F172A;
-    border-bottom: 1px solid #CBD5E1;
-    padding-bottom: 4px;
-    margin-bottom: 2px;
+    border-bottom: 1.5px solid #E2E8F0;
+    padding-bottom: 5px;
+    margin-bottom: 4px;
 }
 .tpl-mini-row {
     display: flex;
@@ -696,11 +726,11 @@
     flex: 1;
     background: #FFFFFF;
     border: 1px solid #CBD5E1;
-    border-radius: 4px;
-    font-size: 9px;
+    border-radius: 6px;
+    font-size: 9.5px;
     color: #475569;
     font-weight: 600;
-    padding: 4px 6px;
+    padding: 5px 8px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -710,49 +740,51 @@
 .tpl-pill.check { background: #ECFDF5; border-color: #A7F3D0; color: #059669; font-weight: 600; }
 
 .template-info {
-    padding: 20px;
+    padding: 18px 20px 20px 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
 }
 .template-tags {
     display: flex;
-    gap: 6px;
-    margin-bottom: 10px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
 }
 .tag {
-    font-size: 10px;
+    font-size: 10.5px;
     font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
 }
-.tag.finance { background: #FEF3C7; color: #78350F; }
-.tag.legal { background: #EDE9FE; color: #4C1D95; }
-.tag.business { background: #EFF6FF; color: #1D4ED8; }
-.tag.hr { background: #DCFCE7; color: #14532D; }
-.tag.fields { background: #E2E8F0; color: #0F172A; }
+.tag.finance { background: #FEF3C7; color: #78350F; border: 1px solid #FDE68A; }
+.tag.legal { background: #EDE9FE; color: #4C1D95; border: 1px solid #DDD6FE; }
+.tag.business { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.tag.hr { background: #DCFCE7; color: #14532D; border: 1px solid #BBF7D0; }
+.tag.fields { background: #F1F5F9; color: #475569; border: 1px solid #CBD5E1; font-weight: 600; }
 
 .template-info h3 {
-    font-size: 16px;
+    font-size: 15.5px;
     font-weight: 700;
     color: #0F172A;
     margin-bottom: 6px;
 }
 .template-info p {
-    font-size: 13px;
+    font-size: 12.5px;
     color: #475569;
-    line-height: 1.4;
+    line-height: 1.45;
     margin-bottom: 16px;
     flex: 1;
 }
 .template-use-btn {
     width: 100%;
-    padding: 8px;
+    padding: 9px 16px;
     background: #F8FAFC;
-    border: 1px solid #CBD5E1;
-    border-radius: 8px;
+    border: 1.5px solid #CBD5E1;
+    border-radius: 10px;
     color: #2563EB;
-    font-weight: 600;
+    font-weight: 700;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.15s ease;

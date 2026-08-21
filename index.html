@@ -145,8 +145,9 @@
                     </span>
                 </div>
                 <div class="landing-nav-links">
-                    <a href="#features">Features</a>
+                    <a href="#how-it-works">How It Works</a>
                     <a href="#templates">Templates</a>
+                    <a href="#features">Features</a>
                     <a href="#open-source">Open Source</a>
                     <button type="button" id="landingShortcutsBtn" class="nav-text-btn">Shortcuts</button>
                     <button type="button" id="landingFeedbackBtn" class="nav-text-btn highlight">Feedback</button>
@@ -191,23 +192,35 @@
                     </label>
                 </div>
 
-                <!-- Revamped Interactive Hero Dropzone -->
+                <!-- Primary Visual Hero Anchor: Drag & Drop Dropzone -->
                 <div class="hero-dropzone" id="heroDropzone">
                     <div class="dropzone-inner">
                         <div class="dropzone-icon-box">
-                            <i data-lucide="cloud-upload" style="width:30px; height:30px; color:#2563eb;"></i>
+                            <i data-lucide="cloud-upload" style="width:34px; height:34px; color:#2563eb;"></i>
                         </div>
                         <div class="dropzone-text">
-                            <strong>Drop your PDF or project file here</strong> or <span class="dropzone-browse">browse files</span>
-                            <div class="dropzone-format-pills" style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:10px;">
-                                <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.pdf</span>
-                                <span style="background:#f1f5f9; color:#475569; padding:4px 12px; border-radius:20px; font-size:11.5px; font-weight:600; border:1px solid #cbd5e1;">.jform</span>
+                            <strong style="font-size: 15px; display: block; margin-bottom: 2px;">Drop your PDF or project file here</strong>
+                            <span style="color: #64748b; font-size: 13px;">or <span class="dropzone-browse">browse files</span> from your device</span>
+                            <div class="dropzone-format-pills" style="display:flex; justify-content:center; align-items:center; gap:8px; flex-wrap:wrap; margin-top:12px;">
+                                <span style="background:#eff6ff; color:#2563eb; padding:4px 14px; border-radius:20px; font-size:11.5px; font-weight:700; border:1px solid #bfdbfe;">.pdf</span>
+                                <span style="background:#eff6ff; color:#2563eb; padding:4px 14px; border-radius:20px; font-size:11.5px; font-weight:700; border:1px solid #bfdbfe;">.jform</span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Live Interactive Hero Canvas Preview Widget -->
+        <!-- Dedicated How It Works & Live Interactive Demo Section -->
+        <section class="landing-section bg-alt" id="how-it-works">
+            <div class="section-container">
+                <div class="section-header">
+                    <span class="section-eyebrow">INTERACTIVE PREVIEW</span>
+                    <h2 class="section-title">How JustForms Works</h2>
+                    <p class="section-subtitle">Experience how easy it is to add interactive text fields, checkboxes, dropdowns, and digital signatures to any document.</p>
+                </div>
+
+                <!-- Live Interactive Canvas Preview Widget -->
                 <div class="hero-live-preview-widget">
                     <div class="widget-header">
                         <div class="widget-header-left">
@@ -216,8 +229,8 @@
                             <span class="widget-dot green"></span>
                             <span class="widget-title">JustForms Canvas — Interactive Live Preview</span>
                         </div>
-                        <span class="widget-badge">
-                            <i data-lucide="sparkles" style="width: 12px; height: 12px;"></i> Live AcroForm Mockup
+                        <span class="widget-badge" style="background:#f1f5f9; color:#475569; border-color:#cbd5e1;">
+                            <i data-lucide="eye" style="width: 12px; height: 12px;"></i> STATIC DEMO PREVIEW
                         </span>
                     </div>
 
@@ -233,12 +246,12 @@
                                     <div class="mini-field-box active-demo">
                                         <span class="mini-field-tag">Text Field</span>
                                         <label class="mini-label">Full Name of Recipient</label>
-                                        <input type="text" class="mini-input" value="Alex Morgan" placeholder="Enter full name...">
+                                        <input type="text" class="mini-input" value="Alex Morgan" placeholder="Enter full name..." readonly tabindex="-1">
                                     </div>
                                     <div class="mini-field-box">
                                         <span class="mini-field-tag">Dropdown</span>
                                         <label class="mini-label">Designation / Role</label>
-                                        <select class="mini-select">
+                                        <select class="mini-select" disabled tabindex="-1">
                                             <option>Senior Software Engineer</option>
                                             <option>Legal Counsel</option>
                                             <option>Product Manager</option>
@@ -249,7 +262,7 @@
                                 <div class="mini-field-group-row">
                                     <div class="mini-field-box">
                                         <label class="mini-label-check">
-                                            <input type="checkbox" class="mini-checkbox" checked>
+                                            <input type="checkbox" class="mini-checkbox" checked disabled tabindex="-1">
                                             <span>I agree to the non-disclosure terms and client-side privacy policy</span>
                                         </label>
                                     </div>
@@ -268,7 +281,7 @@
                             <div class="mini-floating-hud">
                                 <span class="hud-mini-type">ACROFORM READY</span>
                                 <span class="hud-mini-dim">240 × 32 px</span>
-                                <button type="button" class="hud-mini-btn" id="heroTryInEditorBtn">Try in Editor →</button>
+                                <button type="button" class="hud-mini-btn" id="heroTryInEditorBtn">Try Sample in Editor →</button>
                             </div>
                         </div>
                     </div>
@@ -328,16 +341,16 @@
                     <!-- Template: Commercial Invoice -->
                     <div class="template-card" data-template="invoice">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Standard Commercial Invoice</div>
                             <div class="tpl-mini-row"><span class="tpl-pill">From: Company</span><span class="tpl-pill">To: Client</span></div>
                             <div class="tpl-mini-row"><span class="tpl-pill">Invoice # / Date</span><span class="tpl-pill">Terms / Due Date</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill full">Itemized Description, Qty, Amount</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">Subtotal & Tax</span><span class="tpl-pill sig" style="background:#fef3c7; color:#b45309;">$ Balance Due</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Itemized Description & Amount</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
-                                <span class="tag finance" style="background:#ecfdf5; color:#047857;">Billing & Accounting</span>
-                                <span class="tag fields">15 Fields</span>
+                                <span class="tag finance">Billing</span>
+                                <span class="tag fields">15 AcroForm Fields</span>
                             </div>
                             <h3>Commercial Invoice Form</h3>
                             <p>Standard billing invoice with itemized line items, totals & notes.</p>
@@ -348,15 +361,16 @@
                     <!-- Template 1: W-9 Tax Form -->
                     <div class="template-card" data-template="w9">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Form W-9 (Taxpayer ID)</div>
                             <div class="tpl-mini-row"><span class="tpl-pill">Name</span><span class="tpl-pill">Business Name</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill full">Tax Classification Dropdown ▼</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">SSN / EIN Number</span><span class="tpl-pill sig">✍ Signature</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Tax Classification Dropdown</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">SSN / EIN</span><span class="tpl-pill sig">✍ Signature</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
                                 <span class="tag finance">Tax & Legal</span>
-                                <span class="tag fields">8 Fields</span>
+                                <span class="tag fields">8 AcroForm Fields</span>
                             </div>
                             <h3>W-9 Taxpayer ID Form</h3>
                             <p>IRS-compliant taxpayer identification form.</p>
@@ -367,15 +381,15 @@
                     <!-- Template 2: NDA Agreement -->
                     <div class="template-card" data-template="nda">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Non-Disclosure Agreement</div>
                             <div class="tpl-mini-row"><span class="tpl-pill">Disclosing Party</span><span class="tpl-pill">Receiving Party</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill full">Governing Jurisdiction ▼</span></div>
                             <div class="tpl-mini-row"><span class="tpl-pill sig">✍ Discloser Sig</span><span class="tpl-pill sig">✍ Recipient Sig</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
                                 <span class="tag legal">Agreement</span>
-                                <span class="tag fields">2 Signatures</span>
+                                <span class="tag fields">2 Signature Blocks</span>
                             </div>
                             <h3>Mutual NDA Agreement</h3>
                             <p>Two-party confidentiality contract with dual signature blocks.</p>
@@ -386,14 +400,14 @@
                     <!-- Template 3: Client Intake Form -->
                     <div class="template-card" data-template="intake">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Client Registration & Intake</div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">First Name</span><span class="tpl-pill">Last Name</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">Email Address</span><span class="tpl-pill">Phone</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill full">Service Package ▼</span><span class="tpl-pill sig">✍ Client Sign</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">First & Last Name</span><span class="tpl-pill">Email Address</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Service Package</span><span class="tpl-pill sig">✍ Client Sign</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
-                                <span class="tag business">Business</span>
+                                <span class="tag business">Registration</span>
                                 <span class="tag fields">Autofill Ready</span>
                             </div>
                             <h3>Client Intake & Registration</h3>
@@ -405,15 +419,15 @@
                     <!-- Template 4: Job Application Form -->
                     <div class="template-card" data-template="job">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Employment Application</div>
                             <div class="tpl-mini-row"><span class="tpl-pill">Candidate Name</span><span class="tpl-pill">Position Applied</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">Available Start Date</span><span class="tpl-pill">Expected Salary</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill check">☑ Authorized to Work</span><span class="tpl-pill sig">✍ Candidate Sig</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill check">☑ Work Auth</span><span class="tpl-pill sig">✍ Candidate Sig</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
                                 <span class="tag hr">HR & Hiring</span>
-                                <span class="tag fields">Multi-Field</span>
+                                <span class="tag fields">Multi-Section</span>
                             </div>
                             <h3>Job Application Form</h3>
                             <p>Screening form with employment verification & signature.</p>
@@ -424,16 +438,15 @@
                     <!-- Template 5: Residential Lease Agreement -->
                     <div class="template-card" data-template="lease">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Residential Lease Agreement</div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">Landlord Name</span><span class="tpl-pill">Tenant Name</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill full">Property Address & Unit #</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">Monthly Rent ($)</span><span class="tpl-pill">Security Deposit ($)</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill">Landlord & Tenant</span><span class="tpl-pill">Property Address</span></div>
                             <div class="tpl-mini-row"><span class="tpl-pill sig">✍ Landlord Sig</span><span class="tpl-pill sig">✍ Tenant Sig</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
-                                <span class="tag real-estate" style="background:#f0fdf4; color:#15803d; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600;">Real Estate</span>
-                                <span class="tag fields">10 Fields</span>
+                                <span class="tag legal">Real Estate</span>
+                                <span class="tag fields">10 AcroForm Fields</span>
                             </div>
                             <h3>Residential Lease Agreement</h3>
                             <p>Standard rental contract with rent terms & signature blocks.</p>
@@ -444,15 +457,15 @@
                     <!-- Template 6: Tenant Rental Application -->
                     <div class="template-card" data-template="rental">
                         <div class="template-preview-box">
+                            <span class="static-preview-badge">PREVIEW</span>
                             <div class="tpl-mini-header">Tenant Rental Application</div>
-                            <div class="tpl-mini-row"><span class="tpl-pill full">Applicant Full Name</span></div>
-                            <div class="tpl-mini-row"><span class="tpl-pill">Current Address</span><span class="tpl-pill">Monthly Income</span></div>
+                            <div class="tpl-mini-row"><span class="tpl-pill full">Applicant Name & Income</span></div>
                             <div class="tpl-mini-row"><span class="tpl-pill check">☑ Background Consent</span><span class="tpl-pill sig">✍ Applicant Sig</span></div>
                         </div>
                         <div class="template-info">
                             <div class="template-tags">
-                                <span class="tag property-mgmt" style="background:#fef3c7; color:#b45309; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600;">Property Mgt</span>
-                                <span class="tag fields">Tenant Screening</span>
+                                <span class="tag business">Property Mgt</span>
+                                <span class="tag fields">Screening Form</span>
                             </div>
                             <h3>Rental & Tenant Application</h3>
                             <p>Tenant screening form with income & background consent.</p>
