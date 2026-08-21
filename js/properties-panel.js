@@ -339,6 +339,40 @@ export function populateProperties(field) {
                 const allSameVal = selectedFields.every(f => f.defaultValue === commonVal);
                 defInput.value = (allSameVal && commonVal) ? commonVal : "";
             }
+
+            // Sync border buttons
+            const commonBorder = selectedFields[0]?.borderStyle;
+            const allSameBorder = selectedFields.every(f => f.borderStyle === commonBorder);
+            const btnSolid = document.getElementById("multiBorderSolidBtn");
+            const btnNone = document.getElementById("multiBorderNoneBtn");
+            if (btnSolid && btnNone) {
+                if (allSameBorder && commonBorder === "none") {
+                    btnNone.style.background = "#ffffff"; btnNone.style.color = "#1e293b"; btnNone.style.fontWeight = "600"; btnNone.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+                    btnSolid.style.background = "transparent"; btnSolid.style.color = "#64748b"; btnSolid.style.fontWeight = "500"; btnSolid.style.boxShadow = "none";
+                } else if (allSameBorder && commonBorder === "solid") {
+                    btnSolid.style.background = "#ffffff"; btnSolid.style.color = "#1e293b"; btnSolid.style.fontWeight = "600"; btnSolid.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
+                    btnNone.style.background = "transparent"; btnNone.style.color = "#64748b"; btnNone.style.fontWeight = "500"; btnNone.style.boxShadow = "none";
+                } else {
+                    btnSolid.style.background = "transparent"; btnSolid.style.color = "#64748b"; btnSolid.style.fontWeight = "500"; btnSolid.style.boxShadow = "none";
+                    btnNone.style.background = "transparent"; btnNone.style.color = "#64748b"; btnNone.style.fontWeight = "500"; btnNone.style.boxShadow = "none";
+                }
+            }
+
+            // Sync fill swatches
+            const commonFill = selectedFields[0]?.fillStyle;
+            const allSameFill = selectedFields.every(f => f.fillStyle === commonFill);
+            const swatchesList = [
+                { id: "multiFillWhiteBtn", fill: "white" },
+                { id: "multiFillTintBtn", fill: "tint" },
+                { id: "multiFillYellowBtn", fill: "yellow" },
+                { id: "multiFillTransBtn", fill: "transparent" }
+            ];
+            swatchesList.forEach(s => {
+                const el = document.getElementById(s.id);
+                if (el) {
+                    el.classList.toggle("active", allSameFill && s.fill === commonFill);
+                }
+            });
         }
         if (typeof lucide !== "undefined") lucide.createIcons();
         return;
