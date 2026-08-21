@@ -843,13 +843,19 @@ function fuseDetections(acroFormFields, vectorElements, textResult, rawBlocks, v
         // Skip vector elements that overlap any already fused field (e.g. AcroForm or earlier vector rectangle/table cell)
         if (isOverlappingAny(ve, fused)) continue;
 
-        // Skip vector boxes or lines that sit near/under section headings
-        const isHeadingVector = rawBlocks.some(tb => {
-            const isNearY = Math.abs((tb.y + tb.height / 2) - (ve.y + ve.height / 2)) <= 25 || (tb.y < ve.y && (ve.y - tb.y) <= 30);
-            const isNearX = Math.abs(tb.x - ve.x) <= 120 || (tb.x + tb.width >= ve.x - 10 && tb.x <= ve.x + ve.width + 10);
-            return isNearY && isNearX && isHeadingLabel(tb.str);
+        // Skip any vector box that sits next to or under a section heading (like "JOB", "CONTRACT", "Location")
+        const isSectionHeaderBox = rawBlocks.some(tb => {
+            const str = tb.str ? tb.str.trim() : "";
+            if (!str || str.includes(":")) return false;
+            const cleanStr = str.replace(/[:_.\s-]+$/, "");
+            const isHeading = isHeadingLabel(cleanStr) || /^(?:job|contract|location|contact|details|notes|summary|profile|education|experience|skills|hobbies|languages|references|personal\s*information|applicant\s*information|general\s*information|employment)$/i.test(cleanStr);
+            if (!isHeading) return false;
+
+            const isNearY = Math.abs((tb.y + tb.height / 2) - (ve.y + ve.height / 2)) <= 28 || (tb.y <= ve.y && (ve.y - tb.y) <= 35);
+            const isNearX = Math.abs(tb.x - ve.x) <= 150 || (tb.x + tb.width >= ve.x - 20 && tb.x <= ve.x + ve.width + 20);
+            return isNearY && isNearX;
         });
-        if (isHeadingVector) continue;
+        if (isSectionHeaderBox) continue;
 
         const rawLabel = findNearbyLabelForBox(ve, rawBlocks) || `field_${usedNames.size + 1}`;
         if (isHeadingLabel(rawLabel)) continue;
