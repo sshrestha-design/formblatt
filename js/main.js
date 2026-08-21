@@ -18,7 +18,7 @@ window.va = window.va || function () { (window.vaq = window.vaq || []).push(argu
 function refreshUI() {
     renderOverlays({
         onFieldMouseDown: (e, field) => handleFieldMouseDown(e, field, canvasHandlers),
-        onResizeStart: (e, field) => handleResizeStart(e, field),
+        onResizeStart: (e, field, direction) => handleResizeStart(e, field, direction),
         onUpdated: () => refreshUI()
     });
     renderLayers(
@@ -59,7 +59,7 @@ export function switchEditorMode(mode = "design") {
 
 const overlayHandlers = {
     onFieldMouseDown: (e, field) => handleFieldMouseDown(e, field, canvasHandlers),
-    onResizeStart: (e, field) => handleResizeStart(e, field),
+    onResizeStart: (e, field, direction) => handleResizeStart(e, field, direction),
     onUpdated: () => refreshUI()
 };
 
