@@ -119,6 +119,9 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         if (onFieldUpdated) onFieldUpdated(field);
     });
 
+    const fieldAutofill = document.getElementById("fieldAutofill");
+    fieldAutofill?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value));
+
     fieldNameInput?.addEventListener("input", e => syncChange(f => f.name = e.target.value));
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => f.defaultValue = e.target.value));
     fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value));
@@ -355,6 +358,7 @@ export function populateProperties(field) {
     setVal("textAlignment", field.textAlignment || "left");
     setVal("fieldTooltip", field.tooltip || "");
     setVal("autofillType", field.autofill || "");
+    setVal("fieldAutofill", field.autofill || "");
     setVal("fieldBorderStyle", field.borderStyle || "solid");
     setVal("borderStyleSelect", field.borderStyle || "solid");
     setVal("fieldFillStyle", field.fillStyle || "white");
