@@ -237,7 +237,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         if (onFieldUpdated) onFieldUpdated(field);
     });
 
-    // Add Next Table Row ("Add Another" Pattern - Form Design Patterns Ch. 9)
+    // Add Next Table Row
     document.getElementById("addTableRowBtn")?.addEventListener("click", () => {
         const newIds = addNextTableRow();
         if (newIds.length > 0) {

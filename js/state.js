@@ -175,7 +175,7 @@ export function duplicateSelectedFields() {
     return pasteClipboardFields();
 }
 
-// "Add Another" Repeatable Table Row Pattern (Form Design Patterns Ch. 9)
+// Add Next Table Row
 export function addNextTableRow() {
     const selectedField = getSelectedField();
     if (!selectedField) return [];

@@ -68,7 +68,7 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
         }
     }
 
-    // Determine semantic data format (Adam Silver Chapter 2 & 3)
+    // Determine semantic data format
     if (type === "dateField" || /date|dob/i.test(baseId || clean)) {
         dataFormat = "date";
     } else if (/amount|price|subtotal|tax|total|cost|fee|rate/i.test(baseId || clean)) {
