@@ -215,16 +215,16 @@
 /* ── Edge & Corner Snap Points on Selected Field Overlays ─────── */
 .edge-snap-point {
     position: absolute;
-    width: 5.5px;
-    height: 5.5px;
+    width: 7px;
+    height: 7px;
     background: #ffffff;
-    border: 1.5px solid #2563eb;
+    border: 2px solid #2563eb;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 65;
-    opacity: 0.85;
-    box-shadow: 0 0 2px rgba(0,0,0,0.25);
+    opacity: 1;
+    box-shadow: 0 0 0 1px #ffffff, 0 1px 3px rgba(0,0,0,0.3);
     transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 
@@ -241,7 +241,7 @@
     background: #06b6d4 !important;
     border-color: #ffffff !important;
     transform: translate(-50%, -50%) scale(1.6) !important;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 8px #06b6d4 !important;
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.6), 0 0 10px #06b6d4 !important;
 }
 
 /* ── Document Scanner Animation ───────────────────────── */
