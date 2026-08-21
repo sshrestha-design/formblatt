@@ -266,7 +266,10 @@ export function initLandingController(onLoaded) {
     // Interactive Dropzone with Drag & Drop Visual State Feedback
     const heroDropzone = document.getElementById("heroDropzone");
     if (heroDropzone) {
-        heroDropzone.addEventListener("click", () => document.getElementById("heroPdfUpload")?.click());
+        heroDropzone.addEventListener("click", e => {
+            if (e.target.closest("label") || e.target.closest("input") || e.target.closest("button")) return;
+            document.getElementById("heroPdfUpload")?.click();
+        });
         ["dragenter", "dragover"].forEach(name => {
             heroDropzone.addEventListener(name, e => {
                 e.preventDefault();
