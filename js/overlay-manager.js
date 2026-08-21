@@ -191,7 +191,7 @@ export function renderOverlays(handlers) {
             });
         }
 
-        // Accessibility & Keyboard Navigation (Form Design Patterns Ch. 1 & 3)
+        // Accessibility & Keyboard Navigation
         div.tabIndex = 0;
         div.setAttribute("role", f.type === "checkBox" ? "checkbox" : (f.type === "radioGroup" ? "radio" : (f.type === "dropdown" ? "combobox" : "textbox")));
         div.setAttribute("aria-label", f.name || "Form field");
