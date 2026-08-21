@@ -340,21 +340,25 @@ export function populateProperties(field) {
                 defInput.value = (allSameVal && commonVal) ? commonVal : "";
             }
 
-            // Sync border buttons
+            // Sync border segmented toggle
             const commonBorder = selectedFields[0]?.borderStyle;
             const allSameBorder = selectedFields.every(f => f.borderStyle === commonBorder);
+            const borderToggle = document.getElementById("multiBorderSegmentedToggle");
             const btnSolid = document.getElementById("multiBorderSolidBtn");
             const btnNone = document.getElementById("multiBorderNoneBtn");
-            if (btnSolid && btnNone) {
+            if (borderToggle && btnSolid && btnNone) {
                 if (allSameBorder && commonBorder === "none") {
-                    btnNone.style.background = "#ffffff"; btnNone.style.color = "#1e293b"; btnNone.style.fontWeight = "600"; btnNone.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
-                    btnSolid.style.background = "transparent"; btnSolid.style.color = "#64748b"; btnSolid.style.fontWeight = "500"; btnSolid.style.boxShadow = "none";
+                    borderToggle.dataset.active = "none";
+                    btnNone.classList.add("active");
+                    btnSolid.classList.remove("active");
                 } else if (allSameBorder && commonBorder === "solid") {
-                    btnSolid.style.background = "#ffffff"; btnSolid.style.color = "#1e293b"; btnSolid.style.fontWeight = "600"; btnSolid.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
-                    btnNone.style.background = "transparent"; btnNone.style.color = "#64748b"; btnNone.style.fontWeight = "500"; btnNone.style.boxShadow = "none";
+                    borderToggle.dataset.active = "solid";
+                    btnSolid.classList.add("active");
+                    btnNone.classList.remove("active");
                 } else {
-                    btnSolid.style.background = "transparent"; btnSolid.style.color = "#64748b"; btnSolid.style.fontWeight = "500"; btnSolid.style.boxShadow = "none";
-                    btnNone.style.background = "transparent"; btnNone.style.color = "#64748b"; btnNone.style.fontWeight = "500"; btnNone.style.boxShadow = "none";
+                    borderToggle.dataset.active = "mixed";
+                    btnSolid.classList.remove("active");
+                    btnNone.classList.remove("active");
                 }
             }
 
@@ -570,33 +574,22 @@ function initMultiSelectTools(onUpdated) {
         });
     });
 
-    // ── 1-Click Batch Border Changes ─────────────────────────────────
+    // ── 1-Click Batch Border Changes (Animated Sliding Segmented Toggle) ─
+    const borderToggle = document.getElementById("multiBorderSegmentedToggle");
     const btnSolid = document.getElementById("multiBorderSolidBtn");
     const btnNone = document.getElementById("multiBorderNoneBtn");
+
     btnSolid?.addEventListener("click", () => {
-        btnSolid.style.background = "#ffffff";
-        btnSolid.style.color = "#1e293b";
-        btnSolid.style.fontWeight = "600";
-        btnSolid.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
-        if (btnNone) {
-            btnNone.style.background = "transparent";
-            btnNone.style.color = "#64748b";
-            btnNone.style.fontWeight = "500";
-            btnNone.style.boxShadow = "none";
-        }
+        if (borderToggle) borderToggle.dataset.active = "solid";
+        btnSolid.classList.add("active");
+        if (btnNone) btnNone.classList.remove("active");
         batchUpdate(f => f.borderStyle = "solid", true);
     });
+
     btnNone?.addEventListener("click", () => {
-        btnNone.style.background = "#ffffff";
-        btnNone.style.color = "#1e293b";
-        btnNone.style.fontWeight = "600";
-        btnNone.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)";
-        if (btnSolid) {
-            btnSolid.style.background = "transparent";
-            btnSolid.style.color = "#64748b";
-            btnSolid.style.fontWeight = "500";
-            btnSolid.style.boxShadow = "none";
-        }
+        if (borderToggle) borderToggle.dataset.active = "none";
+        btnNone.classList.add("active");
+        if (btnSolid) btnSolid.classList.remove("active");
         batchUpdate(f => f.borderStyle = "none", true);
     });
 
