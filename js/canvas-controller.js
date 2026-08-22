@@ -1,5 +1,5 @@
 // ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/canvas-controller.js) ─
-import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId } from "./state.js";
+import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected } from "./state.js";
 import { DEFAULT_FIELD_SIZES, SNAP_THRESHOLD } from "./constants.js";
 import { setTransformScale, getPageTextBlocks } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
@@ -147,11 +147,14 @@ function handleFieldDrag(e, container, handlers) {
         const targetY = init.y + dy;
 
         const otherFields = getFieldsForCurrentPage().filter(f => !state.selectedFieldIds.has(f.id));
-        const snaps = checkSnapping(targetX, targetY, primaryField.width, primaryField.height, otherFields);
+        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
+        const pageWidth = container ? container.offsetWidth : null;
+        const pageHeight = container ? container.offsetHeight : null;
+        const snaps = checkSnapping(targetX, targetY, primaryField.width, primaryField.height, otherFields, pageTextBlocks, pageWidth, pageHeight);
 
         snapDx = snaps.snapX;
         snapDy = snaps.snapY;
-        showGuides(snaps.guideX, snaps.guideY, snaps.snapPointX, snaps.snapPointY);
+        showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
     } else {
         hideGuides();
     }
@@ -170,8 +173,8 @@ function handleFieldDrag(e, container, handlers) {
 
 async function createFieldAt(type, x, y, handlers) {
     const def = DEFAULT_FIELD_SIZES[type] || { width: 140, height: 28 };
-    const targetX = Math.max(0, Math.round(x));
-    const targetY = Math.max(0, Math.round(y));
+    const targetX = Math.max(0, Math.round(x - def.width / 2));
+    const targetY = Math.max(0, Math.round(y - def.height / 2));
 
     const smartName = await inferSmartFieldName(type, targetX, targetY, def.width, def.height);
 
@@ -198,6 +201,8 @@ async function createFieldAt(type, x, y, handlers) {
     // Switch tool back to select
     state.activeTool = "select";
     document.body.classList.remove("placing-mode");
+    const stamp = document.getElementById("floatingToolStamp");
+    if (stamp) stamp.style.display = "none";
     if (ghostElement) ghostElement.style.display = "none";
     hideGuides();
 
@@ -216,80 +221,171 @@ async function createFieldAt(type, x, y, handlers) {
     }
 }
 
-function checkSnapping(x, y, width, height, others, resizeDir = null) {
-    let snapX = 0, snapY = 0;
-    let guideX = null, guideY = null;
-    let snapPointX = null, snapPointY = null;
+// Finds the nearest same-row (for axis 'x') or same-column (for axis 'y')
+// neighbors on either side of the dragged field, and reports it as an
+// "equal spacing" match when the two gaps are (almost) equal — this is the
+// signature Photoshop/Figma "distribution" guide: a small gap-size label
+// shown when you're evenly spaced between two neighbors. Visual-only: it
+// does not itself move the field, so it can never destabilize the tested
+// edge/center magnetic-snap math above.
+function findSpacingMatch(mainStart, mainEnd, crossStart, crossEnd, others, axis) {
+    let prev = null, prevGap = Infinity;
+    let next = null, nextGap = Infinity;
 
+    for (const o of others) {
+        const oMainStart = axis === "x" ? o.x : o.y;
+        const oMainEnd = axis === "x" ? o.x + o.width : o.y + o.height;
+        const oCrossStart = axis === "x" ? o.y : o.x;
+        const oCrossEnd = axis === "x" ? o.y + o.height : o.x + o.width;
+
+        const crossOverlap = Math.min(crossEnd, oCrossEnd) - Math.max(crossStart, oCrossStart);
+        if (crossOverlap <= 2) continue; // not in the same row/column
+
+        if (oMainEnd <= mainStart) {
+            const gap = mainStart - oMainEnd;
+            if (gap < prevGap) { prevGap = gap; prev = { start: oMainStart, end: oMainEnd }; }
+        } else if (oMainStart >= mainEnd) {
+            const gap = oMainStart - mainEnd;
+            if (gap < nextGap) { nextGap = gap; next = { start: oMainStart, end: oMainEnd }; }
+        }
+    }
+
+    if (prev && next && Math.abs(prevGap - nextGap) <= 3) {
+        return {
+            gap: Math.round((prevGap + nextGap) / 2),
+            seg1: { from: prev.end, to: mainStart },
+            seg2: { from: mainEnd, to: next.start },
+            crossMid: (crossStart + crossEnd) / 2
+        };
+    }
+    return null;
+}
+
+function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth = null, pageHeight = null) {
     const left = x, right = x + width, centerX = x + width / 2;
     const top = y, bottom = y + height, centerY = y + height / 2;
 
-    let minDiffX = SNAP_THRESHOLD;
-    let minDiffY = SNAP_THRESHOLD;
+    // Collect EVERY candidate alignment within threshold per axis (not just
+    // the single closest one) so that independently-valid alignments don't
+    // silently discard each other — e.g. this field's LEFT matching one
+    // neighbor while its RIGHT simultaneously matches a different neighbor,
+    // both shown at once, the way Figma/Sketch/Photoshop do it.
+    const candidatesX = [];
+    const candidatesY = [];
 
-    // During a resize, only the edge actually being dragged participates in snapping
-    const xMode = !resizeDir ? "both" : (resizeDir.includes("e") ? "right" : resizeDir.includes("w") ? "left" : "none");
-    const yMode = !resizeDir ? "both" : (resizeDir.includes("s") ? "bottom" : resizeDir.includes("n") ? "top" : "none");
+    const pushX = (edge, myPos, otherPos) => {
+        const diff = Math.abs(myPos - otherPos);
+        if (diff < SNAP_THRESHOLD) candidatesX.push({ edge, otherPos, diff });
+    };
+    const pushY = (edge, myPos, otherPos) => {
+        const diff = Math.abs(myPos - otherPos);
+        if (diff < SNAP_THRESHOLD) candidatesY.push({ edge, otherPos, diff });
+    };
 
-    // Clean, intentional field-to-field alignment (edges and centers)
+    // 1. Snap to other form fields (All 4 Corners, Center & Cross-Edges)
     for (const o of others) {
         const oLeft = o.x, oRight = o.x + o.width, oCenterX = o.x + o.width / 2;
         const oTop = o.y, oBottom = o.y + o.height, oCenterY = o.y + o.height / 2;
 
-        // --- Horizontal Alignments ---
-        if (xMode === "both" || xMode === "left") {
-            if (Math.abs(left - oLeft) < minDiffX) {
-                minDiffX = Math.abs(left - oLeft);
-                snapX = oLeft - left;
-                guideX = oLeft;
-                snapPointX = oLeft;
-            }
-        }
-        if (xMode === "both" || xMode === "right") {
-            if (Math.abs(right - oRight) < minDiffX) {
-                minDiffX = Math.abs(right - oRight);
-                snapX = oRight - right;
-                guideX = oRight;
-                snapPointX = oRight;
-            }
-        }
-        if (xMode === "both") {
-            if (Math.abs(centerX - oCenterX) < minDiffX) {
-                minDiffX = Math.abs(centerX - oCenterX);
-                snapX = oCenterX - centerX;
-                guideX = oCenterX;
-                snapPointX = oCenterX;
-            }
-        }
+        pushX("left", left, oLeft);
+        pushX("right", right, oRight);
+        pushX("left", left, oRight);
+        pushX("right", right, oLeft);
+        pushX("center", centerX, oCenterX);
 
-        // --- Vertical Alignments ---
-        if (yMode === "both" || yMode === "top") {
-            if (Math.abs(top - oTop) < minDiffY) {
-                minDiffY = Math.abs(top - oTop);
-                snapY = oTop - top;
-                guideY = oTop;
-                snapPointY = oTop;
+        pushY("top", top, oTop);
+        pushY("bottom", bottom, oBottom);
+        pushY("top", top, oBottom);
+        pushY("bottom", bottom, oTop);
+        pushY("center", centerY, oCenterY);
+    }
+
+    // 2. Snap to the page/canvas center — a standard modern-design-tool
+    // guide (centering a field on the page) that wasn't detected before.
+    if (pageWidth != null) pushX("center", centerX, pageWidth / 2);
+    if (pageHeight != null) pushY("center", centerY, pageHeight / 2);
+
+    // 3. Snap to background document text blocks (column edges & baselines)
+    // — lower priority, same tie-break as before: only consulted if fields
+    // (or the page center) didn't already produce a match on that axis.
+    const hadFieldMatchX = candidatesX.length > 0;
+    const hadFieldMatchY = candidatesY.length > 0;
+    if (!hadFieldMatchX || !hadFieldMatchY) {
+        for (const tb of textBlocks) {
+            const tbLeft = Math.round(tb.x);
+            const tbRight = Math.round(tb.x + tb.width);
+            const tbTop = Math.round(tb.y);
+            const tbBottom = Math.round(tb.y + tb.height);
+
+            if (!hadFieldMatchX) {
+                pushX("left", left, tbLeft);
+                pushX("left", left, tbRight + 6);
+                pushX("right", right, tbRight);
             }
-        }
-        if (yMode === "both" || yMode === "bottom") {
-            if (Math.abs(bottom - oBottom) < minDiffY) {
-                minDiffY = Math.abs(bottom - oBottom);
-                snapY = oBottom - bottom;
-                guideY = oBottom;
-                snapPointY = oBottom;
-            }
-        }
-        if (yMode === "both") {
-            if (Math.abs(centerY - oCenterY) < minDiffY) {
-                minDiffY = Math.abs(centerY - oCenterY);
-                snapY = oCenterY - centerY;
-                guideY = oCenterY;
-                snapPointY = oCenterY;
+            if (!hadFieldMatchY) {
+                pushY("top", top, tbTop);
+                pushY("bottom", bottom, tbBottom);
+                pushY("top", top, tbBottom + 4);
             }
         }
     }
 
-    return { snapX, snapY, guideX, guideY, snapPointX, snapPointY };
+    // Pick the single closest candidate per axis to compute the actual
+    // magnetic-snap offset.
+    let bestX = null, bestY = null;
+    for (const c of candidatesX) if (!bestX || c.diff < bestX.diff) bestX = c;
+    for (const c of candidatesY) if (!bestY || c.diff < bestY.diff) bestY = c;
+
+    let snapX = 0, snapY = 0;
+    if (bestX) {
+        const myPos = bestX.edge === "left" ? left : bestX.edge === "right" ? right : centerX;
+        snapX = bestX.otherPos - myPos;
+    }
+    if (bestY) {
+        const myPos = bestY.edge === "top" ? top : bestY.edge === "bottom" ? bottom : centerY;
+        snapY = bestY.otherPos - myPos;
+    }
+
+    // Re-derive this field's FINAL resting edges after the chosen snap, then
+    // collect every candidate that lines up there — not just the one that
+    // happened to be closest before snapping. This is what lets multiple
+    // simultaneous guides appear together.
+    const finalLeft = left + snapX, finalRight = right + snapX, finalCenterX = centerX + snapX;
+    const finalTop = top + snapY, finalBottom = bottom + snapY, finalCenterY = centerY + snapY;
+
+    const EPS = 0.75;
+    const guidesX = [];
+    const seenX = new Set();
+    for (const c of candidatesX) {
+        const myFinalPos = c.edge === "left" ? finalLeft : c.edge === "right" ? finalRight : finalCenterX;
+        if (Math.abs(myFinalPos - c.otherPos) <= EPS) {
+            const key = Math.round(c.otherPos);
+            if (!seenX.has(key)) { seenX.add(key); guidesX.push(c.otherPos); }
+        }
+    }
+    const guidesY = [];
+    const seenY = new Set();
+    for (const c of candidatesY) {
+        const myFinalPos = c.edge === "top" ? finalTop : c.edge === "bottom" ? finalBottom : finalCenterY;
+        if (Math.abs(myFinalPos - c.otherPos) <= EPS) {
+            const key = Math.round(c.otherPos);
+            if (!seenY.has(key)) { seenY.add(key); guidesY.push(c.otherPos); }
+        }
+    }
+
+    // 4. Equal-spacing / distribution guides (visual hint only).
+    const spacingX = findSpacingMatch(finalLeft, finalRight, finalTop, finalBottom, others, "x");
+    const spacingY = findSpacingMatch(finalTop, finalBottom, finalLeft, finalRight, others, "y");
+
+    return {
+        snapX, snapY,
+        guideX: guidesX.length ? guidesX[0] : null,
+        guideY: guidesY.length ? guidesY[0] : null,
+        guidesX, guidesY,
+        snapPointX: bestX ? bestX.otherPos : null,
+        snapPointY: bestY ? bestY.otherPos : null,
+        spacingX, spacingY
+    };
 }
 
 let snapPointDot = null;
@@ -316,11 +412,13 @@ export function initCanvasController(handlers) {
     // Placement Ghost Real-Time Position & Alignment Updater
     function updatePlacementGhost(e) {
         if (!ghostElement) ghostElement = document.getElementById("fieldPlacementGhost");
+        const stamp = document.getElementById("floatingToolStamp");
 
         const tool = state.activeTool;
         if (!tool || tool === "select" || tool === "hand") {
             document.body.classList.remove("placing-mode");
             if (ghostElement) ghostElement.style.display = "none";
+            if (stamp) stamp.style.display = "none";
             hideGuides();
             return;
         }
@@ -328,7 +426,17 @@ export function initCanvasController(handlers) {
         const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "➕", placeholder: "" };
         const def = DEFAULT_FIELD_SIZES[tool] || { width: 160, height: 28 };
 
+        // 1. Update Global Floating Tool Stamp
         document.body.classList.add("placing-mode");
+        if (stamp) {
+            stamp.style.display = "flex";
+            stamp.style.left = `${e.clientX}px`;
+            stamp.style.top = `${e.clientY}px`;
+            if (stamp.dataset.currentTool !== tool) {
+                stamp.dataset.currentTool = tool;
+                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place</span>`;
+            }
+        }
 
         // 2. Update In-Canvas Placement Silhouette Box
         if (!ghostElement || !container || !state.pdfDoc) return;
@@ -347,20 +455,20 @@ export function initCanvasController(handlers) {
             return;
         }
 
-        let targetX = Math.round(mouseX);
-        let targetY = Math.round(mouseY);
+        let targetX = Math.round(mouseX - def.width / 2);
+        let targetY = Math.round(mouseY - def.height / 2);
 
         // Keep within page boundaries
         targetX = Math.max(0, Math.min(pageWidth - def.width, targetX));
         targetY = Math.max(0, Math.min(pageHeight - def.height, targetY));
 
         // Magnetic Snapping for Ghost Placement
-        const snap = checkSnapping(targetX, targetY, def.width, def.height, getFieldsForCurrentPage());
+        const snap = checkSnapping(targetX, targetY, def.width, def.height, getFieldsForCurrentPage(), [], pageWidth, pageHeight);
         targetX += snap.snapX;
         targetY += snap.snapY;
 
-        if (snap.guideX !== null || snap.guideY !== null) {
-            showGuides(snap.guideX, snap.guideY, snap.snapPointX, snap.snapPointY);
+        if (snap.guidesX.length || snap.guidesY.length) {
+            showGuides(snap.guidesX, snap.guidesY, snap.snapPointX, snap.snapPointY, snap.spacingX, snap.spacingY, pageWidth, pageHeight);
         } else {
             hideGuides();
         }
@@ -394,6 +502,8 @@ export function initCanvasController(handlers) {
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
                 b.classList.toggle("active", b.dataset.tool === "select");
             });
+            const stamp = document.getElementById("floatingToolStamp");
+            if (stamp) stamp.style.display = "none";
             if (ghostElement) ghostElement.style.display = "none";
             hideGuides();
         }
@@ -683,7 +793,11 @@ function handleFieldResize(e, handlers) {
     // Smart magnetic corner & edge snapping during resize (unless holding Alt)
     if (!e.altKey) {
         const otherFields = getFieldsForCurrentPage().filter(f => f.id !== field.id && !state.selectedFieldIds.has(f.id));
-        const snaps = checkSnapping(newX, newY, newW, newH, otherFields, dir);
+        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
+        const container = document.getElementById("canvasContainer");
+        const pageWidth = container ? container.offsetWidth : null;
+        const pageHeight = container ? container.offsetHeight : null;
+        const snaps = checkSnapping(newX, newY, newW, newH, otherFields, pageTextBlocks, pageWidth, pageHeight);
 
         if (dir.includes("e") && snaps.guideX !== null) {
             newW = Math.max(16, Math.round(newW + snaps.snapX));
@@ -699,7 +813,7 @@ function handleFieldResize(e, handlers) {
             newH = Math.max(14, Math.round(base.y + base.height - newY));
         }
 
-        showGuides(snaps.guideX, snaps.guideY, snaps.snapPointX, snaps.snapPointY);
+        showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
     } else {
         hideGuides();
     }
@@ -730,51 +844,112 @@ function duplicateSelectedFields() {
     clones.forEach(id => state.selectedFieldIds.add(id));
 }
 
-function showGuides(x, y, activeX = null, activeY = null) {
+let vGuideEls = [];
+let hGuideEls = [];
+let spacingBadgeEls = [];
+let guideContainer = null;
+
+function getGuideContainer() {
+    if (!guideContainer) guideContainer = (vAlignLine && vAlignLine.parentNode) || document.getElementById("canvasContainer");
+    return guideContainer;
+}
+
+function getPooledEl(pool, index, className) {
+    if (pool[index]) return pool[index];
+    // Reuse the original single #vAlignLine/#hAlignLine for index 0 so any
+    // other code still referencing those IDs keeps working; create extra
+    // elements on demand for additional simultaneous guides.
+    let el;
+    if (index === 0 && className.includes("vertical") && vAlignLine) el = vAlignLine;
+    else if (index === 0 && className.includes("horizontal") && hAlignLine) el = hAlignLine;
+    else {
+        el = document.createElement("div");
+        const parent = getGuideContainer();
+        if (parent) parent.appendChild(el);
+    }
+    el.className = className;
+    pool[index] = el;
+    return el;
+}
+
+// Renders every simultaneous alignment guide at once (not just one per
+// axis) — this is the core "modern design tool" behavior: your left edge
+// can match one object while your right edge matches a different one, both
+// shown together, instead of the closer match silently hiding the other.
+function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, spacingX = null, spacingY = null, pageWidth = null, pageHeight = null) {
     if (!snapPointDot) snapPointDot = document.getElementById("snapPointDot");
     const scale = state.currentScale || 1;
 
-    if (vAlignLine) {
-        if (x !== null) {
-            vAlignLine.style.left = Math.round(x * scale) + "px";
-            vAlignLine.style.display = "block";
-        } else {
-            vAlignLine.style.display = "none";
-        }
+    // Back-compat: callers may still pass a single number instead of an array.
+    const guidesX = Array.isArray(guidesXInput) ? guidesXInput : (guidesXInput !== null && guidesXInput !== undefined ? [guidesXInput] : []);
+    const guidesY = Array.isArray(guidesYInput) ? guidesYInput : (guidesYInput !== null && guidesYInput !== undefined ? [guidesYInput] : []);
+
+    guidesX.forEach((gx, i) => {
+        const isCenter = pageWidth != null && Math.abs(gx - pageWidth / 2) < 0.5;
+        const el = getPooledEl(vGuideEls, i, `align-line vertical${isCenter ? " center-guide" : ""}`);
+        el.style.left = Math.round(gx * scale) + "px";
+        el.style.display = "block";
+    });
+    for (let i = guidesX.length; i < vGuideEls.length; i++) {
+        if (vGuideEls[i]) vGuideEls[i].style.display = "none";
     }
-    if (hAlignLine) {
-        if (y !== null) {
-            hAlignLine.style.top = Math.round(y * scale) + "px";
-            hAlignLine.style.display = "block";
-        } else {
-            hAlignLine.style.display = "none";
-        }
+
+    guidesY.forEach((gy, i) => {
+        const isCenter = pageHeight != null && Math.abs(gy - pageHeight / 2) < 0.5;
+        const el = getPooledEl(hGuideEls, i, `align-line horizontal${isCenter ? " center-guide" : ""}`);
+        el.style.top = Math.round(gy * scale) + "px";
+        el.style.display = "block";
+    });
+    for (let i = guidesY.length; i < hGuideEls.length; i++) {
+        if (hGuideEls[i]) hGuideEls[i].style.display = "none";
     }
 
     if (snapPointDot) {
-        const posX = activeX !== null ? activeX : x;
-        const posY = activeY !== null ? activeY : y;
-        if (posX !== null && posY !== null) {
+        const posX = activeX !== null ? activeX : guidesX[0];
+        const posY = activeY !== null ? activeY : guidesY[0];
+        if (posX !== undefined && posX !== null && posY !== undefined && posY !== null) {
             snapPointDot.style.left = Math.round(posX * scale) + "px";
-            snapPointDot.style.top = Math.round(posY * scale) + "px";
-            snapPointDot.style.display = "block";
-        } else if (posX !== null && y !== null) {
-            snapPointDot.style.left = Math.round(posX * scale) + "px";
-            snapPointDot.style.top = Math.round(y * scale) + "px";
-            snapPointDot.style.display = "block";
-        } else if (x !== null && posY !== null) {
-            snapPointDot.style.left = Math.round(x * scale) + "px";
             snapPointDot.style.top = Math.round(posY * scale) + "px";
             snapPointDot.style.display = "block";
         } else {
             snapPointDot.style.display = "none";
         }
     }
+
+    // Equal-spacing (distribution) badges — Photoshop/Figma-style pixel-gap
+    // labels shown when evenly spaced between two neighbors.
+    const spacings = [spacingX, spacingY].filter(Boolean);
+    spacings.forEach((sp, i) => {
+        const isX = sp === spacingX;
+        let badge = spacingBadgeEls[i];
+        if (!badge) {
+            badge = document.createElement("div");
+            badge.className = "spacing-badge";
+            const parent = getGuideContainer();
+            if (parent) parent.appendChild(badge);
+            spacingBadgeEls[i] = badge;
+        }
+        badge.textContent = sp.gap + "px";
+        if (isX) {
+            const midGapX = (sp.seg1.to + sp.seg2.from) / 2;
+            badge.style.left = Math.round(midGapX * scale) + "px";
+            badge.style.top = Math.round(sp.crossMid * scale) + "px";
+        } else {
+            const midGapY = (sp.seg1.to + sp.seg2.from) / 2;
+            badge.style.left = Math.round(sp.crossMid * scale) + "px";
+            badge.style.top = Math.round(midGapY * scale) + "px";
+        }
+        badge.style.display = "block";
+    });
+    for (let i = spacings.length; i < spacingBadgeEls.length; i++) {
+        if (spacingBadgeEls[i]) spacingBadgeEls[i].style.display = "none";
+    }
 }
 
 function hideGuides() {
-    if (vAlignLine) vAlignLine.style.display = "none";
-    if (hAlignLine) hAlignLine.style.display = "none";
+    vGuideEls.forEach(el => { if (el) el.style.display = "none"; });
+    hGuideEls.forEach(el => { if (el) el.style.display = "none"; });
+    spacingBadgeEls.forEach(el => { if (el) el.style.display = "none"; });
     if (snapPointDot) snapPointDot.style.display = "none";
 }
 

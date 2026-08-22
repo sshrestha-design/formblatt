@@ -188,7 +188,6 @@
     pointer-events: none;
     z-index: 999;
     box-shadow: 0 0 6px rgba(6, 182, 212, 0.9);
-    transition: left 0.12s ease-out, top 0.12s ease-out;
 }
 .align-line.horizontal {
     height: 1.5px;
@@ -199,6 +198,33 @@
     width: 1.5px;
     height: 100%;
     top: 0;
+}
+
+/* Page/canvas-center guide — visually distinct from object-to-object
+   alignment (a common modern-editor convention, e.g. Figma's centerline),
+   so it reads as "centered on the page" rather than "matches a neighbor." */
+.align-line.center-guide {
+    background: #ec4899;
+    box-shadow: 0 0 6px rgba(236, 72, 153, 0.9);
+}
+
+/* Equal-spacing (distribution) badge — the Photoshop/Figma-style pixel-gap
+   label shown when a field is evenly spaced between two neighbors. */
+.spacing-badge {
+    position: absolute;
+    display: none;
+    transform: translate(-50%, -50%);
+    background: #ec4899;
+    color: #ffffff;
+    font-size: 10.5px;
+    font-weight: 700;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+    padding: 2px 6px;
+    border-radius: 5px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 1000;
+    box-shadow: 0 2px 6px rgba(236, 72, 153, 0.4);
 }
 
 .snap-point-dot {
@@ -214,7 +240,6 @@
     z-index: 1001;
     box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 1);
     animation: snapPulse 1.2s ease-in-out infinite;
-    transition: left 0.12s ease-out, top 0.12s ease-out;
 }
 
 @keyframes snapPulse {
