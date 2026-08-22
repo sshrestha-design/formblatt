@@ -1021,27 +1021,28 @@ body.mode-fill .segmented-toolbar {
     pointer-events: none;
 }
 
-body.mode-fill #autoDetectBtn {
+body.mode-fill #autoDetectBtn,
+body.mode-fill #toggleGuidesBtn {
     display: none !important;
 }
 
 /* ── Floating Fill & Test Mode Banner HUD ────────────────────── */
 .fill-mode-banner {
     position: fixed;
-    bottom: 24px;
+    bottom: 48px;
     left: 50%;
     transform: translateX(-50%);
-    background: rgba(15, 23, 42, 0.92);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 40px;
-    padding: 8px 14px 8px 18px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid #e2e8f0;
+    border-radius: 9999px;
+    padding: 6px 10px 6px 16px;
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     z-index: 1000;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25), 0 1px 3px rgba(0,0,0,0.1);
+    box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.06);
     animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -1054,9 +1055,10 @@ body.mode-fill #autoDetectBtn {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #f8fafc;
+    color: #0f172a;
     font-size: 12.5px;
-    font-weight: 600;
+    font-weight: 700;
+    letter-spacing: -0.01em;
 }
 
 .live-pulse-dot {
@@ -1064,13 +1066,13 @@ body.mode-fill #autoDetectBtn {
     height: 8px;
     border-radius: 50%;
     background: #10b981;
-    box-shadow: 0 0 8px #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
     animation: livePulse 1.8s infinite ease-in-out;
 }
 
 @keyframes livePulse {
     0%, 100% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.35); opacity: 0.7; }
+    50% { transform: scale(1.25); opacity: 0.8; }
 }
 
 .fill-mode-actions {
@@ -1080,8 +1082,8 @@ body.mode-fill #autoDetectBtn {
 }
 
 .fill-hud-btn {
-    height: 28px;
-    padding: 0 10px;
+    height: 30px;
+    padding: 0 12px;
     border-radius: 20px;
     font-size: 11.5px;
     font-weight: 600;
@@ -1089,34 +1091,40 @@ body.mode-fill #autoDetectBtn {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.1);
-    color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    color: #475569;
     transition: all 0.15s ease;
 }
 
 .fill-hud-btn:hover {
-    background: rgba(255,255,255,0.2);
+    background: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
     transform: translateY(-1px);
 }
 
 .fill-hud-btn.primary {
-    background: #0284c7;
-    border-color: #38bdf8;
+    background: #2563eb;
+    border-color: #1d4ed8;
     color: #ffffff;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 .fill-hud-btn.primary:hover {
-    background: #0369a1;
+    background: #1d4ed8;
+    border-color: #1e40af;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
 }
 
 .fill-hud-btn.close {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: rgba(239, 68, 68, 0.4);
-    color: #fca5a5;
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #dc2626;
 }
 
 .fill-hud-btn.close:hover {
-    background: #ef4444;
-    color: #ffffff;
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #b91c1c;
 }
