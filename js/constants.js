@@ -20,4 +20,4 @@ export const FIELD_TYPE_LABELS = {
     signature:  "Signature"
 };
 
-export const SNAP_THRESHOLD = 4; // pixels for magnetic alignment (gentle & precise)
+export const SNAP_THRESHOLD = 4; // CONSTANT ON-SCREEN pixel radius for magnetic alignment (gentle & precise) — canvas-controller.js divides this by the current zoom scale so the catch radius feels the same at any zoom level, matching Figma/Sketch/XD convention.
