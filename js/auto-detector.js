@@ -277,8 +277,17 @@ export async function autoDetectFields(scope = "current") {
                 };
             }).filter(tb => tb.str.length > 0);
 
-            const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, widgetFields);
-            newFields.push(...widgetFields, ...geometricFields);
+            // 2. Lattice table detection — find ruling-line grids on the
+            // rendered page and build fields directly from their exact cell
+            // bounds. This runs before the stream/heuristic table detection
+            // inside detectVisualAffordances; anywhere it succeeds, the
+            // region gets registered so the heuristic never re-guesses a
+            // second, competing table over the same area.
+            const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames);
+
+            const seedFields = [...widgetFields, ...latticeResult.fields];
+            const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions);
+            newFields.push(...widgetFields, ...latticeResult.fields, ...geometricFields);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
@@ -320,10 +329,276 @@ export async function autoDetectFields(scope = "current") {
     return totalDetected;
 }
 
+// Shared column-keyword vocabulary, used by both the new lattice
+// (ruling-line) table detector and the existing stream (text-position)
+// heuristic further down.
+const TABLE_COL_DEFS = [
+    { regex: /^item\s*(?:#|no|num)?$/i, id: "item_no", name: "item" },
+    { regex: /^(?:sku|part\s*#|code)$/i, id: "sku", name: "sku" },
+    { regex: /description|particulars|details|goods|services|purpose|attendees/i, id: "description", name: "description" },
+    { regex: /^(?:qty|quantity|units|hours|miles|count)$/i, id: "qty", name: "quantity" },
+    { regex: /unit\s*price|price|rate|unit\s*cost|fee|charge/i, id: "unit_price", name: "price" },
+    { regex: /^taxable$/i, id: "taxable", name: "taxable" },
+    { regex: /^(?:amount|total|line\s*total|ext\s*price)$/i, id: "amount", name: "amount" },
+    { regex: /category|expense\s*type/i, id: "category", name: "category" },
+    { regex: /merchant|vendor|payee|supplier/i, id: "merchant", name: "merchant" },
+    { regex: /receipt/i, id: "receipt", name: "receipt" },
+    { regex: /^date$/i, id: "date", name: "date" },
+    { regex: /school|institution|college/i, id: "school", name: "school" },
+    { regex: /degree|major|diploma/i, id: "degree", name: "degree" },
+    { regex: /graduated|graduation|year/i, id: "year", name: "year" },
+    { regex: /gpa|honors|grade/i, id: "gpa", name: "gpa" },
+    { regex: /employer|company/i, id: "employer", name: "employer" },
+    { regex: /position|job\s*title|role/i, id: "job_title", name: "job_title" },
+    { regex: /medication|drug|medicine/i, id: "medication", name: "medication" },
+    { regex: /dosage|frequency/i, id: "dosage", name: "dosage" },
+    { regex: /physician|doctor/i, id: "physician", name: "physician" }
+];
+
+function matchColumnKeyword(text) {
+    for (const col of TABLE_COL_DEFS) {
+        if (col.regex.test(text)) return col;
+    }
+    return null;
+}
+
+// ============================================================================
+// 3.7 LATTICE TABLE DETECTION (ruling-line based, not text-position guessing)
+// ============================================================================
+// The stream/heuristic approach (Affordance 4 below) infers table structure
+// purely from text positions — cluster words into rows, guess column
+// boundaries, match header keywords. That's inherently approximate: it has
+// to guess row spacing, column widths, and vocabulary, and every bug we've
+// chased in this file (ghost fields, missing rows, cross-column bleed) traces
+// back to one of those guesses being wrong for a particular layout.
+//
+// Most real tables are drawn with actual ruling lines — that's what the grid
+// borders visible on the page ARE. If we detect those lines directly, we get
+// exact row/column boundaries with no guessing at all: cell membership
+// becomes a simple point-in-rect test instead of a proximity heuristic.
+//
+// This detects ruling lines by rendering the page to an offscreen canvas and
+// scanning for long contiguous runs of dark pixels — not by parsing the PDF
+// content stream's drawing operators. Content-stream parsing has to handle
+// save/restore transform stacks, clipping paths, curves, and filled-rect-vs-
+// stroked-path variations; a rendered-pixel scan sidesteps all of that and
+// picks up a ruling line regardless of how the PDF encodes it.
+async function detectTableGridLines(page) {
+    const RENDER_SCALE = 2; // enough resolution for thin ruling lines, cheap to scan
+    const viewport = page.getViewport({ scale: RENDER_SCALE });
+
+    let canvas, ctx;
+    try {
+        canvas = document.createElement("canvas");
+        canvas.width = Math.ceil(viewport.width);
+        canvas.height = Math.ceil(viewport.height);
+        ctx = canvas.getContext("2d", { willReadFrequently: true });
+        await page.render({ canvasContext: ctx, viewport }).promise;
+    } catch (err) {
+        console.error("Table-grid render failed, falling back to text-based table detection:", err);
+        return [];
+    }
+
+    let imageData;
+    try {
+        imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    } catch (err) {
+        console.error("Could not read rendered pixels for table detection:", err);
+        return [];
+    }
+
+    const { data, width, height } = imageData;
+    const DARK_THRESHOLD = 200; // luminance below this counts as "ink"
+    const isDark = (x, y) => {
+        const idx = (y * width + x) * 4;
+        const luminance = 0.299 * data[idx] + 0.587 * data[idx + 1] + 0.114 * data[idx + 2];
+        return luminance < DARK_THRESHOLD;
+    };
+
+    // A real ruling line produces one very long contiguous run of dark
+    // pixels along its row/column. Scattered text produces many short runs
+    // instead, so a length threshold cleanly separates the two.
+    const MIN_LINE_RUN = 120 * RENDER_SCALE;
+
+    const rowBestRun = new Array(height).fill(0);
+    for (let y = 0; y < height; y++) {
+        let run = 0, best = 0;
+        for (let x = 0; x < width; x++) {
+            if (isDark(x, y)) { run++; if (run > best) best = run; }
+            else run = 0;
+        }
+        rowBestRun[y] = best;
+    }
+
+    const colBestRun = new Array(width).fill(0);
+    for (let x = 0; x < width; x++) {
+        let run = 0, best = 0;
+        for (let y = 0; y < height; y++) {
+            if (isDark(x, y)) { run++; if (run > best) best = run; }
+            else run = 0;
+        }
+        colBestRun[x] = best;
+    }
+
+    function mergeAdjacent(candidates, maxGap = 3) {
+        const merged = [];
+        let clusterStart = null, clusterEnd = null;
+        for (const c of candidates) {
+            if (clusterStart === null) {
+                clusterStart = clusterEnd = c;
+            } else if (c - clusterEnd <= maxGap) {
+                clusterEnd = c;
+            } else {
+                merged.push(Math.round((clusterStart + clusterEnd) / 2));
+                clusterStart = clusterEnd = c;
+            }
+        }
+        if (clusterStart !== null) merged.push(Math.round((clusterStart + clusterEnd) / 2));
+        return merged;
+    }
+
+    const hCandidates = [];
+    for (let y = 0; y < height; y++) if (rowBestRun[y] >= MIN_LINE_RUN) hCandidates.push(y);
+    const vCandidates = [];
+    for (let x = 0; x < width; x++) if (colBestRun[x] >= MIN_LINE_RUN) vCandidates.push(x);
+
+    const hLinesPx = mergeAdjacent(hCandidates);
+    const vLinesPx = mergeAdjacent(vCandidates);
+
+    // Need at least 2 rows (3 horizontal boundaries) and 2 columns (3
+    // vertical boundaries) to call this a real table grid rather than a
+    // stray horizontal rule under a title or a single vertical divider.
+    if (hLinesPx.length < 3 || vLinesPx.length < 3) return [];
+
+    // Convert back from render-pixel space to the same viewport-scale-1.0,
+    // top-left-origin coordinate space that rawBlocks and fields already use.
+    const rowsY = hLinesPx.map(y => y / RENDER_SCALE).sort((a, b) => a - b);
+    const colsX = vLinesPx.map(x => x / RENDER_SCALE).sort((a, b) => a - b);
+
+    return [{ rowsY, colsX }];
+}
+
+// Builds fields directly from a detected ruling-line grid: the header row's
+// text (row 0) names each column, and every EMPTY cell in the data rows
+// below it becomes a field sized exactly to that cell — no guessed spacing,
+// no guessed width, because the grid lines already give us the true bounds.
+function buildFieldsFromTableGrid(grid, rawBlocks, pageNum, usedNames) {
+    const { rowsY, colsX } = grid;
+    if (rowsY.length < 3 || colsX.length < 3) return { fields: [], region: null };
+
+    const CELL_PAD = 2;
+    const numCols = colsX.length - 1;
+    const numRows = rowsY.length - 1;
+
+    const textInCell = (x0, y0, x1, y1) => rawBlocks.filter(tb => {
+        const cx = tb.x + tb.width / 2;
+        const cy = tb.y + tb.height / 2;
+        return cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1;
+    });
+
+    // Header row = row 0. Name each column from its header cell's text,
+    // matched against the shared keyword vocabulary, falling back to the
+    // header's own text (sanitized) so untranslated vocabulary still works.
+    const columns = [];
+    for (let c = 0; c < numCols; c++) {
+        const x0 = colsX[c], x1 = colsX[c + 1];
+        const y0 = rowsY[0], y1 = rowsY[1];
+        const headerText = textInCell(x0, y0, x1, y1).sort((a, b) => a.x - b.x).map(tb => tb.str).join(" ").trim();
+        const known = headerText ? matchColumnKeyword(headerText) : null;
+        const cleanName = headerText.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "") || `col_${c + 1}`;
+        columns.push({
+            id: known ? known.id : cleanName,
+            name: known ? known.name : (headerText || `Column ${c + 1}`),
+            x0, x1
+        });
+    }
+
+    const fields = [];
+    for (let r = 1; r < numRows; r++) { // skip header row (r=0)
+        const y0 = rowsY[r], y1 = rowsY[r + 1];
+        for (const col of columns) {
+            const x0 = col.x0, x1 = col.x1;
+            const cellW = x1 - x0, cellH = y1 - y0;
+            if (cellW < 12 || cellH < 10) continue; // too small to be a usable field
+
+            // Don't overwrite a cell that already has real static content
+            // (e.g. a pre-filled label or a $ symbol printed in the cell).
+            const existingText = textInCell(x0, y0, x1, y1);
+            if (existingText.some(tb => tb.str.replace(/[\s.,$]/g, "").length > 0)) continue;
+
+            const isCheckboxCol = /^(?:taxable|receipt)$/i.test(col.id) || /^(?:taxable|receipt)$/i.test(col.name);
+            const sem = resolveSemanticProps(col.name, isCheckboxCol ? "checkBox" : "textField", usedNames);
+
+            const field = isCheckboxCol ? {
+                id: generateFieldId(),
+                type: "checkBox",
+                name: sem.name,
+                x: Math.round(x0 + cellW / 2 - 8),
+                y: Math.round(y0 + cellH / 2 - 8),
+                width: 16,
+                height: 16,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: false,
+                autofill: "",
+                dataFormat: "text",
+                detectedBy: `affordance4b_lattice_col-${col.id}_row-${r}`
+            } : {
+                id: generateFieldId(),
+                type: "textField",
+                name: sem.name,
+                x: Math.round(x0 + CELL_PAD),
+                y: Math.round(y0 + CELL_PAD),
+                width: Math.round(cellW - CELL_PAD * 2),
+                height: Math.round(cellH - CELL_PAD * 2),
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: false,
+                autofill: sem.autofill || "",
+                dataFormat: (col.id === "amount" || col.id === "unit_price") ? "currency" : ((col.id === "qty") ? "number" : "text"),
+                detectedBy: `affordance4b_lattice_col-${col.id}_row-${r}`
+            };
+            fields.push(field);
+        }
+    }
+
+    const region = {
+        xMin: colsX[0] - 5,
+        xMax: colsX[colsX.length - 1] + 5,
+        yMin: rowsY[0] - 5,
+        yMax: rowsY[rowsY.length - 1] + 5
+    };
+
+    return { fields, region };
+}
+
+async function detectLatticeTableFields(page, rawBlocks, pageNum, usedNames) {
+    let grids;
+    try {
+        grids = await detectTableGridLines(page);
+    } catch (err) {
+        console.error("Lattice table detection failed, falling back to text-based table detection:", err);
+        return { fields: [], regions: [] };
+    }
+
+    const allFields = [];
+    const regions = [];
+    for (const grid of grids) {
+        const { fields, region } = buildFieldsFromTableGrid(grid, rawBlocks, pageNum, usedNames);
+        if (fields.length > 0 && region) {
+            allFields.push(...fields);
+            regions.push(region);
+        }
+    }
+    return { fields: allFields, regions };
+}
+
 // ============================================================================
 // 4. DETECTION PIPELINE
 // ============================================================================
-function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = []) {
+function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = [], preRegisteredTableRegions = []) {
     const fields = [...existingFields];
     const seedCount = existingFields.length;
     const pageWidth = viewport.width;
@@ -660,7 +935,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
     // independent second "table" with its own guessed boundaries and its own
     // synthetic row spacing — producing stray fields that don't line up with
     // the real grid, floating inside or just past it.
-    const processedTableRegions = [];
+    const processedTableRegions = [...preRegisteredTableRegions];
     const regionsOverlap = (a, b) => {
         const xOverlap = Math.min(a.xMax, b.xMax) - Math.max(a.xMin, b.xMin);
         const yOverlap = Math.min(a.yMax, b.yMax) - Math.max(a.yMin, b.yMin);
@@ -671,28 +946,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
         const text = line.str.toLowerCase();
         if (line.items.length < 2) continue;
 
-        const tableColDefs = [
-            { regex: /^item\s*(?:#|no|num)?$/i, id: "item_no", name: "item" },
-            { regex: /^(?:sku|part\s*#|code)$/i, id: "sku", name: "sku" },
-            { regex: /description|particulars|details|goods|services|purpose|attendees/i, id: "description", name: "description" },
-            { regex: /^(?:qty|quantity|units|hours|miles|count)$/i, id: "qty", name: "quantity" },
-            { regex: /unit\s*price|price|rate|unit\s*cost|fee|charge/i, id: "unit_price", name: "price" },
-            { regex: /^taxable$/i, id: "taxable", name: "taxable" },
-            { regex: /^(?:amount|total|line\s*total|ext\s*price)$/i, id: "amount", name: "amount" },
-            { regex: /category|expense\s*type/i, id: "category", name: "category" },
-            { regex: /merchant|vendor|payee|supplier/i, id: "merchant", name: "merchant" },
-            { regex: /receipt/i, id: "receipt", name: "receipt" },
-            { regex: /^date$/i, id: "date", name: "date" },
-            { regex: /school|institution|college/i, id: "school", name: "school" },
-            { regex: /degree|major|diploma/i, id: "degree", name: "degree" },
-            { regex: /graduated|graduation|year/i, id: "year", name: "year" },
-            { regex: /gpa|honors|grade/i, id: "gpa", name: "gpa" },
-            { regex: /employer|company/i, id: "employer", name: "employer" },
-            { regex: /position|job\s*title|role/i, id: "job_title", name: "job_title" },
-            { regex: /medication|drug|medicine/i, id: "medication", name: "medication" },
-            { regex: /dosage|frequency/i, id: "dosage", name: "dosage" },
-            { regex: /physician|doctor/i, id: "physician", name: "physician" }
-        ];
+        const tableColDefs = TABLE_COL_DEFS;
 
         const matchedCols = [];
         for (const item of line.items) {
