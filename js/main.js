@@ -100,24 +100,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Toolbar Tool Selection Buttons
     document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
-        btn.addEventListener("click", e => {
+        btn.addEventListener("click", () => {
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             state.activeTool = btn.dataset.tool;
             document.body.classList.toggle("tool-hand", state.activeTool === "hand");
 
-            const stamp = document.getElementById("floatingToolStamp");
             if (state.activeTool !== "select" && state.activeTool !== "hand") {
                 document.body.classList.add("placing-mode");
-                if (stamp) {
-                    stamp.style.display = "flex";
-                    stamp.style.left = `${e.clientX || 200}px`;
-                    stamp.style.top = `${e.clientY || 100}px`;
-                    stamp.innerHTML = `<span>Click canvas to place</span>`;
-                }
             } else {
                 document.body.classList.remove("placing-mode");
-                if (stamp) stamp.style.display = "none";
             }
         });
     });

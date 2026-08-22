@@ -199,8 +199,6 @@ async function createFieldAt(type, x, y, handlers) {
     // Switch tool back to select
     state.activeTool = "select";
     document.body.classList.remove("placing-mode");
-    const stamp = document.getElementById("floatingToolStamp");
-    if (stamp) stamp.style.display = "none";
     if (ghostElement) ghostElement.style.display = "none";
     hideGuides();
 
@@ -375,13 +373,11 @@ export function initCanvasController(handlers) {
     // Placement Ghost Real-Time Position & Alignment Updater
     function updatePlacementGhost(e) {
         if (!ghostElement) ghostElement = document.getElementById("fieldPlacementGhost");
-        const stamp = document.getElementById("floatingToolStamp");
 
         const tool = state.activeTool;
         if (!tool || tool === "select" || tool === "hand") {
             document.body.classList.remove("placing-mode");
             if (ghostElement) ghostElement.style.display = "none";
-            if (stamp) stamp.style.display = "none";
             hideGuides();
             return;
         }
@@ -389,17 +385,7 @@ export function initCanvasController(handlers) {
         const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "➕", placeholder: "" };
         const def = DEFAULT_FIELD_SIZES[tool] || { width: 160, height: 28 };
 
-        // 1. Update Global Floating Tool Stamp
         document.body.classList.add("placing-mode");
-        if (stamp) {
-            stamp.style.display = "flex";
-            stamp.style.left = `${e.clientX}px`;
-            stamp.style.top = `${e.clientY}px`;
-            if (stamp.dataset.currentTool !== tool) {
-                stamp.dataset.currentTool = tool;
-                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place</span>`;
-            }
-        }
 
         // 2. Update In-Canvas Placement Silhouette Box
         if (!ghostElement || !container || !state.pdfDoc) return;
@@ -465,8 +451,6 @@ export function initCanvasController(handlers) {
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
                 b.classList.toggle("active", b.dataset.tool === "select");
             });
-            const stamp = document.getElementById("floatingToolStamp");
-            if (stamp) stamp.style.display = "none";
             if (ghostElement) ghostElement.style.display = "none";
             hideGuides();
         }

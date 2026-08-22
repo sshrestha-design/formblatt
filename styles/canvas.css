@@ -389,38 +389,6 @@
     }
 }
 
-/* ── Global Floating Tool Stamp (Attached to cursor everywhere) ── */
-.floating-tool-stamp {
-    position: fixed;
-    pointer-events: none;
-    z-index: 999999;
-    display: none;
-    align-items: center;
-    gap: 6px;
-    background: #0f172a;
-    color: #ffffff;
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.18);
-    white-space: nowrap;
-    transform: translate(16px, 16px);
-    will-change: left, top;
-    transition: opacity 0.15s ease;
-}
-
-.floating-tool-stamp .stamp-icon {
-    font-size: 13.5px;
-}
-
-.floating-tool-stamp .stamp-hint {
-    color: #38bdf8;
-    font-size: 10.5px;
-    font-weight: 500;
-    margin-left: 2px;
-}
-
 /* ── Interactive Field Placement Ghost Preview ───────────────── */
 .field-placement-ghost {
     position: absolute;
