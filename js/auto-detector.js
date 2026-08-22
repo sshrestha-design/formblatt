@@ -209,7 +209,7 @@ async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
             multiline: isMultiline || sem.multiline || false,
             autofill: sem.autofill || "",
             dataFormat: sem.dataFormat || "text",
-            detectedBy: "acroform_existing"
+            sourcedFrom: "acroform"
         });
     }
 
@@ -482,15 +482,6 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 charOffset += it.str.length + 1;
             }
 
-            // Skip choice group headers (prompts with checkboxes directly below them)
-            const hasCheckboxesBelow = rawBlocks.some(tb => {
-                const isBelow = tb.y > line.y && (tb.y - line.y) <= 22;
-                const isAligned = tb.x >= promptEndX - 60 && tb.x <= promptEndX + 140;
-                const isBox = /^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str);
-                return isBelow && isAligned && isBox;
-            });
-            if (hasCheckboxesBelow) continue;
-
             const targetX = Math.round(promptEndX + 6);
             let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
             let targetH = isSig ? 38 : (isMulti ? 50 : 20);
@@ -505,6 +496,21 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                     }
                 }
             }
+
+            // Skip choice group headers (prompts with checkboxes directly below
+            // them). Bounded to THIS prompt's own column (promptEndX..maxAllowedX)
+            // rather than a fixed absolute pixel window — in a multi-column row
+            // (e.g. "Manager:" | "Claim Period (Start):" | "Claim Period (End):" |
+            // "Direct Deposit? [ ] YES [ ] NO"), a fixed +140px window can reach
+            // into the NEXT column's checkboxes and wrongly skip a prompt that
+            // has nothing to do with them.
+            const hasCheckboxesBelow = rawBlocks.some(tb => {
+                const isBelow = tb.y > line.y && (tb.y - line.y) <= 22;
+                const isAligned = tb.x >= promptEndX - 15 && tb.x < maxAllowedX;
+                const isBox = /^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str);
+                return isBelow && isAligned && isBox;
+            });
+            if (hasCheckboxesBelow) continue;
 
             const availableW = maxAllowedX - targetX - 8;
             if (availableW < 30) {
