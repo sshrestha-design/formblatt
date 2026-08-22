@@ -479,10 +479,10 @@ export function initLandingController(onLoaded) {
     const updatePaypalUrl = (amount) => {
         const amt = parseFloat(amount);
         if (amt && amt > 0) {
-            if (paypalDonateLink) paypalDonateLink.href = `https://paypal.me/sagarshrestha23/${amt}`;
+            if (paypalDonateLink) paypalDonateLink.href = `https://paypal.me/mugaaax/${amt}`;
             if (paypalBtnText) paypalBtnText.textContent = `Donate $${amt} with PayPal`;
         } else {
-            if (paypalDonateLink) paypalDonateLink.href = "https://paypal.me/sagarshrestha23";
+            if (paypalDonateLink) paypalDonateLink.href = "https://paypal.me/mugaaax";
             if (paypalBtnText) paypalBtnText.textContent = "Donate with PayPal";
         }
     };
@@ -508,16 +508,16 @@ export function initLandingController(onLoaded) {
     });
 
     copyPaypalEmailBtn?.addEventListener("click", async () => {
-        const email = "sagar.shrestha23@gmail.com";
+        const handle = "mugaaax";
         try {
-            await navigator.clipboard.writeText(email);
+            await navigator.clipboard.writeText(handle);
             if (copyPaypalEmailText) copyPaypalEmailText.textContent = "Copied!";
-            showToast("PayPal email copied to clipboard!", "success");
+            showToast("PayPal tag @mugaaax copied to clipboard!", "success");
             setTimeout(() => {
-                if (copyPaypalEmailText) copyPaypalEmailText.textContent = "Copy";
+                if (copyPaypalEmailText) copyPaypalEmailText.textContent = "Copy @mugaaax";
             }, 2500);
         } catch (err) {
-            showToast("PayPal email: " + email, "info");
+            showToast("PayPal tag: @mugaaax", "info");
         }
     });
 
