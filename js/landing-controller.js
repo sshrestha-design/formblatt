@@ -6,11 +6,11 @@ import { saveHistory, exportProjectJson } from "./storage-manager.js";
 
 export function showLandingScreen(force = false, skipPush = false) {
     const editor = document.getElementById("appEditorScreen");
-    const isEditorActive = editor && editor.style.display !== "none";
-    const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
+    const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || getComputedStyle(editor).display !== "none");
+    const hasUnsavedWork = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0));
 
-    // If leaving from active editor with fields in progress, warn the user first
-    if (!force && isEditorActive && hasUnsavedWork) {
+    // If leaving from active editor with fields or document in progress, warn the user first
+    if (!force && (isEditorActive || state.pdfDoc) && hasUnsavedWork) {
         const leaveModal = document.getElementById("leaveEditorModal");
         if (leaveModal) {
             leaveModal.style.display = "flex";
@@ -278,33 +278,26 @@ export function initLandingController(onLoaded) {
     // Handle Browser Back / Forward Buttons (popstate)
     window.addEventListener("popstate", e => {
         const editor = document.getElementById("appEditorScreen");
-        const isEditorActive = editor && editor.style.display !== "none";
-        const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
+        const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || getComputedStyle(editor).display !== "none");
+        const hasActiveSession = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0) || isEditorActive);
 
-        if (isEditorActive) {
-            if (hasUnsavedWork) {
-                // Re-push editor state so browser remains on #editor while reviewing leave prompt
-                history.pushState({ screen: "editor" }, "", "#editor");
-                const leaveModal = document.getElementById("leaveEditorModal");
-                if (leaveModal) {
-                    leaveModal.style.display = "flex";
-                    if (typeof lucide !== "undefined") lucide.createIcons();
-                }
-            } else {
-                showLandingScreen(true, true);
+        if (isEditorActive || hasActiveSession) {
+            // Re-push editor state so browser remains in app on #editor while reviewing leave prompt
+            history.pushState({ screen: "editor" }, "", "#editor");
+            const leaveModal = document.getElementById("leaveEditorModal");
+            if (leaveModal) {
+                leaveModal.style.display = "flex";
+                if (typeof lucide !== "undefined") lucide.createIcons();
             }
         } else {
-            // Forward button or hash return
-            if (e.state?.screen === "editor" && state.pdfDoc) {
-                showEditorScreen(null, true);
-            }
+            showLandingScreen(true, true);
         }
     });
 
-    // Guard against accidental tab close or page reload when form fields exist
+    // Guard against accidental tab close or page reload when form fields/doc exist
     window.addEventListener("beforeunload", e => {
         const isEditorActive = document.getElementById("appEditorScreen")?.style.display !== "none";
-        const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
+        const hasUnsavedWork = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0));
         if (isEditorActive && hasUnsavedWork) {
             e.preventDefault();
             e.returnValue = "";

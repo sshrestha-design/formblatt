@@ -930,7 +930,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("toggleSidebarBtn")?.addEventListener("click", toggleLeftSidebar);
 
     // Default to landing screen
-    showLandingScreen();
+    showLandingScreen(true, true);
     if (typeof lucide !== "undefined") lucide.createIcons();
 });
 
