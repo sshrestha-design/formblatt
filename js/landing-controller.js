@@ -59,6 +59,9 @@ export function showLandingScreen(force = false, skipPush = false) {
 
     renderLandingReviews();
     if (typeof lucide !== "undefined") lucide.createIcons();
+    if (landing) {
+        landing.scrollTo({ top: 0, behavior: "smooth" });
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -377,7 +380,22 @@ export function initLandingController(onLoaded) {
     });
 
     // Navigation to home & smooth anchor scrolling
-    document.getElementById("landingLogoBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+    const scrollToTop = () => {
+        const landingScreen = document.getElementById("landingScreen");
+        if (landingScreen) {
+            landingScreen.scrollTo({ top: 0, behavior: "smooth" });
+        }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    };
+
+    document.getElementById("landingLogoBtn")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        scrollToTop();
+    });
+    document.getElementById("footerBrandLogo")?.addEventListener("click", (e) => {
+        e.preventDefault();
+        scrollToTop();
+    });
     document.getElementById("backToHomeBtn")?.addEventListener("click", () => showLandingScreen(false));
     document.getElementById("editorBrandLogo")?.addEventListener("click", () => showLandingScreen(false));
     document.getElementById("menuHomeBtn")?.addEventListener("click", () => showLandingScreen(false));
@@ -453,6 +471,11 @@ export function initLandingController(onLoaded) {
         anchor.addEventListener("click", e => {
             const targetId = anchor.getAttribute("href")?.substring(1);
             if (!targetId) return;
+            if (targetId === "hero" || targetId === "landingScreen") {
+                e.preventDefault();
+                scrollToTop();
+                return;
+            }
             const targetElem = document.getElementById(targetId);
             const landingScreen = document.getElementById("landingScreen");
             if (targetElem) {
