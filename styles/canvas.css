@@ -437,9 +437,9 @@
 }
 
 .field-placement-ghost.snapped {
-    border: 2px solid #10b981;
-    background: rgba(209, 250, 229, 0.85);
-    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), 0 0 0 2px rgba(16, 185, 129, 0.6);
+    border: 2px solid #0369a1;
+    background: rgba(186, 230, 253, 0.85);
+    box-shadow: 0 10px 30px rgba(3, 105, 161, 0.4), 0 0 0 2px rgba(3, 105, 161, 0.55);
 }
 
 .ghost-badge {
@@ -462,7 +462,7 @@
 }
 
 .field-placement-ghost.snapped .ghost-badge {
-    background: #059669;
+    background: #0369a1;
 }
 
 .ghost-center-label {
@@ -478,7 +478,7 @@
 }
 
 .field-placement-ghost.snapped .ghost-center-label {
-    color: #047857;
+    color: #0369a1;
 }
 
 @keyframes ghostPulse {
