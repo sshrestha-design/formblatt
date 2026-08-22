@@ -1,6 +1,36 @@
 // ── pdf-lib AcroForm Compiler & Exporter (js/acroform-builder.js) ─
 import { state } from "./state.js";
 
+// Maps an autofill role to a human-readable label for the PDF's /TU
+// tooltip, which is what Chrome's and Acrobat's native form-fill features
+// key off to suggest saved name/email/address/etc. Two naming schemes are
+// covered on purpose: the short ids used by the manual field-properties UI
+// (first_name, address1, zip...) AND the HTML `autocomplete` tokens that
+// auto-detector.js's GENERIC_PATTERNS actually emits (given-name,
+// address-line1, postal-code...). Previously only the short-id scheme was
+// covered here, so nearly every auto-detected contact field's tooltip
+// silently fell back to the raw token itself (e.g. literally "given-name")
+// instead of a readable label — which defeats native autofill matching
+// rather than helping it.
+const AUTOFILL_ROLE_TITLES = {
+    name: "Full Name", first_name: "First Name", last_name: "Last Name",
+    email: "Email Address", phone: "Phone Number", address1: "Street Address",
+    city: "City", state: "State / Province", zip: "Zip / Postal Code",
+    country: "Country", company: "Company Name", job_title: "Job Title", dob: "Date of Birth",
+    // HTML autocomplete-token aliases (what auto-detector.js actually sets)
+    "given-name": "First Name", "family-name": "Last Name", "tel": "Phone Number",
+    "address-line1": "Street Address", "address-level2": "City", "address-level1": "State / Province",
+    "postal-code": "Zip / Postal Code", "country-name": "Country",
+    "organization": "Company Name", "organization-title": "Job Title"
+};
+
+function resolveAutofillTooltip(f) {
+    const autofillRole = f.autofill || "";
+    if (f.tooltip) return f.tooltip;
+    if (!autofillRole) return "";
+    return AUTOFILL_ROLE_TITLES[autofillRole] || autofillRole;
+}
+
 export async function buildPdf(options = {}) {
     if (!state.originalPdfBytes) throw new Error("No PDF loaded.");
 
@@ -83,17 +113,7 @@ export async function buildPdf(options = {}) {
                 try { if (f.maxLength) tf.setMaxLength(f.maxLength); } catch(e) {}
                 
                 // Enhanced PDF Viewer Autofill Descriptor (/TU)
-                const autofillRole = f.autofill || "";
-                let autoFillTooltip = f.tooltip;
-                if (!autoFillTooltip && autofillRole) {
-                    const roleTitles = {
-                        name: "Full Name", first_name: "First Name", last_name: "Last Name",
-                        email: "Email Address", phone: "Phone Number", address1: "Street Address",
-                        city: "City", state: "State / Province", zip: "Zip / Postal Code",
-                        country: "Country", company: "Company Name", job_title: "Job Title", dob: "Date of Birth"
-                    };
-                    autoFillTooltip = roleTitles[autofillRole] || autofillRole;
-                }
+                const autoFillTooltip = resolveAutofillTooltip(f);
                 try { tf.setToolTip(autoFillTooltip || f.name.replace(/_/g, " ")); } catch(e) {}
 
                 // Select font & font size
@@ -129,7 +149,7 @@ export async function buildPdf(options = {}) {
                 try { cb = form.getCheckBox(nm); } catch { cb = form.createCheckBox(nm); }
                 try { if (f.readOnly) cb.enableReadOnly(); } catch(e) {}
                 try { if (f.required) cb.enableRequired(); } catch(e) {}
-                try { if (f.tooltip) cb.setToolTip(f.tooltip); } catch(e) {}
+                try { const cbTooltip = resolveAutofillTooltip(f); if (cbTooltip) cb.setToolTip(cbTooltip); } catch(e) {}
                 cb.addToPage(page, common);
                 if (f.defaultChecked) {
                     try { cb.check(); } catch(e) {}
@@ -141,7 +161,7 @@ export async function buildPdf(options = {}) {
                 const opts = (f.options && f.options.length) ? f.options : ["Option 1"];
                 try { dd.addOptions(opts); } catch(e) {}
                 try { if (f.required) dd.enableRequired(); } catch(e) {}
-                try { if (f.tooltip) dd.setToolTip(f.tooltip); } catch(e) {}
+                try { const ddTooltip = resolveAutofillTooltip(f); if (ddTooltip) dd.setToolTip(ddTooltip); } catch(e) {}
                 
                 let font = helvetica;
                 if (f.fontFamily === "times") font = times;
