@@ -508,7 +508,7 @@ export function initLandingController(onLoaded) {
     });
 
     copyPaypalEmailBtn?.addEventListener("click", async () => {
-        const email = "sshresthadesigns@gmail.com";
+        const email = "sagar.shrestha23@gmail.com";
         try {
             await navigator.clipboard.writeText(email);
             if (copyPaypalEmailText) copyPaypalEmailText.textContent = "Copied!";
