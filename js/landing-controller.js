@@ -454,9 +454,21 @@ export function initLandingController(onLoaded) {
             const targetId = anchor.getAttribute("href")?.substring(1);
             if (!targetId) return;
             const targetElem = document.getElementById(targetId);
+            const landingScreen = document.getElementById("landingScreen");
             if (targetElem) {
                 e.preventDefault();
-                targetElem.scrollIntoView({ behavior: "smooth", block: "start" });
+                if (landingScreen && landingScreen.scrollHeight > landingScreen.clientHeight) {
+                    const navHeight = 64;
+                    const containerRect = landingScreen.getBoundingClientRect();
+                    const targetRect = targetElem.getBoundingClientRect();
+                    const relativeTop = targetRect.top - containerRect.top + landingScreen.scrollTop - navHeight;
+                    landingScreen.scrollTo({
+                        top: Math.max(0, relativeTop),
+                        behavior: "smooth"
+                    });
+                } else {
+                    targetElem.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
             }
         });
     });
