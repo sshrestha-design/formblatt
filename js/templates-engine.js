@@ -111,35 +111,64 @@ export const STARTER_TEMPLATES = {
     },
     invoice: {
         title: "Standard Commercial Invoice",
-        description: "Clean invoice template with billing addresses, itemized line items, totals, and notes.",
+        description: "Professional commercial billing invoice with seller/buyer details, itemized line items, calculations, and signature authorization.",
         fields: [
-            { id: 1, type: "dateField", name: "invoice_date", x: 410, y: 55, width: 140, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Date" },
-            { id: 2, type: "textField", name: "invoice_number", x: 410, y: 88, width: 140, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Invoice Number" },
-            { id: 3, type: "textField", name: "company_name", x: 45, y: 135, width: 220, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Company Name" },
-            { id: 4, type: "textField", name: "company_email", x: 45, y: 165, width: 220, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Company Email / Address" },
-            { id: 5, type: "textField", name: "client_name", x: 310, y: 135, width: 240, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Client Name" },
-            { id: 6, type: "textField", name: "client_email", x: 310, y: 165, width: 240, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Client Email / Address" },
-            { id: 7, type: "textField", name: "payment_terms", x: 45, y: 225, width: 220, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Payment Terms" },
-            { id: 8, type: "dateField", name: "due_date", x: 310, y: 225, width: 240, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Payment Due Date" },
-            
-            // Itemized Line Items inside Table Box
-            { id: 9, type: "textField", name: "item_desc_1", x: 50, y: 315, width: 295, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Item 1 Description" },
-            { id: 10, type: "textField", name: "item_qty_1", x: 355, y: 315, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Qty" },
-            { id: 11, type: "textField", name: "item_price_1", x: 420, y: 315, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Price" },
-            { id: 12, type: "textField", name: "item_amount_1", x: 485, y: 315, width: 60, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Amount" },
+            // Meta Header
+            { id: 1, type: "textField", name: "invoice_number", x: 420, y: 35, width: 130, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Invoice Number (e.g. INV-2026-001)" },
+            { id: 2, type: "dateField", name: "invoice_date", x: 420, y: 60, width: 130, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Invoice Date" },
+            { id: 3, type: "dateField", name: "due_date", x: 420, y: 85, width: 130, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Payment Due Date" },
+            { id: 4, type: "textField", name: "po_number", x: 420, y: 110, width: 130, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "P.O. / Reference Number" },
 
-            { id: 13, type: "textField", name: "item_desc_2", x: 50, y: 350, width: 295, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Item 2 Description" },
-            { id: 14, type: "textField", name: "item_qty_2", x: 355, y: 350, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Qty" },
-            { id: 15, type: "textField", name: "item_price_2", x: 420, y: 350, width: 55, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Price" },
-            { id: 16, type: "textField", name: "item_amount_2", x: 485, y: 350, width: 60, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Amount" },
+            // Billed By (Seller)
+            { id: 5, type: "textField", name: "seller_company_name", x: 45, y: 160, width: 240, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Seller Business Name" },
+            { id: 6, type: "textField", name: "seller_address", x: 45, y: 188, width: 240, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Seller Address, City, State, ZIP" },
+            { id: 7, type: "textField", name: "seller_tax_id", x: 45, y: 216, width: 240, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Seller Tax ID / EIN / VAT #" },
 
-            // Totals Grid below Table Box
-            { id: 17, type: "textField", name: "subtotal_amount", x: 425, y: 435, width: 125, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Subtotal" },
-            { id: 18, type: "textField", name: "tax_amount", x: 425, y: 468, width: 125, height: 24, borderStyle: "solid", fillStyle: "white", tooltip: "Tax" },
-            { id: 19, type: "textField", name: "balance_due", x: 425, y: 504, width: 125, height: 28, borderStyle: "solid", fillStyle: "yellow", tooltip: "Balance Due" },
-            
-            // Notes Box
-            { id: 20, type: "textField", name: "invoice_notes", x: 45, y: 575, width: 505, height: 75, multiline: true, borderStyle: "solid", fillStyle: "white", tooltip: "Notes & Terms" }
+            // Billed To (Client)
+            { id: 8, type: "textField", name: "client_company_name", x: 300, y: 160, width: 250, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Client Company / Individual Name", autofill: "name" },
+            { id: 9, type: "textField", name: "client_address", x: 300, y: 188, width: 250, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Client Address, City, State, ZIP", autofill: "address1" },
+            { id: 10, type: "textField", name: "client_email_phone", x: 300, y: 216, width: 250, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Client Email & Phone", autofill: "email" },
+
+            // Terms & Currency
+            { id: 11, type: "dropdown", name: "payment_terms", x: 135, y: 246, width: 150, height: 22, options: ["Due on Receipt", "Net 15", "Net 30", "Net 60", "Due End of Month"], borderStyle: "solid", fillStyle: "tint", tooltip: "Payment Terms" },
+            { id: 12, type: "dropdown", name: "currency_code", x: 360, y: 246, width: 190, height: 22, options: ["USD ($)", "EUR (€)", "GBP (£)", "CAD ($)", "AUD ($)", "JPY (¥)"], borderStyle: "solid", fillStyle: "tint", tooltip: "Billing Currency" },
+
+            // Itemized Line Items (4 Rows)
+            { id: 13, type: "textField", name: "item_desc_1", x: 48, y: 312, width: 278, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Item 1 Description" },
+            { id: 14, type: "textField", name: "item_qty_1", x: 333, y: 312, width: 54, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Qty 1" },
+            { id: 15, type: "textField", name: "item_price_1", x: 393, y: 312, width: 69, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Price 1" },
+            { id: 16, type: "textField", name: "item_amount_1", x: 468, y: 312, width: 78, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Amount 1" },
+
+            { id: 17, type: "textField", name: "item_desc_2", x: 48, y: 347, width: 278, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Item 2 Description" },
+            { id: 18, type: "textField", name: "item_qty_2", x: 333, y: 347, width: 54, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Qty 2" },
+            { id: 19, type: "textField", name: "item_price_2", x: 393, y: 347, width: 69, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Price 2" },
+            { id: 20, type: "textField", name: "item_amount_2", x: 468, y: 347, width: 78, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Amount 2" },
+
+            { id: 21, type: "textField", name: "item_desc_3", x: 48, y: 382, width: 278, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Item 3 Description" },
+            { id: 22, type: "textField", name: "item_qty_3", x: 333, y: 382, width: 54, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Qty 3" },
+            { id: 23, type: "textField", name: "item_price_3", x: 393, y: 382, width: 69, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Price 3" },
+            { id: 24, type: "textField", name: "item_amount_3", x: 468, y: 382, width: 78, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Amount 3" },
+
+            { id: 25, type: "textField", name: "item_desc_4", x: 48, y: 417, width: 278, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Item 4 Description" },
+            { id: 26, type: "textField", name: "item_qty_4", x: 333, y: 417, width: 54, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Qty 4" },
+            { id: 27, type: "textField", name: "item_price_4", x: 393, y: 417, width: 69, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Price 4" },
+            { id: 28, type: "textField", name: "item_amount_4", x: 468, y: 417, width: 78, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Amount 4" },
+
+            // Notes & Payment Instructions (Left Bottom)
+            { id: 29, type: "textField", name: "payment_instructions", x: 45, y: 476, width: 270, height: 50, multiline: true, borderStyle: "solid", fillStyle: "white", tooltip: "Bank Wire / Payment Instructions" },
+            { id: 30, type: "textField", name: "invoice_notes", x: 45, y: 544, width: 270, height: 45, multiline: true, borderStyle: "solid", fillStyle: "white", tooltip: "Terms & Customer Notes" },
+
+            // Totals Breakdown (Right Bottom)
+            { id: 31, type: "textField", name: "subtotal_amount", x: 435, y: 460, width: 115, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Subtotal Amount" },
+            { id: 32, type: "textField", name: "discount_amount", x: 435, y: 486, width: 115, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Discount / Credits" },
+            { id: 33, type: "textField", name: "tax_amount", x: 435, y: 512, width: 115, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Sales Tax / VAT" },
+            { id: 34, type: "textField", name: "shipping_handling", x: 435, y: 538, width: 115, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Shipping & Handling" },
+            { id: 35, type: "textField", name: "balance_due", x: 435, y: 566, width: 115, height: 26, borderStyle: "solid", fillStyle: "yellow", tooltip: "TOTAL BALANCE DUE" },
+
+            // Authorization & Signature
+            { id: 36, type: "signature", name: "client_signature", x: 45, y: 632, width: 240, height: 48, borderStyle: "none", fillStyle: "tint", tooltip: "Customer / Authorized Representative Signature" },
+            { id: 37, type: "textField", name: "signer_name_title", x: 300, y: 632, width: 250, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Signer Full Name & Title" },
+            { id: 38, type: "dateField", name: "signed_date", x: 300, y: 668, width: 250, height: 22, borderStyle: "solid", fillStyle: "white", tooltip: "Date Signed" }
         ]
     }
 };
@@ -315,37 +344,65 @@ export async function createTemplatePdf(key) {
         page.drawText("Application Date", { x: 325, y: height - 420, size: 8.5, font: fontBold, color: dark });
 
     } else if (key === "invoice") {
-        page.drawText("INVOICE", { x: 420, y: height - 55, size: 26, font: fontBold, color: dark });
-        page.drawText("DATE:", { x: 350, y: height - 71, size: 9, font: fontBold, color: dark });
-        page.drawText("INVOICE #:", { x: 345, y: height - 104, size: 9, font: fontBold, color: dark });
+        // Main Header
+        page.drawText("COMMERCIAL INVOICE", { x: 45, y: height - 46, size: 17, font: fontBold, color: dark });
+        page.drawText("Original Commercial Billing & Tax Summary Document", { x: 45, y: height - 60, size: 8.5, font: fontRegular, color: gray });
 
-        page.drawText("FROM:", { x: 45, y: height - 125, size: 9, font: fontBold, color: dark });
-        page.drawText("TO:", { x: 310, y: height - 125, size: 9, font: fontBold, color: dark });
+        // Meta Header Labels
+        page.drawText("INVOICE #:", { x: 350, y: height - 48, size: 8, font: fontBold, color: dark });
+        page.drawText("INVOICE DATE:", { x: 350, y: height - 73, size: 8, font: fontBold, color: dark });
+        page.drawText("DUE DATE:", { x: 350, y: height - 98, size: 8, font: fontBold, color: dark });
+        page.drawText("P.O. / REF #:", { x: 350, y: height - 123, size: 8, font: fontBold, color: dark });
 
-        page.drawText("TERMS:", { x: 45, y: height - 215, size: 9, font: fontBold, color: dark });
-        page.drawText("DUE DATE:", { x: 310, y: height - 215, size: 9, font: fontBold, color: dark });
+        page.drawLine({ start: { x: 45, y: height - 138 }, end: { x: 550, y: height - 138 }, thickness: 1.2, color: dark });
 
-        // Itemized Table Box Grid (Top: y = height - 280, Bottom: y = height - 410, Height: 130px)
-        page.drawRectangle({ x: 45, y: height - 410, width: 505, height: 130, borderColor: dark, borderWidth: 1.2 });
-        // Header Row Line (y = height - 305)
-        page.drawLine({ start: { x: 45, y: height - 305 }, end: { x: 550, y: height - 305 }, thickness: 1, color: dark });
+        // Section 1: Bill From & Bill To
+        page.drawText("BILLED BY (SELLER / VENDOR)", { x: 45, y: height - 152, size: 8.5, font: fontBold, color: dark });
+        page.drawText("BILLED TO (CLIENT / BUYER)", { x: 300, y: height - 152, size: 8.5, font: fontBold, color: dark });
+
+        // Section 2: Terms & Currency Bar
+        page.drawText("Payment Terms:", { x: 45, y: height - 258, size: 8.5, font: fontBold, color: dark });
+        page.drawText("Billing Currency:", { x: 275, y: height - 258, size: 8.5, font: fontBold, color: dark });
+
+        // Section 3: Itemized Table Box Grid
+        page.drawRectangle({ x: 45, y: height - 445, width: 505, height: 160, borderColor: dark, borderWidth: 1 });
+        // Header Row line
+        page.drawLine({ start: { x: 45, y: height - 308 }, end: { x: 550, y: height - 308 }, thickness: 1, color: dark });
         // Column Vertical Dividers
-        page.drawLine({ start: { x: 350, y: height - 410 }, end: { x: 350, y: height - 280 }, thickness: 1, color: dark });
-        page.drawLine({ start: { x: 415, y: height - 410 }, end: { x: 415, y: height - 280 }, thickness: 1, color: dark });
-        page.drawLine({ start: { x: 480, y: height - 410 }, end: { x: 480, y: height - 280 }, thickness: 1, color: dark });
+        page.drawLine({ start: { x: 330, y: height - 445 }, end: { x: 330, y: height - 285 }, thickness: 0.75, color: dark });
+        page.drawLine({ start: { x: 390, y: height - 445 }, end: { x: 390, y: height - 285 }, thickness: 0.75, color: dark });
+        page.drawLine({ start: { x: 465, y: height - 445 }, end: { x: 465, y: height - 285 }, thickness: 0.75, color: dark });
 
-        page.drawText("Item Description", { x: 135, y: height - 298, size: 10, font: fontBold, color: dark });
-        page.drawText("Qty", { x: 370, y: height - 298, size: 10, font: fontBold, color: dark });
-        page.drawText("Price", { x: 435, y: height - 298, size: 10, font: fontBold, color: dark });
-        page.drawText("Amount", { x: 495, y: height - 298, size: 10, font: fontBold, color: dark });
+        // Row Separators
+        page.drawLine({ start: { x: 45, y: height - 340 }, end: { x: 550, y: height - 340 }, thickness: 0.5, color: lineGray });
+        page.drawLine({ start: { x: 45, y: height - 375 }, end: { x: 550, y: height - 375 }, thickness: 0.5, color: lineGray });
+        page.drawLine({ start: { x: 45, y: height - 410 }, end: { x: 550, y: height - 410 }, thickness: 0.5, color: lineGray });
 
-        // Totals Grid (Cleanly placed below the Table Box)
-        page.drawText("Subtotal:", { x: 360, y: height - 451, size: 9, font: fontBold, color: dark });
-        page.drawText("Tax:", { x: 385, y: height - 484, size: 9, font: fontBold, color: dark });
-        page.drawText("BALANCE DUE:", { x: 310, y: height - 521, size: 11.5, font: fontBold, color: dark });
+        page.drawText("Item / Service Description", { x: 55, y: height - 300, size: 9, font: fontBold, color: dark });
+        page.drawText("Qty / Hrs", { x: 342, y: height - 300, size: 9, font: fontBold, color: dark });
+        page.drawText("Unit Price", { x: 405, y: height - 300, size: 9, font: fontBold, color: dark });
+        page.drawText("Total Amount", { x: 480, y: height - 300, size: 9, font: fontBold, color: dark });
 
-        // Notes Box (Cleanly placed below the Totals Grid)
-        page.drawText("Notes & Special Considerations", { x: 45, y: height - 565, size: 11, font: fontBold, color: dark });
+        // Section 4: Left Notes & Payment Info
+        page.drawText("PAYMENT INSTRUCTIONS & BANK DETAILS:", { x: 45, y: height - 468, size: 7.5, font: fontBold, color: dark });
+        page.drawText("TERMS & CONDITIONS / NOTES:", { x: 45, y: height - 536, size: 7.5, font: fontBold, color: dark });
+
+        // Section 4: Right Totals Breakdown
+        page.drawText("Subtotal:", { x: 375, y: height - 472, size: 8.5, font: fontBold, color: dark });
+        page.drawText("Discount / Credits:", { x: 335, y: height - 498, size: 8.5, font: fontBold, color: dark });
+        page.drawText("Sales Tax / VAT:", { x: 346, y: height - 524, size: 8.5, font: fontBold, color: dark });
+        page.drawText("Shipping / Freight:", { x: 335, y: height - 550, size: 8.5, font: fontBold, color: dark });
+        page.drawText("BALANCE DUE:", { x: 345, y: height - 580, size: 10, font: fontBold, color: dark });
+
+        // Section 5: Signature Authorization
+        page.drawLine({ start: { x: 45, y: height - 612 }, end: { x: 550, y: height - 612 }, thickness: 0.75, color: lineGray });
+        page.drawText("Client / Authorized Representative Signature", { x: 45, y: height - 624, size: 8, font: fontBold, color: dark });
+        page.drawText("Signer Full Name & Title", { x: 300, y: height - 624, size: 8, font: fontBold, color: dark });
+        page.drawText("Date Signed", { x: 300, y: height - 660, size: 8, font: fontBold, color: dark });
+
+        // Footer Notice
+        page.drawLine({ start: { x: 45, y: 46 }, end: { x: 550, y: 46 }, thickness: 0.75, color: lineGray });
+        page.drawText("THANK YOU FOR YOUR BUSINESS • COMMERCIAL INVOICE GENERATED VIA JUSTFORMS • ZERO CLOUD STORAGE", { x: 45, y: 34, size: 6.8, font: fontBold, color: gray });
     }
 
     return await doc.save();
