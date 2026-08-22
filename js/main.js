@@ -10,6 +10,7 @@ import { initLandingController, showLandingScreen, renderLandingReviews } from "
 import { initSignaturePad } from "./signature-pad.js";
 import { autoDetectFields } from "./auto-detector.js";
 import { saveHistory, undo, redo, exportProjectJson, importProjectJson } from "./storage-manager.js";
+import { showToast } from "./toast.js";
 
 // Initialize Vercel Analytics event queue
 window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -34,7 +35,7 @@ function refreshUI() {
 
 export function switchEditorMode(mode = "design") {
     if (mode === "fill" && !state.pdfDoc) {
-        alert("Please upload a PDF document first before testing form fields.");
+        showToast("Please upload a PDF document first before testing form fields.", "warning");
         return;
     }
     setEditorMode(mode);
@@ -338,7 +339,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const autoDetectBtn = document.getElementById("autoDetectBtn");
     autoDetectBtn?.addEventListener("click", async () => {
         if (!state.pdfDoc) {
-            alert("Please load a PDF document first.");
+            showToast("Please load a PDF document first.", "warning");
             return;
         }
 
@@ -408,7 +409,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch(err) {
             if (scanHud) scanHud.remove();
             console.error("Auto detect failed:", err);
-            alert("Auto-detect failed: " + err.message);
+            showToast("Auto-detect failed: " + err.message, "error");
         } finally {
             autoDetectBtn.disabled = false;
             autoDetectBtn.innerHTML = originalHtml;
@@ -438,7 +439,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function openExportModal() {
         if (!state.originalPdfBytes) {
-            alert("Please upload a PDF document before exporting.");
+            showToast("Please upload a PDF document before exporting.", "warning");
             return;
         }
 
@@ -527,7 +528,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             showExportToast(customName);
         } catch (err) {
             console.error("Export Error:", err);
-            alert("Failed to export PDF: " + err.message);
+            showToast("Failed to export PDF: " + err.message, "error");
         } finally {
             if (confirmExportBtn) confirmExportBtn.disabled = false;
             if (confirmExportBtnText) confirmExportBtnText.textContent = "Download PDF";
@@ -695,7 +696,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const closePreviewBtn = document.getElementById("closePreviewBtn");
 
     previewBtn?.addEventListener("click", async () => {
-        if (!state.originalPdfBytes) { alert("Please upload a PDF first."); return; }
+        if (!state.originalPdfBytes) { showToast("Please upload a PDF first.", "warning"); return; }
         try {
             const bytes = await buildPdf();
             if (state.currentPreviewUrl) URL.revokeObjectURL(state.currentPreviewUrl);
@@ -705,7 +706,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (typeof lucide !== "undefined") lucide.createIcons();
         } catch(e) {
             console.error("Preview failed:", e);
-            alert("Preview failed: " + e.message);
+            showToast("Preview failed: " + e.message, "error");
         }
     });
 
@@ -736,7 +737,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 refreshUI();
             }
         } else {
-            alert("Please select one or more fields to create a group.");
+            showToast("Please select one or more fields to create a group.", "warning");
         }
     });
 

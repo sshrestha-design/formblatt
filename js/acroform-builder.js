@@ -1,5 +1,6 @@
 // ── pdf-lib AcroForm Compiler & Exporter (js/acroform-builder.js) ─
 import { state } from "./state.js";
+import { showToast } from "./toast.js";
 
 // Maps an autofill role to a human-readable label for the PDF's /TU
 // tooltip, which is what Chrome's and Acrobat's native form-fill features
@@ -272,6 +273,6 @@ export async function downloadAcroForm() {
         URL.revokeObjectURL(url);
     } catch(err) {
         console.error("PDF Export error:", err);
-        alert("Failed to export PDF: " + err.message);
+        showToast("Failed to export PDF: " + err.message, "error");
     }
 }
