@@ -180,14 +180,18 @@
     background: #2563eb;
 }
 
-/* ── Magnetic Alignment Guidelines & Snap Points ──────────────── */
+/* ── Magnetic Alignment Guidelines & Snap Points ──────────────────
+   Uses one consistent magenta/pink hue for every smart-guide element —
+   the de facto industry convention (Figma, Sketch, Adobe XD, Illustrator
+   all render alignment guides in this hue family), kept visually distinct
+   from any selection-blue UI elsewhere in the app. */
 .align-line {
     position: absolute;
-    background: #06b6d4;
+    background: #ff2d78;
     display: none;
     pointer-events: none;
     z-index: 999;
-    box-shadow: 0 0 6px rgba(6, 182, 212, 0.9);
+    box-shadow: 0 0 6px rgba(255, 45, 120, 0.85);
 }
 .align-line.horizontal {
     height: 1.5px;
@@ -200,12 +204,17 @@
     top: 0;
 }
 
-/* Page/canvas-center guide — visually distinct from object-to-object
-   alignment (a common modern-editor convention, e.g. Figma's centerline),
-   so it reads as "centered on the page" rather than "matches a neighbor." */
-.align-line.center-guide {
-    background: #ec4899;
-    box-shadow: 0 0 6px rgba(236, 72, 153, 0.9);
+/* Page/canvas-center guide — same signature hue as object-to-object
+   guides (previously an unrelated color), differentiated by a dashed
+   pattern instead — the same way Illustrator/XD distinguish artboard
+   and margin guides from ordinary object-to-object snap guides. */
+.align-line.center-guide.vertical {
+    background: repeating-linear-gradient(to bottom, #ff2d78 0, #ff2d78 5px, transparent 5px, transparent 10px);
+    box-shadow: none;
+}
+.align-line.center-guide.horizontal {
+    background: repeating-linear-gradient(to right, #ff2d78 0, #ff2d78 5px, transparent 5px, transparent 10px);
+    box-shadow: none;
 }
 
 /* Equal-spacing (distribution) badge — the Photoshop/Figma-style pixel-gap
@@ -214,7 +223,7 @@
     position: absolute;
     display: none;
     transform: translate(-50%, -50%);
-    background: #ec4899;
+    background: #ff2d78;
     color: #ffffff;
     font-size: 10.5px;
     font-weight: 700;
@@ -224,27 +233,27 @@
     white-space: nowrap;
     pointer-events: none;
     z-index: 1000;
-    box-shadow: 0 2px 6px rgba(236, 72, 153, 0.4);
+    box-shadow: 0 2px 6px rgba(255, 45, 120, 0.4);
 }
 
 .snap-point-dot {
     position: absolute;
     width: 9px;
     height: 9px;
-    background: #06b6d4;
+    background: #ff2d78;
     border: 2px solid #ffffff;
     border-radius: 50%;
     transform: translate(-50%, -50%);
     display: none;
     pointer-events: none;
     z-index: 1001;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 1);
+    box-shadow: 0 0 0 2px rgba(255, 45, 120, 0.5), 0 0 10px rgba(255, 45, 120, 1);
     animation: snapPulse 1.2s ease-in-out infinite;
 }
 
 @keyframes snapPulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.5), 0 0 10px rgba(6, 182, 212, 1); }
-    50% { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.7), 0 0 14px rgba(6, 182, 212, 1); }
+    0%, 100% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 2px rgba(255, 45, 120, 0.5), 0 0 10px rgba(255, 45, 120, 1); }
+    50% { transform: translate(-50%, -50%) scale(1.3); box-shadow: 0 0 0 4px rgba(255, 45, 120, 0.7), 0 0 14px rgba(255, 45, 120, 1); }
 }
 
 /* ── Edge & Corner Snap Points on Selected Field Overlays ─────── */
@@ -273,10 +282,10 @@
 .edge-snap-point.snap-br { top: 100%; left: 100%; }
 
 .edge-snap-point.active-snap {
-    background: #06b6d4 !important;
+    background: #ff2d78 !important;
     border-color: #ffffff !important;
     transform: translate(-50%, -50%) scale(1.6) !important;
-    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.6), 0 0 10px #06b6d4 !important;
+    box-shadow: 0 0 0 2px rgba(255, 45, 120, 0.6), 0 0 10px #ff2d78 !important;
 }
 
 /* ── Document Scanner Animation ───────────────────────── */
@@ -414,6 +423,38 @@
     }
 }
 
+/* ── Global Floating Tool Stamp (Attached to cursor everywhere) ── */
+.floating-tool-stamp {
+    position: fixed;
+    pointer-events: none;
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    gap: 6px;
+    background: #0f172a;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.18);
+    white-space: nowrap;
+    transform: translate(16px, 16px);
+    will-change: left, top;
+    transition: opacity 0.15s ease;
+}
+
+.floating-tool-stamp .stamp-icon {
+    font-size: 13.5px;
+}
+
+.floating-tool-stamp .stamp-hint {
+    color: #38bdf8;
+    font-size: 10.5px;
+    font-weight: 500;
+    margin-left: 2px;
+}
+
 /* ── Interactive Field Placement Ghost Preview ───────────────── */
 .field-placement-ghost {
     position: absolute;
@@ -432,9 +473,9 @@
 }
 
 .field-placement-ghost.snapped {
-    border: 2px solid #0369a1;
-    background: rgba(186, 230, 253, 0.85);
-    box-shadow: 0 10px 30px rgba(3, 105, 161, 0.4), 0 0 0 2px rgba(3, 105, 161, 0.55);
+    border: 2px solid #10b981;
+    background: rgba(209, 250, 229, 0.85);
+    box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), 0 0 0 2px rgba(16, 185, 129, 0.6);
 }
 
 .ghost-badge {
@@ -457,7 +498,7 @@
 }
 
 .field-placement-ghost.snapped .ghost-badge {
-    background: #0369a1;
+    background: #059669;
 }
 
 .ghost-center-label {
@@ -473,7 +514,7 @@
 }
 
 .field-placement-ghost.snapped .ghost-center-label {
-    color: #0369a1;
+    color: #047857;
 }
 
 @keyframes ghostPulse {
