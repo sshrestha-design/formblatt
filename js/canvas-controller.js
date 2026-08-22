@@ -147,8 +147,7 @@ function handleFieldDrag(e, container, handlers) {
         const targetY = init.y + dy;
 
         const otherFields = getFieldsForCurrentPage().filter(f => !state.selectedFieldIds.has(f.id));
-        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
-        const snaps = checkSnapping(targetX, targetY, primaryField.width, primaryField.height, otherFields, pageTextBlocks);
+        const snaps = checkSnapping(targetX, targetY, primaryField.width, primaryField.height, otherFields);
 
         snapDx = snaps.snapX;
         snapDy = snaps.snapY;
@@ -217,7 +216,7 @@ async function createFieldAt(type, x, y, handlers) {
     }
 }
 
-function checkSnapping(x, y, width, height, others, textBlocks = []) {
+function checkSnapping(x, y, width, height, others, resizeDir = null) {
     let snapX = 0, snapY = 0;
     let guideX = null, guideY = null;
     let snapPointX = null, snapPointY = null;
@@ -228,120 +227,64 @@ function checkSnapping(x, y, width, height, others, textBlocks = []) {
     let minDiffX = SNAP_THRESHOLD;
     let minDiffY = SNAP_THRESHOLD;
 
-    // 1. Snap to other form fields (All 4 Corners, Center & Cross-Edges)
+    // During a resize, only the edge actually being dragged participates in snapping
+    const xMode = !resizeDir ? "both" : (resizeDir.includes("e") ? "right" : resizeDir.includes("w") ? "left" : "none");
+    const yMode = !resizeDir ? "both" : (resizeDir.includes("s") ? "bottom" : resizeDir.includes("n") ? "top" : "none");
+
+    // Clean, intentional field-to-field alignment (edges and centers)
     for (const o of others) {
         const oLeft = o.x, oRight = o.x + o.width, oCenterX = o.x + o.width / 2;
         const oTop = o.y, oBottom = o.y + o.height, oCenterY = o.y + o.height / 2;
 
-        // --- Horizontal / X-Axis Alignments ---
-        if (Math.abs(left - oLeft) < minDiffX) {
-            minDiffX = Math.abs(left - oLeft);
-            snapX = oLeft - left;
-            guideX = oLeft;
-            snapPointX = oLeft;
-        }
-        if (Math.abs(right - oRight) < minDiffX) {
-            minDiffX = Math.abs(right - oRight);
-            snapX = oRight - right;
-            guideX = oRight;
-            snapPointX = oRight;
-        }
-        if (Math.abs(left - oRight) < minDiffX) {
-            minDiffX = Math.abs(left - oRight);
-            snapX = oRight - left;
-            guideX = oRight;
-            snapPointX = oRight;
-        }
-        if (Math.abs(right - oLeft) < minDiffX) {
-            minDiffX = Math.abs(right - oLeft);
-            snapX = oLeft - right;
-            guideX = oLeft;
-            snapPointX = oLeft;
-        }
-        if (Math.abs(centerX - oCenterX) < minDiffX) {
-            minDiffX = Math.abs(centerX - oCenterX);
-            snapX = oCenterX - centerX;
-            guideX = oCenterX;
-            snapPointX = oCenterX;
-        }
-
-        // --- Vertical / Y-Axis Alignments ---
-        if (Math.abs(top - oTop) < minDiffY) {
-            minDiffY = Math.abs(top - oTop);
-            snapY = oTop - top;
-            guideY = oTop;
-            snapPointY = oTop;
-        }
-        if (Math.abs(bottom - oBottom) < minDiffY) {
-            minDiffY = Math.abs(bottom - oBottom);
-            snapY = oBottom - bottom;
-            guideY = oBottom;
-            snapPointY = oBottom;
-        }
-        if (Math.abs(top - oBottom) < minDiffY) {
-            minDiffY = Math.abs(top - oBottom);
-            snapY = oBottom - top;
-            guideY = oBottom;
-            snapPointY = oBottom;
-        }
-        if (Math.abs(bottom - oTop) < minDiffY) {
-            minDiffY = Math.abs(bottom - oTop);
-            snapY = oTop - bottom;
-            guideY = oTop;
-            snapPointY = oTop;
-        }
-        if (Math.abs(centerY - oCenterY) < minDiffY) {
-            minDiffY = Math.abs(centerY - oCenterY);
-            snapY = oCenterY - centerY;
-            guideY = oCenterY;
-            snapPointY = oCenterY;
-        }
-    }
-
-    // 2. Snap to background document text blocks (column edges & baselines)
-    if (guideX === null || guideY === null) {
-        for (const tb of textBlocks) {
-            const tbLeft = Math.round(tb.x);
-            const tbRight = Math.round(tb.x + tb.width);
-            const tbTop = Math.round(tb.y);
-            const tbBottom = Math.round(tb.y + tb.height);
-
-            if (guideX === null) {
-                if (Math.abs(left - tbLeft) < minDiffX) {
-                    minDiffX = Math.abs(left - tbLeft);
-                    snapX = tbLeft - left;
-                    guideX = tbLeft;
-                    snapPointX = tbLeft;
-                } else if (Math.abs(left - (tbRight + 6)) < minDiffX) {
-                    minDiffX = Math.abs(left - (tbRight + 6));
-                    snapX = (tbRight + 6) - left;
-                    guideX = tbRight + 6;
-                    snapPointX = tbRight + 6;
-                } else if (Math.abs(right - tbRight) < minDiffX) {
-                    minDiffX = Math.abs(right - tbRight);
-                    snapX = tbRight - right;
-                    guideX = tbRight;
-                    snapPointX = tbRight;
-                }
+        // --- Horizontal Alignments ---
+        if (xMode === "both" || xMode === "left") {
+            if (Math.abs(left - oLeft) < minDiffX) {
+                minDiffX = Math.abs(left - oLeft);
+                snapX = oLeft - left;
+                guideX = oLeft;
+                snapPointX = oLeft;
             }
+        }
+        if (xMode === "both" || xMode === "right") {
+            if (Math.abs(right - oRight) < minDiffX) {
+                minDiffX = Math.abs(right - oRight);
+                snapX = oRight - right;
+                guideX = oRight;
+                snapPointX = oRight;
+            }
+        }
+        if (xMode === "both") {
+            if (Math.abs(centerX - oCenterX) < minDiffX) {
+                minDiffX = Math.abs(centerX - oCenterX);
+                snapX = oCenterX - centerX;
+                guideX = oCenterX;
+                snapPointX = oCenterX;
+            }
+        }
 
-            if (guideY === null) {
-                if (Math.abs(top - tbTop) < minDiffY) {
-                    minDiffY = Math.abs(top - tbTop);
-                    snapY = tbTop - top;
-                    guideY = tbTop;
-                    snapPointY = tbTop;
-                } else if (Math.abs(bottom - tbBottom) < minDiffY) {
-                    minDiffY = Math.abs(bottom - tbBottom);
-                    snapY = tbBottom - bottom;
-                    guideY = tbBottom;
-                    snapPointY = tbBottom;
-                } else if (Math.abs(top - (tbBottom + 4)) < minDiffY) {
-                    minDiffY = Math.abs(top - (tbBottom + 4));
-                    snapY = (tbBottom + 4) - top;
-                    guideY = tbBottom + 4;
-                    snapPointY = tbBottom + 4;
-                }
+        // --- Vertical Alignments ---
+        if (yMode === "both" || yMode === "top") {
+            if (Math.abs(top - oTop) < minDiffY) {
+                minDiffY = Math.abs(top - oTop);
+                snapY = oTop - top;
+                guideY = oTop;
+                snapPointY = oTop;
+            }
+        }
+        if (yMode === "both" || yMode === "bottom") {
+            if (Math.abs(bottom - oBottom) < minDiffY) {
+                minDiffY = Math.abs(bottom - oBottom);
+                snapY = oBottom - bottom;
+                guideY = oBottom;
+                snapPointY = oBottom;
+            }
+        }
+        if (yMode === "both") {
+            if (Math.abs(centerY - oCenterY) < minDiffY) {
+                minDiffY = Math.abs(centerY - oCenterY);
+                snapY = oCenterY - centerY;
+                guideY = oCenterY;
+                snapPointY = oCenterY;
             }
         }
     }
@@ -412,7 +355,7 @@ export function initCanvasController(handlers) {
         targetY = Math.max(0, Math.min(pageHeight - def.height, targetY));
 
         // Magnetic Snapping for Ghost Placement
-        const snap = checkSnapping(targetX, targetY, def.width, def.height, getFieldsForCurrentPage(), []);
+        const snap = checkSnapping(targetX, targetY, def.width, def.height, getFieldsForCurrentPage());
         targetX += snap.snapX;
         targetY += snap.snapY;
 
@@ -740,8 +683,7 @@ function handleFieldResize(e, handlers) {
     // Smart magnetic corner & edge snapping during resize (unless holding Alt)
     if (!e.altKey) {
         const otherFields = getFieldsForCurrentPage().filter(f => f.id !== field.id && !state.selectedFieldIds.has(f.id));
-        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
-        const snaps = checkSnapping(newX, newY, newW, newH, otherFields, pageTextBlocks);
+        const snaps = checkSnapping(newX, newY, newW, newH, otherFields, dir);
 
         if (dir.includes("e") && snaps.guideX !== null) {
             newW = Math.max(16, Math.round(newW + snaps.snapX));
