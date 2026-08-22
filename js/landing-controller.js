@@ -4,7 +4,7 @@ import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
 import { saveHistory, exportProjectJson } from "./storage-manager.js";
 
-export function showLandingScreen(force = false) {
+export function showLandingScreen(force = false, skipPush = false) {
     const editor = document.getElementById("appEditorScreen");
     const isEditorActive = editor && editor.style.display !== "none";
     const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
@@ -25,6 +25,24 @@ export function showLandingScreen(force = false) {
 
     const leaveModal = document.getElementById("leaveEditorModal");
     if (leaveModal) leaveModal.style.display = "none";
+
+    if (force) {
+        state.fields = [];
+        state.selectedFieldIds.clear();
+        state.pdfDoc = null;
+        state.originalPdfBytes = null;
+        state.history = [];
+        state.historyIndex = -1;
+    }
+
+    // Sync browser history state
+    if (!skipPush) {
+        if (window.location.hash === "#editor" || (history.state && history.state.screen === "editor")) {
+            history.pushState({ screen: "landing" }, "", window.location.pathname);
+        } else {
+            history.replaceState({ screen: "landing" }, "", window.location.pathname);
+        }
+    }
 
     renderLandingReviews();
     if (typeof lucide !== "undefined") lucide.createIcons();
@@ -171,7 +189,7 @@ export function renderLandingReviews() {
     }
 }
 
-export function showEditorScreen(onReady) {
+export function showEditorScreen(onReady, skipPush = false) {
     const landing = document.getElementById("landingScreen");
     const editor = document.getElementById("appEditorScreen");
     if (landing) landing.style.display = "none";
@@ -181,6 +199,12 @@ export function showEditorScreen(onReady) {
             if (onReady) onReady();
         });
     }
+
+    // Manage history state so browser Back button returns to landing or prompts to save
+    if (!skipPush && (!history.state || history.state.screen !== "editor")) {
+        history.pushState({ screen: "editor" }, "", "#editor");
+    }
+
     if (typeof lucide !== "undefined") lucide.createIcons();
 }
 
@@ -246,11 +270,53 @@ export async function loadTemplate(key, onLoaded) {
 }
 
 export function initLandingController(onLoaded) {
+    // Set initial baseline history state
+    if (!history.state) {
+        history.replaceState({ screen: "landing" }, "", window.location.pathname);
+    }
+
+    // Handle Browser Back / Forward Buttons (popstate)
+    window.addEventListener("popstate", e => {
+        const editor = document.getElementById("appEditorScreen");
+        const isEditorActive = editor && editor.style.display !== "none";
+        const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
+
+        if (isEditorActive) {
+            if (hasUnsavedWork) {
+                // Re-push editor state so browser remains on #editor while reviewing leave prompt
+                history.pushState({ screen: "editor" }, "", "#editor");
+                const leaveModal = document.getElementById("leaveEditorModal");
+                if (leaveModal) {
+                    leaveModal.style.display = "flex";
+                    if (typeof lucide !== "undefined") lucide.createIcons();
+                }
+            } else {
+                showLandingScreen(true, true);
+            }
+        } else {
+            // Forward button or hash return
+            if (e.state?.screen === "editor" && state.pdfDoc) {
+                showEditorScreen(null, true);
+            }
+        }
+    });
+
+    // Guard against accidental tab close or page reload when form fields exist
+    window.addEventListener("beforeunload", e => {
+        const isEditorActive = document.getElementById("appEditorScreen")?.style.display !== "none";
+        const hasUnsavedWork = Boolean(state.pdfDoc && state.fields && state.fields.length > 0);
+        if (isEditorActive && hasUnsavedWork) {
+            e.preventDefault();
+            e.returnValue = "";
+        }
+    });
+
     // Navigation to home & smooth anchor scrolling
     document.getElementById("landingLogoBtn")?.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
     document.getElementById("backToHomeBtn")?.addEventListener("click", () => showLandingScreen(false));
     document.getElementById("editorBrandLogo")?.addEventListener("click", () => showLandingScreen(false));
     document.getElementById("menuHomeBtn")?.addEventListener("click", () => showLandingScreen(false));
+    document.getElementById("newProjectMenuBtn")?.addEventListener("click", () => showLandingScreen(false));
 
     // Leave Editor Unsaved Changes Modal Actions
     const leaveModal = document.getElementById("leaveEditorModal");
