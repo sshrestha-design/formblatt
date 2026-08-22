@@ -402,3 +402,42 @@
 .toast-dismiss:hover {
     color: #0f172a;
 }
+
+/* ============================================================
+   Support & Donate (PayPal) Modal
+   ============================================================ */
+.donate-tier-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 8px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    gap: 2px;
+}
+
+.donate-tier-btn:hover {
+    background: #eff6ff;
+    border-color: #3b82f6;
+    transform: translateY(-1px);
+}
+
+.donate-tier-btn.active {
+    background: #eff6ff;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+.donate-tier-btn.active span:first-child {
+    color: #2563eb !important;
+}
+
+.donate-tier-btn.active span:last-child {
+    color: #1d4ed8 !important;
+    font-weight: 600;
+}
