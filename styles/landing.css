@@ -1242,6 +1242,54 @@
 }
 
 /* ── User Reviews Grid ───────────────────────────────────────────── */
+/* ── Example Testimonials (separate from real user reviews) ──────────
+   Deliberately visually distinct from .user-reviews-grid below: a muted
+   heading + slightly toned-down cards, so these read as illustrative
+   ("why people use JustForms") rather than competing with, or being
+   mistaken for, genuine user-submitted reviews. */
+.example-reviews-section {
+    margin-top: 8px;
+    margin-bottom: 44px;
+}
+
+.example-reviews-heading {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.example-reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px;
+}
+
+.example-review-card {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    box-shadow: none;
+}
+
+.example-review-card:hover {
+    transform: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.reviews-empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #64748b;
+    font-size: 14px;
+    background: #f8fafc;
+    border: 1px dashed #e2e8f0;
+    border-radius: 16px;
+}
+
 .user-reviews-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
