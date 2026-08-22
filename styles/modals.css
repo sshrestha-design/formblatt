@@ -23,14 +23,17 @@
     to { opacity: 1; }
 }
 
-.modal[style*="flex"] {
-    display: flex;
+.modal.active,
+.modal[style*="flex"],
+.modal[style*="block"] {
+    display: flex !important;
 }
 
 .modal-content {
     background: #ffffff;
     width: 90%;
-    height: 88%;
+    height: auto;
+    max-height: 88vh;
     border-radius: 14px;
     position: relative;
     display: flex;
@@ -52,14 +55,23 @@
     }
 }
 
-#signatureModal .modal-content {
-    height: auto;
-    max-height: 90vh;
-    width: 92%;
-    max-width: 500px;
-    padding: 20px;
-    border-radius: 14px;
-    overflow-y: auto;
+#signatureModal .modal-content,
+#leaveEditorModal .modal-content,
+#saveProjectModal .modal-content,
+#samplePreviewModal .modal-content,
+#feedbackModal .modal-content,
+#shortcutsModal .modal-content {
+    height: auto !important;
+    max-height: 90vh !important;
+    width: 92% !important;
+    max-width: 500px !important;
+    padding: 24px !important;
+    border-radius: 16px !important;
+    overflow-y: auto !important;
+}
+
+#leaveEditorModal {
+    z-index: 100000 !important;
 }
 
 .close-btn {
