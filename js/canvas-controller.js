@@ -430,8 +430,11 @@ export function initCanvasController(handlers) {
         targetX += snap.snapX;
         targetY += snap.snapY;
 
-        if (snap.guideX !== null) showGuide("v", snap.guideX); else hideGuide("v");
-        if (snap.guideY !== null) showGuide("h", snap.guideY); else hideGuide("h");
+        if (snap.guideX !== null || snap.guideY !== null) {
+            showGuides(snap.guideX, snap.guideY, snap.snapPointX, snap.snapPointY);
+        } else {
+            hideGuides();
+        }
 
         ghostElement.style.display = "flex";
         ghostElement.style.left = `${targetX}px`;
