@@ -855,6 +855,9 @@
                         <button class="dropdown-item" id="feedbackMenuBtn">
                             <i data-lucide="message-square-plus" style="width:14px; height:14px; color:#0284c7;"></i> Feedback & Review
                         </button>
+                        <button class="dropdown-item" id="toggleGuidesMenuBtn">
+                            <i data-lucide="grid" style="width:14px; height:14px; color:#0284c7;"></i> <span id="toggleGuidesMenuText">Smart Guides: ON</span> <span style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘;</span>
+                        </button>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="shortcutsMenuBtn">
                             <i data-lucide="keyboard" style="width:14px; height:14px;"></i> Keyboard Shortcuts
@@ -895,6 +898,9 @@
                     <button id="autoDetectBtn" title="Auto-Detect Form Fields & Signatures" style="height: 28px; font-size: 11.5px; padding: 0 9px; display: flex; align-items: center; gap: 4px; background: #ffffff; color: #6366f1; border: 1px solid #c7d2fe; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">
                         <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
                         <span>Auto-Detect</span>
+                    </button>
+                    <button id="toggleGuidesBtn" class="tool-btn active" title="Toggle Smart Alignment Guides (Ctrl/Cmd+;)" style="margin-left: 2px;">
+                        <i data-lucide="grid" style="width: 15px; height: 15px;"></i>
                     </button>
                 </div>
             </div>
@@ -1552,7 +1558,7 @@
                         <i data-lucide="help-circle" style="width:12px; height:12px;"></i>
                         <span>General & Help</span>
                     </div>
-                    <div class="shortcut-list">
+                        <div class="shortcut-row"><span class="shortcut-desc">Toggle Smart Guides</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">;</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Open Shortcuts Cheat Sheet</span><div class="shortcut-keys"><span class="shortcut-kbd">?</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Deselect / Close Popover</span><div class="shortcut-keys"><span class="shortcut-kbd">Esc</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Confirm In-Place HUD</span><div class="shortcut-keys"><span class="shortcut-kbd">Enter</span></div></div>
@@ -1614,6 +1620,11 @@
                 <span class="ctx-kbd">⌘A</span>
             </button>
             <div class="ctx-divider"></div>
+            <button type="button" class="ctx-item" data-action="toggle-guides">
+                <i data-lucide="grid" style="width:14px; height:14px; color:#0284c7;"></i>
+                <span class="ctx-label" id="ctxGuidesText">Snap Guides: ON</span>
+                <span class="ctx-kbd">⌘;</span>
+            </button>
             <button type="button" class="ctx-item" data-action="shortcuts">
                 <i data-lucide="keyboard" style="width:14px; height:14px;"></i>
                 <span class="ctx-label">Shortcuts & Help</span>

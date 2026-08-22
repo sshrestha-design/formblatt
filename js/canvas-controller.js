@@ -262,6 +262,16 @@ function findSpacingMatch(mainStart, mainEnd, crossStart, crossEnd, others, axis
 }
 
 function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth = null, pageHeight = null) {
+    if (state.guidesEnabled === false) {
+        return {
+            snapX: 0, snapY: 0,
+            guideX: null, guideY: null,
+            guidesX: [], guidesY: [],
+            snapPointX: null, snapPointY: null,
+            spacingX: null, spacingY: null
+        };
+    }
+
     const left = x, right = x + width, centerX = x + width / 2;
     const top = y, bottom = y + height, centerY = y + height / 2;
 
@@ -1088,6 +1098,8 @@ export function initContextMenu(handlers) {
                 }
             } else if (action === "shortcuts") {
                 document.getElementById("shortcutsHelpBtn")?.click();
+            } else if (action === "toggle-guides") {
+                document.getElementById("toggleGuidesBtn")?.click();
             } else if (action === "edit-field") {
                 const selected = getSelectedField();
                 if (selected) {
@@ -1244,6 +1256,11 @@ export function initContextMenu(handlers) {
         } else {
             if (emptyGroup) emptyGroup.style.display = "block";
             if (fieldGroup) fieldGroup.style.display = "none";
+        }
+
+        const ctxGuidesText = document.getElementById("ctxGuidesText");
+        if (ctxGuidesText) {
+            ctxGuidesText.textContent = state.guidesEnabled !== false ? "Snap Guides: ON" : "Snap Guides: OFF";
         }
 
         menuEl.style.display = "block";
