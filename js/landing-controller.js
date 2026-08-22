@@ -34,7 +34,11 @@ export function showLandingScreen(force = false) {
 let currentReviewPageSize = 6;
 let reviewsInitialized = false;
 
-const DEFAULT_VERIFIED_REVIEWS = [
+// These are placeholder/example content for the landing page, not real
+// customer testimonials — there's no verification mechanism anywhere in
+// this app, so they must never be badged "Verified User" alongside genuine
+// submitted reviews (see isExample handling in renderLandingReviews).
+const DEFAULT_EXAMPLE_REVIEWS = [
     {
         id: "def_1",
         date: "2026-08-18T10:00:00.000Z",
@@ -42,7 +46,8 @@ const DEFAULT_VERIFIED_REVIEWS = [
         category: "Legal Counsel",
         sender: "Sarah Jenkins",
         message: "JustForms made converting our corporate NDA into a fillable AcroForm effortless! Zero server uploads gives our legal team complete peace of mind.",
-        isVerified: true
+        isVerified: false,
+        isExample: true
     },
     {
         id: "def_2",
@@ -51,7 +56,8 @@ const DEFAULT_VERIFIED_REVIEWS = [
         category: "Tax Consultant",
         sender: "Marcus Vance",
         message: "The smart field auto-detection feature saved me hours on W-9 tax forms. The exported AcroForms work flawlessly in Adobe Acrobat and Chrome.",
-        isVerified: true
+        isVerified: false,
+        isExample: true
     },
     {
         id: "def_3",
@@ -60,7 +66,8 @@ const DEFAULT_VERIFIED_REVIEWS = [
         category: "Software Engineer",
         sender: "David K.",
         message: "Finally a privacy-first PDF form builder that runs 100% in the browser without requiring any subscriptions or sign-ups. Outstanding tool!",
-        isVerified: true
+        isVerified: false,
+        isExample: true
     }
 ];
 
@@ -89,7 +96,7 @@ export function renderLandingReviews() {
             message: (r.message || "").trim(),
             isVerified: false
         })).filter(r => r.message.length > 0),
-        ...DEFAULT_VERIFIED_REVIEWS
+        ...DEFAULT_EXAMPLE_REVIEWS
     ];
 
     const sortBy = sortSelect ? sortSelect.value : "latest";
@@ -108,12 +115,22 @@ export function renderLandingReviews() {
         countPill.textContent = `Showing ${visibleReviews.length} of ${totalCount} Review${totalCount > 1 ? 's' : ''}`;
     }
 
+    const escapeHtml = str => String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
     grid.innerHTML = visibleReviews.map(r => {
-        const rating = parseInt(r.rating) || 5;
+        // Clamp: a rating outside 1-5 (corrupted localStorage entry, future
+        // widget bug, manual tampering via devtools) would otherwise make
+        // "☆".repeat(5 - rating) receive a negative count and throw,
+        // breaking the entire grid's render, not just this one card.
+        const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
         const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
-        const msg = r.message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const badgeText = r.isVerified ? "Verified User" : "User Submitted";
-        const badgeStyle = r.isVerified ? "background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;" : "background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;";
+        const msg = escapeHtml(r.message);
+        const sender = escapeHtml(r.sender);
+        const category = escapeHtml(r.category);
+        const badgeText = r.isExample ? "Example" : (r.isVerified ? "Verified User" : "User Submitted");
+        const badgeStyle = r.isExample
+            ? "background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0;"
+            : (r.isVerified ? "background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;" : "background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;");
 
         return `
             <div class="review-card" style="${r.isVerified ? '' : 'border: 1.5px solid #bfdbfe; background: #f8fafc;'}">
@@ -123,8 +140,8 @@ export function renderLandingReviews() {
                 </div>
                 <p class="review-text">"${msg}"</p>
                 <div class="review-footer">
-                    <strong class="review-author">${r.sender}</strong>
-                    <span class="review-meta">${r.category} • ${rating}.0 Rating</span>
+                    <strong class="review-author">${sender}</strong>
+                    <span class="review-meta">${category} • ${rating}.0 Rating</span>
                 </div>
             </div>
         `;
