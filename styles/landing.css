@@ -143,6 +143,30 @@
     gap: 10px;
 }
 
+.nav-support-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e11d48;
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    box-shadow: 0 1px 3px rgba(225, 29, 72, 0.06);
+}
+
+.nav-support-btn:hover {
+    background: #ffe4e6;
+    border-color: #fda4af;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(225, 29, 72, 0.12);
+}
+
 .nav-github-btn {
     display: inline-flex;
     align-items: center;
