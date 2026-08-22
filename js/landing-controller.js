@@ -465,69 +465,6 @@ export function initLandingController(onLoaded) {
     bindModal("footerAboutBtn", "aboutModal", ["closeAboutModalBtn", "dismissAboutModalBtn"]);
     bindModal(["landingShortcutsBtn", "footerShortcutsBtn", "shortcutsMenuBtn"], "shortcutsModal", ["closeShortcutsModalBtn"]);
     bindModal(["landingFeedbackBtn", "footerFeedbackBtn", "feedbackMenuBtn"], "feedbackModal", ["closeFeedbackModalBtn"]);
-    bindModal(["navSupportBtn", "footerSupportBtn", "footerBottomDonateBtn", "openSourceDonateBtn", "supportMenuBtn", "aboutDonateBtn"], "donateModal", ["closeDonateModalBtn"]);
-
-    // Support & Donate (PayPal) Modal Controller
-    const donateModal = document.getElementById("donateModal");
-    const tierBtns = document.querySelectorAll(".donate-tier-btn");
-    const customDonateInput = document.getElementById("customDonateInput");
-    const paypalDonateLink = document.getElementById("paypalDonateLink");
-    const paypalBtnText = document.getElementById("paypalBtnText");
-    const copyPaypalEmailBtn = document.getElementById("copyPaypalEmailBtn");
-    const copyPaypalEmailText = document.getElementById("copyPaypalEmailText");
-
-    const updatePaypalUrl = (amount) => {
-        const amt = parseFloat(amount);
-        if (amt && amt > 0) {
-            if (paypalDonateLink) paypalDonateLink.href = `https://paypal.me/mugaaax/${amt}`;
-            if (paypalBtnText) paypalBtnText.textContent = `Donate $${amt} with PayPal`;
-        } else {
-            if (paypalDonateLink) paypalDonateLink.href = "https://paypal.me/mugaaax";
-            if (paypalBtnText) paypalBtnText.textContent = "Donate with PayPal";
-        }
-    };
-
-    tierBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-            tierBtns.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            if (customDonateInput) customDonateInput.value = "";
-            const amt = btn.dataset.amount;
-            updatePaypalUrl(amt);
-        });
-    });
-
-    customDonateInput?.addEventListener("input", (e) => {
-        const val = e.target.value.trim();
-        tierBtns.forEach(b => b.classList.remove("active"));
-        if (val && parseFloat(val) > 0) {
-            updatePaypalUrl(val);
-        } else {
-            updatePaypalUrl(0);
-        }
-    });
-
-    copyPaypalEmailBtn?.addEventListener("click", async () => {
-        const handle = "mugaaax";
-        try {
-            await navigator.clipboard.writeText(handle);
-            if (copyPaypalEmailText) copyPaypalEmailText.textContent = "Copied!";
-            showToast("PayPal tag @mugaaax copied to clipboard!", "success");
-            setTimeout(() => {
-                if (copyPaypalEmailText) copyPaypalEmailText.textContent = "Copy @mugaaax";
-            }, 2500);
-        } catch (err) {
-            showToast("PayPal tag: @mugaaax", "info");
-        }
-    });
-
-    // Auto open donate modal if URL contains #donate, #support or ?donate
-    if (window.location.hash === "#donate" || window.location.hash === "#support" || window.location.search.includes("donate")) {
-        if (donateModal) {
-            donateModal.style.display = "flex";
-            if (typeof lucide !== "undefined") lucide.createIcons();
-        }
-    }
 
     // Smooth Scroll for Landing Anchor Links with Sticky Header Offset
     document.querySelectorAll(".landing-nav-links a[href^='#'], .footer-link-list a[href^='#']").forEach(anchor => {
