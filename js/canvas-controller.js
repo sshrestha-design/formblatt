@@ -171,8 +171,8 @@ function handleFieldDrag(e, container, handlers) {
 
 async function createFieldAt(type, x, y, handlers) {
     const def = DEFAULT_FIELD_SIZES[type] || { width: 140, height: 28 };
-    const targetX = Math.max(0, Math.round(x - def.width / 2));
-    const targetY = Math.max(0, Math.round(y - def.height / 2));
+    const targetX = Math.max(0, Math.round(x));
+    const targetY = Math.max(0, Math.round(y));
 
     const smartName = await inferSmartFieldName(type, targetX, targetY, def.width, def.height);
 
@@ -418,8 +418,8 @@ export function initCanvasController(handlers) {
             return;
         }
 
-        let targetX = Math.round(mouseX - def.width / 2);
-        let targetY = Math.round(mouseY - def.height / 2);
+        let targetX = Math.round(mouseX);
+        let targetY = Math.round(mouseY);
 
         // Keep within page boundaries
         targetX = Math.max(0, Math.min(pageWidth - def.width, targetX));
