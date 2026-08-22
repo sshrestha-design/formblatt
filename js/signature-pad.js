@@ -1,5 +1,6 @@
 // ── Interactive Digital Signature Pad (js/signature-pad.js) ──
 import { state } from "./state.js";
+import { showToast } from "./toast.js";
 
 let signatureModal, signatureCanvas, sigCtx, signatureTypeInput;
 let isDrawingSig = false;
@@ -145,14 +146,14 @@ export function openSignatureModal(field, onAdopt) {
             let dataUrl = null;
             if (sigMode === "draw") {
                 if (!hasDrawnOnCanvas) {
-                    alert("Please draw your signature above the line first.");
+                    showToast("Please draw your signature above the line first.", "warning");
                     return;
                 }
                 dataUrl = signatureCanvas.toDataURL("image/png");
             } else {
                 const text = (signatureTypeInput?.value || "").trim();
                 if (!text) {
-                    alert("Please type your signature first.");
+                    showToast("Please type your signature first.", "warning");
                     return;
                 }
                 // Render text onto an offscreen canvas sized to match the target
