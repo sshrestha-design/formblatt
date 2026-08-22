@@ -30,17 +30,36 @@ export const STARTER_TEMPLATES = {
         ]
     },
     intake: {
-        title: "Client Registration & Service Intake Form",
-        description: "Fast customer onboarding form with autofill-friendly contact inputs.",
+        title: "Patient Intake & HIPAA Consent Form",
+        description: "Confidential healthcare registration form with medical history, insurance details, and HIPAA privacy release.",
         fields: [
-            { id: 1, type: "textField", name: "first_name", x: 45, y: 105, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", autofill: "first_name" },
-            { id: 2, type: "textField", name: "last_name", x: 310, y: 105, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", autofill: "last_name" },
-            { id: 3, type: "textField", name: "email", x: 45, y: 155, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", autofill: "email" },
-            { id: 4, type: "textField", name: "phone", x: 310, y: 155, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", autofill: "phone" },
-            { id: 5, type: "dropdown", name: "service_package", x: 45, y: 205, width: 505, height: 28, options: ["Standard Consulting", "Enterprise Agreement", "Design Sprint", "Custom SLA"], borderStyle: "solid", fillStyle: "tint" },
-            { id: 6, type: "textField", name: "project_notes", x: 45, y: 255, width: 505, height: 60, multiline: true, borderStyle: "solid", fillStyle: "white" },
-            { id: 7, type: "signature", name: "client_signature", x: 45, y: 365, width: 260, height: 55, borderStyle: "none", fillStyle: "tint" },
-            { id: 8, type: "dateField", name: "date_signed", x: 325, y: 378, width: 225, height: 30, borderStyle: "solid", fillStyle: "white" }
+            // Section 1: Demographics
+            { id: 1, type: "textField", name: "patient_full_name", x: 45, y: 110, width: 320, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Patient Full Legal Name", autofill: "name" },
+            { id: 2, type: "dateField", name: "patient_dob", x: 385, y: 110, width: 165, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Date of Birth (MM/DD/YYYY)", autofill: "bday" },
+            { id: 3, type: "textField", name: "patient_phone", x: 45, y: 155, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Primary Phone Number", autofill: "phone" },
+            { id: 4, type: "textField", name: "patient_email", x: 310, y: 155, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Email Address", autofill: "email" },
+            { id: 5, type: "textField", name: "patient_address", x: 45, y: 200, width: 320, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Street Address, City, State, ZIP", autofill: "address1" },
+            { id: 6, type: "dropdown", name: "patient_gender", x: 385, y: 200, width: 165, height: 26, options: ["Female", "Male", "Non-Binary", "Other", "Prefer not to disclose"], borderStyle: "solid", fillStyle: "tint", tooltip: "Gender / Identity" },
+            { id: 7, type: "textField", name: "emergency_contact_name", x: 45, y: 245, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Emergency Contact Name & Relationship" },
+            { id: 8, type: "textField", name: "emergency_contact_phone", x: 310, y: 245, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Emergency Contact Phone Number" },
+
+            // Section 2: Medical History & Insurance
+            { id: 9, type: "textField", name: "primary_care_physician", x: 45, y: 310, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Primary Care Doctor / Clinic Name" },
+            { id: 10, type: "textField", name: "known_allergies", x: 310, y: 310, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Known Allergies (Penicillin, Latex, etc.)" },
+            { id: 11, type: "textField", name: "current_medications", x: 45, y: 355, width: 505, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Current Medications & Dosages" },
+            { id: 12, type: "textField", name: "medical_conditions_notes", x: 45, y: 400, width: 505, height: 38, multiline: true, borderStyle: "solid", fillStyle: "white", tooltip: "Pre-existing Medical Conditions / Chronic Illnesses" },
+            { id: 13, type: "textField", name: "insurance_provider", x: 45, y: 458, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Insurance Provider / Plan Name" },
+            { id: 14, type: "textField", name: "insurance_member_id", x: 310, y: 458, width: 140, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Policy / Member ID #" },
+            { id: 15, type: "textField", name: "insurance_group_num", x: 465, y: 458, width: 85, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Group #" },
+
+            // Section 3: HIPAA & Consent Checkboxes
+            { id: 16, type: "checkBox", name: "hipaa_consent_ack", x: 45, y: 518, width: 16, height: 16, defaultChecked: true, tooltip: "HIPAA Notice Acknowledgement" },
+            { id: 17, type: "checkBox", name: "treatment_consent_ack", x: 45, y: 554, width: 16, height: 16, defaultChecked: true, tooltip: "Medical Treatment Consent" },
+
+            // Section 4: Signature & Date
+            { id: 18, type: "signature", name: "patient_or_guardian_signature", x: 45, y: 622, width: 240, height: 50, borderStyle: "none", fillStyle: "tint", tooltip: "Patient / Guardian Signature" },
+            { id: 19, type: "dropdown", name: "signer_relationship", x: 310, y: 622, width: 240, height: 26, options: ["Self (Patient)", "Parent / Legal Guardian", "Healthcare Power of Attorney", "Authorized Representative"], borderStyle: "solid", fillStyle: "tint", tooltip: "Relationship to Patient" },
+            { id: 20, type: "dateField", name: "date_signed", x: 310, y: 666, width: 240, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Date Signed" }
         ]
     },
     job: {
@@ -183,20 +202,62 @@ export async function createTemplatePdf(key) {
         page.drawText("Recipient Digital Signature:", { x: 310, y: height - 348, size: 8.5, font: fontBold, color: dark });
 
     } else if (key === "intake") {
-        page.drawText("CLIENT INTAKE & REGISTRATION FORM", { x: 45, y: height - 48, size: 16, font: fontBold, color: dark });
-        page.drawText("Please complete all contact details and select your requested consulting service package.", { x: 45, y: height - 66, size: 9, font: fontRegular, color: gray });
-        page.drawLine({ start: { x: 45, y: height - 76 }, end: { x: 550, y: height - 76 }, thickness: 1.5, color: dark });
+        // Main Title Header
+        page.drawText("PATIENT INTAKE & HIPAA CONSENT FORM", { x: 45, y: height - 44, size: 15, font: fontBold, color: dark });
+        page.drawText("Confidential Patient Medical Registration • HIPAA Notice of Privacy Practices & Consent", { x: 45, y: height - 58, size: 8.5, font: fontRegular, color: gray });
+        page.drawLine({ start: { x: 45, y: height - 66 }, end: { x: 550, y: height - 66 }, thickness: 1.5, color: dark });
 
-        page.drawText("First Name", { x: 45, y: height - 95, size: 8.5, font: fontBold, color: dark });
-        page.drawText("Last Name", { x: 310, y: height - 95, size: 8.5, font: fontBold, color: dark });
-        page.drawText("Email Address", { x: 45, y: height - 145, size: 8.5, font: fontBold, color: dark });
-        page.drawText("Phone Number", { x: 310, y: height - 145, size: 8.5, font: fontBold, color: dark });
-        page.drawText("Requested Service Package", { x: 45, y: height - 195, size: 8.5, font: fontBold, color: dark });
-        page.drawText("Project Requirements & Special Notes", { x: 45, y: height - 245, size: 8.5, font: fontBold, color: dark });
+        // Section 1: Demographics
+        page.drawText("1. Patient Demographics & Contact Information", { x: 45, y: height - 84, size: 9.5, font: fontBold, color: dark });
+        page.drawLine({ start: { x: 45, y: height - 88 }, end: { x: 550, y: height - 88 }, thickness: 0.75, color: lineGray });
 
-        page.drawLine({ start: { x: 45, y: height - 335 }, end: { x: 550, y: height - 335 }, thickness: 1, color: lineGray });
-        page.drawText("Client Signature of Authorization", { x: 45, y: height - 355, size: 8.5, font: fontBold, color: dark });
-        page.drawText("Date Signed", { x: 325, y: height - 355, size: 8.5, font: fontBold, color: dark });
+        page.drawText("Patient Full Legal Name (First, Middle, Last)", { x: 45, y: height - 104, size: 8, font: fontBold, color: dark });
+        page.drawText("Date of Birth (MM/DD/YYYY)", { x: 385, y: height - 104, size: 8, font: fontBold, color: dark });
+
+        page.drawText("Primary Phone Number", { x: 45, y: height - 149, size: 8, font: fontBold, color: dark });
+        page.drawText("Email Address", { x: 310, y: height - 149, size: 8, font: fontBold, color: dark });
+
+        page.drawText("Residential Address (Street, City, State, ZIP)", { x: 45, y: height - 194, size: 8, font: fontBold, color: dark });
+        page.drawText("Gender / Identity", { x: 385, y: height - 194, size: 8, font: fontBold, color: dark });
+
+        page.drawText("Emergency Contact Name & Relationship", { x: 45, y: height - 239, size: 8, font: fontBold, color: dark });
+        page.drawText("Emergency Contact Phone", { x: 310, y: height - 239, size: 8, font: fontBold, color: dark });
+
+        // Section 2: Medical History & Insurance
+        page.drawText("2. Medical History & Insurance Coverage", { x: 45, y: height - 284, size: 9.5, font: fontBold, color: dark });
+        page.drawLine({ start: { x: 45, y: height - 288 }, end: { x: 550, y: height - 288 }, thickness: 0.75, color: lineGray });
+
+        page.drawText("Primary Care Physician / Clinic", { x: 45, y: height - 304, size: 8, font: fontBold, color: dark });
+        page.drawText("Known Drug / Environmental Allergies", { x: 310, y: height - 304, size: 8, font: fontBold, color: dark });
+
+        page.drawText("Current Medications & Dosages", { x: 45, y: height - 349, size: 8, font: fontBold, color: dark });
+        page.drawText("Pre-existing Medical Conditions / Chronic Illnesses / Notes", { x: 45, y: height - 394, size: 8, font: fontBold, color: dark });
+
+        page.drawText("Insurance Provider / Plan Name", { x: 45, y: height - 452, size: 8, font: fontBold, color: dark });
+        page.drawText("Policy / Member ID #", { x: 310, y: height - 452, size: 8, font: fontBold, color: dark });
+        page.drawText("Group #", { x: 465, y: height - 452, size: 8, font: fontBold, color: dark });
+
+        // Section 3: HIPAA & Consent
+        page.drawText("3. HIPAA Privacy Authorization & Consent to Treatment", { x: 45, y: height - 498, size: 9.5, font: fontBold, color: dark });
+        page.drawLine({ start: { x: 45, y: height - 502 }, end: { x: 550, y: height - 502 }, thickness: 0.75, color: lineGray });
+
+        page.drawText("HIPAA Notice of Privacy Practices: I acknowledge receipt of the Privacy Notice and authorize", { x: 70, y: height - 522, size: 7.5, font: fontRegular, color: dark });
+        page.drawText("the confidential use and disclosure of my protected health information (PHI) for medical care and billing.", { x: 70, y: height - 533, size: 7.5, font: fontRegular, color: gray });
+
+        page.drawText("Informed Treatment Consent: I voluntarily consent to outpatient examination, diagnostic procedures,", { x: 70, y: height - 558, size: 7.5, font: fontRegular, color: dark });
+        page.drawText("and medical treatment as deemed necessary by attending healthcare clinical professionals.", { x: 70, y: height - 569, size: 7.5, font: fontRegular, color: gray });
+
+        // Section 4: Signature & Authorization
+        page.drawText("4. Authorization & Signatures", { x: 45, y: height - 596, size: 9.5, font: fontBold, color: dark });
+        page.drawLine({ start: { x: 45, y: height - 600 }, end: { x: 550, y: height - 600 }, thickness: 0.75, color: lineGray });
+
+        page.drawText("Patient / Legal Guardian Digital Signature", { x: 45, y: height - 616, size: 8, font: fontBold, color: dark });
+        page.drawText("Signer Relationship to Patient", { x: 310, y: height - 616, size: 8, font: fontBold, color: dark });
+        page.drawText("Date Signed", { x: 310, y: height - 660, size: 8, font: fontBold, color: dark });
+
+        // Footer Notice
+        page.drawLine({ start: { x: 45, y: 46 }, end: { x: 550, y: 46 }, thickness: 0.75, color: lineGray });
+        page.drawText("CONFIDENTIAL HEALTHCARE RECORD • HIPAA COMPLIANT PATIENT ONBOARDING • ZERO CLOUD STORAGE", { x: 45, y: 34, size: 7, font: fontBold, color: gray });
 
     } else if (key === "job") {
         page.drawText("EMPLOYMENT APPLICATION FORM", { x: 45, y: height - 48, size: 16, font: fontBold, color: dark });
