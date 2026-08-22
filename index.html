@@ -134,13 +134,14 @@
         <!-- Navigation Bar -->
         <nav class="landing-nav">
             <div class="landing-nav-container">
-                <div class="landing-brand" id="landingLogoBtn">
+                <a href="#hero" class="landing-brand" id="landingLogoBtn" style="text-decoration: none; cursor: pointer;">
                     <div class="brand-icon">
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color:white;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
                     </div>
                     <span class="brand-name">JustForms</span>
-                </div>
+                </a>
                 <div class="landing-nav-links">
+                    <a href="#hero">Home</a>
                     <a href="#how-it-works">How It Works</a>
                     <a href="#professions">Solutions</a>
                     <a href="#security">Security</a>
@@ -162,7 +163,7 @@
         </nav>
 
         <!-- Hero Section -->
-        <section class="landing-hero">
+        <section class="landing-hero" id="hero">
             <div class="hero-content">
                 <div class="hero-badge">
                     <span class="pulse-dot"></span>
@@ -829,10 +830,10 @@
                 <div class="footer-four-columns">
                     <!-- Column 1: Brand & Overview -->
                     <div class="footer-col">
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                        <a href="#hero" style="display:flex; align-items:center; gap:8px; margin-bottom:4px; text-decoration:none; color:inherit; cursor:pointer;" id="footerBrandLogo">
                             <div style="width:28px; height:28px; border-radius:6px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:14px;">J</div>
                             <span style="font-size:18px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">JustForms</span>
-                        </div>
+                        </a>
                         <p style="margin:0; font-size:13px; color:#94a3b8; line-height:1.6;">
                             Client-side interactive PDF form creator & AcroForm builder. Designed for maximum privacy, zero backend telemetry, and universal ISO 32000 compatibility.
                         </p>
@@ -846,6 +847,7 @@
                     <div class="footer-col">
                         <h4 class="footer-col-title">Product & Engine</h4>
                         <ul class="footer-link-list">
+                            <li><a href="#hero">Home</a></li>
                             <li><a href="#how-it-works">Interactive Form Editor</a></li>
                             <li><a href="#professions">Industry Solutions</a></li>
                             <li><a href="#compatibility">AcroForm Compiler</a></li>
