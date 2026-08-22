@@ -448,16 +448,15 @@ export function initLandingController(onLoaded) {
     bindModal(["landingShortcutsBtn", "footerShortcutsBtn"], "shortcutsModal", ["closeShortcutsModalBtn"]);
     bindModal(["landingFeedbackBtn", "footerFeedbackBtn"], "feedbackModal", ["closeFeedbackModalBtn"]);
 
-    // Smooth Scroll for Landing Anchor Links
-    document.querySelectorAll(".landing-nav-links a[href^='#']").forEach(anchor => {
+    // Smooth Scroll for Landing Anchor Links with Sticky Header Offset
+    document.querySelectorAll(".landing-nav-links a[href^='#'], .footer-link-list a[href^='#']").forEach(anchor => {
         anchor.addEventListener("click", e => {
-            e.preventDefault();
             const targetId = anchor.getAttribute("href")?.substring(1);
-            if (targetId) {
-                const targetElem = document.getElementById(targetId);
-                if (targetElem) {
-                    targetElem.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
+            if (!targetId) return;
+            const targetElem = document.getElementById(targetId);
+            if (targetElem) {
+                e.preventDefault();
+                targetElem.scrollIntoView({ behavior: "smooth", block: "start" });
             }
         });
     });
