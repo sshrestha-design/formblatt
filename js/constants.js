@@ -20,4 +20,4 @@ export const FIELD_TYPE_LABELS = {
     signature:  "Signature"
 };
 
-export const SNAP_THRESHOLD = 5; // pixels for magnetic alignment
+export const SNAP_THRESHOLD = 4; // pixels for magnetic alignment (gentle & precise)
