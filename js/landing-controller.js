@@ -3,6 +3,7 @@ import { state } from "./state.js";
 import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
 import { saveHistory, exportProjectJson } from "./storage-manager.js";
+import { showToast } from "./toast.js";
 
 export function openLeaveEditorModal() {
     const leaveModal = document.getElementById("leaveEditorModal");
@@ -116,69 +117,80 @@ export function renderLandingReviews() {
         savedReviews = JSON.parse(localStorage.getItem("justforms_reviews") || "[]");
     } catch(e) {}
 
-    const allReviews = [
-        ...savedReviews.map((r, idx) => ({
-            id: `user_${idx}`,
-            date: r.date || new Date().toISOString(),
-            rating: parseInt(r.rating) || 5,
-            category: r.category || "General Review",
-            sender: r.sender ? r.sender.split("@")[0] : "Verified User",
-            message: (r.message || "").trim(),
-            isVerified: false
-        })).filter(r => r.message.length > 0),
-        ...DEFAULT_EXAMPLE_REVIEWS
-    ];
+    // Only genuine, user-submitted reviews are sortable/countable/paginated
+    // here. The example testimonials are rendered in their own section
+    // below (see renderExampleReviewsSection) so a fabricated 5-star can
+    // never outrank, or be counted alongside, a real submission.
+    const realReviews = savedReviews.map((r, idx) => ({
+        id: `user_${idx}`,
+        date: r.date || new Date().toISOString(),
+        rating: parseInt(r.rating) || 5,
+        category: r.category || "General Review",
+        sender: r.sender ? r.sender.split("@")[0] : "Verified User",
+        message: (r.message || "").trim(),
+        isVerified: false
+    })).filter(r => r.message.length > 0);
 
     const sortBy = sortSelect ? sortSelect.value : "latest";
     if (sortBy === "oldest") {
-        allReviews.sort((a, b) => new Date(a.date) - new Date(b.date));
+        realReviews.sort((a, b) => new Date(a.date) - new Date(b.date));
     } else if (sortBy === "rating") {
-        allReviews.sort((a, b) => b.rating - a.rating || new Date(b.date) - new Date(a.date));
+        realReviews.sort((a, b) => b.rating - a.rating || new Date(b.date) - new Date(a.date));
     } else {
-        allReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
+        realReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
     }
 
-    const totalCount = allReviews.length;
-    const visibleReviews = allReviews.slice(0, currentReviewPageSize);
+    const totalCount = realReviews.length;
+    const visibleReviews = realReviews.slice(0, currentReviewPageSize);
 
     if (countPill) {
-        countPill.textContent = `Showing ${visibleReviews.length} of ${totalCount} Review${totalCount > 1 ? 's' : ''}`;
+        countPill.textContent = totalCount > 0
+            ? `Showing ${visibleReviews.length} of ${totalCount} Review${totalCount > 1 ? 's' : ''}`
+            : "No user reviews yet — be the first!";
     }
 
     const escapeHtml = str => String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
-    grid.innerHTML = visibleReviews.map(r => {
-        // Clamp: a rating outside 1-5 (corrupted localStorage entry, future
-        // widget bug, manual tampering via devtools) would otherwise make
-        // "☆".repeat(5 - rating) receive a negative count and throw,
-        // breaking the entire grid's render, not just this one card.
-        const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
-        const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
-        const msg = escapeHtml(r.message);
-        const sender = escapeHtml(r.sender);
-        const category = escapeHtml(r.category);
-        const badgeText = r.isExample ? "Example" : (r.isVerified ? "Verified User" : "User Submitted");
-        const badgeStyle = r.isExample
-            ? "background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0;"
-            : (r.isVerified ? "background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;" : "background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;");
-
-        return `
-            <div class="review-card" style="${r.isVerified ? '' : 'border: 1.5px solid #bfdbfe; background: #f8fafc;'}">
-                <div class="review-card-header">
-                    <div class="review-stars">${stars}</div>
-                    <span class="review-badge" style="${badgeStyle}">${badgeText}</span>
-                </div>
-                <p class="review-text">"${msg}"</p>
-                <div class="review-footer">
-                    <strong class="review-author">${sender}</strong>
-                    <span class="review-meta">${category} • ${rating}.0 Rating</span>
-                </div>
+    if (visibleReviews.length === 0) {
+        grid.innerHTML = `
+            <div class="reviews-empty-state">
+                <p>No user-submitted reviews yet. Used JustForms? Be the first to share your experience.</p>
             </div>
         `;
-    }).join("");
+    } else {
+        grid.innerHTML = visibleReviews.map(r => {
+            // Clamp: a rating outside 1-5 (corrupted localStorage entry, future
+            // widget bug, manual tampering via devtools) would otherwise make
+            // "☆".repeat(5 - rating) receive a negative count and throw,
+            // breaking the entire grid's render, not just this one card.
+            const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
+            const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+            const msg = escapeHtml(r.message);
+            const sender = escapeHtml(r.sender);
+            const category = escapeHtml(r.category);
+            const badgeText = r.isVerified ? "Verified User" : "User Submitted";
+            const badgeStyle = r.isVerified
+                ? "background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0;"
+                : "background:#eff6ff; color:#2563eb; border:1px solid #bfdbfe;";
+
+            return `
+                <div class="review-card" style="${r.isVerified ? '' : 'border: 1.5px solid #bfdbfe; background: #f8fafc;'}">
+                    <div class="review-card-header">
+                        <div class="review-stars">${stars}</div>
+                        <span class="review-badge" style="${badgeStyle}">${badgeText}</span>
+                    </div>
+                    <p class="review-text">"${msg}"</p>
+                    <div class="review-footer">
+                        <strong class="review-author">${sender}</strong>
+                        <span class="review-meta">${category} • ${rating}.0 Rating</span>
+                    </div>
+                </div>
+            `;
+        }).join("");
+    }
 
     if (loadMoreBtnContainer && loadMoreBtn && loadMoreText) {
-        if (visibleReviews.length >= totalCount) {
+        if (visibleReviews.length >= totalCount || totalCount === 0) {
             loadMoreBtnContainer.style.display = "none";
         } else {
             loadMoreBtnContainer.style.display = "flex";
@@ -199,6 +211,51 @@ export function renderLandingReviews() {
             renderLandingReviews();
         });
     }
+
+    renderExampleReviewsSection();
+}
+
+// Renders the example testimonials in their own dedicated section, fully
+// separate from the sortable/countable real-reviews grid above — created
+// once and inserted just before it, so examples read as illustrative
+// ("why people use JustForms") rather than as part of the user-generated
+// review count or ranking.
+function renderExampleReviewsSection() {
+    const grid = document.getElementById("userReviewsGrid");
+    if (!grid || !grid.parentNode) return;
+
+    let section = document.getElementById("exampleReviewsSection");
+    if (!section) {
+        section = document.createElement("div");
+        section.id = "exampleReviewsSection";
+        section.className = "example-reviews-section";
+        grid.parentNode.insertBefore(section, grid);
+    }
+
+    const escapeHtml = str => String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+    section.innerHTML = `
+        <h3 class="example-reviews-heading">Why people use JustForms</h3>
+        <div class="example-reviews-grid">
+            ${DEFAULT_EXAMPLE_REVIEWS.map(r => {
+                const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
+                const stars = "★".repeat(rating) + "☆".repeat(5 - rating);
+                return `
+                    <div class="review-card example-review-card">
+                        <div class="review-card-header">
+                            <div class="review-stars">${stars}</div>
+                            <span class="review-badge" style="background:#f1f5f9; color:#64748b; border:1px solid #e2e8f0;">Example</span>
+                        </div>
+                        <p class="review-text">"${escapeHtml(r.message)}"</p>
+                        <div class="review-footer">
+                            <strong class="review-author">${escapeHtml(r.sender)}</strong>
+                            <span class="review-meta">${escapeHtml(r.category)}</span>
+                        </div>
+                    </div>
+                `;
+            }).join("")}
+        </div>
+    `;
 }
 
 export function showEditorScreen(onReady, skipPush = false) {
@@ -253,7 +310,7 @@ export async function loadPdfFile(file, onLoaded) {
         showEditorScreen(onLoaded);
     } catch(err) {
         console.error("Failed to load PDF:", err);
-        alert("Failed to load PDF: " + (err.message || err));
+        showToast("Failed to load PDF: " + (err.message || err), "error");
     }
 }
 
@@ -424,7 +481,7 @@ export function initLandingController(onLoaded) {
             if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
                 await loadPdfFile(file, onLoaded);
             } else if (file) {
-                alert("Supported Formats: PDF documents (.pdf) or JustForms project files (.jform).");
+                showToast("Supported formats: PDF documents (.pdf) or JustForms project files (.jform).", "warning");
             }
         });
     }
@@ -438,9 +495,17 @@ export function initLandingController(onLoaded) {
     window.addEventListener("drop", async e => {
         if (e.target.closest("#layersList") || e.target.closest(".layer-item")) return;
         const file = e.dataTransfer?.files[0];
-        if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
-            e.preventDefault();
+        if (!file) return;
+        const isValid = file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms");
+        // Always preventDefault on any dropped file — otherwise the browser's
+        // default behavior for an unhandled drop is to navigate the whole
+        // tab away to that file, silently destroying the user's session.
+        // Previously this only ran inside the valid-file branch below.
+        e.preventDefault();
+        if (isValid) {
             await loadPdfFile(file, onLoaded);
+        } else {
+            showToast("Supported formats: PDF documents (.pdf) or JustForms project files (.jform).", "warning");
         }
     });
 
@@ -474,9 +539,9 @@ export function initLandingController(onLoaded) {
         } else {
             try {
                 await navigator.clipboard.writeText(window.location.href);
-                alert("✨ Link copied to clipboard! Open on desktop to create fillable forms.");
+                showToast("Link copied to clipboard! Open on desktop to create fillable forms.", "success");
             } catch (e) {
-                alert("Share Link: " + window.location.href);
+                showToast("Copy this page's link from your browser's address bar to share it.", "info", 6000);
             }
         }
     };
@@ -520,6 +585,19 @@ export function initLandingController(onLoaded) {
             const key = card?.dataset.template;
             if (!key) return;
 
+            // Skip the "confirm to load" modal entirely when there's nothing
+            // to lose — mirrors the hasUnsavedWork check showLandingScreen()
+            // already uses above for the same reason (only warn when a real
+            // choice, current PDF or fields, is actually at stake).
+            const hasUnsavedWork = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0));
+            if (!hasUnsavedWork) {
+                loadTemplate(key, () => {
+                    if (onLoaded) onLoaded();
+                    import("./onboarding-tour.js").then(tour => tour.startOnboardingTour());
+                });
+                return;
+            }
+
             const tpl = STARTER_TEMPLATES[key];
             pendingTemplateKey = key;
 
@@ -541,5 +619,3 @@ export function initLandingController(onLoaded) {
         });
     });
 }
-
-
