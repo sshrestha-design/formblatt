@@ -23,9 +23,13 @@
     to { opacity: 1; }
 }
 
+.modal[style*="display: none"] {
+    display: none !important;
+}
+
 .modal.active,
-.modal[style*="flex"],
-.modal[style*="block"] {
+.modal[style*="display: flex"],
+.modal[style*="display: block"] {
     display: flex !important;
 }
 
