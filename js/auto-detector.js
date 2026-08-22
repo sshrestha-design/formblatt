@@ -379,35 +379,63 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                     optLabel = "option";
                 }
 
-                if (!isUniversalStaticText(optLabel)) {
-                    const isRadio = markerType === "radioGroup";
-                    const effectiveLabel = linePrompt ? (isRadio ? linePrompt : `${linePrompt} ${optLabel}`) : optLabel;
-                    const sem = resolveSemanticProps(effectiveLabel, isRadio ? "radioGroup" : "checkBox", isRadio ? new Set() : usedNames);
+                pushCheckboxOrRadioField(markerType, optLabel, markerX, markerY, "affordance1_checkbox_radio");
+            } else if (str.length > 3) {
+                // Slow path: the marker wasn't its own isolated text item — it's
+                // embedded inside a longer run (e.g. pdf.js/the source PDF emitted
+                // "[ ] Hardware Malfunction / Physical Repair" as ONE text item).
+                // The exact-match checks above never see this, so without this
+                // fallback the entire line silently gets no field at all. Scan the
+                // raw item string for marker patterns and estimate their on-page
+                // position proportionally within the item's bounding box.
+                const embeddedMatches = [...item.str.matchAll(/(\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/g)];
+                for (const m of embeddedMatches) {
+                    const markerStr = m[0];
+                    const markerType = /^\(|[○●]/.test(markerStr) ? "radioGroup" : "checkBox";
+                    const charFrac = item.str.length > 0 ? (m.index / item.str.length) : 0;
+                    const markerX = Math.round(item.x + charFrac * item.width);
+                    const markerY = item.y;
 
-                    const newField = {
-                        id: generateFieldId(),
-                        type: isRadio ? "radioGroup" : "checkBox",
-                        name: sem.name,
-                        value: optLabel,
-                        x: Math.max(10, markerX),
-                        y: Math.max(10, markerY),
-                        width: 16,
-                        height: 16,
-                        page: pageNum,
-                        borderStyle: "solid",
-                        fillStyle: "white",
-                        multiline: false,
-                        autofill: "",
-                        dataFormat: "text",
-                        detectedBy: "affordance1_checkbox_radio"
-                    };
-
-                    if (!isOverlapping(newField, fields, 0.4)) {
-                        fields.push(newField);
+                    let optLabel = item.str.slice(m.index + markerStr.length).trim();
+                    optLabel = optLabel.split(/\s+/).slice(0, 4).join(" ");
+                    if (!optLabel && wIdx + 1 < line.items.length) {
+                        optLabel = line.items[wIdx + 1].str;
                     }
+                    if (!optLabel) optLabel = "option";
+
+                    pushCheckboxOrRadioField(markerType, optLabel, markerX, markerY, "affordance1_checkbox_radio_embedded");
                 }
             }
             wIdx++;
+        }
+
+        function pushCheckboxOrRadioField(markerType, optLabel, markerX, markerY, detectedBy) {
+            if (isUniversalStaticText(optLabel)) return;
+            const isRadio = markerType === "radioGroup";
+            const effectiveLabel = linePrompt ? (isRadio ? linePrompt : `${linePrompt} ${optLabel}`) : optLabel;
+            const sem = resolveSemanticProps(effectiveLabel, isRadio ? "radioGroup" : "checkBox", isRadio ? new Set() : usedNames);
+
+            const newField = {
+                id: generateFieldId(),
+                type: isRadio ? "radioGroup" : "checkBox",
+                name: sem.name,
+                value: optLabel,
+                x: Math.max(10, markerX),
+                y: Math.max(10, markerY),
+                width: 16,
+                height: 16,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: false,
+                autofill: "",
+                dataFormat: "text",
+                detectedBy: detectedBy
+            };
+
+            if (!isOverlapping(newField, fields, 0.4)) {
+                fields.push(newField);
+            }
         }
     }
 
