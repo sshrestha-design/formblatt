@@ -981,3 +981,14 @@ function showUndoToast(msg) {
         if (toast) toast.style.display = "none";
     }, 4500);
 }
+
+// ── Progressive Web App (PWA) Offline Engine ────────────────────────
+if ("serviceWorker" in navigator && !window.location.host.startsWith("localhost")) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").then(reg => {
+            console.log("[PWA] Service Worker registered for offline execution:", reg.scope);
+        }).catch(err => {
+            console.warn("[PWA] Service Worker registration failed:", err);
+        });
+    });
+}
