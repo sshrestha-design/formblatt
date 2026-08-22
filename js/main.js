@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const payload = {
             name: sender,
-            email: sender.includes("@") ? sender : "sshresthadesigns@gmail.com",
+            email: sender.includes("@") ? sender : "sagar.shrestha23@gmail.com",
             _subject: `[JustForms Feedback] ${category} (${currentRating} Stars)`,
             rating: `${currentRating} / 5 Stars`,
             category: category,
@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Send via background fetch (No Mail App Popups!)
         try {
-            await fetch("https://formsubmit.co/ajax/sshresthadesigns@gmail.com", {
+            await fetch("https://formsubmit.co/ajax/sagar.shrestha23@gmail.com", {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
