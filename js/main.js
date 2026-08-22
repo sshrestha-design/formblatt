@@ -1,5 +1,5 @@
 // ── Main Application Orchestrator (js/main.js) ─────────────────
-import { state, getSelectedField, setSelectedField, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues } from "./state.js";
+import { state, getSelectedField, setSelectedField, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
 import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
@@ -296,6 +296,43 @@ document.addEventListener("DOMContentLoaded", async () => {
             setTimeout(() => toast.remove(), 350);
         }, 3000);
     }
+
+    // Smart Alignment & Snapping Guides Toggle
+    function syncGuidesUI(enabled = state.guidesEnabled) {
+        const btn = document.getElementById("toggleGuidesBtn");
+        if (btn) {
+            btn.classList.toggle("active", enabled);
+            btn.title = `Smart Alignment Guides: ${enabled ? "ON" : "OFF"} (Ctrl/Cmd+;)`;
+            btn.style.color = enabled ? "#2563eb" : "#94a3b8";
+        }
+        const menuText = document.getElementById("toggleGuidesMenuText");
+        if (menuText) {
+            menuText.textContent = `Smart Guides: ${enabled ? "ON" : "OFF"}`;
+        }
+        const ctxText = document.getElementById("ctxGuidesText");
+        if (ctxText) {
+            ctxText.textContent = `Snap Guides: ${enabled ? "ON" : "OFF"}`;
+        }
+    }
+
+    const toggleGuidesAction = () => {
+        const enabled = toggleGuides();
+        syncGuidesUI(enabled);
+        if (!enabled) {
+            const v = document.getElementById("vAlignLine");
+            const h = document.getElementById("hAlignLine");
+            const dot = document.getElementById("snapPointDot");
+            if (v) v.style.display = "none";
+            if (h) h.style.display = "none";
+            if (dot) dot.style.display = "none";
+            document.querySelectorAll(".spacing-badge, .align-line").forEach(el => el.style.display = "none");
+        }
+        showNoticeToast(enabled ? "Smart Alignment Guides: ON" : "Smart Alignment Guides: OFF");
+    };
+
+    document.getElementById("toggleGuidesBtn")?.addEventListener("click", toggleGuidesAction);
+    document.getElementById("toggleGuidesMenuBtn")?.addEventListener("click", toggleGuidesAction);
+    syncGuidesUI(state.guidesEnabled);
 
     // Auto-Detect Fields Action
     const autoDetectBtn = document.getElementById("autoDetectBtn");
@@ -783,6 +820,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
             e.preventDefault();
             redo(refreshUI);
+            return;
+        }
+
+        // Toggle Smart Guides (Ctrl+; / Cmd+;)
+        if ((e.ctrlKey || e.metaKey) && (e.key === ";" || e.key === ":")) {
+            e.preventDefault();
+            toggleGuidesAction();
             return;
         }
 

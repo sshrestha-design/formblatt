@@ -50,7 +50,10 @@ export const state = {
     lassoStart: { x: 0, y: 0 },
 
     // Preview
-    currentPreviewUrl: null
+    currentPreviewUrl: null,
+
+    // Smart Alignment & Snapping Guides
+    guidesEnabled: localStorage.getItem("justforms_guides_enabled") !== "false"
 };
 
 export function getSelectedField() {
@@ -238,5 +241,15 @@ export function clearAllTestValues() {
         f.defaultChecked = false;
         f.signatureImage = null;
     });
+}
+
+export function setGuidesEnabled(enabled) {
+    state.guidesEnabled = !!enabled;
+    localStorage.setItem("justforms_guides_enabled", state.guidesEnabled ? "true" : "false");
+}
+
+export function toggleGuides() {
+    setGuidesEnabled(!state.guidesEnabled);
+    return state.guidesEnabled;
 }
 
