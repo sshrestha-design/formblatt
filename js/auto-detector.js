@@ -209,7 +209,7 @@ async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
             multiline: isMultiline || sem.multiline || false,
             autofill: sem.autofill || "",
             dataFormat: sem.dataFormat || "text",
-            sourcedFrom: "acroform"
+            detectedBy: "acroform_existing"
         });
     }
 
@@ -548,6 +548,26 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                         maxAllowedY = Math.min(maxAllowedY, tb.y);
                     }
                 }
+            }
+            // Also clamp against the next line of text ANYWHERE on the page,
+            // regardless of x-overlap. In a stacked label:value block (e.g. a
+            // multi-line address section), each row's field starts at a
+            // different x depending on how long that row's own label is — a
+            // long label like "Attention / Accounts Payable:" pushes its
+            // field's x well past where the next row's (shorter) label text
+            // sits, so the x-overlap check above never sees it and the
+            // field's default height is free to bleed down into the next
+            // row's space, colliding with (and silently dropping) that row's
+            // own field. A field should never extend past the next line of
+            // text on the page, whatever its x-position.
+            let nextLineY = null;
+            for (const otherLine of textLines) {
+                if (otherLine.y > line.y + 2 && (nextLineY === null || otherLine.y < nextLineY)) {
+                    nextLineY = otherLine.y;
+                }
+            }
+            if (nextLineY !== null) {
+                maxAllowedY = Math.min(maxAllowedY, nextLineY - 2);
             }
             targetH = Math.max(16, Math.min(targetH, maxAllowedY - targetY - 2));
 
