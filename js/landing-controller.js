@@ -328,26 +328,31 @@ export function initLandingController(onLoaded) {
 
     // Leave Editor Unsaved Changes Modal Actions
     const leaveModal = document.getElementById("leaveEditorModal");
-    const closeLeaveModal = () => {
-        if (leaveModal) leaveModal.style.display = "none";
-    };
 
-    document.getElementById("cancelLeaveEditorBtn")?.addEventListener("click", closeLeaveModal);
+    document.getElementById("cancelLeaveEditorBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeLeaveEditorModal();
+    });
     
-    document.getElementById("discardAndLeaveEditorBtn")?.addEventListener("click", () => {
-        closeLeaveModal();
+    document.getElementById("discardAndLeaveEditorBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
+        closeLeaveEditorModal();
         showLandingScreen(true);
     });
 
-    document.getElementById("saveAndLeaveEditorBtn")?.addEventListener("click", () => {
+    document.getElementById("saveAndLeaveEditorBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        e.stopPropagation();
         const baseName = (state.fileName || "interactive_form").replace(/\.pdf$/i, "");
         exportProjectJson(baseName);
-        closeLeaveModal();
+        closeLeaveEditorModal();
         showLandingScreen(true);
     });
 
     leaveModal?.addEventListener("click", e => {
-        if (e.target === leaveModal) closeLeaveModal();
+        if (e.target === leaveModal) closeLeaveEditorModal();
     });
 
     // Header Modal Triggers
