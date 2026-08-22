@@ -4,6 +4,23 @@ import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
 import { saveHistory, exportProjectJson } from "./storage-manager.js";
 
+export function openLeaveEditorModal() {
+    const leaveModal = document.getElementById("leaveEditorModal");
+    if (leaveModal) {
+        leaveModal.style.display = "flex";
+        leaveModal.classList.add("active");
+        if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+}
+
+export function closeLeaveEditorModal() {
+    const leaveModal = document.getElementById("leaveEditorModal");
+    if (leaveModal) {
+        leaveModal.style.display = "none";
+        leaveModal.classList.remove("active");
+    }
+}
+
 export function showLandingScreen(force = false, skipPush = false) {
     const editor = document.getElementById("appEditorScreen");
     const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || getComputedStyle(editor).display !== "none");
@@ -11,20 +28,15 @@ export function showLandingScreen(force = false, skipPush = false) {
 
     // If leaving from active editor with fields or document in progress, warn the user first
     if (!force && (isEditorActive || state.pdfDoc) && hasUnsavedWork) {
-        const leaveModal = document.getElementById("leaveEditorModal");
-        if (leaveModal) {
-            leaveModal.style.display = "flex";
-            if (typeof lucide !== "undefined") lucide.createIcons();
-            return;
-        }
+        openLeaveEditorModal();
+        return;
     }
 
     const landing = document.getElementById("landingScreen");
     if (landing) landing.style.display = "block";
     if (editor) editor.style.display = "none";
 
-    const leaveModal = document.getElementById("leaveEditorModal");
-    if (leaveModal) leaveModal.style.display = "none";
+    closeLeaveEditorModal();
 
     if (force) {
         state.fields = [];
@@ -201,9 +213,11 @@ export function showEditorScreen(onReady, skipPush = false) {
     }
 
     // Manage history state so browser Back button returns to landing or prompts to save
-    if (!skipPush && (!history.state || history.state.screen !== "editor")) {
+    if (!skipPush) {
         history.pushState({ screen: "editor" }, "", "#editor");
     }
+
+    closeLeaveEditorModal();
 
     if (typeof lucide !== "undefined") lucide.createIcons();
 }
@@ -281,14 +295,15 @@ export function initLandingController(onLoaded) {
         const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || getComputedStyle(editor).display !== "none");
         const hasActiveSession = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0) || isEditorActive);
 
-        if (isEditorActive || hasActiveSession) {
-            // Re-push editor state so browser remains in app on #editor while reviewing leave prompt
+        if (hasActiveSession) {
+            // Keep editor visible
+            if (editor) editor.style.display = "flex";
+            const landing = document.getElementById("landingScreen");
+            if (landing) landing.style.display = "none";
+
+            // Re-push editor state so browser remains in app on #editor
             history.pushState({ screen: "editor" }, "", "#editor");
-            const leaveModal = document.getElementById("leaveEditorModal");
-            if (leaveModal) {
-                leaveModal.style.display = "flex";
-                if (typeof lucide !== "undefined") lucide.createIcons();
-            }
+            openLeaveEditorModal();
         } else {
             showLandingScreen(true, true);
         }
