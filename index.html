@@ -142,9 +142,10 @@
                 </div>
                 <div class="landing-nav-links">
                     <a href="#how-it-works">How It Works</a>
-                    <a href="#professions">Solutions</a>
+                    <a href="#security">Security & Privacy</a>
+                    <a href="#compatibility">Compatibility</a>
                     <a href="#templates">Templates</a>
-                    <a href="#features">Features</a>
+                    <a href="#faq">FAQ</a>
                 </div>
                 <div class="landing-nav-actions">
                     <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" class="nav-github-btn" title="View Source & Star on GitHub">
@@ -725,8 +726,203 @@
                 <div style="margin-top: 36px; text-align: center; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
                     <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="background: #0f172a; color: #ffffff; padding: 11px 22px; border-radius: 10px; font-size: 13.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.1); transition: background 0.15s ease;">
                         <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
-                        <span>Star & Contribute on GitHub</span>
+                        <span>Star & Audit Code on GitHub</span>
                     </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Security & Privacy Architecture Section -->
+        <section class="landing-section" id="security" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 72px 24px;">
+            <div class="section-container" style="max-width: 1100px; margin: 0 auto;">
+                <div class="section-header" style="text-align: center; margin-bottom: 48px;">
+                    <span class="section-eyebrow" style="background: #f0fdf4; color: #16a34a; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; border: 1px solid #bbf7d0; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="shield-check" style="width: 13px; height: 13px;"></i>
+                        <span>VERIFIABLE ZERO-SERVER ARCHITECTURE</span>
+                    </span>
+                    <h2 class="section-title" style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-top: 12px; letter-spacing: -0.5px;">How We Protect Your Data</h2>
+                    <p class="section-subtitle" style="font-size: 15px; color: #64748b; max-width: 640px; margin: 8px auto 0; line-height: 1.6;">
+                        Unlike cloud PDF converters that upload confidential files to remote databases, JustForms executes 100% locally inside your browser's private sandbox memory.
+                    </p>
+                </div>
+
+                <div class="security-pillars-grid">
+                    <div class="security-pillar-card">
+                        <div class="security-pillar-icon" style="background: #eff6ff; color: #2563eb;">
+                            <i data-lucide="cpu" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <h3>100% In-Memory Parsing</h3>
+                        <p>Document bytes are loaded exclusively into your browser's private V8 JavaScript memory. Files never touch any remote disk, database, or backend service.</p>
+                    </div>
+
+                    <div class="security-pillar-card">
+                        <div class="security-pillar-icon" style="background: #f0fdf4; color: #16a34a;">
+                            <i data-lucide="wifi-off" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <h3>PWA & Offline Airplane Mode</h3>
+                        <p>Installable as an offline Progressive Web App (PWA). Disconnect your internet connection or turn on Airplane Mode — create, edit, and export forms with 100% offline proof.</p>
+                    </div>
+
+                    <div class="security-pillar-card">
+                        <div class="security-pillar-icon" style="background: #faf5ff; color: #9333ea;">
+                            <i data-lucide="eye-off" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <h3>Zero Keystroke Telemetry</h3>
+                        <p>No tracking script or third-party logger captures your keystrokes, form responses, or signature data. Your proprietary documents remain strictly confidential.</p>
+                    </div>
+
+                    <div class="security-pillar-card">
+                        <div class="security-pillar-icon" style="background: #fff7ed; color: #ea580c;">
+                            <i data-lucide="file-check" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <h3>Local Vector Compilation</h3>
+                        <p>Standard ISO 32000 AcroForm binary streams are compiled directly on your CPU and saved directly to your local Downloads folder via browser Memory Blobs.</p>
+                    </div>
+                </div>
+
+                <!-- Interactive DevTools Network Verification Card -->
+                <div class="devtools-verification-card">
+                    <div class="devtools-card-header">
+                        <div class="devtools-header-title">
+                            <i data-lucide="terminal" style="width: 24px; height: 24px; color: #38bdf8;"></i>
+                            <div>
+                                <h3>Verify Privacy in 3 Steps with Browser DevTools</h3>
+                                <span style="font-size: 12.5px; color: #94a3b8;">Transparent proof designed for security auditors, compliance officers, and IT teams.</span>
+                            </div>
+                        </div>
+                        <span style="background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700;">
+                            0 BYTES TRANSMITTED
+                        </span>
+                    </div>
+
+                    <div class="devtools-steps-grid">
+                        <div class="devtools-step-item">
+                            <span class="devtools-step-num">1</span>
+                            <strong>Open Developer Tools</strong>
+                            <p>Press <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">F12</code> or <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">Cmd + Option + I</code> in Chrome, Edge, Safari, or Firefox.</p>
+                        </div>
+                        <div class="devtools-step-item">
+                            <span class="devtools-step-num">2</span>
+                            <strong>Inspect the Network Tab</strong>
+                            <p>Switch to the <strong>Network</strong> tab and filter by <strong>Fetch / XHR</strong>. Clear the current log.</p>
+                        </div>
+                        <div class="devtools-step-item">
+                            <span class="devtools-step-num">3</span>
+                            <strong>Observe Zero Outgoing Data</strong>
+                            <p>Drop a 100-page PDF, place fields, sign, and export. Verify that <strong>0 document bytes or field entries</strong> leave your computer.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compliance Statement & Liability Boundary Callout -->
+                <div style="margin-top: 24px; padding: 18px 22px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: flex-start; gap: 14px;">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
+                        <i data-lucide="info" style="width: 18px; height: 18px;"></i>
+                    </div>
+                    <div style="font-size: 13px; color: #475569; line-height: 1.6;">
+                        <strong style="color: #0f172a; display: block; margin-bottom: 2px;">HIPAA & Enterprise Privacy Architecture Notice</strong>
+                        Because JustForms operates purely as client-side software running in your local browser sandbox and never receives, transmits, or stores data on external servers, no Protected Health Information (PHI) is processed by third-party servers. Forms are created locally under your organization's direct hardware control. See our <button type="button" id="complianceNoticeBtn" style="background: none; border: none; padding: 0; color: #2563eb; font-weight: 700; text-decoration: underline; cursor: pointer; font-family: inherit;">Compliance Architecture & Disclaimer</button>.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PDF Reader Compatibility & Reliability Section -->
+        <section class="landing-section" id="compatibility" style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 72px 24px;">
+            <div class="section-container" style="max-width: 1100px; margin: 0 auto;">
+                <div class="section-header" style="text-align: center; margin-bottom: 36px;">
+                    <span class="section-eyebrow" style="background: #eff6ff; color: #2563eb; padding: 4px 12px; border-radius: 20px; font-size: 11.5px; font-weight: 700; border: 1px solid #bfdbfe; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="check-check" style="width: 13px; height: 13px;"></i>
+                        <span>ISO 32000 ACROFORM STANDARD</span>
+                    </span>
+                    <h2 class="section-title" style="font-size: 2.2rem; font-weight: 800; color: #0f172a; margin-top: 12px; letter-spacing: -0.5px;">Universal PDF Reader Compatibility</h2>
+                    <p class="section-subtitle" style="font-size: 15px; color: #64748b; max-width: 640px; margin: 8px auto 0; line-height: 1.6;">
+                        Forms created with JustForms follow strict ISO 32000-1 AcroForm standards, guaranteeing interactive behavior across all PDF readers.
+                    </p>
+                </div>
+
+                <div class="compatibility-grid">
+                    <div class="compatibility-card">
+                        <div class="compatibility-icon-wrapper">
+                            <span style="font-weight: 800; color: #dc2626; font-size: 18px;">A</span>
+                        </div>
+                        <strong>Adobe Acrobat Reader</strong>
+                        <span class="compatibility-status-badge">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> 100% Verified
+                        </span>
+                        <p>Full support for text boxes, checkboxes, radio buttons, dropdowns, and digital signatures.</p>
+                    </div>
+
+                    <div class="compatibility-card">
+                        <div class="compatibility-icon-wrapper">
+                            <i data-lucide="apple" style="width: 22px; height: 22px; color: #0f172a;"></i>
+                        </div>
+                        <strong>Apple Preview</strong>
+                        <span class="compatibility-status-badge">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Native macOS/iOS
+                        </span>
+                        <p>Instant fillable form rendering on Mac, iPad, and iPhone with hardware-accelerated printing.</p>
+                    </div>
+
+                    <div class="compatibility-card">
+                        <div class="compatibility-icon-wrapper">
+                            <i data-lucide="chrome" style="width: 22px; height: 22px; color: #2563eb;"></i>
+                        </div>
+                        <strong>Google Chrome</strong>
+                        <span class="compatibility-status-badge">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> In-Browser Fillable
+                        </span>
+                        <p>Seamless interactive form completion in Chrome and all Chromium-based web browsers.</p>
+                    </div>
+
+                    <div class="compatibility-card">
+                        <div class="compatibility-icon-wrapper">
+                            <i data-lucide="compass" style="width: 22px; height: 22px; color: #0284c7;"></i>
+                        </div>
+                        <strong>Microsoft Edge</strong>
+                        <span class="compatibility-status-badge">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Windows 11 Native
+                        </span>
+                        <p>Built-in PDF reader supports tab navigation, digital ink signatures, and form field saving.</p>
+                    </div>
+
+                    <div class="compatibility-card">
+                        <div class="compatibility-icon-wrapper">
+                            <i data-lucide="globe" style="width: 22px; height: 22px; color: #ea580c;"></i>
+                        </div>
+                        <strong>Mozilla Firefox</strong>
+                        <span class="compatibility-status-badge">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Standards Compliant
+                        </span>
+                        <p>High-fidelity rendering powered by the open-source PDF.js rendering pipeline.</p>
+                    </div>
+
+                    <div class="compatibility-card">
+                        <div class="compatibility-icon-wrapper">
+                            <i data-lucide="file-text" style="width: 22px; height: 22px; color: #059669;"></i>
+                        </div>
+                        <strong>Foxit & PDF Expert</strong>
+                        <span class="compatibility-status-badge">
+                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Fully Supported
+                        </span>
+                        <p>Accurate field positioning, tab indexing, multiline wrapping, and custom font rendering.</p>
+                    </div>
+                </div>
+
+                <!-- Local Auto-Save & Crash Guard Callout -->
+                <div style="margin-top: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
+                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i data-lucide="save" style="width: 22px; height: 22px;"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 15px; color: #0f172a; display: block; margin-bottom: 2px;">Local Auto-Save & Crash Guard</strong>
+                            <p style="font-size: 13px; color: #64748b; margin: 0;">Your form layout progress is continuously preserved in your local browser session storage. Accidental refreshes or closed tabs won't lose your work.</p>
+                        </div>
+                    </div>
+                    <span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                        <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Protected Session
+                    </span>
                 </div>
             </div>
         </section>
@@ -758,60 +954,87 @@
         </section>
 
         <!-- CTA Footer Banner -->
-        <section class="landing-cta-banner" id="how-it-works">
+        <section class="landing-cta-banner" id="how-it-works-cta">
             <div class="cta-banner-content">
                 <h2>Ready to make your PDF fillable?</h2>
                 <p>Upload any PDF to start placing text fields, dropdowns, and digital signatures.</p>
                 <label class="hero-btn-primary" style="margin: 0 auto; cursor: pointer; display: inline-flex;">
                     <i data-lucide="file-up" style="width:18px; height:18px;"></i>
                     <span>Upload PDF Document</span>
-                    <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                    <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
                 </label>
             </div>
         </section>
 
-        <!-- Footer & Developer Contact Section -->
-        <footer class="landing-footer" id="contact" style="background:#0f172a; color:#94a3b8; padding: 48px 24px 36px; border-top:1px solid #1e293b;">
-            <div class="footer-container" style="max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:32px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:24px; border-bottom:1px solid #1e293b; padding-bottom:32px;">
-                    <div>
-                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+        <!-- Professional 4-Column Footer -->
+        <footer class="landing-footer" id="contact" style="background:#0f172a; color:#94a3b8; padding: 56px 24px 36px; border-top:1px solid #1e293b;">
+            <div class="footer-container" style="max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:36px;">
+                <div class="footer-four-columns">
+                    <!-- Column 1: Brand & Overview -->
+                    <div class="footer-col">
+                        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
                             <div style="width:28px; height:28px; border-radius:6px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:14px;">J</div>
                             <span style="font-size:18px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">JustForms</span>
                         </div>
-                        <p style="margin:0; font-size:13.5px; color:#94a3b8; max-width:420px; line-height:1.6;">
-                            Client-side interactive PDF form builder. Designed for maximum privacy, speed, and cross-platform PDF AcroForm compatibility.
+                        <p style="margin:0; font-size:13px; color:#94a3b8; line-height:1.6;">
+                            Client-side interactive PDF form creator & AcroForm builder. Designed for maximum privacy, zero backend telemetry, and universal ISO 32000 compatibility.
                         </p>
-                    </div>
-                    
-                    <!-- Developer Contact Card -->
-                    <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; padding:18px 22px; display:flex; flex-direction:column; gap:10px; min-width:280px;">
-                        <span style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#38bdf8;">Developer & Support</span>
-                        <div style="font-size:14.5px; font-weight:700; color:#f8fafc;">Sagar Shrestha</div>
-                        <div style="display:flex; flex-direction:column; gap:8px; font-size:13px;">
-                            <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="color:#cbd5e1; text-decoration:none; display:flex; align-items:center; gap:8px; transition:color 0.15s ease;">
-                                <i data-lucide="github" style="width:15px; height:15px; color:#38bdf8;"></i>
-                                <span>GitHub (Open Source MIT)</span>
-                            </a>
-                            <a href="mailto:sshresthadesigns@gmail.com" style="color:#cbd5e1; text-decoration:none; display:flex; align-items:center; gap:8px; transition:color 0.15s ease;">
-                                <i data-lucide="mail" style="width:15px; height:15px; color:#38bdf8;"></i>
-                                <span>sshresthadesigns@gmail.com</span>
-                            </a>
-                            <a href="https://sagarshrestha23.com.np" target="_blank" rel="noopener noreferrer" style="color:#cbd5e1; text-decoration:none; display:flex; align-items:center; gap:8px; transition:color 0.15s ease;">
-                                <i data-lucide="globe" style="width:15px; height:15px; color:#38bdf8;"></i>
-                                <span>sagarshrestha23.com.np</span>
-                            </a>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+                            <span class="footer-legal-pill">MIT Open Source</span>
+                            <span class="footer-legal-pill" style="color: #38bdf8; border-color: #0369a1;">PWA Offline Ready</span>
                         </div>
-                        <button type="button" id="footerFeedbackBtn" style="background:#0284c7; color:#ffffff; border:none; padding:8px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-top:4px; transition:background 0.15s ease;">
-                            <i data-lucide="message-square" style="width:14px; height:14px;"></i> Send Feedback & Review
-                        </button>
+                    </div>
+
+                    <!-- Column 2: Product & Tools -->
+                    <div class="footer-col">
+                        <h4 class="footer-col-title">Product & Engine</h4>
+                        <ul class="footer-link-list">
+                            <li><a href="#how-it-works">Interactive Form Editor</a></li>
+                            <li><a href="#templates">Starter Templates</a></li>
+                            <li><a href="#professions">Industry Solutions</a></li>
+                            <li><a href="#compatibility">AcroForm Compiler</a></li>
+                            <li><button type="button" id="footerShortcutsBtn">Keyboard Shortcuts</button></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 3: Security & Verification -->
+                    <div class="footer-col">
+                        <h4 class="footer-col-title">Security & Proof</h4>
+                        <ul class="footer-link-list">
+                            <li><a href="#security">Zero-Server Architecture</a></li>
+                            <li><a href="#security">DevTools Verification</a></li>
+                            <li><a href="#compatibility">PDF Reader Matrix</a></li>
+                            <li><button type="button" id="footerComplianceBtn">HIPAA & PHI Notice</button></li>
+                            <li><a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer">Security Code Audit</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 4: Legal & Maintainer -->
+                    <div class="footer-col">
+                        <h4 class="footer-col-title">Legal & Support</h4>
+                        <ul class="footer-link-list">
+                            <li><button type="button" id="footerPrivacyBtn">Privacy Policy</button></li>
+                            <li><button type="button" id="footerTermsBtn">Terms of Service</button></li>
+                            <li><button type="button" id="footerCookieBtn">Cookie Policy</button></li>
+                            <li><button type="button" id="footerAboutBtn">About JustForms</button></li>
+                            <li><a href="mailto:sshresthadesigns@gmail.com"><i data-lucide="mail" style="width: 13px; height: 13px;"></i> Support Email</a></li>
+                        </ul>
                     </div>
                 </div>
-                
-                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; font-size:12.5px; color:#64748b;">
-                    <div>JustForms — Open Source MIT License • Developed by <strong>Sagar Shrestha</strong></div>
-                    <div style="display:flex; gap:16px;">
-                        <span>Privacy First</span> • <span>Zero Server Storage</span> • <span>Open Source</span>
+
+                <!-- Footer Bottom Bar -->
+                <div class="footer-bottom-bar">
+                    <div>
+                        JustForms — Free & Open Source under the <strong>MIT License</strong> • Built by <a href="https://sagarshrestha23.com.np" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: underline;">Sagar Shrestha</a>
+                    </div>
+                    <div class="footer-legal-badges">
+                        <span>🔒 100% Client-Side</span>
+                        <span>•</span>
+                        <span>⚡ Zero Server Storage</span>
+                        <span>•</span>
+                        <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                            <i data-lucide="github" style="width: 14px; height: 14px;"></i> GitHub
+                        </a>
                     </div>
                 </div>
             </div>
@@ -2048,6 +2271,198 @@
             <button id="fillExitBtn" type="button" class="fill-hud-btn close" title="Exit to Design Mode (Esc)">
                 <i data-lucide="x" style="width: 12px; height: 12px;"></i> Exit
             </button>
+        </div>
+    </div>
+
+    <!-- Privacy Policy Modal -->
+    <div id="privacyModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy Policy</h3>
+                        <span style="font-size: 12px; color: #64748b;">Zero-Server Data Protection Guarantee • Effective: August 2026</span>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-icon" id="closePrivacyModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
+                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; color: #166534; font-weight: 500;">
+                    <strong>Executive Summary:</strong> JustForms operates 100% locally on your computer. We do not operate databases or cloud processing servers for your documents. Your files and form entries are never transmitted over the internet.
+                </div>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. No Server-Side File Processing</h4>
+                <p style="margin: 0;">When you open or drop a PDF into JustForms, the binary stream is decoded directly into your browser's private WebAssembly/JavaScript memory space via the open-source <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">pdf.js</code> and <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">pdf-lib</code> libraries. At no point are your PDF bytes sent to any remote server.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. Zero Keystroke or Input Telemetry</h4>
+                <p style="margin: 0;">We do not capture, record, or track keystrokes, form input values, radio choices, dropdown selections, or drawn signature graphics. All form manipulation takes place entirely within your client session.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Client-Side Local Storage & Auto-Save</h4>
+                <p style="margin: 0;">JustForms may store temporary field coordinates and theme preferences in your browser's <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">localStorage</code> or <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">sessionStorage</code> to prevent work loss during accidental browser tab refreshes. This data resides strictly on your physical machine.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. Independent Verification</h4>
+                <p style="margin: 0;">You can verify our privacy guarantee at any time using your browser's Developer Tools Network Tab (<code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">F12</code>) to confirm 0 bytes of outgoing document traffic.</p>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                <button type="button" id="dismissPrivacyModalBtn" class="btn-primary" style="padding: 9px 20px; font-size: 13px; border-radius: 8px;">I Understand</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms of Service Modal -->
+    <div id="termsModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Terms of Service</h3>
+                        <span style="font-size: 12px; color: #64748b;">Open Source MIT License Terms</span>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-icon" id="closeTermsModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
+                <h4 style="margin: 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. Open Source License (MIT)</h4>
+                <p style="margin: 0;">JustForms is open-source software distributed under the MIT License. You are free to use, modify, distribute, and compile forms for personal, educational, non-profit, or commercial purposes without royalty fees or restrictive licensing.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. 100% User Ownership of Documents</h4>
+                <p style="margin: 0;">You retain 100% copyright, intellectual property, and ownership of every document uploaded, authored, and generated through JustForms. We assert zero ownership or rights over your files.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Disclaimer of Warranties</h4>
+                <p style="margin: 0;">The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability arising from the use of the software.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. Self-Hosting & Audits</h4>
+                <p style="margin: 0;">Organizations requiring air-gapped environments or formal SLA deployment may self-host the static repository on their own private infrastructure without modifications or external API dependencies.</p>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                <button type="button" id="dismissTermsModalBtn" class="btn-primary" style="padding: 9px 20px; font-size: 13px; border-radius: 8px;">Close Terms</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cookie & Local Storage Policy Modal -->
+    <div id="cookieModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="cookie" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Cookie & Local Storage Policy</h3>
+                        <span style="font-size: 12px; color: #64748b;">Zero Tracking Cookies</span>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-icon" id="closeCookieModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; color: #1e40af; font-weight: 500;">
+                    <strong>Zero Third-Party Advertising Cookies:</strong> JustForms does not use marketing trackers, ad networks, tracking pixels, or cross-site fingerprinting cookies.
+                </div>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. What Browser Storage Is Used?</h4>
+                <p style="margin: 0;">JustForms only uses essential client-side web storage mechanisms (<code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">localStorage</code> and <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">sessionStorage</code>) for core functional features:</p>
+                <ul style="margin: 4px 0 0; padding-left: 20px;">
+                    <li><strong>Crash Guard & Session State:</strong> Preserving unsaved form layout in progress so accidental browser reloads do not discard your field placements.</li>
+                    <li><strong>Onboarding & User Preferences:</strong> Remembering whether you have completed the visual onboarding tour and tool preference choices.</li>
+                </ul>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. Managing Your Storage</h4>
+                <p style="margin: 0;">You can clear all stored local application state at any time through your browser's "Clear Site Data" or "Clear Cookies & Cache" settings without affecting future use.</p>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                <button type="button" id="dismissCookieModalBtn" class="btn-primary" style="padding: 9px 20px; font-size: 13px; border-radius: 8px;">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIPAA & Compliance Architecture Modal -->
+    <div id="complianceModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Compliance & Security Architecture</h3>
+                        <span style="font-size: 12px; color: #64748b;">HIPAA, GDPR & ISO 32000 Architectural Standards</span>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-icon" id="closeComplianceModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
+                    <strong style="color: #0f172a; display: block; margin-bottom: 4px;">HIPAA & Protected Health Information (PHI) Boundary:</strong>
+                    Because JustForms runs entirely as client-side software on your local machine and does not transmit, ingest, process, or store files on external cloud servers, JustForms is not a "Business Associate" under HIPAA. All Protected Health Information (PHI) created or entered into forms remains strictly under the direct physical and network control of your covered entity.
+                </div>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. GDPR & Privacy by Design</h4>
+                <p style="margin: 0;">JustForms adheres to the strictest principles of GDPR (General Data Protection Regulation) by implementing Data Minimization and Privacy by Design. Since zero personal data is collected or transferred, user privacy is guaranteed by architectural design rather than trust.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. ISO 32000-1 / PDF 1.7 Compliance</h4>
+                <p style="margin: 0;">Forms generated by JustForms adhere to ISO 32000-1 specification standards for PDF interactive form widgets (/AcroForm dictionary, /Widget annotations, /DR resources, /V appearance streams). This ensures standard verification and signature validation in Adobe Acrobat and enterprise document management systems.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Enterprise Liability Disclaimer</h4>
+                <p style="margin: 0;">Organizations are responsible for ensuring that their own internal workstations and endpoints comply with relevant local and industry security policies when handling sensitive documents.</p>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
+                <button type="button" id="dismissComplianceModalBtn" class="btn-primary" style="padding: 9px 20px; font-size: 13px; border-radius: 8px;">Acknowledge</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- About JustForms & Maintainer Modal -->
+    <div id="aboutModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 10px; background: #0284c7; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800;">
+                        J
+                    </div>
+                    <div>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">About JustForms</h3>
+                        <span style="font-size: 12px; color: #64748b;">Free • Open Source • Privacy-First</span>
+                    </div>
+                </div>
+                <button type="button" class="modal-close-icon" id="closeAboutModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
+                <p style="margin: 0;"><strong>JustForms</strong> was created by <strong>Sagar Shrestha</strong> to solve a common frustration: making PDFs fillable shouldn't require expensive subscriptions, intrusive account sign-ups, or uploading sensitive legal and financial documents to unknown cloud servers.</p>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px;">
+                    <div style="font-size: 14.5px; font-weight: 700; color: #0f172a;">Maintainer & Project Information</div>
+                    <div style="font-size: 13px; color: #64748b;">• <strong>Author:</strong> Sagar Shrestha</div>
+                    <div style="font-size: 13px; color: #64748b;">• <strong>License:</strong> MIT Open Source License</div>
+                    <div style="font-size: 13px; color: #64748b;">• <strong>Website:</strong> <a href="https://sagarshrestha23.com.np" target="_blank" rel="noopener noreferrer" style="color: #0284c7; text-decoration: underline;">sagarshrestha23.com.np</a></div>
+                    <div style="font-size: 13px; color: #64748b;">• <strong>GitHub:</strong> <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="color: #0284c7; text-decoration: underline;">github.com/sshrestha-design/justforms</a></div>
+                    <div style="font-size: 13px; color: #64748b;">• <strong>Direct Support:</strong> <a href="mailto:sshresthadesigns@gmail.com" style="color: #0284c7; text-decoration: underline;">sshresthadesigns@gmail.com</a></div>
+                </div>
+
+                <p style="margin: 0;">Every line of code is open source and auditable. Contributions, feature suggestions, and security audits are warmly welcomed on GitHub.</p>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end; gap: 10px;">
+                <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" class="btn-secondary" style="padding: 9px 18px; font-size: 13px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">
+                    <i data-lucide="github" style="width: 14px; height: 14px;"></i> View on GitHub
+                </a>
+                <button type="button" id="dismissAboutModalBtn" class="btn-primary" style="padding: 9px 20px; font-size: 13px; border-radius: 8px;">Close</button>
+            </div>
         </div>
     </div>
 

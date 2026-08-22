@@ -64,14 +64,27 @@
 #saveProjectModal .modal-content,
 #samplePreviewModal .modal-content,
 #feedbackModal .modal-content,
-#shortcutsModal .modal-content {
+#shortcutsModal .modal-content,
+#privacyModal .modal-content,
+#termsModal .modal-content,
+#cookieModal .modal-content,
+#complianceModal .modal-content,
+#aboutModal .modal-content {
     height: auto !important;
     max-height: 90vh !important;
     width: 92% !important;
-    max-width: 500px !important;
-    padding: 24px !important;
+    max-width: 580px !important;
+    padding: 26px !important;
     border-radius: 16px !important;
     overflow-y: auto !important;
+}
+
+#privacyModal .modal-content,
+#termsModal .modal-content,
+#cookieModal .modal-content,
+#complianceModal .modal-content,
+#aboutModal .modal-content {
+    max-width: 640px !important;
 }
 
 #leaveEditorModal {

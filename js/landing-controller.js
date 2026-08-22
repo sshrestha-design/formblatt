@@ -412,22 +412,41 @@ export function initLandingController(onLoaded) {
         if (e.target === leaveModal) closeLeaveEditorModal();
     });
 
-    // Header Modal Triggers
-    document.getElementById("landingFeedbackBtn")?.addEventListener("click", () => {
-        const feedbackModal = document.getElementById("feedbackModal");
-        if (feedbackModal) {
-            feedbackModal.style.display = "flex";
-            if (typeof lucide !== "undefined") lucide.createIcons();
-        }
-    });
+    // Helper to wire modals with open, close buttons, and backdrop click
+    function bindModal(triggerIds, modalId, closeBtnIds = []) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
 
-    document.getElementById("landingShortcutsBtn")?.addEventListener("click", () => {
-        const shortcutsModal = document.getElementById("shortcutsModal");
-        if (shortcutsModal) {
-            shortcutsModal.style.display = "flex";
+        const openModal = () => {
+            modal.style.display = "flex";
             if (typeof lucide !== "undefined") lucide.createIcons();
-        }
-    });
+        };
+        const closeModal = () => {
+            modal.style.display = "none";
+        };
+
+        const triggers = Array.isArray(triggerIds) ? triggerIds : [triggerIds];
+        triggers.forEach(id => {
+            document.getElementById(id)?.addEventListener("click", openModal);
+        });
+
+        closeBtnIds.forEach(id => {
+            document.getElementById(id)?.addEventListener("click", closeModal);
+        });
+
+        modal.addEventListener("click", e => {
+            if (e.target === modal) closeModal();
+        });
+    }
+
+    // Bind Legal & Info Modals
+    bindModal("footerPrivacyBtn", "privacyModal", ["closePrivacyModalBtn", "dismissPrivacyModalBtn"]);
+    bindModal("footerTermsBtn", "termsModal", ["closeTermsModalBtn", "dismissTermsModalBtn"]);
+    bindModal("footerCookieBtn", "cookieModal", ["closeCookieModalBtn", "dismissCookieModalBtn"]);
+    bindModal(["footerComplianceBtn", "complianceNoticeBtn"], "complianceModal", ["closeComplianceModalBtn", "dismissComplianceModalBtn"]);
+    bindModal("footerAboutBtn", "aboutModal", ["closeAboutModalBtn", "dismissAboutModalBtn"]);
+    bindModal(["landingShortcutsBtn", "footerShortcutsBtn"], "shortcutsModal", ["closeShortcutsModalBtn"]);
+    bindModal(["landingFeedbackBtn", "footerFeedbackBtn"], "feedbackModal", ["closeFeedbackModalBtn"]);
 
     // Smooth Scroll for Landing Anchor Links
     document.querySelectorAll(".landing-nav-links a[href^='#']").forEach(anchor => {
