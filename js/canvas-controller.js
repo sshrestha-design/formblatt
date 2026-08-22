@@ -766,72 +766,99 @@ function handleFieldResize(e, handlers) {
     const field = state.fields.find(f => f.id === state.resizeFieldId) || getSelectedField();
     if (!field) return;
 
-    const base = state.resizeStartDim || { x: field.x, y: field.y, width: field.width, height: field.height };
-    let newX = base.x;
-    let newY = base.y;
-    let newW = base.width;
-    let newH = base.height;
+    const dimsMap = (state.initialFieldDims && state.initialFieldDims.size > 0)
+        ? state.initialFieldDims
+        : new Map([[field.id, state.resizeStartDim]]);
 
-    // Horizontal resize
-    if (dir.includes("e")) {
-        newW = Math.max(16, Math.round(base.width + dx));
-    } else if (dir.includes("w")) {
-        const potentialW = Math.round(base.width - dx);
-        if (potentialW >= 16) {
-            newX = Math.round(base.x + dx);
-            newW = potentialW;
-        } else {
-            newW = 16;
-            newX = base.x + base.width - 16;
+    let primaryNewX, primaryNewY, primaryNewW, primaryNewH;
+
+    // Pass 1: resize every selected field by the same drag delta, each
+    // anchored on its own fixed edge (so a "w" drag keeps each field's
+    // right edge in place, etc.) — mirrors the original single-field math,
+    // just looped across the whole selection instead of one field.
+    dimsMap.forEach((base, id) => {
+        const f = state.fields.find(item => item.id === id);
+        if (!f) return;
+
+        let newX = base.x, newY = base.y, newW = base.width, newH = base.height;
+
+        if (dir.includes("e")) {
+            newW = Math.max(16, Math.round(base.width + dx));
+        } else if (dir.includes("w")) {
+            const potentialW = Math.round(base.width - dx);
+            if (potentialW >= 16) {
+                newX = Math.round(base.x + dx);
+                newW = potentialW;
+            } else {
+                newW = 16;
+                newX = base.x + base.width - 16;
+            }
         }
-    }
 
-    // Vertical resize
-    if (dir.includes("s")) {
-        newH = Math.max(14, Math.round(base.height + dy));
-    } else if (dir.includes("n")) {
-        const potentialH = Math.round(base.height - dy);
-        if (potentialH >= 14) {
-            newY = Math.round(base.y + dy);
-            newH = potentialH;
-        } else {
-            newH = 14;
-            newY = base.y + base.height - 14;
+        if (dir.includes("s")) {
+            newH = Math.max(14, Math.round(base.height + dy));
+        } else if (dir.includes("n")) {
+            const potentialH = Math.round(base.height - dy);
+            if (potentialH >= 14) {
+                newY = Math.round(base.y + dy);
+                newH = potentialH;
+            } else {
+                newH = 14;
+                newY = base.y + base.height - 14;
+            }
         }
-    }
 
-    // Smart magnetic corner & edge snapping during resize (unless holding Alt)
+        f.x = newX;
+        f.y = newY;
+        f.width = newW;
+        f.height = newH;
+
+        if (id === field.id) {
+            primaryNewX = newX; primaryNewY = newY; primaryNewW = newW; primaryNewH = newH;
+        }
+    });
+
+    // Pass 2: magnetic snapping, still computed off the handle-owning field
+    // against fields OUTSIDE the selection (unchanged single-field feel),
+    // then the resulting nudge is re-applied to every selected field so the
+    // whole group snaps together instead of just the primary one.
     if (!e.altKey) {
-        const otherFields = getFieldsForCurrentPage().filter(f => f.id !== field.id && !state.selectedFieldIds.has(f.id));
+        const otherFields = getFieldsForCurrentPage().filter(f => !state.selectedFieldIds.has(f.id) && f.id !== field.id);
         const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
         const container = document.getElementById("canvasContainer");
         const pageWidth = container ? container.offsetWidth : null;
         const pageHeight = container ? container.offsetHeight : null;
-        const snaps = checkSnapping(newX, newY, newW, newH, otherFields, pageTextBlocks, pageWidth, pageHeight);
+        const snaps = checkSnapping(primaryNewX, primaryNewY, primaryNewW, primaryNewH, otherFields, pageTextBlocks, pageWidth, pageHeight);
 
+        let snapDX = 0, snapDW = 0, snapDY = 0, snapDH = 0;
         if (dir.includes("e") && snaps.guideX !== null) {
-            newW = Math.max(16, Math.round(newW + snaps.snapX));
+            snapDW = snaps.snapX;
         } else if (dir.includes("w") && snaps.guideX !== null) {
-            newX = Math.round(newX + snaps.snapX);
-            newW = Math.max(16, Math.round(base.x + base.width - newX));
+            snapDX = snaps.snapX;
+            snapDW = -snaps.snapX;
+        }
+        if (dir.includes("s") && snaps.guideY !== null) {
+            snapDH = snaps.snapY;
+        } else if (dir.includes("n") && snaps.guideY !== null) {
+            snapDY = snaps.snapY;
+            snapDH = -snaps.snapY;
         }
 
-        if (dir.includes("s") && snaps.guideY !== null) {
-            newH = Math.max(14, Math.round(newH + snaps.snapY));
-        } else if (dir.includes("n") && snaps.guideY !== null) {
-            newY = Math.round(newY + snaps.snapY);
-            newH = Math.max(14, Math.round(base.y + base.height - newY));
+        if (snapDX || snapDW || snapDY || snapDH) {
+            dimsMap.forEach((base, id) => {
+                const f = state.fields.find(item => item.id === id);
+                if (!f) return;
+                if (snapDX) f.x = Math.round(f.x + snapDX);
+                if (snapDW) f.width = Math.max(16, Math.round(f.width + snapDW));
+                if (snapDY) f.y = Math.round(f.y + snapDY);
+                if (snapDH) f.height = Math.max(14, Math.round(f.height + snapDH));
+            });
         }
 
         showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
     } else {
         hideGuides();
     }
-
-    field.x = newX;
-    field.y = newY;
-    field.width = newW;
-    field.height = newH;
 
     handlers.onFieldMoving();
 }
