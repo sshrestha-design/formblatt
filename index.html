@@ -1839,39 +1839,34 @@
 
     <!-- Privacy Policy Modal -->
     <div id="privacyModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
+        <div class="modal-content" style="max-width: 620px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy and Data Policy</h3>
-                        <span style="font-size: 12px; color: #64748b;">Client-Side Execution and Vercel Infrastructure Policy</span>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy Policy</h3>
+                        <span style="font-size: 12px; color: #64748b;">Last updated: August 27, 2026</span>
                     </div>
                 </div>
                 <button type="button" class="modal-close-icon" id="closePrivacyModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; color: #166534; font-weight: 500;">
-                    <strong>Executive Summary:</strong> JustForms operates 100% locally on your computer device. Your documents, form fields, and signatures are never transmitted over the internet or saved to external databases. Web application assets and development telemetry are powered strictly via Vercel.
+            <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
+                <p style="margin: 0; font-weight: 600; color: #0f172a;">JustForms runs entirely in your browser. Here's exactly what that means:</p>
+
+                <p style="margin: 0;"><strong style="color: #0f172a;">Your documents.</strong> When you open or drop in a PDF, it's parsed and edited locally using pdf.js and pdf-lib. No file data is sent to a server - you can confirm this yourself in your browser's Network tab (see the Security section on the homepage).</p>
+
+                <p style="margin: 0;"><strong style="color: #0f172a;">Hosting.</strong> The app itself (HTML, CSS, JS, and WebAssembly files) is served as static assets via Vercel. This is the same as any website - it's how you receive the app, not how your documents are handled.</p>
+
+                <p style="margin: 0;"><strong style="color: #0f172a;">Analytics.</strong> We use Vercel Analytics to see aggregate metrics like page load speed. This doesn't include your name, IP address tied to identity, or anything about the documents you work with.</p>
+
+                <p style="margin: 0;"><strong style="color: #0f172a;">Third parties.</strong> We don't use ad networks, trackers, or data brokers. Vercel is our only infrastructure provider.</p>
+
+                <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-top: 6px; font-size: 13.5px;">
+                    <strong style="color: #0f172a;">Questions:</strong> <a href="mailto:sagar.shrestha23@gmail.com" style="color: #2563eb; text-decoration: none; font-weight: 600;">sagar.shrestha23@gmail.com</a>
                 </div>
-
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. 100% Local Processing on User Device</h4>
-                <p style="margin: 0;">When you open or drop a PDF into JustForms, all file parsing, field layout rendering, and AcroForm binary generation execute strictly within your local browser memory via WebAssembly and JavaScript (pdf.js and pdf-lib). Zero document bytes or field entries are uploaded to any server.</p>
-
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. Infrastructure and Hosting (Vercel)</h4>
-                <p style="margin: 0;">The JustForms web application is built, deployed, and served as static web assets through Vercel. Vercel delivers the HTML, CSS, JavaScript, and WebAssembly bundles to your browser edge.</p>
-
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Project Development and Telemetry</h4>
-                <p style="margin: 0;">For continuous project development, application stability, and build optimization, anonymous performance metrics (such as page response speed and Core Web Vitals) are gathered via Vercel Analytics. No personally identifiable information, cookies, or document data are ever collected.</p>
-
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. No Third-Party Trackers or Data Brokers</h4>
-                <p style="margin: 0;">We do not use advertising networks, cross-site fingerprinting, commercial data brokers, or marketing trackers. Vercel is our sole infrastructure provider for project delivery.</p>
-
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">5. Independent Network Verification</h4>
-                <p style="margin: 0;">You can verify our zero-upload data policy at any time using your browser's Developer Tools Network Tab (F12 or Cmd+Option+I) to confirm 0 bytes of outgoing document traffic.</p>
             </div>
 
             <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
