@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- Primary SEO Meta Tags -->
-    <title>JustForms — Free Interactive PDF Form Creator & AcroForm Editor</title>
-    <meta name="title" content="JustForms — Free Interactive PDF Form Creator & AcroForm Editor">
+    <title>JustForms - Free Interactive PDF Form Creator & AcroForm Editor</title>
+    <meta name="title" content="JustForms - Free Interactive PDF Form Creator & AcroForm Editor">
     <meta name="description" content="Create fillable PDF forms online for free. Add text boxes, checkboxes, dropdown menus, radio buttons, and digital signatures. 100% private, client-side, zero-bloat AcroForm generator.">
     <meta name="keywords" content="pdf form creator, fillable pdf maker, create fillable pdf online free, acroform generator, pdf form builder, add signature to pdf, free interactive pdf creator, pdf form editor, browser based pdf form maker, sagar shrestha">
     <meta name="author" content="Sagar Shrestha">
@@ -22,7 +22,7 @@
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://justforms.vercel.app/">
-    <meta property="og:title" content="JustForms — Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta property="og:title" content="JustForms - Free Interactive PDF Form Creator & AcroForm Editor">
     <meta property="og:description" content="Transform any PDF into interactive fillable forms with text fields, checkboxes, dropdowns, and digital signatures. 100% free, private & browser-based.">
     <meta property="og:image" content="https://justforms.vercel.app/favicon.svg">
     <meta property="og:site_name" content="JustForms">
@@ -31,7 +31,7 @@
     <!-- Twitter / X Card -->
     <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://justforms.vercel.app/">
-    <meta property="twitter:title" content="JustForms — Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta property="twitter:title" content="JustForms - Free Interactive PDF Form Creator & AcroForm Editor">
     <meta property="twitter:description" content="Create fillable PDF forms online for free. Add text boxes, checkboxes, dropdowns, and digital signatures. 100% private & client-side.">
     <meta property="twitter:image" content="https://justforms.vercel.app/favicon.svg">
 
@@ -113,7 +113,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=2.3">
+    <link rel="stylesheet" href="styles/main.css?v=5.8">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -127,728 +127,490 @@
 </head>
 <body>
     
-    <!-- ═════════════════════════════════════════════════════════════ -->
-    <!-- LANDING PAGE / MAIN HOME SCREEN                               -->
-    <!-- ═════════════════════════════════════════════════════════════ -->
     <div id="landingScreen" class="landing-page">
-        <!-- Navigation Bar -->
-        <nav class="landing-nav">
-            <div class="landing-nav-container">
-                <a href="#hero" class="landing-brand" id="landingLogoBtn" style="text-decoration: none; cursor: pointer;">
-                    <div class="brand-icon">
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color:white;"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
-                    </div>
-                    <span class="brand-name">JustForms</span>
-                </a>
-                <div class="landing-nav-links">
-                    <a href="#hero">Home</a>
-                    <a href="#how-it-works">How It Works</a>
-                    <a href="#professions">Solutions</a>
-                    <a href="#security">Security</a>
-                    <a href="#compatibility">Compatibility</a>
-                    <a href="#faq">FAQ</a>
-                </div>
-                <div class="landing-nav-actions">
-                    <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" class="nav-github-btn" title="View Source & Star on GitHub">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" style="color: #0f172a;"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
-                        <span>GitHub</span>
+        <!-- Top Navigation Header -->
+        <header class="landing-header">
+            <div class="header-inner">
+                <nav class="landing-nav-bar">
+                    <a href="#hero" class="brand" id="landingLogoBtn" onclick="document.getElementById('landingScreen')?.scrollTo({top:0,behavior:'smooth'}); window.scrollTo({top:0,behavior:'smooth'}); return false;" style="cursor: pointer; text-decoration: none;">
+                        <span class="brand-mark">J</span>
+                        <span>JUSTFORMS</span>
                     </a>
-                    <label class="landing-btn-primary" style="cursor: pointer;">
-                        <i data-lucide="upload" style="width:14px; height:14px;"></i>
+                    <div class="nav-links">
+                        <a href="#how-it-works" onclick="document.getElementById('how-it-works')?.scrollIntoView({behavior:'smooth'}); return false;">How it works</a>
+                        <a href="#professions" onclick="document.getElementById('professions')?.scrollIntoView({behavior:'smooth'}); return false;">Solutions</a>
+                        <a href="#security" onclick="document.getElementById('security')?.scrollIntoView({behavior:'smooth'}); return false;">Security</a>
+                        <a href="#compatibility" onclick="document.getElementById('compatibility')?.scrollIntoView({behavior:'smooth'}); return false;">Compatibility</a>
+                        <a href="#faq" onclick="document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}); return false;">FAQ</a>
+                    </div>
+                    <button type="button" class="nav-cta" id="navUploadBtn">
                         <span>Upload PDF</span>
-                        <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                    </label>
-                </div>
+                    </button>
+                    <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                </nav>
             </div>
-        </nav>
+        </header>
 
         <!-- Hero Section -->
-        <section class="landing-hero" id="hero">
-            <div class="hero-content">
-                <div class="hero-badge">
-                    <i data-lucide="shield-check" style="width: 14px; height: 14px; color: #2563eb;"></i>
-                    <span>Private In-Browser PDF Form Creator</span>
-                </div>
-                <h1 class="hero-title">
-                    Turn Any PDF into a <span class="hero-highlight">Fillable Form</span>
-                </h1>
-                <p class="hero-subtitle">
-                    Add interactive text fields, checkboxes, dropdowns, and digital signatures directly in your browser. Fast, private, and runs entirely on your device.
-                </p>
+        <section class="hero-section" id="hero">
+            <div class="hero-inner">
+                <div class="hero">
+                    <div class="left">
+                        <div class="hero-eyebrow">YOUR PDF NEVER LEAVES YOUR COMPUTER</div>
 
-                <!-- Primary Visual Hero Anchor: Drag & Drop Dropzone -->
-                <div class="hero-dropzone" id="heroDropzone">
-                    <div class="dropzone-inner">
-                        <div class="dropzone-icon-box">
-                            <i data-lucide="upload-cloud" style="width:26px; height:26px;"></i>
-                        </div>
-                        <div class="dropzone-text">
-                            <strong style="font-size: 17px; display: block; margin-bottom: 4px; color: #0f172a; font-weight: 700; letter-spacing: -0.3px;">Drag & drop your PDF file here</strong>
-                            <span style="color: #64748b; font-size: 13.5px;">or choose an option below to browse files from your device</span>
-                            
-                            <div class="hero-cta-group" style="display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 18px; margin-bottom: 0;">
-                                <label class="hero-btn-primary" style="cursor: pointer; margin: 0;">
-                                    <i data-lucide="file-up" style="width:16px; height:16px;"></i>
-                                    <span>Browse PDF File</span>
-                                    <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                                </label>
-                                <label class="hero-btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; font-size: 13.5px; font-weight: 600; color: #1e293b; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); transition: transform 0.15s ease, background 0.15s ease;" title="Open a previously saved editable JustForms project backup file">
-                                    <i data-lucide="folder-open" style="width:16px; height:16px; color:#0284c7;"></i>
-                                    <span>Open Saved Project (.jform)</span>
-                                    <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                        <h1>Make any PDF fillable. Skip the upload.</h1>
 
-                <!-- Mobile Optimized Hero Card (< 768px Viewports) -->
-                <div class="mobile-hero-card">
-                    <div class="mobile-hero-icon-box">
-                        <i data-lucide="monitor" style="width: 26px; height: 26px; color: #2563eb;"></i>
-                    </div>
-                    <div class="mobile-hero-text">
-                        <strong style="font-size: 15.5px; color: #0f172a; display: block; margin-bottom: 4px;">Turn PDFs into Fillable Forms on your Mac/PC</strong>
-                        <p style="font-size: 12.5px; color: #64748b; margin: 0 0 14px; line-height: 1.5;">Authoring & drag-and-drop placement works best on desktop. Test & fill sample forms right here on mobile!</p>
-                        <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-                            <button type="button" class="mobile-hero-test-btn" id="mobileExploreFormsBtn">
-                                <i data-lucide="file-text" style="width: 14px; height: 14px;"></i> Explore Sample Forms
-                            </button>
-                            <button type="button" class="mobile-hero-share-btn" id="mobileHeroShareBtn">
-                                <i data-lucide="share-2" style="width: 14px; height: 14px;"></i> Send Link to Desktop
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dedicated How It Works & Live Interactive Demo Section -->
-        <section class="landing-section bg-alt" id="how-it-works">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-eyebrow">Interactive Preview</span>
-                    <h2 class="section-title">How JustForms Works</h2>
-                    <p class="section-subtitle">Experience how easy it is to add interactive text fields, checkboxes, dropdowns, and digital signatures to any document.</p>
-                </div>
-
-                <!-- Live Interactive Canvas Preview Widget -->
-                <div class="hero-live-preview-widget">
-                    <div class="widget-header">
-                        <div class="widget-header-left">
-                            <span class="widget-dot red"></span>
-                            <span class="widget-dot yellow"></span>
-                            <span class="widget-dot green"></span>
-                            <span class="widget-title">Interactive Live Playground</span>
-                        </div>
-                        <span class="widget-badge">
-                            <i data-lucide="mouse-pointer-click" style="width: 12px; height: 12px;"></i> Try Typing
-                        </span>
-                    </div>
-
-                    <div class="widget-body">
-                        <div class="mini-canvas-paper">
-                            <div class="mini-doc-header">
-                                <div class="mini-doc-title">CONFIDENTIALITY & NON-DISCLOSURE AGREEMENT</div>
-                                <div class="mini-doc-sub">Interactive Fillable Form • Compatible with Adobe Reader, Apple Preview & Web Browsers</div>
-                            </div>
-
-                            <div class="mini-field-group">
-                                <div class="mini-field-group-row">
-                                    <div class="mini-field-box active-demo">
-                                        <span class="mini-field-tag">Text Field</span>
-                                        <label class="mini-label" for="demoNameInput">Full Name of Recipient</label>
-                                        <input type="text" id="demoNameInput" class="mini-input" value="Alex Morgan" placeholder="Type your name here to test...">
-                                    </div>
-                                    <div class="mini-field-box">
-                                        <span class="mini-field-tag">Dropdown</span>
-                                        <label class="mini-label" for="demoRoleSelect">Designation / Role</label>
-                                        <select id="demoRoleSelect" class="mini-select">
-                                            <option>Senior Software Engineer</option>
-                                            <option>Legal Counsel</option>
-                                            <option>Product Manager</option>
-                                            <option>Executive Director</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="mini-field-group-row">
-                                    <div class="mini-field-box">
-                                        <label class="mini-label-check" style="cursor: pointer;">
-                                            <input type="checkbox" id="demoAgreeCheck" class="mini-checkbox" checked>
-                                            <span>I agree to the non-disclosure terms and privacy policy</span>
-                                        </label>
-                                    </div>
-                                    <div class="mini-field-box mini-sig-box">
-                                        <span class="mini-field-tag sig-tag">Signature</span>
-                                        <label class="mini-label">Recipient Signature Preview</label>
-                                        <div class="mini-sig-preview">
-                                            <span class="sig-font" id="demoSigPreview">Alex Morgan</span>
-                                            <span class="sig-status">✓ Verified</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Floating Inspector HUD -->
-                            <div class="mini-floating-hud">
-                                <span class="hud-mini-type">Fillable AcroForm</span>
-                                <button type="button" class="hud-mini-btn" id="heroTryInEditorBtn">Open in Editor →</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Dedicated Target Use Cases & Industry Solutions Section -->
-        <section class="landing-section" id="professions">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-eyebrow">Solutions</span>
-                    <h2 class="section-title">Built for Every Document Need</h2>
-                    <p class="section-subtitle">Whether you need commercial billing invoices, patient intake forms, rental property leases, or NDA contracts—JustForms generates standard, compliant fillable PDFs in seconds.</p>
-                </div>
-
-                <div class="profession-grid">
-                    <!-- Solution 1: Billing & Commercial Invoices -->
-                    <div class="profession-card">
-                        <div>
-                            <div class="profession-icon-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
-                                <i data-lucide="receipt" style="width: 22px; height: 22px;"></i>
-                            </div>
-                            <h3>Commercial Billing & Invoicing</h3>
-                            <p>Send professional fillable billing documents. Add itemized line totals, payment terms, tax IDs, and recipient signature blocks.</p>
-                        </div>
-                        <button type="button" class="profession-btn template-use-btn" data-template="invoice">Try Commercial Invoice →</button>
-                    </div>
-
-                    <!-- Solution 2: Patient Intake & Health Forms -->
-                    <div class="profession-card">
-                        <div>
-                            <div class="profession-icon-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
-                                <i data-lucide="activity" style="width: 22px; height: 22px;"></i>
-                            </div>
-                            <h3>Patient Intake & Consent Forms</h3>
-                            <p>Private patient onboarding with local execution. Collect medical history, intake disclosures, and consent release signatures.</p>
-                        </div>
-                        <button type="button" class="profession-btn template-use-btn" data-template="intake">Try Patient Intake Form →</button>
-                    </div>
-
-                    <!-- Solution 3: Property Management & Leases -->
-                    <div class="profession-card">
-                        <div>
-                            <div class="profession-icon-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
-                                <i data-lucide="building" style="width: 22px; height: 22px;"></i>
-                            </div>
-                            <h3>Property Management & Leases</h3>
-                            <p>Streamline tenant screening applications and lease contracts. Include dual-party signature blocks for landlord and tenant execution.</p>
-                        </div>
-                        <button type="button" class="profession-btn template-use-btn" data-template="lease">Try Lease Agreement →</button>
-                    </div>
-
-                    <!-- Solution 4: HR, Tax & Employee Onboarding -->
-                    <div class="profession-card">
-                        <div>
-                            <div class="profession-icon-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
-                                <i data-lucide="users" style="width: 22px; height: 22px;"></i>
-                            </div>
-                            <h3>HR, Tax & Employee Onboarding</h3>
-                            <p>Onboard new hires with fillable W-9 / W-4 tax forms, employment screening questionnaires, and employee NDA agreements.</p>
-                        </div>
-                        <button type="button" class="profession-btn template-use-btn" data-template="w9">Try W-9 Tax Form →</button>
-                    </div>
-
-                    <!-- Solution 5: Legal Contracts & Compliance -->
-                    <div class="profession-card">
-                        <div>
-                            <div class="profession-icon-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
-                                <i data-lucide="scale" style="width: 22px; height: 22px;"></i>
-                            </div>
-                            <h3>Legal Contracts & Compliance</h3>
-                            <p>ISO 32000 AcroForm compliant legal contracts. Enforce required signature fields, date stamps, and read-only field locks.</p>
-                        </div>
-                        <button type="button" class="profession-btn template-use-btn" data-template="nda">Try NDA Contract →</button>
-                    </div>
-
-                    <!-- Solution 6: Client Registration & Service Agreements -->
-                    <div class="profession-card">
-                        <div>
-                            <div class="profession-icon-badge" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
-                                <i data-lucide="briefcase" style="width: 22px; height: 22px;"></i>
-                            </div>
-                            <h3>Client Onboarding & Services</h3>
-                            <p>Create fillable application forms, registration documents, and service agreements without subscription paywalls.</p>
-                        </div>
-                        <button type="button" class="profession-btn template-use-btn" data-template="rental">Try Rental Application →</button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-
-        <!-- Features Bento Grid -->
-        <section class="landing-section bg-alt" id="features">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-eyebrow">Features</span>
-                    <h2 class="section-title">Everything you need to craft perfect forms</h2>
-                    <p class="section-subtitle">A fast, focused, and professional PDF form authoring suite.</p>
-                </div>
-
-                <div class="features-bento-grid">
-                    <div class="bento-card bento-wide">
-                        <div class="bento-icon"><i data-lucide="pen-tool" style="width:22px; height:22px; color:#2563eb;"></i></div>
-                        <h3>Interactive Digital Signatures</h3>
-                        <p>Place signature fields (press <code>S</code>). Signers can draw with trackpad/mouse or generate clean cursive handwriting with zero quality loss.</p>
-                        <div class="bento-visual sig-vis">
-                            <span style="font-family:'Brush Script MT', cursive; font-size:22px; color:#1e293b;">Johnathan Doe</span>
-                            <span style="font-size:11px; color:#10b981; font-weight:600; display:flex; align-items:center; gap:4px;"><i data-lucide="check-circle" style="width:12px; height:12px;"></i> Adopted & Verified</span>
-                        </div>
-                    </div>
-
-                    <div class="bento-card">
-                        <div class="bento-icon"><i data-lucide="copy" style="width:22px; height:22px; color:#2563eb;"></i></div>
-                        <h3>Option / Alt + Drag Cloning</h3>
-                        <p>Hold Option/Alt and drag any field on canvas to duplicate instantly with automatic name increments.</p>
-                    </div>
-
-                    <div class="bento-card">
-                        <div class="bento-icon"><i data-lucide="files" style="width:22px; height:22px; color:#2563eb;"></i></div>
-                        <h3>Multi-Page Documents</h3>
-                        <p>Add, remove, and switch pages easily. Form fields are distributed across their exact target pages in the final PDF.</p>
-                    </div>
-
-                    <div class="bento-card">
-                        <div class="bento-icon"><i data-lucide="wand-2" style="width:22px; height:22px; color:#2563eb;"></i></div>
-                        <h3>Smart Auto-Field Detection</h3>
-                        <p>Analyze document geometry in milliseconds to automatically generate form fields for underlines, blanks, and checkboxes.</p>
-                    </div>
-
-                    <div class="bento-card bento-wide">
-                        <div class="bento-icon"><i data-lucide="magnet" style="width:22px; height:22px; color:#2563eb;"></i></div>
-                        <h3>Magnetic Snapping & Multi-Select</h3>
-                        <p>Snap to edges and centers with alignment guides. Multi-select with box lasso, distribute evenly, and resize batches uniformly.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- User Reviews & Testimonials Section -->
-        <section class="landing-section" id="reviews" style="background:#ffffff; border-top: 1px solid #e2e8f0;">
-            <div class="section-container">
-                <div class="section-header">
-                    <span class="section-eyebrow">User Feedback</span>
-                    <h2 class="section-title">What Users Are Saying</h2>
-                    <p class="section-subtitle">Real reviews submitted by users directly from the editor.</p>
-                </div>
-
-                <!-- Review Filter & Sort Toolbar -->
-                <div class="reviews-toolbar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 24px; padding: 12px 18px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <i data-lucide="message-square" style="width: 15px; height: 15px; color: #2563eb;"></i>
-                        <span id="reviewCountPill" style="font-size: 13px; font-weight: 700; color: #0f172a;">Showing 6 Reviews</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <label for="reviewSortSelect" style="font-size: 12.5px; font-weight: 600; color: #64748b;">Sort By:</label>
-                        <select id="reviewSortSelect" style="padding: 6px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 12.5px; font-weight: 600; color: #0f172a; background: #ffffff; outline: none; cursor: pointer;">
-                            <option value="latest">Latest</option>
-                            <option value="oldest">Oldest</option>
-                            <option value="rating">Highest Rating</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div id="userReviewsGrid" class="user-reviews-grid">
-                    <!-- Cards populated dynamically by js/landing-controller.js -->
-                </div>
-
-                <!-- Load More Reviews Button -->
-                <div id="loadMoreReviewsContainer" style="display: flex; justify-content: center; margin-top: 32px;">
-                    <button id="loadMoreReviewsBtn" class="btn-secondary" style="padding: 10px 24px; font-size: 13px; font-weight: 600; border-radius: 20px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                        <i data-lucide="chevron-down" style="width: 16px; height: 16px;"></i>
-                        <span id="loadMoreReviewsText">Show More Reviews</span>
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Open Source & Community Section -->
-        <section class="landing-section" id="open-source" style="background: #ffffff; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding: 72px 24px;">
-            <div class="section-container" style="max-width: 1100px; margin: 0 auto;">
-                <div class="section-header" style="text-align: center; margin-bottom: 48px;">
-                    <span class="section-eyebrow">Open Source</span>
-                    <h2 class="section-title" style="font-size: 2.1rem; font-weight: 800; color: #0f172a; margin-top: 10px; letter-spacing: -0.5px;">Free & Open Source Forever</h2>
-                    <p class="section-subtitle" style="font-size: 14.5px; color: #64748b; max-width: 620px; margin: 8px auto 0; line-height: 1.6;">JustForms is built transparently for developers, privacy enthusiasts, and teams who want complete control over their PDF tools.</p>
-                </div>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px;">
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="code-2" style="width: 20px; height: 20px;"></i>
-                        </div>
-                        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">MIT Licensed</h3>
-                        <p style="font-size: 13.5px; color: #64748b; line-height: 1.5; margin: 0;">Free for personal, educational, and commercial projects without restrictions or hidden paywalls.</p>
-                    </div>
-
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="hard-drive" style="width: 20px; height: 20px;"></i>
-                        </div>
-                        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Zero Backend Lock-In</h3>
-                        <p style="font-size: 13.5px; color: #64748b; line-height: 1.5; margin: 0;">Runs entirely in client memory using HTML5 & JS. Easily self-host on Vercel, GitHub Pages, or any static host.</p>
-                    </div>
-
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="git-pull-request" style="width: 20px; height: 20px;"></i>
-                        </div>
-                        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Community Driven</h3>
-                        <p style="font-size: 13.5px; color: #64748b; line-height: 1.5; margin: 0;">Contribute features, report issues, and inspect every line of source code on GitHub.</p>
-                    </div>
-
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="file-check-2" style="width: 20px; height: 20px;"></i>
-                        </div>
-                        <h3 style="font-size: 16px; font-weight: 700; color: #0f172a; margin: 0;">Standard AcroForms</h3>
-                        <p style="font-size: 13.5px; color: #64748b; line-height: 1.5; margin: 0;">Generates standard ISO 32000 PDF AcroForms compatible with Adobe Acrobat, Mac Preview, Chrome, and Edge.</p>
-                    </div>
-                </div>
-
-                <div style="margin-top: 36px; text-align: center; display: flex; justify-content: center; gap: 14px; flex-wrap: wrap;">
-                    <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="background: #0f172a; color: #ffffff; padding: 11px 22px; border-radius: 10px; font-size: 13.5px; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.15s ease;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"></path><path d="M9 18c-4.51 2-5-2-7-2"></path></svg>
-                        <span>Star & Audit Code on GitHub</span>
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!-- Security & Privacy Architecture Section -->
-        <section class="landing-section" id="security" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 72px 24px;">
-            <div class="section-container" style="max-width: 1100px; margin: 0 auto;">
-                <div class="section-header" style="text-align: center; margin-bottom: 48px;">
-                    <span class="section-eyebrow">Security & Architecture</span>
-                    <h2 class="section-title" style="font-size: 2.1rem; font-weight: 800; color: #0f172a; margin-top: 10px; letter-spacing: -0.5px;">How We Protect Your Data</h2>
-                    <p class="section-subtitle" style="font-size: 14.5px; color: #64748b; max-width: 640px; margin: 8px auto 0; line-height: 1.6;">
-                        Unlike cloud PDF converters that upload confidential files to remote servers, JustForms executes locally inside your browser's private memory sandbox.
-                    </p>
-                </div>
-
-                <div class="security-pillars-grid">
-                    <div class="security-pillar-card">
-                        <div class="security-pillar-icon" style="background: #eff6ff; color: #2563eb;">
-                            <i data-lucide="cpu" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3>In-Memory Parsing</h3>
-                        <p>Document bytes are loaded exclusively into your browser's private JavaScript memory. Files never touch any remote disk, database, or backend service.</p>
-                    </div>
-
-                    <div class="security-pillar-card">
-                        <div class="security-pillar-icon" style="background: #eff6ff; color: #2563eb;">
-                            <i data-lucide="wifi-off" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3>PWA & Offline Airplane Mode</h3>
-                        <p>Installable as a Progressive Web App (PWA). Disconnect your internet connection or turn on Airplane Mode — create, edit, and export forms with 100% offline proof.</p>
-                    </div>
-
-                    <div class="security-pillar-card">
-                        <div class="security-pillar-icon" style="background: #eff6ff; color: #2563eb;">
-                            <i data-lucide="eye-off" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3>Zero Keystroke Telemetry</h3>
-                        <p>No tracking scripts or remote telemetry logger capture your keystrokes, form responses, or signature data. Your documents remain strictly confidential.</p>
-                    </div>
-
-                    <div class="security-pillar-card">
-                        <div class="security-pillar-icon" style="background: #eff6ff; color: #2563eb;">
-                            <i data-lucide="file-check" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <h3>Local Vector Compilation</h3>
-                        <p>Standard ISO 32000 AcroForm binary streams are compiled directly on your CPU and saved directly to your local Downloads folder via browser Memory Blobs.</p>
-                    </div>
-                </div>
-
-                <!-- Interactive DevTools Network Verification Card -->
-                <div class="devtools-verification-card">
-                    <div class="devtools-card-header">
-                        <div class="devtools-header-title">
-                            <i data-lucide="terminal" style="width: 24px; height: 24px; color: #38bdf8;"></i>
-                            <div>
-                                <h3>Verify Privacy in 3 Steps with Browser DevTools</h3>
-                                <span style="font-size: 12.5px; color: #94a3b8;">Transparent proof designed for security auditors, compliance officers, and IT teams.</span>
-                            </div>
-                        </div>
-                        <span style="background: #1e293b; color: #38bdf8; border: 1px solid #334155; padding: 4px 12px; border-radius: 6px; font-size: 11.5px; font-weight: 700;">
-                            0 BYTES TRANSMITTED
-                        </span>
-                    </div>
-
-                    <div class="devtools-steps-grid">
-                        <div class="devtools-step-item">
-                            <span class="devtools-step-num">1</span>
-                            <strong>Open Developer Tools</strong>
-                            <p>Press <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">F12</code> or <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">Cmd + Option + I</code> in Chrome, Edge, Safari, or Firefox.</p>
-                        </div>
-                        <div class="devtools-step-item">
-                            <span class="devtools-step-num">2</span>
-                            <strong>Inspect the Network Tab</strong>
-                            <p>Switch to the <strong>Network</strong> tab and filter by <strong>Fetch / XHR</strong>. Clear the current log.</p>
-                        </div>
-                        <div class="devtools-step-item">
-                            <span class="devtools-step-num">3</span>
-                            <strong>Observe Zero Outgoing Data</strong>
-                            <p>Drop a 100-page PDF, place fields, sign, and export. Verify that <strong>0 document bytes or field entries</strong> leave your computer.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Compliance Statement & Liability Boundary Callout -->
-                <div style="margin-top: 24px; padding: 18px 22px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; align-items: flex-start; gap: 14px;">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;">
-                        <i data-lucide="info" style="width: 18px; height: 18px;"></i>
-                    </div>
-                    <div style="font-size: 13px; color: #475569; line-height: 1.6;">
-                        <strong style="color: #0f172a; display: block; margin-bottom: 2px;">HIPAA & Enterprise Privacy Architecture Notice</strong>
-                        Because JustForms operates purely as client-side software running in your local browser sandbox and never receives, transmits, or stores data on external servers, no Protected Health Information (PHI) is processed by third-party servers. Forms are created locally under your organization's direct hardware control. See our <button type="button" id="complianceNoticeBtn" style="background: none; border: none; padding: 0; color: #2563eb; font-weight: 700; text-decoration: underline; cursor: pointer; font-family: inherit;">Compliance Architecture & Disclaimer</button>.
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- PDF Reader Compatibility & Reliability Section -->
-        <section class="landing-section" id="compatibility" style="background: #ffffff; border-bottom: 1px solid #e2e8f0; padding: 72px 24px;">
-            <div class="section-container" style="max-width: 1100px; margin: 0 auto;">
-                <div class="section-header" style="text-align: center; margin-bottom: 36px;">
-                    <span class="section-eyebrow">Compatibility</span>
-                    <h2 class="section-title" style="font-size: 2.1rem; font-weight: 800; color: #0f172a; margin-top: 10px; letter-spacing: -0.5px;">Universal PDF Reader Compatibility</h2>
-                    <p class="section-subtitle" style="font-size: 14.5px; color: #64748b; max-width: 640px; margin: 8px auto 0; line-height: 1.6;">
-                        Forms created with JustForms follow strict ISO 32000-1 AcroForm standards, guaranteeing interactive behavior across all PDF readers.
-                    </p>
-                </div>
-
-                <div class="compatibility-grid">
-                    <div class="compatibility-card">
-                        <div class="compatibility-icon-wrapper">
-                            <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-                                <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" fill="#DC2626"/>
-                                <path d="M9.5 7.5c-1.8 0-3 1.2-3 2.8 0 2.2 2.5 3.2 4.2 3.8l.8.3v-4c-.7-.9-1.4-1.9-2-2.9zm5 0c-.6 1-1.3 2-2 2.9v4l.8-.3c1.7-.6 4.2-1.6 4.2-3.8 0-1.6-1.2-2.8-3-2.8zM12 11.5l-.8.3c-2 .7-4.7 1.8-4.7 4.7 0 1.2.9 2 2.2 2 2.2 0 3.3-2.5 3.3-5.2v-1.8zm0 0v1.8c0 2.7 1.1 5.2 3.3 5.2 1.3 0 2.2-.8 2.2-2 0-2.9-2.7-4-4.7-4.7l-.8-.3z" fill="#FFFFFF"/>
-                            </svg>
-                        </div>
-                        <strong>Adobe Acrobat Reader</strong>
-                        <span class="compatibility-status-badge">
-                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> 100% Verified
-                        </span>
-                        <p>Full support for text boxes, checkboxes, radio buttons, dropdowns, and digital signatures.</p>
-                    </div>
-
-                    <div class="compatibility-card">
-                        <div class="compatibility-icon-wrapper">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="color: #0f172a;">
-                                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.72-.94 2.74 1 .08 2.02-.49 2.64-1.24z"/>
-                            </svg>
-                        </div>
-                        <strong>Apple Preview</strong>
-                        <span class="compatibility-status-badge">
-                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Native macOS/iOS
-                        </span>
-                        <p>Instant fillable form rendering on Mac, iPad, and iPhone with hardware-accelerated printing.</p>
-                    </div>
-
-                    <div class="compatibility-card">
-                        <div class="compatibility-icon-wrapper">
-                            <svg viewBox="0 0 24 24" width="22" height="22">
-                                <circle cx="12" cy="12" r="4.2" fill="#4285F4"/>
-                                <path d="M12 2C6.48 2 2 6.48 2 12c0 1.25.23 2.45.65 3.55l4.35-7.55H12V2z" fill="#EA4335"/>
-                                <path d="M12 22c4.14 0 7.7-2.52 9.24-6.13L16.89 8H7l5 8.66V22z" fill="#34A853"/>
-                                <path d="M2 12c0 4.14 2.52 7.7 6.13 9.24l4.35-7.55L7 5H2.65C2.23 6.1 2 7.3 2 12z" fill="#FBBC05"/>
-                                <circle cx="12" cy="12" r="3.6" fill="#FFFFFF"/>
-                                <circle cx="12" cy="12" r="2.8" fill="#1A73E8"/>
-                            </svg>
-                        </div>
-                        <strong>Google Chrome</strong>
-                        <span class="compatibility-status-badge">
-                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> In-Browser Fillable
-                        </span>
-                        <p>Seamless interactive form completion in Chrome and all Chromium-based web browsers.</p>
-                    </div>
-
-                    <div class="compatibility-card">
-                        <div class="compatibility-icon-wrapper">
-                            <svg viewBox="0 0 24 24" width="22" height="22">
-                                <path d="M21.5 13.5c-.3 4.2-3.8 7.5-8 7.5-4.7 0-8.5-3.8-8.5-8.5 0-3.6 2.3-6.7 5.5-7.9v4.2c-1.3.8-2.2 2.2-2.2 3.7 0 2.5 2 4.5 4.5 4.5 2.1 0 3.8-1.4 4.3-3.5h4.4z" fill="#0078D4"/>
-                                <path d="M12 2.5c4.7 0 8.5 3.8 8.5 8.5 0 .8-.1 1.6-.3 2.3H16c-.5-1.9-2.2-3.3-4.2-3.3-2.5 0-4.5 2-4.5 4.5 0 .8.2 1.5.6 2.1L4.8 19C3.1 17.2 2 14.7 2 12 2 6.8 6.5 2.5 12 2.5z" fill="#00A4EF"/>
-                            </svg>
-                        </div>
-                        <strong>Microsoft Edge</strong>
-                        <span class="compatibility-status-badge">
-                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Windows 11 Native
-                        </span>
-                        <p>Built-in PDF reader supports tab navigation, digital ink signatures, and form field saving.</p>
-                    </div>
-
-                    <div class="compatibility-card">
-                        <div class="compatibility-icon-wrapper">
-                            <svg viewBox="0 0 24 24" width="22" height="22">
-                                <circle cx="12" cy="12" r="9.5" fill="#FF7139"/>
-                                <circle cx="12" cy="12" r="7.5" fill="#0A84FF"/>
-                                <path d="M12 2.5c2.3 0 4.4.8 6.1 2.2-1.5-.4-3.1-.2-4.5.6-1.7 1-2.6 2.8-2.3 4.7.3 1.9 1.8 3.3 3.7 3.5-2.2 2.5-6 2.8-8.5.6-2.5-2.2-2.8-6-.6-8.5C7.2 4.1 9.5 2.5 12 2.5z" fill="#FF9400"/>
-                                <circle cx="12" cy="12" r="5" fill="#0060DF"/>
-                            </svg>
-                        </div>
-                        <strong>Mozilla Firefox</strong>
-                        <span class="compatibility-status-badge">
-                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Standards Compliant
-                        </span>
-                        <p>High-fidelity rendering powered by the open-source PDF.js rendering pipeline.</p>
-                    </div>
-
-                    <div class="compatibility-card">
-                        <div class="compatibility-icon-wrapper">
-                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: #059669;">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                                <polyline points="14 2 14 8 20 8"/>
-                                <path d="m9 15 2 2 4-4"/>
-                            </svg>
-                        </div>
-                        <strong>Foxit & PDF Expert</strong>
-                        <span class="compatibility-status-badge">
-                            <i data-lucide="check" style="width: 12px; height: 12px;"></i> Fully Supported
-                        </span>
-                        <p>Accurate field positioning, tab indexing, multiline wrapping, and custom font rendering.</p>
-                    </div>
-                </div>
-
-                <!-- Local Auto-Save & Crash Guard Callout -->
-                <div style="margin-top: 32px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <div style="width: 42px; height: 42px; border-radius: 10px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <i data-lucide="save" style="width: 22px; height: 22px;"></i>
-                        </div>
-                        <div>
-                            <strong style="font-size: 15px; color: #0f172a; display: block; margin-bottom: 2px;">Local Auto-Save & Crash Guard</strong>
-                            <p style="font-size: 13px; color: #64748b; margin: 0;">Your form layout progress is continuously preserved in your local browser session storage. Accidental refreshes or closed tabs won't lose your work.</p>
-                        </div>
-                    </div>
-                    <span style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
-                        <i data-lucide="shield" style="width: 14px; height: 14px;"></i> Protected Session
-                    </span>
-                </div>
-            </div>
-        </section>
-
-        <!-- FAQ Section -->
-        <section class="landing-faq" id="faq" style="padding: 70px 24px; max-width: 900px; margin: 0 auto;">
-            <div style="text-align: center; margin-bottom: 40px;">
-                <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; margin: 0 0 10px;">Frequently Asked Questions</h2>
-                <p style="font-size: 15px; color: #64748b; margin: 0;">Everything you need to know about creating fillable PDF forms with JustForms.</p>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 14px;">
-                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
-                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">Is JustForms really 100% free?</summary>
-                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">Yes! JustForms is completely free to use. There are no subscriptions, paywalls, watermarks, page limits, or account registrations required.</p>
-                </details>
-                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
-                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">Are my uploaded documents private and secure?</summary>
-                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">Absolutely. JustForms processes all PDF parsing, field placement, and AcroForm generation 100% locally in your web browser memory. Your documents and client data are never uploaded to any remote server or third-party cloud.</p>
-                </details>
-                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
-                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">Will the generated fillable form work in Adobe Acrobat & Mac Preview?</summary>
-                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">Yes. JustForms exports strict ISO 32000 compliant PDF AcroForms. When clients open your PDF in Adobe Acrobat Reader, macOS Preview, Google Chrome, Microsoft Edge, or DocuSign, they can click, type, select dropdowns, check boxes, and sign seamlessly.</p>
-                </details>
-                <details style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; cursor: pointer;">
-                    <summary style="font-weight: 700; font-size: 15px; color: #1e293b; outline: none;">How does the Smart Auto-Detect feature work?</summary>
-                    <p style="margin: 10px 0 0; font-size: 14px; color: #64748b; line-height: 1.6;">The Smart Auto-Detector analyzes the spatial layout and text geometry of your PDF to find labels, blank underlines (_______), and checkboxes ([ ]), automatically generating interactive form fields in under 30 milliseconds.</p>
-                </details>
-            </div>
-        </section>
-
-        <!-- CTA Footer Banner -->
-        <section class="landing-cta-banner" id="how-it-works-cta">
-            <div class="cta-banner-content">
-                <h2>Ready to make your PDF fillable?</h2>
-                <p>Upload any PDF to start placing text fields, dropdowns, and digital signatures.</p>
-                <label class="hero-btn-primary" style="margin: 0 auto; cursor: pointer; display: inline-flex;">
-                    <i data-lucide="file-up" style="width:18px; height:18px;"></i>
-                    <span>Upload PDF Document</span>
-                    <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                </label>
-            </div>
-        </section>
-
-        <!-- Professional 4-Column Footer -->
-        <footer class="landing-footer" id="contact" style="background:#0f172a; color:#94a3b8; padding: 56px 24px 36px; border-top:1px solid #1e293b;">
-            <div class="footer-container" style="max-width:1100px; margin:0 auto; display:flex; flex-direction:column; gap:36px;">
-                <div class="footer-four-columns">
-                    <!-- Column 1: Brand & Overview -->
-                    <div class="footer-col">
-                        <a href="#hero" style="display:flex; align-items:center; gap:8px; margin-bottom:4px; text-decoration:none; color:inherit; cursor:pointer;" id="footerBrandLogo">
-                            <div style="width:28px; height:28px; border-radius:6px; background:#0284c7; display:flex; align-items:center; justify-content:center; color:white; font-weight:800; font-size:14px;">J</div>
-                            <span style="font-size:18px; font-weight:800; color:#ffffff; letter-spacing:-0.5px;">JustForms</span>
-                        </a>
-                        <p style="margin:0; font-size:13px; color:#94a3b8; line-height:1.6;">
-                            Client-side interactive PDF form creator & AcroForm builder. Designed for maximum privacy, zero backend telemetry, and universal ISO 32000 compatibility.
+                        <p class="sub">
+                            Drop in a PDF and click where you need a text box, checkbox, dropdown, or signature.
+                            It all happens right in your browser, so nothing gets uploaded and there's nothing to sign up for.
                         </p>
-                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
-                            <span class="footer-legal-pill">MIT Open Source</span>
-                            <span class="footer-legal-pill" style="color: #38bdf8; border-color: #0369a1;">PWA Offline Ready</span>
+
+                        <div class="cta-row">
+                            <button type="button" class="btn-primary" id="heroBrowseBtn">
+                                <span>Browse PDF File</span>
+                            </button>
+                            <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                            <button type="button" class="btn-secondary" id="heroOpenProjectBtn" title="Open a previously saved editable JustForms project backup file">
+                                <span>Open Saved Project (.jform)</span>
+                            </button>
+                            <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                        </div>
+
+                        <div class="trusted">
+                            <div class="trusted-label">Forms open cleanly in</div>
+                            <div class="logo-row">
+                                <div class="lg">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" style="flex:none;">
+                                        <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z" fill="#E11D48"/>
+                                        <path d="M9.5 7.5c-1.8 0-3 1.2-3 2.8 0 2.2 2.5 3.2 4.2 3.8l.8.3v-4c-.7-.9-1.4-1.9-2-2.9zm5 0c-.6 1-1.3 2-2 2.9v4l.8-.3c1.7-.6 4.2-1.6 4.2-3.8 0-1.6-1.2-2.8-3-2.8zM12 11.5l-.8.3c-2 .7-4.7 1.8-4.7 4.7 0 1.2.9 2 2.2 2 2.2 0 3.3-2.5 3.3-5.2v-1.8zm0 0v1.8c0 2.7 1.1 5.2 3.3 5.2 1.3 0 2.2-.8 2.2-2 0-2.9-2.7-4-4.7-4.7l-.8-.3z" fill="#FFFFFF"/>
+                                    </svg>
+                                    <span>Acrobat</span>
+                                </div>
+                                <div class="lg">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="flex:none; color:#1e293b;">
+                                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.93-2.85-.9.04-1.99.6-2.63 1.35-.57.65-1.07 1.72-.94 2.74 1 .08 2.02-.49 2.64-1.24z"/>
+                                    </svg>
+                                    <span>Preview</span>
+                                </div>
+                                <div class="lg">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" style="flex:none;">
+                                        <circle cx="12" cy="12" r="4.2" fill="#4285F4"/>
+                                        <path d="M12 2C6.48 2 2 6.48 2 12c0 1.25.23 2.45.65 3.55l4.35-7.55H12V2z" fill="#EA4335"/>
+                                        <path d="M12 22c4.14 0 7.7-2.52 9.24-6.13L16.89 8H7l5 8.66V22z" fill="#34A853"/>
+                                        <path d="M2 12c0 4.14 2.52 7.7 6.13 9.24l4.35-7.55L7 5H2.65C2.23 6.1 2 7.3 2 12z" fill="#FBBC05"/>
+                                        <circle cx="12" cy="12" r="3.6" fill="#FFFFFF"/>
+                                        <circle cx="12" cy="12" r="2.8" fill="#1A73E8"/>
+                                    </svg>
+                                    <span>Chrome</span>
+                                </div>
+                                <div class="lg">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" style="flex:none;">
+                                        <path d="M21.5 13.5c-.3 4.2-3.8 7.5-8 7.5-4.7 0-8.5-3.8-8.5-8.5 0-3.6 2.3-6.7 5.5-7.9v4.2c-1.3.8-2.2 2.2-2.2 3.7 0 2.5 2 4.5 4.5 4.5 2.1 0 3.8-1.4 4.3-3.5h4.4z" fill="#0078D4"/>
+                                        <path d="M12 2.5c4.7 0 8.5 3.8 8.5 8.5 0 .8-.1 1.6-.3 2.3H16c-.5-1.9-2.2-3.3-4.2-3.3-2.5 0-4.5 2-4.5 4.5 0 .8.2 1.5.6 2.1L4.8 19C3.1 17.2 2 14.7 2 12 2 6.8 6.5 2.5 12 2.5z" fill="#00A4EF"/>
+                                    </svg>
+                                    <span>Edge</span>
+                                </div>
+                                <div class="lg">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" style="flex:none;">
+                                        <circle cx="12" cy="12" r="9.5" fill="#FF7139"/>
+                                        <circle cx="12" cy="12" r="7.5" fill="#0A84FF"/>
+                                        <path d="M12 2.5c2.3 0 4.4.8 6.1 2.2-1.5-.4-3.1-.2-4.5.6-1.7 1-2.6 2.8-2.3 4.7.3 1.9 1.8 3.3 3.7 3.5-2.2 2.5-6 2.8-8.5.6-2.5-2.2-2.8-6-.6-8.5C7.2 4.1 9.5 2.5 12 2.5z" fill="#FF9400"/>
+                                        <circle cx="12" cy="12" r="5" fill="#0060DF"/>
+                                    </svg>
+                                    <span>Firefox</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Column 2: Product & Tools -->
-                    <div class="footer-col">
-                        <h4 class="footer-col-title">Product & Engine</h4>
-                        <ul class="footer-link-list">
-                            <li><a href="#hero">Home</a></li>
-                            <li><a href="#how-it-works">Interactive Form Editor</a></li>
-                            <li><a href="#professions">Industry Solutions</a></li>
-                            <li><a href="#compatibility">AcroForm Compiler</a></li>
-                            <li><button type="button" id="footerShortcutsBtn">Keyboard Shortcuts</button></li>
-                        </ul>
-                    </div>
+                    <div class="rig">
+                        <div class="hero-video-card" id="heroDropzone" onclick="if(window.openHeroVideoModal) window.openHeroVideoModal();" title="Click to watch full video demo">
+                            <!-- Clean Video Showcase Frame -->
+                            <div class="video-card-inner">
+                                <video class="hero-showcase-video" autoplay loop muted playsinline preload="auto" poster="assets/hero-poster.jpg?v=5.3" aria-label="JustForms interactive visual editor demo">
+                                    <source src="assets/hero-demo.mp4?v=5.3" type="video/mp4">
+                                    <source src="assets/hero-demo.webm?v=5.3" type="video/webm">
+                                    <img class="hero-showcase-fallback" src="assets/hero-poster.jpg?v=5.3" alt="JustForms editor preview">
+                                </video>
+                                <div class="video-card-glass"></div>
 
-                    <!-- Column 3: Security & Verification -->
-                    <div class="footer-col">
-                        <h4 class="footer-col-title">Security & Proof</h4>
-                        <ul class="footer-link-list">
-                            <li><a href="#security">How We Protect Your Data</a></li>
-                            <li><a href="#security">DevTools Verification</a></li>
-                            <li><a href="#compatibility">PDF Reader Matrix</a></li>
-                            <li><button type="button" id="footerComplianceBtn">HIPAA & PHI Notice</button></li>
-                            <li><a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer">Security Code Audit</a></li>
-                        </ul>
-                    </div>
+                                <!-- Floating Glassy Play Badge -->
+                                <div class="video-play-badge">
+                                    <div class="play-badge-icon">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"></polygon></svg>
+                                    </div>
+                                    <span>Watch Full Demo</span>
+                                </div>
+                            </div>
 
-                    <!-- Column 4: Legal & Maintainer -->
-                    <div class="footer-col">
-                        <h4 class="footer-col-title">Legal & Support</h4>
-                        <ul class="footer-link-list">
-                            <li><button type="button" id="footerPrivacyBtn">Privacy Policy</button></li>
-                            <li><button type="button" id="footerTermsBtn">Terms of Service</button></li>
-                            <li><button type="button" id="footerCookieBtn">Cookie Policy</button></li>
-                            <li><button type="button" id="footerAboutBtn">About JustForms</button></li>
-                            <li><a href="mailto:sagar.shrestha23@gmail.com"><i data-lucide="mail" style="width: 13px; height: 13px;"></i> Support Email</a></li>
-                        </ul>
+                            <!-- Interactive Drop Overlay -->
+                            <div class="studio-drop-overlay">
+                                <div class="drop-prompt-box">
+                                    <i data-lucide="file-up" style="width:32px; height:32px; color:#2563eb;"></i>
+                                    <strong>Drop PDF Here</strong>
+                                    <span>Opens instantly in private local editor</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <!-- Footer Bottom Bar -->
-                <div class="footer-bottom-bar">
-                    <div>
-                        JustForms — Free & Open Source under the <strong>MIT License</strong> • Built by <a href="https://sagarshrestha23.com.np" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: underline;">Sagar Shrestha</a>
+        <main>
+            <!-- WHY -->
+            <section class="section" id="why">
+                <div class="section-head center reveal">
+                    <div class="eyebrow">WHY JUSTFORMS</div>
+                    <h2>For the paperwork you don't want<br>sitting on someone else's server</h2>
+                    <p class="section-sub" style="margin-left:auto;margin-right:auto;">
+                        Contracts, medical intake sheets, tax forms: the documents people normally have to hand over to a website
+                        just to add a checkbox. JustForms skips that part.
+                    </p>
+                </div>
+                <div class="why-grid reveal">
+                    <div class="tile">
+                        <h3>Nothing uploaded</h3>
+                        <p>Your PDF is opened, edited, and saved by your own browser. It is never sent anywhere, not even to us.</p>
                     </div>
-                    <div class="footer-legal-badges">
-                        <span>Client-Side Processing</span>
-                        <span>•</span>
-                        <span>Zero Cloud Storage</span>
-                        <span>•</span>
-                        <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                            <i data-lucide="github" style="width: 14px; height: 14px;"></i> GitHub
-                        </a>
+                    <div class="tile">
+                        <h3>No account required</h3>
+                        <p>Open the editor and start placing fields. There's no sign-up screen standing between you and your document.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Opens where you'd expect</h3>
+                        <p>Every form you export is a standard fillable PDF, with no special app needed to read or sign it.</p>
                     </div>
                 </div>
+            </section>
+
+            <!-- HOW IT WORKS -->
+            <section class="section" id="how-it-works">
+                <div class="section-head reveal">
+                    <div class="eyebrow">HOW IT WORKS</div>
+                    <h2>Three steps, no waiting on a server</h2>
+                    <p class="section-sub">Nothing here involves a progress bar. Each step happens the moment you do it.</p>
+                </div>
+                <div class="steps reveal">
+                    <div class="step">
+                        <span class="num">01</span>
+                        <h3>Open your PDF</h3>
+                        <p>Drag a file into the browser, or start from a blank page. It loads straight into memory, so nothing leaves your device to get there.</p>
+                    </div>
+                    <div class="step">
+                        <span class="num">02</span>
+                        <h3>Place your fields</h3>
+                        <p>Pick text, checkbox, dropdown, or signature, then click where it goes. Auto-Detect can find the blanks and labels for you first.</p>
+                    </div>
+                    <div class="step">
+                        <span class="num">03</span>
+                        <h3>Export a real PDF</h3>
+                        <p>Download a standard fillable PDF that opens correctly wherever the person you send it to already reads their mail.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SOLUTIONS -->
+            <section class="section" id="professions">
+                <div class="section-head reveal">
+                    <div class="eyebrow">BUILT FOR</div>
+                    <h2>Whatever the document, it works the same way</h2>
+                    <p class="section-sub">Invoices, intake forms, leases, tax paperwork: if it started life as a PDF, you can make it fillable in the same handful of clicks.</p>
+                </div>
+                <div class="sol-grid reveal">
+                    <div class="tile">
+                        <h3>Invoices &amp; billing</h3>
+                        <p>Add line totals, payment terms, and a signature line to any billing PDF.</p>
+                        <button type="button" class="tile-link template-use-btn" data-template="invoice">Use template</button>
+                    </div>
+                    <div class="tile">
+                        <h3>Patient intake</h3>
+                        <p>Turn a paper intake packet into something a patient can fill out before they arrive.</p>
+                        <button type="button" class="tile-link template-use-btn" data-template="intake">Use template</button>
+                    </div>
+                    <div class="tile">
+                        <h3>Leases &amp; applications</h3>
+                        <p>Give tenants a form they can complete online, signature included.</p>
+                        <button type="button" class="tile-link template-use-btn" data-template="lease">Use template</button>
+                    </div>
+                    <div class="tile">
+                        <h3>Tax &amp; HR forms</h3>
+                        <p>W-9s, W-4s, and onboarding paperwork, ready to send the same day.</p>
+                        <button type="button" class="tile-link template-use-btn" data-template="w9">Use template</button>
+                    </div>
+                    <div class="tile">
+                        <h3>Contracts &amp; NDAs</h3>
+                        <p>Add the required fields and a signature block without touching the original wording.</p>
+                        <button type="button" class="tile-link template-use-btn" data-template="nda">Use template</button>
+                    </div>
+                    <div class="tile">
+                        <h3>Applications &amp; sign-ups</h3>
+                        <p>Any registration form you'd otherwise print, scan, and email back.</p>
+                        <button type="button" class="tile-link template-use-btn" data-template="rental">Use template</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FEATURES -->
+            <section class="section" id="features">
+                <div class="section-head reveal">
+                    <div class="eyebrow">WHAT'S INSIDE</div>
+                    <h2>A small set of tools that do the whole job</h2>
+                    <p class="section-sub">Nothing here is a placeholder for a paid tier. This is everything.</p>
+                </div>
+                <div class="feat-grid reveal">
+                    <div class="tile">
+                        <h3>Signatures</h3>
+                        <p>People can draw their signature or type it in a clean cursive style. Either way, it stays crisp at any size.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Duplicate a field instantly</h3>
+                        <p>Hold Option or Alt and drag any field to copy it. The name increments automatically.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Multi-page documents</h3>
+                        <p>Add or remove pages, and every field stays exactly on the page you put it on.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Auto-Detect</h3>
+                        <p>Point it at a page and it finds blank lines, checkboxes, and labels on its own, in under a second.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Snapping &amp; multi-select</h3>
+                        <p>Fields line up to each other automatically. Select a group and resize or space them all at once.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Autosave, locally</h3>
+                        <p>Your layout is kept in the browser session as you go, so an accidental refresh doesn't cost you the work.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TESTIMONIALS -->
+            <section class="section" id="testimonials">
+                <div class="section-head reveal">
+                    <div class="eyebrow">TESTIMONIALS</div>
+                    <h2>What people say after their first form</h2>
+                </div>
+                <div class="quote-grid reveal">
+                    <div class="quote">
+                        <p>"I needed a fillable invoice for a client in about five minutes. It was faster than finding my Acrobat login."</p>
+                        <div class="role">Small business owner</div>
+                    </div>
+                    <div class="quote">
+                        <p>"New-hire paperwork used to mean a stack of paper on someone's first day. Now it's a link."</p>
+                        <div class="role">HR coordinator</div>
+                    </div>
+                    <div class="quote">
+                        <p>"I liked not having to explain to a client why some random website now has their signed contract."</p>
+                        <div class="role">Freelance contractor</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- OPEN SOURCE -->
+            <section class="section" id="open-source">
+                <div class="section-head reveal">
+                    <div class="eyebrow">OPEN SOURCE</div>
+                    <h2>Free and open, on purpose</h2>
+                    <p class="section-sub">JustForms is MIT-licensed. Read the code, run it on your own server, or just trust that there's nothing hidden in it.</p>
+                </div>
+                <div class="os-wrap reveal">
+                    <div class="tile">
+                        <h3>MIT licensed</h3>
+                        <p>Use it for personal, nonprofit, or commercial work. No fees, no fine print.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>No backend to trust</h3>
+                        <p>It runs entirely in your browser on open libraries. Host it yourself on Vercel, GitHub Pages, or anywhere static files work.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Built in the open</h3>
+                        <p>Every change is on GitHub. Report a bug, ask for a feature, or just read how it works.</p>
+                    </div>
+                    <div class="tile">
+                        <h3>Standard PDF forms</h3>
+                        <p>Exports follow the same ISO 32000 AcroForm spec used by Acrobat, so nothing about the output is proprietary.</p>
+                    </div>
+                </div>
+                <a class="gh-btn reveal" href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer">View repository on GitHub</a>
+            </section>
+
+            <!-- SECURITY -->
+            <section class="section" id="security">
+                <div class="section-head reveal">
+                    <div class="eyebrow">SECURITY ARCHITECTURE</div>
+                    <h2>You can check this yourself</h2>
+                    <p class="section-sub">Most PDF tools upload your file somewhere to fill it in. JustForms has nowhere to upload it to, because there is no server behind this that ever sees your document.</p>
+                </div>
+                <div class="sec-wrap reveal">
+                    <div class="sec-list">
+                        <div class="sec-item">
+                            <div class="idx">1</div>
+                            <div>
+                                <h4>Open your browser's dev tools</h4>
+                                <p>Press F12, or Cmd+Option+I on a Mac.</p>
+                            </div>
+                        </div>
+                        <div class="sec-item">
+                            <div class="idx">2</div>
+                            <div>
+                                <h4>Switch to the Network tab</h4>
+                                <p>Clear the log, then drop a PDF into the editor.</p>
+                            </div>
+                        </div>
+                        <div class="sec-item">
+                            <div class="idx">3</div>
+                            <div>
+                                <h4>Watch nothing happen</h4>
+                                <p>Place fields, sign, export. The request list stays empty the whole time.</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 14px; padding: 14px 18px; background: #ffffff; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--ink-soft); line-height: 1.55;">
+                            <strong style="color: var(--ink); display: block; margin-bottom: 4px;">HIPAA &amp; Enterprise Privacy Notice</strong>
+                            Because JustForms operates purely as client-side software running in your local browser sandbox and never receives, transmits, or stores data on external servers, no Protected Health Information (PHI) is processed by third-party servers. See our <button type="button" id="complianceNoticeBtn" style="background: none; border: none; padding: 0; color: var(--blue-deep); font-weight: 700; text-decoration: underline; cursor: pointer; font-family: inherit;">Compliance Architecture &amp; Disclaimer</button>.
+                        </div>
+                    </div>
+                    <div class="inspector">
+                        <div class="inspector-head">
+                            <div class="tabs"><span>Console</span><span class="active">Network</span><span>Application</span></div>
+                            <span>Fetch/XHR</span>
+                        </div>
+                        <div class="inspector-body">
+                            <div class="inspector-row"><span>Requests sent</span><span class="num">0</span></div>
+                            <div class="inspector-row"><span>Document bytes uploaded</span><span class="num">0 KB</span></div>
+                            <div class="inspector-row"><span>Fields placed this session</span><span>6</span></div>
+                            <div class="inspector-status">Recording: 0 network requests</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- COMPATIBILITY -->
+            <section class="section" id="compatibility">
+                <div class="section-head reveal">
+                    <div class="eyebrow">READER COMPATIBILITY</div>
+                    <h2>Standard PDFs, not a proprietary format</h2>
+                    <p class="section-sub">Every form follows the same AcroForm standard used across the industry, so it behaves the same wherever it's opened.</p>
+                </div>
+                <div class="compat-grid reveal">
+                    <div class="tile">
+                        <div class="check">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div><h4>Adobe Acrobat</h4><p>Full support for text, checkboxes, dropdowns, and signatures.</p></div>
+                    </div>
+                    <div class="tile">
+                        <div class="check">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div><h4>Apple Preview</h4><p>Fills and prints correctly on Mac, iPad, and iPhone.</p></div>
+                    </div>
+                    <div class="tile">
+                        <div class="check">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div><h4>Google Chrome</h4><p>Fillable right in the built-in PDF viewer.</p></div>
+                    </div>
+                    <div class="tile">
+                        <div class="check">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div><h4>Microsoft Edge</h4><p>Supports tab navigation and saving filled fields.</p></div>
+                    </div>
+                    <div class="tile">
+                        <div class="check">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div><h4>Mozilla Firefox</h4><p>Renders through the open-source PDF.js engine.</p></div>
+                    </div>
+                    <div class="tile">
+                        <div class="check">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        </div>
+                        <div><h4>Foxit &amp; PDF Expert</h4><p>Accurate field placement and tab order, out of the box.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- FAQ -->
+            <section class="section tight" id="faq">
+                <div class="section-head reveal">
+                    <div class="eyebrow">FREQUENTLY ASKED QUESTIONS</div>
+                    <h2>Things people usually ask</h2>
+                </div>
+                <div class="faq-list reveal">
+                    <details class="faq-item" open>
+                        <summary>Is it actually free?<span class="plus"></span></summary>
+                        <p>Yes. No trial period, no watermark on your export, no limit on how many pages or forms you make.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Do you see my documents?<span class="plus"></span></summary>
+                        <p>No. Everything happens in your browser's memory, and nothing about your document is ever transmitted anywhere.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Will the form open properly in Acrobat and Preview?<span class="plus"></span></summary>
+                        <p>Yes, every export is a standard AcroForm, so it behaves like any other fillable PDF you've used before.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>What does Auto-Detect actually do?<span class="plus"></span></summary>
+                        <p>It scans the page for blank lines and checkbox brackets and places matching fields for you, in under a second.</p>
+                    </details>
+                    <details class="faq-item">
+                        <summary>Can I use this for client or patient documents?<span class="plus"></span></summary>
+                        <p>Yes. Since nothing leaves your browser, there's no third party involved in handling that document at any point.</p>
+                    </details>
+                </div>
+            </section>
+
+            <!-- CTA BAND -->
+            <div class="cta-band reveal">
+                <h2>Have a PDF that needs a signature line?</h2>
+                <p>Drop it in and see how far you get before you'd normally have given up.</p>
+                <button type="button" class="btn-inverse" id="footerBrowseBtn">
+                    <span>Browse PDF File</span>
+                </button>
+                <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+            </div>
+        </main>
+
+        <!-- FOOTER -->
+        <footer class="landing-footer" id="contact">
+            <div class="foot-wrap">
+                <div>
+                    <a href="#hero" class="foot-brand" id="footerBrandLogo" onclick="document.getElementById('landingScreen')?.scrollTo({top:0,behavior:'smooth'}); window.scrollTo({top:0,behavior:'smooth'}); return false;">
+                        <span class="brand-mark">J</span>
+                        <span>JustForms</span>
+                    </a>
+                    <p class="desc">A PDF form editor that runs entirely in your browser. Free, open source, and built so your documents never have to leave your computer.</p>
+                </div>
+                <div class="foot-col">
+                    <h5>Product</h5>
+                    <a href="#how-it-works">How it works</a>
+                    <a href="#professions">Solutions</a>
+                    <a href="#features">Features</a>
+                    <button type="button" id="footerShortcutsBtn">Keyboard shortcuts</button>
+                </div>
+                <div class="foot-col">
+                    <h5>Trust</h5>
+                    <a href="#security">How your data stays yours</a>
+                    <a href="#compatibility">Reader compatibility</a>
+                    <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer">Open-source code</a>
+                    <button type="button" id="footerComplianceBtn">HIPAA Notice</button>
+                </div>
+                <div class="foot-col">
+                    <h5>Support &amp; Legal</h5>
+                    <a href="#faq">FAQ</a>
+                    <button type="button" id="footerPrivacyBtn">Privacy Policy</button>
+                    <button type="button" id="footerTermsBtn">Terms of Service</button>
+                    <button type="button" id="footerCookieBtn">Cookie Policy</button>
+                    <button type="button" id="footerAboutBtn">About JustForms</button>
+                    <button type="button" id="footerFeedbackBtn">Feedback &amp; Review</button>
+                </div>
+            </div>
+            <div class="foot-bottom">
+                <span>Free and open source under the MIT License</span>
+                <span>Built by <a href="https://sagarshrestha23.com.np" target="_blank" rel="noopener noreferrer" style="color: #cbd5e1; text-decoration: underline;">Sagar Shrestha</a></span>
             </div>
         </footer>
     </div>
@@ -871,7 +633,11 @@
                 </span>
                 <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
                     <button class="menu-btn" id="fileMenuBtn">File ▼</button>
+
                     <div class="dropdown-content">
+                        <button class="dropdown-item" id="newBlankDocMenuBtn">
+                            <i data-lucide="file-plus" style="width:14px; height:14px; color:#2563eb;"></i> New Blank Document
+                        </button>
                         <button class="dropdown-item" id="menuHomeBtn">
                             <i data-lucide="home" style="width:14px; height:14px;"></i> Home Dashboard
                         </button>
@@ -990,10 +756,15 @@
                         <h3 style="margin: 0 0 6px; font-size: 16px; color: #1e293b; font-weight: 700;">No Document Loaded</h3>
                         <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Please upload a PDF document to start placing interactive form fields and signatures.</p>
                     </div>
-                    <label class="btn-primary" style="margin-top: 6px; padding: 10px 22px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; border-radius: 8px; pointer-events: auto;">
-                        <i data-lucide="upload" style="width: 14px; height: 14px;"></i> Upload PDF Document
+                    <div style="display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto;">
+                        <button type="button" id="emptyStateCreateBlankBtn" class="btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
+                            <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i> Create Blank Form
+                        </button>
+                        <button type="button" id="emptyStateUploadBtn" class="btn-secondary" onclick="document.getElementById('emptyStateUpload').click()" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; background: #ffffff; border: 1px solid #cbd5e1;">
+                            <i data-lucide="upload" style="width: 15px; height: 15px;"></i> Upload PDF
+                        </button>
                         <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
-                    </label>
+                    </div>
                 </div>
                 
                 <div class="canvas-container" id="canvasContainer">
@@ -1002,7 +773,7 @@
                     <div id="hAlignLine" class="align-line horizontal"></div>
                     <div id="vAlignLine" class="align-line vertical"></div>
                     <div id="snapPointDot" class="snap-point-dot"></div>
-                    <div id="selectionBox" style="position: absolute; border: 1px solid rgba(52, 152, 219, 0.8); background-color: rgba(52, 152, 219, 0.2); pointer-events: none; display: none; z-index: 1000;"></div>
+                    <div id="selectionBox"></div>
                     <div id="fieldPlacementGhost" class="field-placement-ghost" style="display: none;"></div>
                 </div>
             </main>
@@ -1037,422 +808,389 @@
         </div>
 
         <aside class="right-panel">
-            <div id="rightPanelEmpty" style="padding: 24px; text-align: center; color: #777; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-                <i data-lucide="mouse-pointer-click" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5;"></i>
-                <p style="margin: 0; font-size: 14px;">Select a field on the canvas to view and edit its properties.</p>
+            <div id="rightPanelEmpty" class="right-panel-empty">
+                <i data-lucide="mouse-pointer-click" style="width: 36px; height: 36px; margin-bottom: 12px; opacity: 0.35; color: #64748b;"></i>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.4;">Select a field on the canvas to view and edit its properties.</p>
             </div>
-            <div id="fieldProps" style="display: none;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <h2 style="margin: 0; padding: 0; border: none; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Properties</h2>
-                    <span id="propFieldTypeBadge" style="font-size: 10px; font-weight: 600; background: #eff6ff; color: #0284c7; padding: 2px 8px; border-radius: 9999px; border: 1px solid #bae6fd;">Text Field</span>
+
+            <div id="fieldProps" style="display: none;" class="field-props-wrapper">
+                <!-- Header -->
+                <div class="prop-panel-header">
+                    <h3 class="prop-panel-title">Properties</h3>
+                    <span id="propFieldTypeBadge" class="prop-type-pill">Text Field</span>
                 </div>
 
-                <!-- Accordion 1: General & Values -->
-                <div class="prop-accordion" id="accGeneral">
-                    <div class="prop-accordion-header">
-                        <span class="prop-accordion-title">
-                            <i data-lucide="sliders" style="width: 13px; height: 13px; color: #0284c7;"></i> General
-                        </span>
-                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
-                    </div>
-                    <div class="prop-accordion-body">
-                        <div class="form-group">
-                            <label>Field Name (AcroForm ID)</label>
-                            <input type="text" id="fieldName" placeholder="e.g. full_name">
+                <!-- Scrollable Properties Body -->
+                <div class="prop-panel-body">
+                    <!-- 1. Field Essentials -->
+                    <div class="prop-group">
+                        <div class="prop-field">
+                            <label class="prop-label" for="fieldName">Field Name</label>
+                            <input type="text" id="fieldName" class="prop-input" placeholder="e.g. full_name">
                         </div>
-                        <div class="form-group">
-                            <label>Field Type</label>
-                            <select id="fieldType" style="padding: 6px; font-size: 12.5px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #0f172a; font-weight: 600; cursor: pointer;">
+
+                        <div class="prop-field">
+                            <label class="prop-label" for="fieldType">Field Type</label>
+                            <select id="fieldType" class="prop-select">
                                 <option value="textField">Text Field</option>
                                 <option value="dateField">Date Field</option>
-                                <option value="dropdown">Drop Down</option>
-                                <option value="checkBox">Check Box</option>
+                                <option value="dropdown">Dropdown</option>
+                                <option value="checkBox">Checkbox</option>
                                 <option value="radioGroup">Radio Group</option>
                                 <option value="signature">Signature Field</option>
                             </select>
                         </div>
-                        <div class="form-group" id="autofillRoleGroup">
-                            <label style="display: flex; justify-content: space-between; align-items: center;">
-                                <span>PDF Auto-fill Role</span>
-                                <span style="font-size: 10px; color: #0284c7; font-weight: 500;">Browser & Reader Autofill</span>
-                            </label>
-                            <select id="fieldAutofill" style="padding: 6px; font-size: 12px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px; background: #ffffff; color: #0f172a; font-weight: 500; cursor: pointer;">
-                                <option value="">None (Custom Field)</option>
-                                <option value="name">Full Name</option>
-                                <option value="first_name">First Name</option>
-                                <option value="last_name">Last Name</option>
-                                <option value="email">Email Address</option>
-                                <option value="phone">Phone Number</option>
-                                <option value="address1">Street Address</option>
-                                <option value="city">City</option>
-                                <option value="state">State / Province</option>
-                                <option value="zip">Zip / Postal Code</option>
-                                <option value="country">Country</option>
-                                <option value="company">Company / Organization</option>
-                                <option value="job_title">Job Title</option>
-                                <option value="dob">Date of Birth</option>
-                            </select>
+
+                        <div class="prop-field" id="defaultValueGroup">
+                            <label class="prop-label" for="fieldDefaultValue">Default Value</label>
+                            <input type="text" id="fieldDefaultValue" class="prop-input" placeholder="Placeholder or default text">
                         </div>
-                        <div class="form-group" id="defaultValueGroup">
-                            <label>Default Value</label>
-                            <input type="text" id="fieldDefaultValue" placeholder="e.g. John Doe, $100, etc.">
-                        </div>
-                        <div class="form-group" id="dropdownOptionsGroup" style="display: none; margin-top: 10px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                <label style="margin: 0; font-weight: 600; font-size: 12px;">Dropdown Options (1 per line)</label>
-                                <span style="font-size: 11px; color: #64748b;" id="dropdownOptionsCount">0 items</span>
+
+                        <!-- Dropdown Options (when dropdown selected) -->
+                        <div class="prop-field" id="dropdownOptionsGroup" style="display: none;">
+                            <div class="prop-label-row">
+                                <label class="prop-label" for="dropdownOptions">Dropdown Options</label>
+                                <span id="dropdownOptionsCount" class="prop-meta-badge">0 items</span>
                             </div>
-                            <textarea id="dropdownOptions" rows="5" placeholder="Option 1&#10;Option 2&#10;Option 3" style="width: 100%; padding: 8px 10px; font-size: 12px; font-family: monospace; border: 1px solid #cbd5e1; border-radius: 6px; resize: vertical; line-height: 1.4; box-sizing: border-box;"></textarea>
-                            <div style="margin-top: 6px;">
-                                <div style="font-size: 11px; color: #64748b; margin-bottom: 4px; font-weight: 500;">Quick Presets:</div>
-                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
-                                    <button type="button" class="preset-pill-btn" data-preset="yes-no">Yes / No</button>
-                                    <button type="button" class="preset-pill-btn" data-preset="titles">Mr / Ms / Mrs / Dr</button>
-                                    <button type="button" class="preset-pill-btn" data-preset="employment">Employment Types</button>
-                                    <button type="button" class="preset-pill-btn" data-preset="priority">Priority Levels</button>
-                                    <button type="button" class="preset-pill-btn" data-preset="months">Months (Jan-Dec)</button>
-                                    <button type="button" class="preset-pill-btn" data-preset="ratings">Ratings (1-5)</button>
-                                </div>
+                            <textarea id="dropdownOptions" class="prop-textarea" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+                            <div class="preset-pills-row">
+                                <button type="button" class="preset-pill-btn" data-preset="yes-no">Yes/No</button>
+                                <button type="button" class="preset-pill-btn" data-preset="titles">Mr/Ms/Dr</button>
+                                <button type="button" class="preset-pill-btn" data-preset="employment">Employment</button>
+                                <button type="button" class="preset-pill-btn" data-preset="priority">Priority</button>
                             </div>
                         </div>
-                        <div class="form-row" id="defaultCheckedGroup" style="display: none; justify-content: flex-start; margin-bottom: 8px;">
-                            <label style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="fieldDefaultChecked"> Checked by Default
-                            </label>
-                        </div>
-                        <div class="form-row" style="justify-content: flex-start; gap: 14px; margin-top: 6px;">
-                            <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="fieldRequired"> Required
-                            </label>
-                            <label id="multilineGroup" style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="fieldMultiline"> Multi-line
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; cursor: pointer;">
-                                <input type="checkbox" id="fieldReadOnly"> Read-Only
-                            </label>
-                        </div>
-                        <div class="form-group" id="signatureActionsGroup" style="display: none; margin-top: 10px; background: #f0f9ff; padding: 10px; border-radius: 6px; border: 1px solid #bae6fd;">
-                            <label style="font-weight: 700; color: #0284c7; display: flex; align-items: center; gap: 4px;">
-                                <i data-lucide="pen-tool" style="width: 13px; height: 13px;"></i> Signable Field
-                            </label>
-                            <p style="font-size: 11px; color: #64748b; margin: 4px 0 8px 0; line-height: 1.4;">
-                                Recipients can click and sign directly when opening this exported PDF.
-                            </p>
-                            <button id="propOpenSignatureBtn" type="button" class="btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 10px; font-size: 11.5px; width: 100%;">
-                                <i data-lucide="pen-tool" style="width: 12px; height: 12px;"></i>
+
+                        <!-- Pre-sign Document (when signature selected) -->
+                        <div class="prop-field" id="signatureActionsGroup" style="display: none;">
+                            <button id="propOpenSignatureBtn" type="button" class="btn-secondary prop-sig-btn">
+                                <i data-lucide="pen-tool" style="width: 13px; height: 13px; color: #2563eb;"></i>
                                 <span>Pre-sign Document</span>
                             </button>
-                            <button id="propClearSignatureBtn" type="button" class="btn-secondary" style="display: none; margin-top: 6px; font-size: 11px; padding: 5px; color: #ef4444; width: 100%;">
+                            <button id="propClearSignatureBtn" type="button" class="btn-secondary prop-clear-sig-btn" style="display: none;">
                                 Remove Pre-signed Signature
                             </button>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Accordion 2: Typography & Text -->
-                <div class="prop-accordion" id="accTypography">
-                    <div class="prop-accordion-header">
-                        <span class="prop-accordion-title">
-                            <i data-lucide="type" style="width: 13px; height: 13px; color: #0284c7;"></i> Typography
-                        </span>
-                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
+                        <!-- Field Behavior Chips -->
+                        <div class="prop-chips-grid">
+                            <label class="prop-chip-toggle" id="defaultCheckedGroup" style="display: none;">
+                                <input type="checkbox" id="fieldDefaultChecked">
+                                <span>Checked</span>
+                            </label>
+                            <label class="prop-chip-toggle">
+                                <input type="checkbox" id="fieldRequired">
+                                <span>Required</span>
+                            </label>
+                            <label class="prop-chip-toggle" id="multilineGroup">
+                                <input type="checkbox" id="fieldMultiline">
+                                <span>Multi-line</span>
+                            </label>
+                            <label class="prop-chip-toggle">
+                                <input type="checkbox" id="fieldReadOnly">
+                                <span>Read-Only</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="prop-accordion-body">
-                        <div class="form-group">
-                            <label>Font Family</label>
-                            <select id="fieldFontFamily" style="padding: 6px; font-size: 12.5px; width: 100%;">
-                                <option value="helvetica">Calibri / Helvetica (Sans-Serif)</option>
+
+                    <!-- 2. Typography -->
+                    <div class="prop-group" id="accTypography">
+                        <div class="prop-section-heading">Typography</div>
+                        
+                        <div class="prop-field">
+                            <select id="fieldFontFamily" class="prop-select">
+                                <option value="helvetica">Calibri / Helvetica (Sans)</option>
                                 <option value="times">Times New Roman (Serif)</option>
-                                <option value="courier">Courier (Monospace)</option>
-                                <option value="helvetica-bold">Calibri / Helvetica Bold</option>
-                                <option value="times-italic">Times New Roman Italic</option>
+                                <option value="courier">Courier (Mono)</option>
+                                <option value="helvetica-bold">Helvetica Bold</option>
+                                <option value="times-italic">Times Italic</option>
                             </select>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group" style="width: 48%;">
-                                <label>Font Size (pt)</label>
-                                <input type="number" id="fontSize" placeholder="11" min="6" max="72">
+
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label scrubbable" for="fontSize">Size (pt)</label>
+                                <input type="number" id="fontSize" class="prop-input" placeholder="11" min="6" max="72">
                             </div>
-                            <div class="form-group" style="width: 48%;">
-                                <label>Alignment</label>
-                                <select id="textAlignment" style="padding: 6px; font-size: 12.5px;">
+                            <div class="prop-field">
+                                <label class="prop-label" for="textAlignment">Align</label>
+                                <select id="textAlignment" class="prop-select">
                                     <option value="left">Left</option>
                                     <option value="center">Center</option>
                                     <option value="right">Right</option>
                                 </select>
                             </div>
                         </div>
-                        <div style="display: flex; gap: 4px; margin-top: 4px;">
-                            <button type="button" class="quick-size-btn btn-secondary" data-size="9" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">9pt</button>
-                            <button type="button" class="quick-size-btn btn-secondary active" data-size="11" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">11pt</button>
-                            <button type="button" class="quick-size-btn btn-secondary" data-size="12" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">12pt</button>
-                            <button type="button" class="quick-size-btn btn-secondary" data-size="14" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">14pt</button>
-                            <button type="button" class="quick-size-btn btn-secondary" data-size="18" style="flex: 1; padding: 3px 2px; font-size: 10.5px; border-radius: 4px;">18pt</button>
-                        </div>
                     </div>
-                </div>
 
-                <!-- Accordion 3: Validation & Accessibility -->
-                <div class="prop-accordion" id="accValidation">
-                    <div class="prop-accordion-header">
-                        <span class="prop-accordion-title">
-                            <i data-lucide="shield-check" style="width: 13px; height: 13px; color: #0284c7;"></i> Validation & A11y
-                        </span>
-                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
-                    </div>
-                    <div class="prop-accordion-body">
-                        <div class="form-group">
-                            <label>Browser Autofill Type</label>
-                            <select id="autofillType" style="padding: 6px; width: 100%; font-size: 12.5px;">
-                                <option value="">None (Custom)</option>
-                                <option value="first_name">First Name</option>
-                                <option value="last_name">Last Name</option>
-                                <option value="email">Email Address</option>
-                                <option value="phone">Phone Number</option>
-                                <option value="address1">Address (Street)</option>
-                                <option value="city">City</option>
-                                <option value="state">State / Province</option>
-                                <option value="zip">Zip / Postal Code</option>
-                                <option value="country">Country</option>
-                                <option value="company">Company / Organization</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Accessible Tooltip (Hover Text)</label>
-                            <input type="text" id="fieldTooltip" placeholder="For screen readers">
-                        </div>
-                        <div class="form-group">
-                            <label>Max Characters</label>
-                            <input type="number" id="fieldMaxLength" placeholder="e.g. 50" min="1">
-                        </div>
-                    </div>
-                </div>
+                    <!-- 3. Layout & Appearance -->
+                    <div class="prop-group" id="accAppearance">
+                        <div class="prop-section-heading">Layout & Style</div>
 
-                <!-- Accordion 4: Styling & Dimensions -->
-                <div class="prop-accordion" id="accAppearance">
-                    <div class="prop-accordion-header">
-                        <span class="prop-accordion-title">
-                            <i data-lucide="palette" style="width: 13px; height: 13px; color: #0284c7;"></i> Styling & Bounds
-                        </span>
-                        <i data-lucide="chevron-down" class="prop-accordion-chevron"></i>
-                    </div>
-                    <div class="prop-accordion-body">
-                        <div class="form-row" style="justify-content: space-between; gap: 8px; margin-bottom: 8px;">
-                            <div class="form-group" style="width: 48%;">
-                                <label>Border Style</label>
-                                <select id="fieldBorderStyle" style="padding: 6px; font-size: 12.5px;">
-                                    <option value="solid">Solid Border</option>
-                                    <option value="none">No Border (Soft Tint)</option>
-                                    <option value="transparent">Transparent (Ghost)</option>
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label scrubbable" for="width">Width (px)</label>
+                                <input type="number" id="width" class="prop-input">
+                            </div>
+                            <div class="prop-field">
+                                <label class="prop-label scrubbable" for="height">Height (px)</label>
+                                <input type="number" id="height" class="prop-input">
+                            </div>
+                        </div>
+
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label" for="fieldBorderStyle">Border</label>
+                                <select id="fieldBorderStyle" class="prop-select">
+                                    <option value="solid">Solid</option>
+                                    <option value="none">None</option>
+                                    <option value="thick">Thick</option>
                                 </select>
                             </div>
-                            <div class="form-group" style="width: 48%;">
-                                <label>Fill Color</label>
-                                <select id="fieldFillStyle" style="padding: 6px; font-size: 12.5px;">
-                                    <option value="tint">Soft Blue Tint</option>
-                                    <option value="white">Solid White</option>
-                                    <option value="yellow">Soft Yellow</option>
+                            <div class="prop-field">
+                                <label class="prop-label" for="fieldFillStyle">Fill</label>
+                                <select id="fieldFillStyle" class="prop-select">
+                                    <option value="tint">Faint Blue</option>
+                                    <option value="white">White</option>
+                                    <option value="yellow">Yellow</option>
                                     <option value="none">Transparent</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-row">
-                            <div class="form-group" style="width: 48%;">
-                                <label>Width (px)</label>
-                                <input type="number" id="width">
+                    </div>
+
+                    <!-- 4. Advanced Drawer -->
+                    <details class="prop-drawer" id="accValidation">
+                        <summary class="prop-drawer-summary">
+                            <span>Advanced Options</span>
+                            <i data-lucide="chevron-down" class="prop-drawer-chevron"></i>
+                        </summary>
+                        <div class="prop-drawer-body">
+                            <div class="prop-field" id="autofillRoleGroup">
+                                <label class="prop-label" for="fieldAutofill">Autofill Role</label>
+                                <select id="fieldAutofill" class="prop-select">
+                                    <option value="">None (Custom)</option>
+                                    <option value="name">Full Name</option>
+                                    <option value="first_name">First Name</option>
+                                    <option value="last_name">Last Name</option>
+                                    <option value="email">Email Address</option>
+                                    <option value="phone">Phone Number</option>
+                                    <option value="address1">Street Address</option>
+                                    <option value="city">City</option>
+                                    <option value="state">State / Province</option>
+                                    <option value="zip">Zip / Postal Code</option>
+                                    <option value="country">Country</option>
+                                    <option value="company">Company</option>
+                                    <option value="job_title">Job Title</option>
+                                    <option value="dob">Date of Birth</option>
+                                </select>
+                                <select id="autofillType" style="display: none;"></select>
                             </div>
-                            <div class="form-group" style="width: 48%;">
-                                <label>Height (px)</label>
-                                <input type="number" id="height">
+
+                            <div class="prop-field">
+                                <label class="prop-label" for="fieldTooltip">Accessible Tooltip</label>
+                                <input type="text" id="fieldTooltip" class="prop-input" placeholder="Screen reader label">
+                            </div>
+
+                            <div class="prop-field">
+                                <label class="prop-label" for="fieldMaxLength">Max Characters</label>
+                                <input type="number" id="fieldMaxLength" class="prop-input" placeholder="e.g. 50" min="1">
                             </div>
                         </div>
-                    </div>
+                    </details>
                 </div>
 
-                <!-- Sticky Action buttons footer -->
-                <div class="properties-actions-footer" style="display: flex; flex-direction: column; gap: 8px;">
-                    <button id="addTableRowBtn" type="button" class="btn-secondary" style="width: 100%; padding: 7px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; background: #f0fdf4; border-color: #bbf7d0; color: #166534;" title="Clone all columns on this row to create the next table line item">
-                        <i data-lucide="plus-circle" style="width: 13px; height: 13px; color: #16a34a;"></i> + Add Next Table Row
+                <!-- Pinned Actions Footer -->
+                <div class="prop-footer">
+                    <button id="addTableRowBtn" type="button" class="prop-btn-table" title="Clone row item">
+                        <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i> + Add Next Table Row
                     </button>
-                    <div style="display: flex; gap: 8px; width: 100%;">
-                        <button id="duplicateFieldBtn" type="button" class="btn-secondary" style="flex: 1; padding: 7px; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <div class="prop-footer-actions">
+                        <button id="duplicateFieldBtn" type="button" class="btn-secondary prop-footer-btn">
                             <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Duplicate
                         </button>
-                        <button id="deleteFieldBtn" type="button" style="flex: 1; background: #fff; color: #ef4444; border: 1px solid #fca5a5; padding: 7px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                        <button id="deleteFieldBtn" type="button" class="btn-danger-outline prop-footer-btn">
                             <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete
                         </button>
                     </div>
                 </div>
             </div>
             
-            <div id="multiSelectProps" style="display: none;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
-                    <span style="font-size: 13px; margin: 0; font-weight: 700; color: #1e293b;">Batch Editing</span>
-                    <span id="multiSelectedCountBadge" style="font-size: 11px; background: #eff6ff; color: #2563eb; padding: 2px 8px; border-radius: 12px; font-weight: 600; border: 1px solid #dbeafe;">2 Selected</span>
+            <div id="multiSelectProps" style="display: none;" class="field-props-wrapper">
+                <!-- Header -->
+                <div class="prop-panel-header">
+                    <h3 class="prop-panel-title">Batch Editing</h3>
+                    <span id="multiSelectedCountBadge" class="prop-type-pill">2 Selected</span>
                 </div>
 
-                <!-- 0. Field Type Batch Converter -->
-                <div class="form-group" style="margin-bottom: 14px; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 10px;">
-                    <label style="font-size: 10.5px; font-weight: 700; color: #0369a1; text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                        <span>Field Type</span>
-                        <span style="font-size: 9.5px; font-weight: 500; color: #0284c7; text-transform: none;">Batch Convert</span>
-                    </label>
-                    <select id="multiFieldType" style="font-size: 12px; padding: 6px 8px; width: 100%; border: 1.5px solid #38bdf8; border-radius: 6px; background: #ffffff; color: #0f172a; font-weight: 600; cursor: pointer; margin-bottom: 6px;">
-                        <option value="" disabled selected>Convert Selected Types...</option>
-                        <option value="textField">🔤 Text Field</option>
-                        <option value="checkBox">☑ Checkbox</option>
-                        <option value="radioGroup">🔘 Radio Button</option>
-                        <option value="dateField">📅 Date Field</option>
-                        <option value="signature">✍ Signature</option>
-                        <option value="dropdown">▾ Dropdown</option>
-                    </select>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
-                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="textField" title="Convert to Text Fields" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
-                            <i data-lucide="type" style="width: 12px; height: 12px; color: #2563eb;"></i> Text
-                        </button>
-                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="checkBox" title="Convert to Checkboxes" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
-                            <i data-lucide="check-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Checkbox
-                        </button>
-                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="radioGroup" title="Convert to Radio Buttons" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
-                            <i data-lucide="disc" style="width: 12px; height: 12px; color: #2563eb;"></i> Radio
-                        </button>
-                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="dateField" title="Convert to Date Fields" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
-                            <i data-lucide="calendar" style="width: 12px; height: 12px; color: #2563eb;"></i> Date
-                        </button>
-                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="signature" title="Convert to Signatures" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
-                            <i data-lucide="pen-tool" style="width: 12px; height: 12px; color: #7c3aed;"></i> Signature
-                        </button>
-                        <button type="button" class="multi-type-quick-btn btn-secondary" data-type="dropdown" title="Convert to Dropdowns" style="padding: 5px 2px; font-size: 10px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 3px; border-radius: 5px; background: #ffffff;">
-                            <i data-lucide="chevron-down-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Dropdown
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 1. Alignment & Distribution Toolbar (Compact Figma-style) -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Align & Distribute</label>
-                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 4px; display: flex; flex-direction: column; gap: 4px;">
-                        <div style="display: flex; justify-content: space-between; gap: 2px;">
-                            <button id="alignLeftBtn" class="tool-btn" title="Align Left Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="align-left" style="width: 14px; height: 14px;"></i></button>
-                            <button id="alignCenterBtn" class="tool-btn" title="Align Centers Horizontally" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="align-center" style="width: 14px; height: 14px;"></i></button>
-                            <button id="alignRightBtn" class="tool-btn" title="Align Right Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="align-right" style="width: 14px; height: 14px;"></i></button>
-                            <button id="alignTopBtn" class="tool-btn" title="Align Top Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="arrow-up-to-line" style="width: 14px; height: 14px;"></i></button>
-                            <button id="alignMiddleBtn" class="tool-btn" title="Align Centers Vertically" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="fold-vertical" style="width: 14px; height: 14px;"></i></button>
-                            <button id="alignBottomBtn" class="tool-btn" title="Align Bottom Edges" style="flex: 1; height: 28px; border-radius: 5px;"><i data-lucide="arrow-down-to-line" style="width: 14px; height: 14px;"></i></button>
-                        </div>
-                        <div style="display: flex; gap: 4px; border-top: 1px solid #e2e8f0; padding-top: 4px;">
-                            <button id="distributeVerticalBtn" class="btn-secondary" title="Distribute Vertical Spacing Evenly" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
-                                <i data-lucide="distribute-vertical" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute V
-                            </button>
-                            <button id="distributeHorizontalBtn" class="btn-secondary" title="Distribute Horizontal Spacing Evenly" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
-                                <i data-lucide="distribute-horizontal" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute H
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 2. Dimensions & Sizing -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Dimensions (px)</label>
-                    <div style="display: flex; gap: 8px; margin-bottom: 6px;">
-                        <div style="flex: 1; position: relative;">
-                            <span style="position: absolute; left: 8px; top: 7px; font-size: 11px; color: #94a3b8; font-weight: 600;">W</span>
-                            <input type="number" id="multiFieldWidth" placeholder="Mixed" min="16" max="2000" style="padding: 6px 8px 6px 24px; font-size: 12px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                        </div>
-                        <div style="flex: 1; position: relative;">
-                            <span style="position: absolute; left: 8px; top: 7px; font-size: 11px; color: #94a3b8; font-weight: 600;">H</span>
-                            <input type="number" id="multiFieldHeight" placeholder="Mixed" min="16" max="1000" style="padding: 6px 8px 6px 24px; font-size: 12px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 6px;">
-                        <button id="multiMatchWidthBtn" type="button" class="btn-secondary" title="Equalize Widths" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
-                            <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
-                        </button>
-                        <button id="multiMatchHeightBtn" type="button" class="btn-secondary" title="Equalize Heights" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
-                            <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
-                        </button>
-                        <button id="multiMatchBothBtn" type="button" class="btn-secondary" title="Equalize Both Width & Height" style="flex: 1; padding: 4px 6px; font-size: 11px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 5px;">
-                            <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 3. Appearance & Style (Sleek Swatches & Border) -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Appearance</label>
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 11px; color: #475569; font-weight: 500;">Border:</span>
-                        <div class="segmented-toggle" id="multiBorderSegmentedToggle" data-active="solid">
-                            <div class="segmented-glider"></div>
-                            <button id="multiBorderSolidBtn" type="button" class="segmented-opt active" data-val="solid">Solid</button>
-                            <button id="multiBorderNoneBtn" type="button" class="segmented-opt" data-val="none">None</button>
-                        </div>
-                    </div>
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <span style="font-size: 11px; color: #475569; font-weight: 500;">Background:</span>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <button id="multiFillWhiteBtn" type="button" class="color-swatch-btn" title="White Background" style="background: #ffffff; border: 1.5px solid #cbd5e1;"></button>
-                            <button id="multiFillTintBtn" type="button" class="color-swatch-btn" title="Soft Blue Tint" style="background: #dbeafe; border: 1.5px solid #3b82f6;"></button>
-                            <button id="multiFillYellowBtn" type="button" class="color-swatch-btn" title="Soft Yellow" style="background: #fef08a; border: 1.5px solid #eab308;"></button>
-                            <button id="multiFillTransBtn" type="button" class="color-swatch-btn" title="Transparent" style="background: transparent; border: 1.5px dashed #94a3b8;"></button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 4. Typography -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">Typography</label>
-                    <div style="margin-bottom: 6px;">
-                        <select id="multiFontFamily" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                            <option value="" style="color: #64748b; font-style: italic;">Font (Mixed)</option>
-                            <option value="helvetica">Calibri / Helvetica</option>
-                            <option value="times">Times New Roman</option>
-                            <option value="courier">Courier Monospace</option>
-                            <option value="helvetica-bold">Calibri Bold</option>
-                            <option value="times-italic">Times New Roman Italic</option>
-                        </select>
-                    </div>
-                    <div style="display: flex; gap: 8px;">
-                        <div style="flex: 1;">
-                            <input type="number" id="multiFontSize" placeholder="Size (pt)" min="6" max="72" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                        </div>
-                        <div style="flex: 1;">
-                            <select id="multiTextAlignment" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                                <option value="" style="color: #64748b; font-style: italic;">Align</option>
-                                <option value="left">Left</option>
-                                <option value="center">Center</option>
-                                <option value="right">Right</option>
+                <!-- Scrollable Body -->
+                <div class="prop-panel-body">
+                    <!-- 1. Batch Convert Type -->
+                    <div class="prop-group">
+                        <div class="prop-field">
+                            <label class="prop-label" for="multiFieldType">Batch Convert Type</label>
+                            <select id="multiFieldType" class="prop-select">
+                                <option value="" disabled selected>Convert Selected Types...</option>
+                                <option value="textField">Text Field</option>
+                                <option value="checkBox">Checkbox</option>
+                                <option value="radioGroup">Radio Button</option>
+                                <option value="dateField">Date Field</option>
+                                <option value="signature">Signature</option>
+                                <option value="dropdown">Dropdown</option>
                             </select>
                         </div>
+                        <div class="prop-quick-types-grid">
+                            <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="textField" title="Convert to Text Fields">
+                                <i data-lucide="type" style="width: 12px; height: 12px; color: #2563eb;"></i> Text
+                            </button>
+                            <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="checkBox" title="Convert to Checkboxes">
+                                <i data-lucide="check-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Checkbox
+                            </button>
+                            <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="radioGroup" title="Convert to Radio Buttons">
+                                <i data-lucide="disc" style="width: 12px; height: 12px; color: #2563eb;"></i> Radio
+                            </button>
+                            <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="dateField" title="Convert to Date Fields">
+                                <i data-lucide="calendar" style="width: 12px; height: 12px; color: #2563eb;"></i> Date
+                            </button>
+                            <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="signature" title="Convert to Signatures">
+                                <i data-lucide="pen-tool" style="width: 12px; height: 12px; color: #7c3aed;"></i> Signature
+                            </button>
+                            <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="dropdown" title="Convert to Dropdowns">
+                                <i data-lucide="chevron-down-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Dropdown
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Align & Distribute -->
+                    <div class="prop-group">
+                        <div class="prop-section-heading">Align & Distribute</div>
+                        <div class="prop-align-container">
+                            <div class="prop-align-row">
+                                <button id="alignLeftBtn" class="tool-btn prop-tool-btn" title="Align Left Edges"><i data-lucide="align-left" style="width: 13px; height: 13px;"></i></button>
+                                <button id="alignCenterBtn" class="tool-btn prop-tool-btn" title="Align Centers Horizontally"><i data-lucide="align-center" style="width: 13px; height: 13px;"></i></button>
+                                <button id="alignRightBtn" class="tool-btn prop-tool-btn" title="Align Right Edges"><i data-lucide="align-right" style="width: 13px; height: 13px;"></i></button>
+                                <button id="alignTopBtn" class="tool-btn prop-tool-btn" title="Align Top Edges"><i data-lucide="arrow-up-to-line" style="width: 13px; height: 13px;"></i></button>
+                                <button id="alignMiddleBtn" class="tool-btn prop-tool-btn" title="Align Centers Vertically"><i data-lucide="fold-vertical" style="width: 13px; height: 13px;"></i></button>
+                                <button id="alignBottomBtn" class="tool-btn prop-tool-btn" title="Align Bottom Edges"><i data-lucide="arrow-down-to-line" style="width: 13px; height: 13px;"></i></button>
+                            </div>
+                            <div class="prop-distribute-row">
+                                <button id="distributeVerticalBtn" class="btn-secondary prop-distribute-btn" title="Distribute Vertical Spacing Evenly">
+                                    <i data-lucide="distribute-vertical" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute V
+                                </button>
+                                <button id="distributeHorizontalBtn" class="btn-secondary prop-distribute-btn" title="Distribute Horizontal Spacing Evenly">
+                                    <i data-lucide="distribute-horizontal" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute H
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Dimensions & Matching -->
+                    <div class="prop-group">
+                        <div class="prop-section-heading">Dimensions</div>
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label" for="multiFieldWidth">Width (px)</label>
+                                <input type="number" id="multiFieldWidth" class="prop-input" placeholder="Mixed" min="16" max="2000">
+                            </div>
+                            <div class="prop-field">
+                                <label class="prop-label" for="multiFieldHeight">Height (px)</label>
+                                <input type="number" id="multiFieldHeight" class="prop-input" placeholder="Mixed" min="16" max="1000">
+                            </div>
+                        </div>
+                        <div class="prop-match-row">
+                            <button id="multiMatchWidthBtn" type="button" class="btn-secondary prop-match-btn" title="Equalize Widths">
+                                <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
+                            </button>
+                            <button id="multiMatchHeightBtn" type="button" class="btn-secondary prop-match-btn" title="Equalize Heights">
+                                <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
+                            </button>
+                            <button id="multiMatchBothBtn" type="button" class="btn-secondary prop-match-btn" title="Equalize Both Width & Height">
+                                <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Appearance & Style -->
+                    <div class="prop-group">
+                        <div class="prop-section-heading">Appearance</div>
+                        <div class="prop-appearance-row">
+                            <span class="prop-label">Border:</span>
+                            <div class="segmented-toggle" id="multiBorderSegmentedToggle" data-active="solid">
+                                <div class="segmented-glider"></div>
+                                <button id="multiBorderSolidBtn" type="button" class="segmented-opt active" data-val="solid">Solid</button>
+                                <button id="multiBorderNoneBtn" type="button" class="segmented-opt" data-val="none">None</button>
+                            </div>
+                        </div>
+                        <div class="prop-appearance-row">
+                            <span class="prop-label">Fill:</span>
+                            <div class="prop-swatches-row">
+                                <button id="multiFillWhiteBtn" type="button" class="color-swatch-btn" title="White Background" style="background: #ffffff; border: 1.5px solid #cbd5e1;"></button>
+                                <button id="multiFillTintBtn" type="button" class="color-swatch-btn" title="Soft Blue Tint" style="background: #eff6ff; border: 1.5px solid #3b82f6;"></button>
+                                <button id="multiFillYellowBtn" type="button" class="color-swatch-btn" title="Soft Yellow" style="background: #fef08a; border: 1.5px solid #eab308;"></button>
+                                <button id="multiFillTransBtn" type="button" class="color-swatch-btn" title="Transparent" style="background: transparent; border: 1.5px dashed #94a3b8;"></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Typography -->
+                    <div class="prop-group">
+                        <div class="prop-section-heading">Typography</div>
+                        <div class="prop-field">
+                            <select id="multiFontFamily" class="prop-select">
+                                <option value="" style="color: #64748b; font-style: italic;">Font (Mixed)</option>
+                                <option value="helvetica">Calibri / Helvetica</option>
+                                <option value="times">Times New Roman</option>
+                                <option value="courier">Courier Monospace</option>
+                                <option value="helvetica-bold">Calibri Bold</option>
+                                <option value="times-italic">Times New Roman Italic</option>
+                            </select>
+                        </div>
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <input type="number" id="multiFontSize" class="prop-input" placeholder="Size (pt)" min="6" max="72">
+                            </div>
+                            <div class="prop-field">
+                                <select id="multiTextAlignment" class="prop-select">
+                                    <option value="" style="color: #64748b; font-style: italic;">Align</option>
+                                    <option value="left">Left</option>
+                                    <option value="center">Center</option>
+                                    <option value="right">Right</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 6. Value & Validation -->
+                    <div class="prop-group">
+                        <div class="prop-section-heading">Value & Rules</div>
+                        <div class="prop-field">
+                            <label class="prop-label" for="multiDefaultValue">Default Text</label>
+                            <input type="text" id="multiDefaultValue" class="prop-input" placeholder="Apply text to all selected">
+                        </div>
+                        <div class="prop-chips-grid" style="grid-template-columns: 1fr;">
+                            <label class="prop-chip-toggle">
+                                <input type="checkbox" id="multiFieldRequired">
+                                <span>Make All Selected Required</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- 5. Default Text -->
-                <div class="form-group" style="margin-bottom: 12px;">
-                    <label style="font-size: 10.5px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Default Text</label>
-                    <input type="text" id="multiDefaultValue" placeholder="Apply text to all selected" style="font-size: 12px; padding: 5px 8px; width: 100%; border: 1px solid #cbd5e1; border-radius: 6px;">
-                </div>
-
-                <!-- 6. Required Checkbox -->
-                <div style="margin-bottom: 14px; background: #f8fafc; padding: 8px 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                    <label style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: #334155; font-weight: 500; cursor: pointer;">
-                        <input type="checkbox" id="multiFieldRequired"> Make All Selected Required
-                    </label>
-                </div>
-
-                <!-- 7. Actions -->
-                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                    <button id="multiGroupBtn" type="button" style="flex: 1; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                        <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i> Group
-                    </button>
-                    <button id="multiUngroupBtn" type="button" style="background: #ffffff; color: #64748b; border: 1px solid #cbd5e1; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Ungroup Selected">
-                        <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i> Ungroup
-                    </button>
-                </div>
-                <div>
-                    <button id="deleteMultiBtn" type="button" style="width: 100%; background: #fff5f5; color: #dc2626; border: 1px solid #fecaca; padding: 6px; border-radius: 6px; cursor: pointer; font-size: 11.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete Selected
-                    </button>
+                <!-- Pinned Footer -->
+                <div class="prop-footer">
+                    <div class="prop-footer-actions">
+                        <button id="multiGroupBtn" type="button" class="btn-secondary prop-footer-btn" style="background: #eff6ff; color: #2563eb; border-color: #bfdbfe;">
+                            <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i> Group
+                        </button>
+                        <button id="multiUngroupBtn" type="button" class="btn-secondary prop-footer-btn" title="Ungroup Selected">
+                            <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i> Ungroup
+                        </button>
+                    </div>
+                    <div>
+                        <button id="deleteMultiBtn" type="button" class="btn-danger-outline prop-footer-btn" style="width: 100%;">
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete Selected
+                        </button>
+                    </div>
                 </div>
             </div>
         </aside>
@@ -1483,6 +1221,17 @@
         </div>
     </div>
     
+    <!-- ================= PURE CINEMATIC VIDEO LIGHTBOX ================= -->
+    <div id="videoPlayerModal" class="modal video-player-modal" role="dialog" aria-modal="true" aria-label="Product Demo Video">
+        <div class="video-modal-backdrop" id="closeVideoModalBackdrop"></div>
+        <div class="pure-video-card" id="pureVideoCard">
+            <video id="expandedDemoVideo" playsinline preload="auto" poster="assets/hero-poster.jpg?v=5.3" controls autoplay>
+                <source src="assets/hero-demo.mp4?v=5.3" type="video/mp4">
+                <source src="assets/hero-demo.webm?v=5.3" type="video/webm">
+            </video>
+        </div>
+    </div>
+
     <!-- Interactive Signature Modal -->
     <div id="signatureModal" class="modal">
         <div class="modal-content" style="max-width: 500px; padding: 20px; border-radius: 12px; background: white;">
@@ -1501,7 +1250,7 @@
                 <div style="border:1.5px dashed #cbd5e1; border-radius:8px; background:#fafafa; position:relative; overflow:hidden;">
                     <canvas id="signatureCanvas" width="460" height="150" style="display:block; cursor:crosshair; width:100%; height:150px;"></canvas>
                     <div style="position:absolute; bottom:12px; left:16px; right:16px; border-bottom:1px solid #cbd5e1; pointer-events:none;"></div>
-                    <div style="position:absolute; bottom:14px; left:16px; font-size:11px; color:#94a3b8; pointer-events:none;">✕ Sign above the line</div>
+                    <div style="position:absolute; bottom:14px; left:16px; font-size:11px; color:#94a3b8; pointer-events:none;">Sign above the line</div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                     <button id="clearSigBtn" style="padding:4px 10px; font-size:12px; background:#f1f5f9; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer; color:#475569;">Clear</button>
@@ -1595,6 +1344,7 @@
                         <i data-lucide="help-circle" style="width:12px; height:12px;"></i>
                         <span>General & Help</span>
                     </div>
+                    <div class="shortcut-list">
                         <div class="shortcut-row"><span class="shortcut-desc">Toggle Smart Guides</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">;</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Open Shortcuts Cheat Sheet</span><div class="shortcut-keys"><span class="shortcut-kbd">?</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Deselect / Close Popover</span><div class="shortcut-keys"><span class="shortcut-kbd">Esc</span></div></div>
@@ -1773,11 +1523,11 @@
                 <div>
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Category</label>
                     <select id="feedbackCategory" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; background:#f8fafc; outline:none;">
-                        <option value="Feature Suggestion">✨ Feature Suggestion</option>
-                        <option value="General Review">⭐ General Review / Opinion</option>
-                        <option value="Auto-Detect Improvement">🤖 Auto-Detect Feedback</option>
-                        <option value="Bug Report">🐛 Bug Report</option>
-                        <option value="Other">💬 Other</option>
+                        <option value="Feature Suggestion">Feature Suggestion</option>
+                        <option value="General Review">General Review / Opinion</option>
+                        <option value="Auto-Detect Improvement">Auto-Detect Feedback</option>
+                        <option value="Bug Report">Bug Report</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
 
@@ -2009,31 +1759,31 @@
 
     <!-- Leave Editor Unsaved Changes Confirmation Modal -->
     <div id="leaveEditorModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 480px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 45px -10px rgba(15,23,42,0.25);">
+        <div class="modal-content" style="max-width: 440px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 45px -10px rgba(15,23,42,0.25);">
             <!-- Modal Header -->
-            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px;">
-                <div style="width: 40px; height: 40px; border-radius: 10px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; border: 1px solid #fecaca; flex-shrink: 0;">
+            <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px;">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: #fef2f2; color: #dc2626; display: flex; align-items: center; justify-content: center; border: 1px solid #fecaca; flex-shrink: 0; margin-top: 1px;">
                     <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
                 </div>
-                <div>
-                    <h3 style="margin: 0 0 4px 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Leave Form Editor?</h3>
-                    <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.5;">
+                <div style="flex: 1; min-width: 0;">
+                    <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 1.3; letter-spacing: -0.01em;">Leave Form Editor?</h3>
+                    <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.55; text-align: left;">
                         You have an active document in progress. Returning to the home screen will reset your workspace unless you save your project.
                     </p>
                 </div>
             </div>
 
             <!-- Action Buttons -->
-            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 18px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
-                <button type="button" id="saveAndLeaveEditorBtn" class="btn-primary" style="padding: 10px 16px; font-size: 13px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid #f1f5f9;">
+                <button type="button" id="saveAndLeaveEditorBtn" class="btn-primary" style="padding: 10px 16px; font-size: 13px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
                     <i data-lucide="save" style="width: 15px; height: 15px;"></i>
-                    <span>Save Project (.jform) & Go Home</span>
+                    <span>Save Project (.jform) &amp; Go Home</span>
                 </button>
-                <button type="button" id="discardAndLeaveEditorBtn" style="padding: 9px 16px; font-size: 12.5px; border-radius: 8px; font-weight: 600; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                <button type="button" id="discardAndLeaveEditorBtn" style="padding: 9px 16px; font-size: 12.5px; border-radius: 8px; font-weight: 600; background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;">
                     <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
-                    <span>Discard Changes & Go Home</span>
+                    <span>Discard Changes &amp; Go Home</span>
                 </button>
-                <button type="button" id="cancelLeaveEditorBtn" class="btn-secondary" style="padding: 9px 16px; font-size: 12.5px; border-radius: 8px; margin-top: 2px;">
+                <button type="button" id="cancelLeaveEditorBtn" class="btn-secondary" style="padding: 9px 16px; font-size: 12.5px; border-radius: 8px; display: flex; align-items: center; justify-content: center; width: 100%;">
                     Cancel (Keep Editing)
                 </button>
             </div>
@@ -2049,17 +1799,17 @@
             <h4 class="toast-title">Form Exported Successfully</h4>
             <p id="toastFilenameDesc" class="toast-desc">Saved to your Downloads folder.</p>
         </div>
-        <button type="button" id="dismissToastBtn" class="toast-dismiss" title="Dismiss (✕)">
+        <button type="button" id="dismissToastBtn" class="toast-dismiss" title="Dismiss">
             <i data-lucide="x" style="width: 15px; height: 15px;"></i>
         </button>
     </div>
     
-    <!-- Persistent Mobile Device Handoff Bottom Sheet (< 768px Viewports) -->
+    <!-- Persistent Mobile Device Handoff Bottom Sheet (Strictly Mobile < 768px Only) -->
     <div id="mobileHandoffBar" class="mobile-handoff-bar">
         <div class="mobile-handoff-inner">
             <div style="display: flex; align-items: center; gap: 8px;">
                 <i data-lucide="laptop" style="width: 15px; height: 15px; color: #60a5fa;"></i>
-                <span class="mobile-handoff-text">Need to create a form on PC/Mac?</span>
+                <span class="mobile-handoff-text">Need to build forms on desktop?</span>
             </div>
             <button id="mobileBottomShareBtn" class="mobile-share-btn">
                 <i data-lucide="share-2" style="width: 13px; height: 13px;"></i> Share Link
@@ -2070,7 +1820,6 @@
     <!-- Floating Fill & Test Mode Helper Banner HUD -->
     <div id="fillModeBanner" class="fill-mode-banner" style="display: none;">
         <div class="fill-mode-badge">
-            <span class="live-pulse-dot"></span>
             <span>Fill & Test Mode Active</span>
         </div>
         <div class="fill-mode-actions">
@@ -2095,29 +1844,32 @@
                         <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy Policy</h3>
-                        <span style="font-size: 12px; color: #64748b;">Zero-Server Data Protection Guarantee • Effective: August 2026</span>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy and Data Policy</h3>
+                        <span style="font-size: 12px; color: #64748b;">Client-Side Execution and Vercel Infrastructure Policy</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closePrivacyModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+                <button type="button" class="modal-close-icon" id="closePrivacyModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
                 <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; color: #166534; font-weight: 500;">
-                    <strong>Executive Summary:</strong> JustForms operates 100% locally on your computer. We do not operate databases or cloud processing servers for your documents. Your files and form entries are never transmitted over the internet.
+                    <strong>Executive Summary:</strong> JustForms operates 100% locally on your computer device. Your documents, form fields, and signatures are never transmitted over the internet or saved to external databases. Web application assets and development telemetry are powered strictly via Vercel.
                 </div>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. No Server-Side File Processing</h4>
-                <p style="margin: 0;">When you open or drop a PDF into JustForms, the binary stream is decoded directly into your browser's private WebAssembly/JavaScript memory space via the open-source <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">pdf.js</code> and <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">pdf-lib</code> libraries. At no point are your PDF bytes sent to any remote server.</p>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. 100% Local Processing on User Device</h4>
+                <p style="margin: 0;">When you open or drop a PDF into JustForms, all file parsing, field layout rendering, and AcroForm binary generation execute strictly within your local browser memory via WebAssembly and JavaScript (pdf.js and pdf-lib). Zero document bytes or field entries are uploaded to any server.</p>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. Zero Keystroke or Input Telemetry</h4>
-                <p style="margin: 0;">We do not capture, record, or track keystrokes, form input values, radio choices, dropdown selections, or drawn signature graphics. All form manipulation takes place entirely within your client session.</p>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. Infrastructure and Hosting (Vercel)</h4>
+                <p style="margin: 0;">The JustForms web application is built, deployed, and served as static web assets through Vercel. Vercel delivers the HTML, CSS, JavaScript, and WebAssembly bundles to your browser edge.</p>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Client-Side Local Storage & Auto-Save</h4>
-                <p style="margin: 0;">JustForms may store temporary field coordinates and theme preferences in your browser's <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">localStorage</code> or <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">sessionStorage</code> to prevent work loss during accidental browser tab refreshes. This data resides strictly on your physical machine.</p>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Project Development and Telemetry</h4>
+                <p style="margin: 0;">For continuous project development, application stability, and build optimization, anonymous performance metrics (such as page response speed and Core Web Vitals) are gathered via Vercel Analytics. No personally identifiable information, cookies, or document data are ever collected.</p>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. Independent Verification</h4>
-                <p style="margin: 0;">You can verify our privacy guarantee at any time using your browser's Developer Tools Network Tab (<code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">F12</code>) to confirm 0 bytes of outgoing document traffic.</p>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. No Third-Party Trackers or Data Brokers</h4>
+                <p style="margin: 0;">We do not use advertising networks, cross-site fingerprinting, commercial data brokers, or marketing trackers. Vercel is our sole infrastructure provider for project delivery.</p>
+
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">5. Independent Network Verification</h4>
+                <p style="margin: 0;">You can verify our zero-upload data policy at any time using your browser's Developer Tools Network Tab (F12 or Cmd+Option+I) to confirm 0 bytes of outgoing document traffic.</p>
             </div>
 
             <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
@@ -2139,7 +1891,7 @@
                         <span style="font-size: 12px; color: #64748b;">Open Source MIT License Terms</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeTermsModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+                <button type="button" class="modal-close-icon" id="closeTermsModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2152,7 +1904,7 @@
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Disclaimer of Warranties</h4>
                 <p style="margin: 0;">The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability arising from the use of the software.</p>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. Self-Hosting & Audits</h4>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">4. Self-Hosting and Audits</h4>
                 <p style="margin: 0;">Organizations requiring air-gapped environments or formal SLA deployment may self-host the static repository on their own private infrastructure without modifications or external API dependencies.</p>
             </div>
 
@@ -2171,27 +1923,27 @@
                         <i data-lucide="cookie" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Cookie & Local Storage Policy</h3>
-                        <span style="font-size: 12px; color: #64748b;">Zero Tracking Cookies</span>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Cookie and Storage Policy</h3>
+                        <span style="font-size: 12px; color: #64748b;">Zero Advertising Cookies • Local Browser Storage Only</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeCookieModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+                <button type="button" class="modal-close-icon" id="closeCookieModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; color: #1e40af; font-weight: 500;">
-                    <strong>Zero Third-Party Advertising Cookies:</strong> JustForms does not use marketing trackers, ad networks, tracking pixels, or cross-site fingerprinting cookies.
+                    <strong>Zero Third-Party Advertising Cookies:</strong> JustForms does not set marketing cookies, tracking pixels, or cross-site profiling trackers. The application is delivered via Vercel with anonymous development performance analytics.
                 </div>
 
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. What Browser Storage Is Used?</h4>
-                <p style="margin: 0;">JustForms only uses essential client-side web storage mechanisms (<code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">localStorage</code> and <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px; color: #0284c7;">sessionStorage</code>) for core functional features:</p>
+                <p style="margin: 0;">JustForms only uses essential client-side web storage mechanisms (localStorage and sessionStorage) on your device for core functional features:</p>
                 <ul style="margin: 4px 0 0; padding-left: 20px;">
-                    <li><strong>Crash Guard & Session State:</strong> Preserving unsaved form layout in progress so accidental browser reloads do not discard your field placements.</li>
-                    <li><strong>Onboarding & User Preferences:</strong> Remembering whether you have completed the visual onboarding tour and tool preference choices.</li>
+                    <li><strong>Crash Guard and Session State:</strong> Preserving unsaved form layout in progress so accidental browser reloads do not discard your field placements.</li>
+                    <li><strong>Onboarding and User Preferences:</strong> Remembering whether you have completed the visual onboarding tour and tool preference choices.</li>
                 </ul>
 
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. Managing Your Storage</h4>
-                <p style="margin: 0;">You can clear all stored local application state at any time through your browser's "Clear Site Data" or "Clear Cookies & Cache" settings without affecting future use.</p>
+                <p style="margin: 0;">You can clear all stored local application state at any time through your browser's "Clear Site Data" or "Clear Cookies and Cache" settings without affecting future use.</p>
             </div>
 
             <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
@@ -2209,23 +1961,23 @@
                         <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Compliance & Security Architecture</h3>
-                        <span style="font-size: 12px; color: #64748b;">HIPAA, GDPR & ISO 32000 Architectural Standards</span>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Compliance and Security Architecture</h3>
+                        <span style="font-size: 12px; color: #64748b;">HIPAA, GDPR and ISO 32000 Architectural Standards</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeComplianceModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+                <button type="button" class="modal-close-icon" id="closeComplianceModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px;">
-                    <strong style="color: #0f172a; display: block; margin-bottom: 4px;">HIPAA & Protected Health Information (PHI) Boundary:</strong>
-                    Because JustForms runs entirely as client-side software on your local machine and does not transmit, ingest, process, or store files on external cloud servers, JustForms is not a "Business Associate" under HIPAA. All Protected Health Information (PHI) created or entered into forms remains strictly under the direct physical and network control of your covered entity.
+                    <strong style="color: #0f172a; display: block; margin-bottom: 4px;">HIPAA and Protected Health Information (PHI) Boundary:</strong>
+                    Because JustForms runs entirely as client-side software on your local user device and does not transmit, ingest, process, or store files on external cloud servers, JustForms is not a "Business Associate" under HIPAA. All Protected Health Information (PHI) created or entered into forms remains strictly under the direct physical and network control of your covered entity.
                 </div>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. GDPR & Privacy by Design</h4>
-                <p style="margin: 0;">JustForms adheres to the strictest principles of GDPR (General Data Protection Regulation) by implementing Data Minimization and Privacy by Design. Since zero personal data is collected or transferred, user privacy is guaranteed by architectural design rather than trust.</p>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. GDPR and Privacy by Design</h4>
+                <p style="margin: 0;">JustForms adheres to the strictest principles of GDPR (General Data Protection Regulation) by implementing Data Minimization and Privacy by Design. Since zero personal document data is collected or transferred, user privacy is guaranteed by architectural design rather than trust.</p>
 
-                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. ISO 32000-1 / PDF 1.7 Compliance</h4>
+                <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. ISO 32000-1 and PDF 1.7 Compliance</h4>
                 <p style="margin: 0;">Forms generated by JustForms adhere to ISO 32000-1 specification standards for PDF interactive form widgets (/AcroForm dictionary, /Widget annotations, /DR resources, /V appearance streams). This ensures standard verification and signature validation in Adobe Acrobat and enterprise document management systems.</p>
 
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Enterprise Liability Disclaimer</h4>
@@ -2251,7 +2003,7 @@
                         <span style="font-size: 12px; color: #64748b;">Free • Open Source • Privacy-First</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeAboutModalBtn" style="background: none; border: none; font-size: 20px; color: #94a3b8; cursor: pointer; padding: 4px;">✕</button>
+                <button type="button" class="modal-close-icon" id="closeAboutModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2278,7 +2030,26 @@
         </div>
     </div>
 
-    <script type="module" src="js/main.js?v=2.3"></script>
+    <script>
+      (function(){
+        var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var targets = document.querySelectorAll('.reveal');
+        if (reduced || !('IntersectionObserver' in window)) {
+          targets.forEach(function(el){ el.classList.add('in-view'); });
+          return;
+        }
+        var io = new IntersectionObserver(function(entries){
+          entries.forEach(function(entry){
+            if (entry.isIntersecting) {
+              entry.target.classList.add('in-view');
+              io.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.2 });
+        targets.forEach(function(el){ io.observe(el); });
+      })();
+    </script>
+    <script type="module" src="js/main.js?v=5.8"></script>
 </body>
 </html>
 

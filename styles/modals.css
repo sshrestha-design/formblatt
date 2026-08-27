@@ -60,7 +60,6 @@
 }
 
 #signatureModal .modal-content,
-#leaveEditorModal .modal-content,
 #saveProjectModal .modal-content,
 #samplePreviewModal .modal-content,
 #feedbackModal .modal-content,
@@ -77,6 +76,16 @@
     padding: 26px !important;
     border-radius: 16px !important;
     overflow-y: auto !important;
+}
+
+#leaveEditorModal .modal-content {
+    height: auto !important;
+    max-height: 90vh !important;
+    width: 90% !important;
+    max-width: 440px !important;
+    padding: 24px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.25) !important;
 }
 
 #privacyModal .modal-content,
@@ -401,4 +410,82 @@
 
 .toast-dismiss:hover {
     color: #0f172a;
+}
+
+/* ============================================================
+   Glassy Media Player Modal
+   ============================================================ */
+
+.video-player-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 15, 30, 0.82) !important;
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    z-index: 999999 !important;
+    padding: 20px;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.video-player-modal.active,
+.video-player-modal[style*="display: flex"],
+.video-player-modal[style*="display: block"] {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+.video-player-modal:not(.active) {
+    display: none !important;
+}
+
+.video-modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    cursor: pointer;
+}
+
+.pure-video-card {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    max-width: 1100px;
+    max-height: 90vh;
+    aspect-ratio: 2740 / 2160;
+    background: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 18px;
+    box-shadow: 
+        0 40px 120px -20px rgba(0, 0, 0, 0.95),
+        0 20px 50px -10px rgba(0, 0, 0, 0.7),
+        0 0 0 1px rgba(255, 255, 255, 0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    animation: modalSpringUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    cursor: default;
+}
+
+.pure-video-card video {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+    transform: scale(1.025);
+    outline: none;
+    border-radius: 18px;
 }

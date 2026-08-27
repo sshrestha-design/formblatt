@@ -1,5 +1,10 @@
 // ── Starter Sample Templates & Vector Generator (js/templates-engine.js) ─
 export const STARTER_TEMPLATES = {
+    blank: {
+        title: "Blank Document (Letter)",
+        description: "Fresh blank PDF canvas ready for adding custom interactive form fields and signatures from scratch.",
+        fields: []
+    },
     w9: {
         title: "Form W-9: Request for Taxpayer Identification",
         description: "Standard IRS-compliant taxpayer identification and certification form.",
@@ -187,7 +192,9 @@ export async function createTemplatePdf(key) {
     const gray = rgb(0.40, 0.45, 0.52);
     const lineGray = rgb(0.80, 0.83, 0.88);
 
-    if (key === "w9") {
+    if (key === "blank") {
+        return await doc.save();
+    } else if (key === "w9") {
         page.drawText("Form W-9", { x: 45, y: height - 48, size: 20, font: fontBold, color: dark });
         page.drawText("(Rev. March 2026)", { x: 155, y: height - 46, size: 9, font: fontRegular, color: gray });
         page.drawText("Request for Taxpayer Identification Number and Certification", { x: 45, y: height - 68, size: 11.5, font: fontBold, color: dark });

@@ -302,7 +302,7 @@ export function populateProperties(field) {
         if (emptyPanel) emptyPanel.style.display = "none";
         if (singleProps) singleProps.style.display = "none";
         if (multiProps) {
-            multiProps.style.display = "block";
+            multiProps.style.display = "flex";
             if (countBadge) countBadge.textContent = `${state.selectedFieldIds.size} Selected`;
             
             const selectedFields = state.fields.filter(f => state.selectedFieldIds.has(f.id));
@@ -415,7 +415,7 @@ export function populateProperties(field) {
 
     if (emptyPanel) emptyPanel.style.display = "none";
     if (multiProps) multiProps.style.display = "none";
-    if (singleProps) singleProps.style.display = "block";
+    if (singleProps) singleProps.style.display = "flex";
 
     const badge = document.getElementById("propFieldTypeBadge");
     if (badge) {

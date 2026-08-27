@@ -40,9 +40,9 @@
 /* ── Field overlays ───────────────────────────────────────────── */
 .field-overlay {
     position: absolute;
-    border: 1.5px solid rgba(59, 130, 246, 0.65);
-    background: rgba(239, 246, 255, 0.10);
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    border: 1px solid rgba(59, 130, 246, 0.65);
+    background: rgba(239, 246, 255, 0.65);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.06);
     pointer-events: auto;
     display: flex;
     align-items: center;
@@ -50,7 +50,7 @@
     cursor: move;
     font-family: inherit;
     font-size: 11px;
-    color: #0f172a;
+    color: #1e3a8a;
     border-radius: 3px;
     overflow: visible;
     transition: border-color var(--anim-fast), box-shadow var(--anim-fast), background var(--anim-fast);
@@ -58,15 +58,24 @@
 
 .field-overlay:not(.selected):hover {
     border-color: #2563eb !important;
-    background: rgba(219, 234, 254, 0.22) !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.20);
+    background: rgba(219, 234, 254, 0.55) !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
 }
 
 .field-overlay.selected {
-    border: 1.5px solid #2563eb !important;
-    background: rgba(219, 234, 254, 0.22) !important;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25);
+    border: 2px solid #2563eb !important;
+    background: rgba(219, 234, 254, 0.40) !important;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
     z-index: 50;
+    animation: fieldSelectPulse 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.field-overlay.selected.multi-selected {
+    border: 1.5px solid rgba(37, 99, 235, 0.85) !important;
+    background: rgba(219, 234, 254, 0.30) !important;
+    box-shadow: none !important;
+    z-index: 45;
+    animation: none;
 }
 
 .field-overlay:focus-visible {
@@ -142,25 +151,46 @@
 
 .multi-selection-bounding-frame {
     position: absolute;
-    border: 1.5px solid #2563eb;
-    border-radius: 3px;
+    border: 1.5px solid #0f172a;
+    border-radius: 4px;
     pointer-events: none;
     z-index: 95;
-    background: rgba(37, 99, 235, 0.02);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    background: rgba(15, 23, 42, 0.02);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.95), 0 4px 18px rgba(0, 0, 0, 0.08);
+    animation: selectionFramePop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes selectionFramePop {
+    0% {
+        opacity: 0.35;
+        transform: scale(0.994);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes fieldSelectPulse {
+    0% {
+        box-shadow: 0 0 0 0px rgba(15, 23, 42, 0.30);
+    }
+    100% {
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.12);
+    }
 }
 
 .group-resize-handle {
     position: absolute;
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
     background: #ffffff;
-    border: 1.5px solid #2563eb;
-    border-radius: 2px;
+    border: 2px solid #0f172a;
+    border-radius: 50%;
     pointer-events: auto;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.30);
     z-index: 100;
-    transition: transform 0.12s ease, background 0.12s ease;
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .group-resize-handle.group-handle-se {
@@ -176,8 +206,21 @@
 }
 
 .group-resize-handle:hover {
-    transform: scale(1.35);
-    background: #2563eb;
+    transform: scale(1.4);
+    background: #0f172a;
+    border-color: #ffffff;
+}
+
+/* ── Interactive Marquee Lasso Selection Box ─────────────────── */
+#selectionBox {
+    position: absolute;
+    border: 1.5px dashed #0f172a;
+    background: rgba(15, 23, 42, 0.06);
+    border-radius: 3px;
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
 /* ── Magnetic Alignment Guidelines & Snap Points ──────────────────
@@ -476,6 +519,39 @@
     border: 2px solid #10b981;
     background: rgba(209, 250, 229, 0.85);
     box-shadow: 0 10px 30px rgba(16, 185, 129, 0.4), 0 0 0 2px rgba(16, 185, 129, 0.6);
+}
+
+.field-placement-ghost.is-drawing {
+    border: 2px solid #2563eb !important;
+    background: rgba(219, 234, 254, 0.45) !important;
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.25), 0 0 0 1px rgba(37, 99, 235, 0.5) !important;
+    animation: none !important;
+}
+
+.field-placement-ghost.is-drawing .ghost-badge {
+    background: #2563eb !important;
+}
+
+.ghost-origin-dot {
+    position: absolute;
+    bottom: -4px;
+    left: -4px;
+    width: 8px;
+    height: 8px;
+    background: #0284c7;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+    z-index: 10;
+}
+
+.field-placement-ghost.snapped .ghost-origin-dot {
+    background: #059669;
+}
+
+.field-placement-ghost.is-drawing .ghost-origin-dot {
+    background: #2563eb;
 }
 
 .ghost-badge {

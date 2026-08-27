@@ -7,7 +7,7 @@ const TOUR_STEPS = [
     {
         targetId: "segmentedToolbar",
         title: "1. Select Creation Tools",
-        description: "Choose interactive fields (Text, Checkbox, Signature) or click ✨ Auto-Detect to scan form lines automatically.",
+        description: "Choose interactive fields (Text, Checkbox, Signature) or click Auto-Detect to scan form lines automatically.",
         position: "bottom"
     },
     {

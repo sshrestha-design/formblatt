@@ -1,4 +1,3 @@
-// ── Main Application Orchestrator (js/main.js) ─────────────────
 import { state, getSelectedField, setSelectedField, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
 import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
@@ -6,7 +5,7 @@ import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
 import { initPropertiesPanel, populateProperties, syncDimensionInputsLive } from "./properties-panel.js";
 import { renderOverlays, updateOverlayPositionsDirectly } from "./overlay-manager.js";
 import { initCanvasController, handleFieldMouseDown, handleResizeStart } from "./canvas-controller.js";
-import { initLandingController, showLandingScreen, renderLandingReviews } from "./landing-controller.js";
+import { initLandingController, showLandingScreen, renderLandingReviews, loadTemplate } from "./landing-controller.js";
 import { initSignaturePad } from "./signature-pad.js";
 import { autoDetectFields } from "./auto-detector.js";
 import { saveHistory, undo, redo, exportProjectJson, importProjectJson } from "./storage-manager.js";
@@ -89,7 +88,7 @@ const canvasHandlers = {
 };
 
 // ── Application Bootstrap ──────────────────────────────────────
-document.addEventListener("DOMContentLoaded", async () => {
+const bootstrapApp = async () => {
     // Initialize Subsystems
     initSignaturePad();
     initPropertiesPanel(
@@ -131,6 +130,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    document.getElementById("newBlankDocMenuBtn")?.addEventListener("click", () => {
+        loadTemplate("blank", () => {
+            refreshUI();
+        });
+    });
     document.getElementById("saveProjectMenuBtn")?.addEventListener("click", exportProjectJson);
     document.getElementById("loadProjectMenuBtn")?.addEventListener("change", e => {
         const file = e.target.files[0];
@@ -933,7 +937,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Default to landing screen
     showLandingScreen(true, true);
     if (typeof lucide !== "undefined") lucide.createIcons();
-});
+};
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", bootstrapApp);
+} else {
+    bootstrapApp();
+}
 
 function toggleLeftSidebar() {
     const leftPanel = document.querySelector(".left-panel");

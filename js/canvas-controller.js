@@ -5,15 +5,17 @@ import { setTransformScale, getPageTextBlocks } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
 
 let hAlignLine, vAlignLine, selectionBox, ghostElement;
+let isDrawingField = false;
+let drawStart = null;
 
 const TOOL_DISPLAY_INFO = {
-    textField: { name: "Text Field", icon: "🔤", placeholder: "Text Field" },
-    checkBox: { name: "Checkbox", icon: "☑", placeholder: "✓" },
-    radio: { name: "Radio", icon: "🔘", placeholder: "●" },
-    radioGroup: { name: "Radio Group", icon: "🔘", placeholder: "●" },
-    dropdown: { name: "Dropdown", icon: "▾", placeholder: "Select..." },
-    dateField: { name: "Date Field", icon: "📅", placeholder: "MM/DD/YYYY" },
-    signature: { name: "Signature", icon: "✍", placeholder: "Sign here" }
+    textField: { name: "Text Field", icon: "", placeholder: "Text Field" },
+    checkBox: { name: "Checkbox", icon: "", placeholder: "" },
+    radio: { name: "Radio", icon: "", placeholder: "" },
+    radioGroup: { name: "Radio Group", icon: "", placeholder: "" },
+    dropdown: { name: "Dropdown", icon: "", placeholder: "Select..." },
+    dateField: { name: "Date Field", icon: "", placeholder: "MM/DD/YYYY" },
+    signature: { name: "Signature", icon: "", placeholder: "Sign here" }
 };
 
 const SEMANTIC_DICTIONARY = [
@@ -171,12 +173,95 @@ function handleFieldDrag(e, container, handlers) {
     handlers.onFieldMoving();
 }
 
-async function createFieldAt(type, x, y, handlers) {
-    const def = DEFAULT_FIELD_SIZES[type] || { width: 140, height: 28 };
-    const targetX = Math.max(0, Math.round(x - def.width / 2));
-    const targetY = Math.max(0, Math.round(y - def.height / 2));
+export function getAdaptiveFieldDimensions(type, x, y, rawBlocks) {
+    const defaultDef = DEFAULT_FIELD_SIZES[type] || { width: 140, height: 26 };
+    if (!rawBlocks || rawBlocks.length === 0) {
+        return {
+            width: defaultDef.width,
+            height: defaultDef.height,
+            fontSize: (type === "textField" || type === "dropdown" || type === "dateField") ? 11 : undefined
+        };
+    }
 
-    const smartName = await inferSmartFieldName(type, targetX, targetY, def.width, def.height);
+    // Find the nearest text block near the cursor position
+    let nearestBlock = null;
+    let minDistance = Infinity;
+
+    for (const tb of rawBlocks) {
+        if (!tb.str || tb.str.trim().length === 0) continue;
+        const vDelta = Math.abs((tb.y + tb.height / 2) - y);
+        
+        // 1. Label on the same line to the left (e.g. "Full Name: [   ]")
+        const isSameLineLeft = (tb.x + tb.width <= x + 20) && (x - (tb.x + tb.width) <= 220) && vDelta <= 24;
+        // 2. Label directly above (e.g. "ADDRESS\n[   ]")
+        const isAbove = Math.abs(tb.x - x) <= 100 && tb.y <= y && (y - (tb.y + tb.height)) <= 40;
+        // 3. Text directly overlapping/under cursor
+        const isUnder = x >= (tb.x - 15) && x <= (tb.x + tb.width + 15) && vDelta <= 20;
+
+        if (isSameLineLeft || isAbove || isUnder) {
+            const dist = isSameLineLeft ? (x - (tb.x + tb.width)) : (isAbove ? (y - (tb.y + tb.height)) : vDelta);
+            if (dist < minDistance) {
+                minDistance = dist;
+                nearestBlock = tb;
+            }
+        }
+    }
+
+    if (!nearestBlock || !nearestBlock.height) {
+        return {
+            width: defaultDef.width,
+            height: defaultDef.height,
+            fontSize: (type === "textField" || type === "dropdown" || type === "dateField") ? 11 : undefined
+        };
+    }
+
+    const fontPt = Math.max(7.5, Math.min(36, nearestBlock.fontHeight || nearestBlock.height));
+
+    if (type === "checkBox" || type === "radioGroup" || type === "radio") {
+        const side = Math.round(Math.max(12, Math.min(22, fontPt * 1.3)));
+        return { width: side, height: side, fontSize: undefined };
+    }
+
+    if (type === "signature") {
+        const sigHeight = Math.round(Math.max(30, Math.min(64, fontPt * 3.0)));
+        const sigWidth = Math.round(Math.max(140, Math.min(260, fontPt * 13)));
+        return { width: sigWidth, height: sigHeight, fontSize: undefined };
+    }
+
+    // Text Field, Date Field, Dropdown
+    const fieldHeight = Math.round(Math.max(18, Math.min(50, fontPt * 1.55 + 5)));
+    const fieldFontSize = Math.round(Math.max(8, Math.min(24, fontPt)));
+    
+    let fieldWidth = defaultDef.width;
+    if (fontPt >= 14) fieldWidth = Math.round(defaultDef.width * 1.25);
+    else if (fontPt <= 8.5) fieldWidth = Math.round(defaultDef.width * 0.9);
+
+    return {
+        width: fieldWidth,
+        height: fieldHeight,
+        fontSize: fieldFontSize
+    };
+}
+
+async function createFieldAt(type, x, y, handlers, customWidth, customHeight, customX, customY) {
+    const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
+    const adaptive = getAdaptiveFieldDimensions(type, x, y, pageTextBlocks);
+
+    const width = (customWidth && customWidth >= 10) ? Math.round(customWidth) : adaptive.width;
+    const height = (customHeight && customHeight >= 10) ? Math.round(customHeight) : adaptive.height;
+    const detectedFontSize = (type === "textField" || type === "dropdown" || type === "dateField") ? (adaptive.fontSize || (height < 22 ? 9.5 : 11)) : undefined;
+
+    let targetX = (customX !== undefined) ? Math.round(customX) : Math.max(0, Math.round(x));
+    let targetY = (customY !== undefined) ? Math.round(customY) : Math.max(0, Math.round(y - height));
+
+    // Keep strictly within page boundaries
+    const container = document.getElementById("canvasContainer");
+    const pageWidth = container?.offsetWidth || 600;
+    const pageHeight = container?.offsetHeight || 800;
+    targetX = Math.max(0, Math.min(pageWidth - width, targetX));
+    targetY = Math.max(0, Math.min(pageHeight - height, targetY));
+
+    const smartName = await inferSmartFieldName(type, targetX, targetY, width, height);
 
     const field = {
         id: generateFieldId(),
@@ -184,12 +269,12 @@ async function createFieldAt(type, x, y, handlers) {
         name: smartName,
         x: targetX,
         y: targetY,
-        width: def.width,
-        height: def.height,
+        width: width,
+        height: height,
         page: state.currentPageNum,
         borderStyle: "solid",
         fillStyle: "white",
-        fontSize: (type === "textField" || type === "dropdown") ? 11 : undefined,
+        fontSize: detectedFontSize,
         ...(type === "dateField" ? { dateFormat: "MM/DD/YYYY", defaultValue: "MM/DD/YYYY" } : {}),
         ...(type === "dropdown" ? { options: ["Select...", "Option 1", "Option 2", "Option 3"], defaultValue: "Select..." } : {})
     };
@@ -198,17 +283,12 @@ async function createFieldAt(type, x, y, handlers) {
     saveHistory();
     handlers.onFieldCreated(field);
 
-    // Switch tool back to select
-    state.activeTool = "select";
-    document.body.classList.remove("placing-mode");
-    const stamp = document.getElementById("floatingToolStamp");
-    if (stamp) stamp.style.display = "none";
-    if (ghostElement) ghostElement.style.display = "none";
+    // Multi-place sticky mode: activeTool remains active for continuous placement
+    // Dismiss anytime via Escape, V key, right-click, or selecting the pointer tool.
     hideGuides();
-
-    document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
-        b.classList.toggle("active", b.dataset.tool === "select");
-    });
+    if (ghostElement) {
+        ghostElement.classList.remove("is-drawing");
+    }
 
     // Auto-open signature modal for instant sign
     if (type === "signature") {
@@ -272,14 +352,10 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
         };
     }
 
-    const left = x, right = x + width, centerX = x + width / 2;
-    const top = y, bottom = y + height, centerY = y + height / 2;
+    const left = x, right = x + width;
+    const top = y, bottom = y + height;
 
-    // Collect EVERY candidate alignment within threshold per axis (not just
-    // the single closest one) so that independently-valid alignments don't
-    // silently discard each other — e.g. this field's LEFT matching one
-    // neighbor while its RIGHT simultaneously matches a different neighbor,
-    // both shown at once, the way Figma/Sketch/Photoshop do it.
+    // Collect candidate edge alignments within threshold per axis
     const candidatesX = [];
     const candidatesY = [];
 
@@ -292,32 +368,29 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
         if (diff < SNAP_THRESHOLD) candidatesY.push({ edge, otherPos, diff });
     };
 
-    // 1. Snap to other form fields (All 4 Corners, Center & Cross-Edges)
+    // 1. Pure Edge Snapping to other form fields (Left, Right, Top, Bottom)
     for (const o of others) {
-        const oLeft = o.x, oRight = o.x + o.width, oCenterX = o.x + o.width / 2;
-        const oTop = o.y, oBottom = o.y + o.height, oCenterY = o.y + o.height / 2;
+        const oLeft = o.x, oRight = o.x + o.width;
+        const oTop = o.y, oBottom = o.y + o.height;
 
+        // Primary Column Alignments (Left-to-Left, Right-to-Right)
         pushX("left", left, oLeft);
         pushX("right", right, oRight);
+
+        // Adjacent / Cross-Edge Alignments (Left-to-Right, Right-to-Left)
         pushX("left", left, oRight);
         pushX("right", right, oLeft);
-        pushX("center", centerX, oCenterX);
 
+        // Primary Row Alignments (Top-to-Top, Bottom-to-Bottom)
         pushY("top", top, oTop);
         pushY("bottom", bottom, oBottom);
+
+        // Stacked Row Alignments (Top-to-Bottom, Bottom-to-Top)
         pushY("top", top, oBottom);
         pushY("bottom", bottom, oTop);
-        pushY("center", centerY, oCenterY);
     }
 
-    // 2. Snap to the page/canvas center — a standard modern-design-tool
-    // guide (centering a field on the page) that wasn't detected before.
-    if (pageWidth != null) pushX("center", centerX, pageWidth / 2);
-    if (pageHeight != null) pushY("center", centerY, pageHeight / 2);
-
-    // 3. Snap to background document text blocks (column edges & baselines)
-    // — lower priority, same tie-break as before: only consulted if fields
-    // (or the page center) didn't already produce a match on that axis.
+    // 2. Snap to background document text blocks (column edges & baseline guides)
     const hadFieldMatchX = candidatesX.length > 0;
     const hadFieldMatchY = candidatesY.length > 0;
     if (!hadFieldMatchX || !hadFieldMatchY) {
@@ -340,34 +413,30 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
         }
     }
 
-    // Pick the single closest candidate per axis to compute the actual
-    // magnetic-snap offset.
+    // Pick the closest edge candidate per axis to compute magnetic snap offset
     let bestX = null, bestY = null;
     for (const c of candidatesX) if (!bestX || c.diff < bestX.diff) bestX = c;
     for (const c of candidatesY) if (!bestY || c.diff < bestY.diff) bestY = c;
 
     let snapX = 0, snapY = 0;
     if (bestX) {
-        const myPos = bestX.edge === "left" ? left : bestX.edge === "right" ? right : centerX;
+        const myPos = bestX.edge === "left" ? left : right;
         snapX = bestX.otherPos - myPos;
     }
     if (bestY) {
-        const myPos = bestY.edge === "top" ? top : bestY.edge === "bottom" ? bottom : centerY;
+        const myPos = bestY.edge === "top" ? top : bottom;
         snapY = bestY.otherPos - myPos;
     }
 
-    // Re-derive this field's FINAL resting edges after the chosen snap, then
-    // collect every candidate that lines up there — not just the one that
-    // happened to be closest before snapping. This is what lets multiple
-    // simultaneous guides appear together.
-    const finalLeft = left + snapX, finalRight = right + snapX, finalCenterX = centerX + snapX;
-    const finalTop = top + snapY, finalBottom = bottom + snapY, finalCenterY = centerY + snapY;
+    // Re-derive final resting edges after edge snapping
+    const finalLeft = left + snapX, finalRight = right + snapX;
+    const finalTop = top + snapY, finalBottom = bottom + snapY;
 
     const EPS = 0.75;
     const guidesX = [];
     const seenX = new Set();
     for (const c of candidatesX) {
-        const myFinalPos = c.edge === "left" ? finalLeft : c.edge === "right" ? finalRight : finalCenterX;
+        const myFinalPos = c.edge === "left" ? finalLeft : finalRight;
         if (Math.abs(myFinalPos - c.otherPos) <= EPS) {
             const key = Math.round(c.otherPos);
             if (!seenX.has(key)) { seenX.add(key); guidesX.push(c.otherPos); }
@@ -376,7 +445,7 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
     const guidesY = [];
     const seenY = new Set();
     for (const c of candidatesY) {
-        const myFinalPos = c.edge === "top" ? finalTop : c.edge === "bottom" ? finalBottom : finalCenterY;
+        const myFinalPos = c.edge === "top" ? finalTop : finalBottom;
         if (Math.abs(myFinalPos - c.otherPos) <= EPS) {
             const key = Math.round(c.otherPos);
             if (!seenY.has(key)) { seenY.add(key); guidesY.push(c.otherPos); }
@@ -433,8 +502,8 @@ export function initCanvasController(handlers) {
             return;
         }
 
-        const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "➕", placeholder: "" };
-        const def = DEFAULT_FIELD_SIZES[tool] || { width: 160, height: 28 };
+        const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "", placeholder: "" };
+        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
 
         // 1. Update Global Floating Tool Stamp
         document.body.classList.add("placing-mode");
@@ -444,7 +513,7 @@ export function initCanvasController(handlers) {
             stamp.style.top = `${e.clientY}px`;
             if (stamp.dataset.currentTool !== tool) {
                 stamp.dataset.currentTool = tool;
-                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place</span>`;
+                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place (Press Esc or V when done)</span>`;
             }
         }
 
@@ -465,8 +534,16 @@ export function initCanvasController(handlers) {
             return;
         }
 
-        let targetX = Math.round(mouseX - def.width / 2);
-        let targetY = Math.round(mouseY - def.height / 2);
+        // Adapt box dimensions and font size to the text under or adjacent to cursor
+        const adaptive = getAdaptiveFieldDimensions(tool, mouseX, mouseY, pageTextBlocks);
+        const def = {
+            width: adaptive.width,
+            height: adaptive.height,
+            fontSize: adaptive.fontSize
+        };
+
+        let targetX = Math.round(mouseX);
+        let targetY = Math.round(mouseY - def.height);
 
         // Keep within page boundaries
         targetX = Math.max(0, Math.min(pageWidth - def.width, targetX));
@@ -488,25 +565,97 @@ export function initCanvasController(handlers) {
         ghostElement.style.top = `${targetY}px`;
         ghostElement.style.width = `${def.width}px`;
         ghostElement.style.height = `${def.height}px`;
-        ghostElement.classList.toggle("snapped", snap.guideX !== null || snap.guideY !== null);
+        ghostElement.classList.toggle("snapped", snap.guidesX.length > 0 || snap.guidesY.length > 0);
+        ghostElement.classList.remove("is-drawing");
 
-        if (ghostElement.dataset.currentTool !== tool) {
+        const sizeBadge = def.fontSize ? `${def.width}×${def.height} px · ${def.fontSize}pt` : `${def.width}×${def.height} px`;
+        const lastSignatureKey = `${tool}_${def.width}_${def.height}`;
+        if (ghostElement.dataset.lastSignatureKey !== lastSignatureKey || !ghostElement.querySelector(".ghost-origin-dot")) {
+            ghostElement.dataset.lastSignatureKey = lastSignatureKey;
             ghostElement.dataset.currentTool = tool;
             ghostElement.innerHTML = `
-                <div class="ghost-badge">${info.icon} ${info.name} · ${def.width}×${def.height}</div>
+                <div class="ghost-origin-dot"></div>
+                <div class="ghost-badge">${info.icon} ${info.name} · ${sizeBadge}</div>
                 <div class="ghost-center-label">${info.placeholder || info.name}</div>
             `;
         }
     }
 
+    function handleFieldDrawMove(e, container, handlers) {
+        if (!ghostElement) ghostElement = document.getElementById("fieldPlacementGhost");
+        const rect = container.getBoundingClientRect();
+        const curX = (e.clientX - rect.left) / state.currentScale;
+        const curY = (e.clientY - rect.top) / state.currentScale;
+
+        const tool = state.activeTool;
+        const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "", placeholder: "" };
+        const pageWidth = container.offsetWidth || 600;
+        const pageHeight = container.offsetHeight || 800;
+
+        let minX = Math.min(drawStart.x, curX);
+        let minY = Math.min(drawStart.y, curY);
+        let w = Math.abs(curX - drawStart.x);
+        let h = Math.abs(curY - drawStart.y);
+
+        // Keep aspect ratio 1:1 for choice fields or when Shift is held
+        if (tool === "checkBox" || tool === "radioGroup" || tool === "radio" || e.shiftKey) {
+            const side = Math.max(w, h);
+            w = side;
+            h = side;
+            if (curX < drawStart.x) minX = drawStart.x - side;
+            if (curY < drawStart.y) minY = drawStart.y - side;
+        }
+
+        // Keep within page boundaries
+        minX = Math.max(0, Math.min(pageWidth - w, minX));
+        minY = Math.max(0, Math.min(pageHeight - h, minY));
+
+        // Magnetic Snapping for Drawn Box
+        const snap = checkSnapping(minX, minY, w, h, getFieldsForCurrentPage(), [], pageWidth, pageHeight);
+        minX += snap.snapX;
+        minY += snap.snapY;
+
+        if (snap.guidesX.length || snap.guidesY.length) {
+            showGuides(snap.guidesX, snap.guidesY, snap.snapPointX, snap.snapPointY, snap.spacingX, snap.spacingY, pageWidth, pageHeight);
+        } else {
+            hideGuides();
+        }
+
+        if (ghostElement) {
+            ghostElement.style.display = "flex";
+            ghostElement.style.left = `${minX}px`;
+            ghostElement.style.top = `${minY}px`;
+            ghostElement.style.width = `${Math.max(w, 4)}px`;
+            ghostElement.style.height = `${Math.max(h, 4)}px`;
+            ghostElement.classList.add("is-drawing");
+            ghostElement.classList.toggle("snapped", snap.guidesX.length > 0 || snap.guidesY.length > 0);
+
+            const badge = ghostElement.querySelector(".ghost-badge");
+            if (badge) {
+                badge.innerHTML = `${info.icon} ${info.name} · ${Math.round(w)} × ${Math.round(h)} px`;
+            }
+            const label = ghostElement.querySelector(".ghost-center-label");
+            if (label) {
+                label.textContent = (w > 60 && h > 20) ? (info.placeholder || info.name) : "";
+            }
+        }
+    }
+
     container?.addEventListener("mouseleave", () => {
-        if (ghostElement) ghostElement.style.display = "none";
-        hideGuides();
+        if (!isDrawingField) {
+            if (ghostElement) ghostElement.style.display = "none";
+            hideGuides();
+        }
     });
 
-    // Escape Key cancels placement tool
+    // Escape or V Key cancels placement tool or active drawing
     window.addEventListener("keydown", e => {
+        const tag = (e.target?.tagName || "").toLowerCase();
+        const isEditing = tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable;
+
         if (e.key === "Escape" && state.activeTool !== "select") {
+            isDrawingField = false;
+            drawStart = null;
             state.activeTool = "select";
             document.body.classList.remove("placing-mode");
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
@@ -514,8 +663,28 @@ export function initCanvasController(handlers) {
             });
             const stamp = document.getElementById("floatingToolStamp");
             if (stamp) stamp.style.display = "none";
-            if (ghostElement) ghostElement.style.display = "none";
+            if (ghostElement) {
+                ghostElement.style.display = "none";
+                ghostElement.classList.remove("is-drawing");
+            }
             hideGuides();
+        } else if (!isEditing && (e.key === "v" || e.key === "V") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+            if (state.activeTool !== "select") {
+                isDrawingField = false;
+                drawStart = null;
+                state.activeTool = "select";
+                document.body.classList.remove("placing-mode");
+                document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
+                    b.classList.toggle("active", b.dataset.tool === "select");
+                });
+                const stamp = document.getElementById("floatingToolStamp");
+                if (stamp) stamp.style.display = "none";
+                if (ghostElement) {
+                    ghostElement.style.display = "none";
+                    ghostElement.classList.remove("is-drawing");
+                }
+                hideGuides();
+            }
         }
     });
 
@@ -562,11 +731,22 @@ export function initCanvasController(handlers) {
         const clickX = (e.clientX - rect.left) / state.currentScale;
         const clickY = (e.clientY - rect.top) / state.currentScale;
 
-        // Creation Tools
-        if (state.activeTool !== "select") {
-            if (ghostElement) ghostElement.style.display = "none";
-            hideGuides();
-            createFieldAt(state.activeTool, clickX, clickY, handlers);
+        // Creation Tools (Drag-to-Draw or Click-to-Place)
+        if (state.activeTool !== "select" && state.activeTool !== "hand") {
+            isDrawingField = true;
+            drawStart = { x: clickX, y: clickY };
+
+            if (!ghostElement) ghostElement = document.getElementById("fieldPlacementGhost");
+            if (ghostElement) {
+                ghostElement.classList.add("is-drawing");
+                ghostElement.style.display = "flex";
+                ghostElement.style.left = `${clickX}px`;
+                ghostElement.style.top = `${clickY}px`;
+                ghostElement.style.width = "4px";
+                ghostElement.style.height = "4px";
+            }
+            const stamp = document.getElementById("floatingToolStamp");
+            if (stamp) stamp.style.display = "none";
             return;
         }
 
@@ -580,7 +760,9 @@ export function initCanvasController(handlers) {
 
     // Global Mouse Move & Up
     window.addEventListener("mousemove", e => {
-        if (state.isPanning) {
+        if (isDrawingField && drawStart && state.activeTool !== "select") {
+            handleFieldDrawMove(e, container, handlers);
+        } else if (state.isPanning) {
             handlePanning(e, centerCanvas);
         } else if (state.isDragging) {
             handleFieldDrag(e, container, handlers);
@@ -593,8 +775,47 @@ export function initCanvasController(handlers) {
         }
     });
 
-    window.addEventListener("mouseup", () => {
+    window.addEventListener("mouseup", e => {
         if (state.isPanning) stopPanning();
+
+        // Finalize Drag-to-Draw Field Creation
+        if (isDrawingField && drawStart && state.activeTool !== "select") {
+            const rect = container.getBoundingClientRect();
+            const curX = (e.clientX - rect.left) / state.currentScale;
+            const curY = (e.clientY - rect.top) / state.currentScale;
+
+            const tool = state.activeTool;
+            let minX = Math.min(drawStart.x, curX);
+            let minY = Math.min(drawStart.y, curY);
+            let w = Math.abs(curX - drawStart.x);
+            let h = Math.abs(curY - drawStart.y);
+
+            if (tool === "checkBox" || tool === "radioGroup" || tool === "radio" || e.shiftKey) {
+                const side = Math.max(w, h);
+                w = side;
+                h = side;
+                if (curX < drawStart.x) minX = drawStart.x - side;
+                if (curY < drawStart.y) minY = drawStart.y - side;
+            }
+
+            const isDragDrawn = (w >= 16 && h >= 12);
+            isDrawingField = false;
+            drawStart = null;
+
+            if (ghostElement) {
+                ghostElement.style.display = "none";
+                ghostElement.classList.remove("is-drawing");
+            }
+            hideGuides();
+
+            if (isDragDrawn) {
+                createFieldAt(tool, minX, minY, handlers, w, h, minX, minY);
+            } else {
+                createFieldAt(tool, minX, minY, handlers);
+            }
+            return;
+        }
+
         if (state.isDragging) {
             state.isDragging = false;
             hideGuides();
@@ -663,16 +884,28 @@ export function handleFieldMouseDown(e, field, handlers) {
         return;
     }
 
-    if (state.activeTool !== "select") {
+    if (state.activeTool !== "select" && state.activeTool !== "hand") {
         // User clicked with a creation tool active on top of an existing overlay
         const container = document.getElementById("canvasContainer");
         if (container) {
             const rect = container.getBoundingClientRect();
             const clickX = (e.clientX - rect.left) / state.currentScale;
             const clickY = (e.clientY - rect.top) / state.currentScale;
-            if (ghostElement) ghostElement.style.display = "none";
-            hideGuides();
-            createFieldAt(state.activeTool, clickX, clickY, handlers);
+
+            isDrawingField = true;
+            drawStart = { x: clickX, y: clickY };
+
+            if (!ghostElement) ghostElement = document.getElementById("fieldPlacementGhost");
+            if (ghostElement) {
+                ghostElement.classList.add("is-drawing");
+                ghostElement.style.display = "flex";
+                ghostElement.style.left = `${clickX}px`;
+                ghostElement.style.top = `${clickY}px`;
+                ghostElement.style.width = "4px";
+                ghostElement.style.height = "4px";
+            }
+            const stamp = document.getElementById("floatingToolStamp");
+            if (stamp) stamp.style.display = "none";
         }
         return;
     }
