@@ -149,7 +149,7 @@ export function renderLandingReviews() {
     if (countPill) {
         countPill.textContent = totalCount > 0
             ? `Showing ${visibleReviews.length} of ${totalCount} Review${totalCount > 1 ? 's' : ''}`
-            : "No user reviews yet — be the first!";
+            : "No user reviews yet, be the first!";
     }
 
     const escapeHtml = str => String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -308,9 +308,9 @@ export async function loadPdfFile(file, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
+        showEditorScreen(onLoaded);
         await goToPage(1);
         saveHistory();
-        showEditorScreen(onLoaded);
     } catch(err) {
         console.error("Failed to load PDF:", err);
         showToast("Failed to load PDF: " + (err.message || err), "error");
@@ -467,41 +467,69 @@ export function initLandingController(onLoaded) {
     bindModal(["landingFeedbackBtn", "footerFeedbackBtn", "feedbackMenuBtn"], "feedbackModal", ["closeFeedbackModalBtn"]);
 
     // Smooth Scroll for Landing Anchor Links with Sticky Header Offset
-    document.querySelectorAll(".landing-nav-links a[href^='#'], .footer-link-list a[href^='#']").forEach(anchor => {
+    // Smooth Scroll for Landing Anchor Links
+    document.querySelectorAll("#landingScreen a[href^='#'], .nav-links a[href^='#'], .foot-col a[href^='#']").forEach(anchor => {
         anchor.addEventListener("click", e => {
-            const targetId = anchor.getAttribute("href")?.substring(1);
+            const href = anchor.getAttribute("href");
+            if (!href || href === "#") return;
+            const targetId = href.substring(1);
             if (!targetId) return;
+
+            e.preventDefault();
             if (targetId === "hero" || targetId === "landingScreen") {
-                e.preventDefault();
                 scrollToTop();
                 return;
             }
             const targetElem = document.getElementById(targetId);
-            const landingScreen = document.getElementById("landingScreen");
             if (targetElem) {
-                e.preventDefault();
-                if (landingScreen && landingScreen.scrollHeight > landingScreen.clientHeight) {
-                    const navHeight = 64;
-                    const containerRect = landingScreen.getBoundingClientRect();
-                    const targetRect = targetElem.getBoundingClientRect();
-                    const relativeTop = targetRect.top - containerRect.top + landingScreen.scrollTop - navHeight;
-                    landingScreen.scrollTo({
-                        top: Math.max(0, relativeTop),
-                        behavior: "smooth"
-                    });
-                } else {
-                    targetElem.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
+                targetElem.scrollIntoView({ behavior: "smooth", block: "start" });
             }
         });
     });
 
-    // File Upload inputs
+    // File Upload inputs & Trigger Buttons
     const handleUploadInput = async e => {
         const file = e.target.files[0];
         if (file) await loadPdfFile(file, onLoaded);
         e.target.value = "";
     };
+
+    document.getElementById("navUploadBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        document.getElementById("landingPdfUpload")?.click();
+    });
+    document.getElementById("navCreateBlankBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        loadTemplate("blank", () => {
+            if (onLoaded) onLoaded();
+        });
+    });
+    document.getElementById("heroCreateBlankBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        loadTemplate("blank", () => {
+            if (onLoaded) onLoaded();
+        });
+    });
+    document.getElementById("emptyStateCreateBlankBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        loadTemplate("blank", () => {
+            if (onLoaded) onLoaded();
+        });
+    });
+
+    document.getElementById("heroBrowseBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        document.getElementById("heroPdfUpload")?.click();
+    });
+    document.getElementById("heroOpenProjectBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        document.getElementById("heroOpenProjectUpload")?.click();
+    });
+    document.getElementById("footerBrowseBtn")?.addEventListener("click", e => {
+        e.preventDefault();
+        document.getElementById("footerPdfUpload")?.click();
+    });
+
     document.getElementById("landingPdfUpload")?.addEventListener("change", handleUploadInput);
     document.getElementById("landingOpenProjectUpload")?.addEventListener("change", handleUploadInput);
     document.getElementById("heroPdfUpload")?.addEventListener("change", handleUploadInput);
@@ -510,12 +538,52 @@ export function initLandingController(onLoaded) {
     document.getElementById("pdfUploadMenu")?.addEventListener("change", handleUploadInput);
     document.getElementById("emptyStateUpload")?.addEventListener("change", handleUploadInput);
 
-    // Interactive Dropzone with Drag & Drop Visual State Feedback
+    // Glassy Video Player Modal Controller
+    window.openHeroVideoModal = function() {
+        const modal = document.getElementById("videoPlayerModal");
+        const expVideo = document.getElementById("expandedDemoVideo");
+        const bgVideo = document.querySelector(".hero-showcase-video");
+        if (!modal || !expVideo) return;
+        
+        modal.classList.add("active");
+        modal.style.display = "flex";
+        
+        if (bgVideo && bgVideo.currentTime) {
+            try { expVideo.currentTime = bgVideo.currentTime; } catch(e){}
+        }
+        
+        try {
+            bgVideo?.pause();
+            expVideo.play().catch(() => {});
+        } catch (e) {}
+
+        document.body.style.overflow = "hidden";
+    };
+
+    window.closeHeroVideoModal = function() {
+        const modal = document.getElementById("videoPlayerModal");
+        const expVideo = document.getElementById("expandedDemoVideo");
+        const bgVideo = document.querySelector(".hero-showcase-video");
+        if (!modal || !expVideo) return;
+        
+        modal.classList.remove("active");
+        modal.style.display = "none";
+        
+        try {
+            expVideo.pause();
+            bgVideo?.play().catch(() => {});
+        } catch (e) {}
+
+        document.body.style.overflow = "";
+    };
+
+    // Interactive Dropzone with Drag & Drop & Click-to-Play Modal
     const heroDropzone = document.getElementById("heroDropzone");
     if (heroDropzone) {
         heroDropzone.addEventListener("click", e => {
-            if (e.target.closest("label") || e.target.closest("input") || e.target.closest("button")) return;
-            document.getElementById("heroPdfUpload")?.click();
+            e.preventDefault();
+            e.stopPropagation();
+            window.openHeroVideoModal();
         });
         ["dragenter", "dragover"].forEach(name => {
             heroDropzone.addEventListener(name, e => {
@@ -538,6 +606,46 @@ export function initLandingController(onLoaded) {
             }
         });
     }
+
+    const videoModalEl = document.getElementById("videoPlayerModal");
+    const pureVideoCardEl = document.getElementById("pureVideoCard");
+
+    videoModalEl?.addEventListener("click", e => {
+        if (!e.target.closest("#pureVideoCard")) {
+            window.closeHeroVideoModal();
+        }
+    });
+
+    pureVideoCardEl?.addEventListener("click", e => {
+        e.stopPropagation();
+    });
+
+    document.getElementById("videoModalTryBtn")?.addEventListener("click", () => {
+        window.closeHeroVideoModal();
+        loadTemplate("expenseClaim", () => {
+            if (onLoaded) onLoaded();
+        });
+    });
+
+    window.addEventListener("keydown", e => {
+        const modal = document.getElementById("videoPlayerModal");
+        const expVideo = document.getElementById("expandedDemoVideo");
+        if (!modal || !modal.classList.contains("active")) return;
+        if (e.key === "Escape") {
+            window.closeHeroVideoModal();
+        } else if (e.key === " " || e.code === "Space") {
+            if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+                e.preventDefault();
+                if (expVideo && expVideo.paused) expVideo.play();
+                else if (expVideo) expVideo.pause();
+            }
+        } else if (e.key === "f" || e.key === "F") {
+            if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA") {
+                e.preventDefault();
+                if (expVideo && expVideo.requestFullscreen) expVideo.requestFullscreen();
+            }
+        }
+    });
 
     // Global Canvas & Window Drag & Drop PDF Loader
     window.addEventListener("dragover", e => {
@@ -581,7 +689,7 @@ export function initLandingController(onLoaded) {
     // Mobile Device Handoff & Web Share API Handlers
     const handleDeviceShare = async () => {
         const shareData = {
-            title: "JustForms — Client-Side PDF Form Builder",
+            title: "JustForms: Client-Side PDF Form Builder",
             text: "Create fillable PDF AcroForms on desktop without server uploads!",
             url: window.location.href
         };

@@ -23,7 +23,9 @@ export function renderOverlays(handlers) {
 
     pageFields.forEach(f => {
         const div = document.createElement("div");
-        div.className = "field-overlay" + (state.selectedFieldIds.has(f.id) ? " selected" : "");
+        const isSelected = state.selectedFieldIds.has(f.id);
+        const isMultiSelected = isSelected && state.selectedFieldIds.size > 1;
+        div.className = "field-overlay" + (isSelected ? (isMultiSelected ? " selected multi-selected" : " selected") : "");
         div.id = `overlay_${f.id}`;
         div.style.left = f.x + "px";
         div.style.top = f.y + "px";
@@ -111,7 +113,7 @@ export function renderOverlays(handlers) {
                     const signBtn = document.createElement("div");
                     signBtn.className = "fill-sign-prompt";
                     signBtn.style.cssText = "width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#2563eb; cursor:pointer; font-size:11px; font-weight:600; background:rgba(239,246,255,0.8);";
-                    signBtn.innerHTML = `<span>✍ Sign Here</span>`;
+                    signBtn.innerHTML = `<span>Sign Here</span>`;
                     signBtn.addEventListener("click", e => {
                         e.stopPropagation();
                         openSignatureModal(f, () => {
@@ -176,34 +178,60 @@ export function renderOverlays(handlers) {
             return;
         }
 
-        // Border & fill styles
+        // Border & fill styles (Design Mode)
         if (f.type === "radioGroup") {
             div.style.borderRadius = "50%";
-            div.style.border = "1.5px solid #2563eb";
-            div.style.background = "rgba(224, 242, 254, 0.4)";
+            if (isSelected) {
+                div.style.border = "2px solid #2563eb";
+                div.style.background = "rgba(219, 234, 254, 0.45)";
+                div.style.boxShadow = isMultiSelected ? "none" : "0 0 0 3px rgba(37, 99, 235, 0.20)";
+            } else {
+                div.style.border = "1.5px solid rgba(59, 130, 246, 0.70)";
+                div.style.background = "rgba(239, 246, 255, 0.75)";
+                div.style.boxShadow = "none";
+            }
         } else if (f.type === "checkBox") {
             div.style.borderRadius = "3px";
-            div.style.border = "1.5px solid #2563eb";
-            div.style.background = "rgba(224, 242, 254, 0.4)";
+            if (isSelected) {
+                div.style.border = "2px solid #2563eb";
+                div.style.background = "rgba(219, 234, 254, 0.45)";
+                div.style.boxShadow = isMultiSelected ? "none" : "0 0 0 3px rgba(37, 99, 235, 0.20)";
+            } else {
+                div.style.border = "1.5px solid rgba(59, 130, 246, 0.70)";
+                div.style.background = "rgba(239, 246, 255, 0.75)";
+                div.style.boxShadow = "none";
+            }
         } else {
             div.style.borderRadius = "3px";
-            if (f.borderStyle === "none") {
-                div.style.border = "1.5px dashed rgba(148, 163, 184, 0.5)";
-                div.style.background = "rgba(248, 250, 252, 0.15)";
-            } else if (f.borderStyle === "thick") {
-                div.style.border = "2.5px solid #3b82f6";
+            if (isSelected) {
+                if (isMultiSelected) {
+                    div.style.border = "1.5px solid rgba(37, 99, 235, 0.85)";
+                    div.style.background = "rgba(219, 234, 254, 0.30)";
+                    div.style.boxShadow = "none";
+                } else {
+                    div.style.border = "2px solid #2563eb";
+                    div.style.background = "rgba(219, 234, 254, 0.40)";
+                    div.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.22)";
+                }
             } else {
-                div.style.border = "1.5px solid rgba(59, 130, 246, 0.65)";
-            }
+                if (f.borderStyle === "none") {
+                    div.style.border = "1.5px dashed rgba(59, 130, 246, 0.55)";
+                } else if (f.borderStyle === "thick") {
+                    div.style.border = "2px solid #2563eb";
+                } else {
+                    div.style.border = "1px solid rgba(59, 130, 246, 0.65)";
+                }
 
-            if (f.fillStyle === "tint") {
-                div.style.background = "rgba(224, 242, 254, 0.25)";
-            } else if (f.fillStyle === "yellow") {
-                div.style.background = "rgba(254, 249, 195, 0.30)";
-            } else if (f.fillStyle === "transparent") {
-                div.style.background = "rgba(255, 255, 255, 0.05)";
-            } else {
-                div.style.background = "rgba(239, 246, 255, 0.20)";
+                if (f.fillStyle === "tint") {
+                    div.style.background = "rgba(219, 234, 254, 0.50)";
+                } else if (f.fillStyle === "yellow") {
+                    div.style.background = "rgba(254, 249, 195, 0.45)";
+                } else if (f.fillStyle === "transparent") {
+                    div.style.background = "rgba(255, 255, 255, 0.05)";
+                } else {
+                    div.style.background = "rgba(239, 246, 255, 0.65)";
+                }
+                div.style.boxShadow = "0 1px 3px rgba(37, 99, 235, 0.06)";
             }
         }
 
@@ -227,7 +255,7 @@ export function renderOverlays(handlers) {
             } else {
                 div.innerHTML = `
                     <div class="sig-prompt-badge" style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; color:#2563eb; cursor:pointer;">
-                        <span style="font-size:10.5px; font-weight:600; font-family:'Inter', sans-serif; background:rgba(224,242,254,0.65); padding:2px 7px; border-radius:3px; border:1px dashed #60a5fa; box-shadow:0 1px 2px rgba(0,0,0,0.05);">✍ Sign</span>
+                        <span style="font-size:10.5px; font-weight:600; font-family:'Inter', sans-serif; background:rgba(224,242,254,0.65); padding:2px 7px; border-radius:3px; border:1px dashed #60a5fa; box-shadow:0 1px 2px rgba(0,0,0,0.05);">Sign</span>
                     </div>
                 `;
             }
@@ -319,11 +347,8 @@ export function renderOverlays(handlers) {
             div.appendChild(floatingBadge);
         }
 
-        const isSelected = state.selectedFieldIds.has(f.id);
-        const isMultiSelect = state.selectedFieldIds.size > 1;
-
         // 8 Interactive Corner & Edge Resize Handles on the Field Box Itself
-        if (isSelected && !isMultiSelect) {
+        if (isSelected && !isMultiSelected) {
             const resizeHandles = [
                 { dir: "nw", className: "handle-nw", title: "Resize Top-Left" },
                 { dir: "n",  className: "handle-n",  title: "Resize Top" },
