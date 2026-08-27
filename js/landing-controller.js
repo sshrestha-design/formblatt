@@ -539,6 +539,14 @@ export function initLandingController(onLoaded) {
     document.getElementById("emptyStateUpload")?.addEventListener("change", handleUploadInput);
 
     // Glassy Video Player Modal Controller
+    const heroBgVideo = document.querySelector(".hero-showcase-video");
+    if (heroBgVideo) {
+        try { heroBgVideo.playbackRate = 0.85; } catch(e){}
+        heroBgVideo.addEventListener("loadedmetadata", () => {
+            try { heroBgVideo.playbackRate = 0.85; } catch(e){}
+        });
+    }
+
     window.openHeroVideoModal = function() {
         const modal = document.getElementById("videoPlayerModal");
         const expVideo = document.getElementById("expandedDemoVideo");

@@ -3,26 +3,87 @@
    ============================================================ */
 
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --primary-light: #eff6ff;
-    --success-color: #059669;
-    --danger-color:  #ef4444;
-    --bg-color:      #f8fafc;
-    --panel-bg:      #ffffff;
-    --border-color:  #e2e8f0;
-    --text-color:    #0f172a;
-    --text-muted:    #475569;
-    --toolbar-bg:    #ffffff;
-    --canvas-bg:     #f1f5f9;
+    /* ── Color Palette ─────────────────────────────────────────── */
+    --primary-color:   #2563eb;
+    --primary-hover:   #1d4ed8;
+    --primary-active:  #1e40af;
+    --primary-light:   #eff6ff;
+    --primary-border:  #bfdbfe;
+    
+    --success-color:   #059669;
+    --success-hover:   #047857;
+    --success-light:   #ecfdf5;
+    
+    --warning-color:   #d97706;
+    --warning-light:   #fffbeb;
+    
+    --danger-color:    #ef4444;
+    --danger-hover:    #dc2626;
+    --danger-light:    #fef2f2;
+    
+    --bg-color:        #f8fafc;
+    --panel-bg:        #ffffff;
+    --border-color:    #e2e8f0;
+    --border-subtle:   #cbd5e1;
+    --border-strong:   #94a3b8;
+    
+    --text-color:      #0f172a;
+    --text-muted:      #64748b;
+    --text-subtle:     #94a3b8;
+    
+    --toolbar-bg:      #ffffff;
+    --canvas-bg:       #f1f5f9;
+
+    /* ── Sizing & Scale Design Tokens ──────────────────────────── */
+    /* Component Heights */
+    --height-xs:       24px;   /* Tag pills, inner segmented toggle buttons */
+    --height-sm:       28px;   /* Compact panel inputs, stepper buttons, secondary row tools */
+    --height-md:       32px;   /* Standard toolbar buttons, action buttons, select dropdowns, export */
+    --height-lg:       36px;   /* Primary modal buttons, prominent dialog CTAs */
+    --height-xl:       44px;   /* Landing page hero buttons & large inputs */
+
+    /* Structural Heights */
+    --header-toolbar-height: 52px;
+    --panel-header-height:   44px;
+    --statusbar-height:      38px;
+
+    /* Border Radii */
+    --radius-xs:       4px;
+    --radius-sm:       6px;
+    --radius-md:       8px;
+    --radius-lg:       12px;
+    --radius-xl:       16px;
+    --radius-full:     9999px;
+
+    /* Typography Scale */
+    --font-xs:         11px;
+    --font-sm:         12px;
+    --font-base:       13px;
+    --font-md:         14px;
+    --font-lg:         16px;
+    --font-xl:         20px;
+
+    /* Icon Sizing */
+    --icon-xs:         12px;
+    --icon-sm:         14px;
+    --icon-md:         16px;
+    --icon-lg:         20px;
+
+    /* Spacing Scale */
+    --space-1:         4px;
+    --space-2:         8px;
+    --space-3:         12px;
+    --space-4:         16px;
+    --space-5:         20px;
+    --space-6:         24px;
 
     /* Micro-motion & Spring Tokens */
-    --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-    --anim-fast: 0.15s var(--ease-spring);
-    --anim-norm: 0.22s var(--ease-spring);
-    --anim-slow: 0.35s var(--ease-spring);
+    --ease-spring:     cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-bounce:     cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth:     cubic-bezier(0.4, 0, 0.2, 1);
+    --anim-fast:       0.15s var(--ease-spring);
+    --anim-norm:       0.22s var(--ease-spring);
+    --anim-slow:       0.35s var(--ease-spring);
 }
 
 *, *::before, *::after {
@@ -51,32 +112,179 @@ input, textarea, select {
 
 label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: var(--space-1);
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: var(--font-xs);
     color: var(--text-muted);
 }
 
-input[type="text"], input[type="number"], select, textarea {
+/* ── Standardized Inputs & Form Elements ──────────────────────── */
+input[type="text"], 
+input[type="number"], 
+select, 
+textarea {
     width: 100%;
-    padding: 7px 10px;
+    height: var(--height-md);
+    padding: 0 10px;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--font-base);
     color: var(--text-color);
     background: #f8fafc;
     font-family: inherit;
+    box-sizing: border-box;
     transition: border-color var(--anim-fast), background-color var(--anim-fast), box-shadow var(--anim-fast), transform var(--anim-fast);
 }
 
-input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:focus {
+textarea {
+    height: auto;
+    padding: 8px 10px;
+}
+
+input[type="text"]:focus, 
+input[type="number"]:focus, 
+select:focus, 
+textarea:focus {
     outline: none;
     border-color: var(--primary-color);
     background: #ffffff;
-    box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.15);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
-/* Custom Modern Scrollbars with Smooth Hover */
+/* ── Standardized Button System ────────────────────────────────── */
+button {
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    font-size: var(--font-sm);
+    font-weight: 600;
+    transition: transform var(--anim-fast), background var(--anim-fast), box-shadow var(--anim-fast), color var(--anim-fast), border-color var(--anim-fast);
+    will-change: transform;
+}
+
+button:active {
+    transform: scale(0.965);
+}
+
+/* Size Modifiers for Editor & App UI */
+.btn-xs {
+    height: var(--height-xs);
+    padding: 0 8px;
+    font-size: var(--font-xs);
+    border-radius: var(--radius-xs);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.btn-sm {
+    height: var(--height-sm);
+    padding: 0 10px;
+    font-size: var(--font-xs);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-md {
+    height: var(--height-md);
+    padding: 0 14px;
+    font-size: var(--font-sm);
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-lg {
+    height: var(--height-lg);
+    padding: 0 18px;
+    font-size: var(--font-md);
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Variant Modifiers */
+.btn-primary {
+    background: var(--primary-color);
+    color: #ffffff;
+    border: 1px solid var(--primary-hover);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.24);
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-active);
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.32);
+    transform: translateY(-1px);
+}
+
+.btn-primary:active {
+    transform: scale(0.965);
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    color: #475569;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    font-weight: 500;
+}
+
+.btn-secondary:hover {
+    background: #f8fafc;
+    border-color: var(--border-strong);
+    color: #0f172a;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.btn-secondary:active {
+    transform: scale(0.965);
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: #ffffff;
+    border: 1px solid var(--success-hover);
+    box-shadow: 0 1px 3px rgba(5, 150, 105, 0.24);
+}
+
+.btn-success:hover {
+    background: var(--success-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(5, 150, 105, 0.3);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: #ffffff;
+    border: 1px solid var(--danger-hover);
+    box-shadow: 0 1px 3px rgba(239, 68, 68, 0.24);
+}
+
+.btn-danger:hover {
+    background: var(--danger-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
+}
+
+.btn-block {
+    width: 100%;
+    display: flex;
+}
+
+/* ── Custom Modern Scrollbars ────────────────────────────────── */
 * {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
@@ -90,94 +298,15 @@ input[type="text"]:focus, input[type="number"]:focus, select:focus, textarea:foc
 }
 ::-webkit-scrollbar-thumb {
     background: #cbd5e1;
-    border-radius: 9999px;
+    border-radius: var(--radius-full);
     transition: background var(--anim-fast);
 }
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
 }
 
-button {
-    cursor: pointer;
-    padding: 8px 16px;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    width: auto;
-    font-family: inherit;
-    transition: transform var(--anim-fast), background var(--anim-fast), box-shadow var(--anim-fast), color var(--anim-fast), border-color var(--anim-fast);
-    will-change: transform;
-}
-
-button:active {
-    transform: scale(0.965) translateY(1px);
-}
-
-.btn-primary {
-    background: #1d4ed8;
-    color: #ffffff;
-    border: 1px solid #1d4ed8;
-    box-shadow: 0 2px 6px rgba(29, 78, 216, 0.28);
-    font-weight: 600;
-}
-.btn-primary:hover {
-    background: #1e40af;
-    border-color: #1e40af;
-    box-shadow: 0 4px 14px rgba(29, 78, 216, 0.38);
-    transform: translateY(-1px);
-}
-.btn-primary:active {
-    transform: scale(0.965) translateY(1px);
-    box-shadow: 0 1px 4px rgba(29, 78, 216, 0.2);
-}
-
-.btn-secondary {
-    background: #ffffff;
-    color: #475569;
-    border: 1px solid #cbd5e1;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-    font-weight: 500;
-}
-.btn-secondary:hover {
-    background: #f8fafc;
-    border-color: #94a3b8;
-    color: #0f172a;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-.btn-secondary:active {
-    transform: scale(0.965) translateY(1px);
-    box-shadow: 0 0 1px rgba(0,0,0,0.04);
-}
-
-.btn-success {
-    background: var(--success-color);
-    color: #ffffff;
-}
-.btn-success:hover {
-    background: #059669;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.3);
-}
-
-.btn-danger {
-    background: var(--danger-color);
-    color: #ffffff;
-}
-.btn-danger:hover {
-    background: #dc2626;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 10px rgba(239, 68, 68, 0.3);
-}
-
-.btn-block {
-    width: 100%;
-    display: block;
-}
-
 hr {
     border: none;
     border-top: 1px solid var(--border-color);
-    margin: 16px 0;
+    margin: var(--space-4) 0;
 }
