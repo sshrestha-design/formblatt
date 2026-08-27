@@ -4,6 +4,7 @@ import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
 import { saveHistory, exportProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
+import { closeTour } from "./onboarding-tour.js";
 
 export function openLeaveEditorModal() {
     const leaveModal = document.getElementById("leaveEditorModal");
@@ -39,6 +40,33 @@ export function showLandingScreen(force = false, skipPush = false) {
 
     closeLeaveEditorModal();
 
+    // Close any floating onboarding tours
+    try { closeTour(); } catch(e){}
+    document.querySelectorAll(".onboarding-tour-popover").forEach(el => el.remove());
+
+    // Restore standard scrolling
+    document.body.style.overflow = "";
+
+    // Close all open modals & banners
+    document.querySelectorAll(".modal").forEach(m => {
+        m.style.display = "none";
+        m.classList.remove("active");
+    });
+    const fillBanner = document.getElementById("fillModeBanner");
+    if (fillBanner) fillBanner.style.display = "none";
+
+    // Ensure all landing sections are immediately visible and interactive
+    document.querySelectorAll(".reveal").forEach(el => el.classList.add("in-view"));
+
+    // Resume background hero video smoothly
+    const bgVideo = document.querySelector(".hero-showcase-video");
+    if (bgVideo) {
+        try {
+            bgVideo.playbackRate = 0.85;
+            bgVideo.play().catch(() => {});
+        } catch (e) {}
+    }
+
     if (force) {
         state.fields = [];
         state.selectedFieldIds.clear();
@@ -46,6 +74,21 @@ export function showLandingScreen(force = false, skipPush = false) {
         state.originalPdfBytes = null;
         state.history = [];
         state.historyIndex = -1;
+        state.fileName = "interactive_form.pdf";
+        state.activeTool = "select";
+        state.mode = "design";
+
+        const es = document.getElementById("emptyState");
+        if (es) es.style.display = "flex";
+
+        const overlayContainer = document.getElementById("overlayContainer");
+        if (overlayContainer) overlayContainer.innerHTML = "";
+
+        const canvas = document.getElementById("pageCanvas");
+        if (canvas) {
+            const ctx = canvas.getContext("2d");
+            if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
     }
 
     // Sync browser history state

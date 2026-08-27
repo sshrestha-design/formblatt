@@ -2035,11 +2035,11 @@
               io.unobserve(entry.target);
             }
           });
-        }, { threshold: 0.2 });
+        }, { root: null, threshold: 0.05, rootMargin: "0px 0px 50px 0px" });
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=6.5"></script>
+    <script type="module" src="js/main.js?v=6.7"></script>
 </body>
 </html>
 
