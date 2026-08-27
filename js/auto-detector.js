@@ -46,8 +46,31 @@ const GENERIC_PATTERNS = [
     { regex: /title|role|position|designation/i, id: "job_title", type: "textField", autofill: "organization-title" },
     { regex: /department|division|unit/i, id: "department", type: "textField" },
     
+    // Table Line Items & Description
+    { regex: /item\s*description|item\s*details|^description\b/i, id: "item_description", type: "textField" },
+
     // Notes & Multiline Freeform
-    { regex: /comments|notes|remarks|description|explanation|justification|feedback|details/i, id: "comments", type: "textField", multiline: true }
+    { regex: /comments|notes|remarks|explanation|justification|feedback|details/i, id: "comments", type: "textField", multiline: true },
+
+    // ------------------------------------------------------------------
+    // Devanagari / Nepali equivalents. Same idea as the English table
+    // above: match on the semantic keyword, independent of script. Order
+    // matters (first match wins) so more specific phrases sit above the
+    // bare word they contain (e.g. "जन्म मिति" before plain "मिति").
+    // ------------------------------------------------------------------
+    { regex: /जन्म\s*मिति/, id: "dob", type: "dateField" },
+    { regex: /मिति|मितिः/, id: "date", type: "dateField" },
+    { regex: /दस्तखत|हस्ताक्षर/, id: "signature", type: "signature" },
+    { regex: /टेलिफोन|फोन|मोबाइल|सम्पर्क\s*नं/, id: "phone", type: "textField", autofill: "tel" },
+    { regex: /इमेल|ईमेल/, id: "email", type: "textField", autofill: "email" },
+    { regex: /ठेगाना|घर\s*ठेगाना/, id: "address", type: "textField", autofill: "address-line1" },
+    { regex: /जिल्ला/, id: "district", type: "textField", autofill: "address-level1" },
+    { regex: /गाउँपालिका|नगरपालिका|वडा/, id: "municipality", type: "textField" },
+    { regex: /नाम\s*,?\s*थर|पूरा\s*नाम|आवेदकको\s*नाम|निवेदकको\s*नाम/, id: "full_name", type: "textField", autofill: "name" },
+    { regex: /^नाम\b/, id: "full_name", type: "textField", autofill: "name" },
+    { regex: /नागरिकता\s*(?:नं|नंबर|प्रमाण)/, id: "citizenship_number", type: "textField" },
+    { regex: /परिचय\s*पत्र|राहदानी\s*नं/, id: "id_number", type: "textField" },
+    { regex: /संख्या|नं\.?\s*$|नम्बर/, id: "number", type: "textField" }
 ];
 
 function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = new Set()) {
@@ -82,19 +105,27 @@ function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = n
     }
 
     if (!baseId) {
+        // NOTE: strip only whitespace/punctuation here, never non-Latin
+        // letters. A naive `[^a-z0-9\s]` filter treats every non-ASCII
+        // script (Devanagari, Arabic, CJK, ...) as noise and erases the
+        // label down to "", which is how every unmatched field on a
+        // Devanagari form used to collapse to the same generic id. The
+        // \p{L}/\p{N} Unicode property classes (with the "u" flag) keep
+        // letters/digits from ANY script instead.
+        const slugify = (s) => {
+            const words = s.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, "").trim().split(/\s+/).slice(0, 3);
+            return words.length > 0 && words[0].length > 0 ? words.join("_") : "";
+        };
         if (type === "signature") {
             baseId = "signature";
         } else if (type === "checkBox") {
-            const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
-            baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "checkbox";
+            baseId = slugify(clean) || "checkbox";
         } else if (type === "radioGroup") {
-            const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
-            baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "option";
+            baseId = slugify(clean) || "option";
         } else if (type === "dateField") {
             baseId = "date";
         } else {
-            const words = clean.toLowerCase().replace(/[^a-z0-9\s]/g, "").trim().split(/\s+/).slice(0, 3);
-            baseId = words.length > 0 && words[0].length > 0 ? words.join("_") : "field";
+            baseId = slugify(clean) || "field";
         }
     }
 
@@ -490,11 +521,23 @@ function buildFieldsFromTableGrid(grid, rawBlocks, pageNum, usedNames) {
     const numCols = colsX.length - 1;
     const numRows = rowsY.length - 1;
 
+    // Check robust bounding-box overlap so no static text is covered
     const textInCell = (x0, y0, x1, y1) => rawBlocks.filter(tb => {
-        const cx = tb.x + tb.width / 2;
-        const cy = tb.y + tb.height / 2;
-        return cx >= x0 && cx <= x1 && cy >= y0 && cy <= y1;
+        const overlapX = Math.max(0, Math.min(x1, tb.x + tb.width) - Math.max(x0, tb.x));
+        const overlapY = Math.max(0, Math.min(y1, tb.y + tb.height) - Math.max(y0, tb.y));
+        return (overlapX > 2 && overlapY > 2);
     });
+
+    // Calculate row heights to find the median table row height
+    const allRowHeights = [];
+    for (let r = 0; r < numRows; r++) {
+        const h = rowsY[r + 1] - rowsY[r];
+        if (h >= 10 && h <= 80) allRowHeights.push(h);
+    }
+    allRowHeights.sort((a, b) => a - b);
+    const medianRowH = allRowHeights.length > 0 
+        ? allRowHeights[Math.floor(allRowHeights.length / 2)]
+        : 22;
 
     // Header row = row 0. Name each column from its header cell's text,
     // matched against the shared keyword vocabulary, falling back to the
@@ -516,13 +559,21 @@ function buildFieldsFromTableGrid(grid, rawBlocks, pageNum, usedNames) {
     const fields = [];
     for (let r = 1; r < numRows; r++) { // skip header row (r=0)
         const y0 = rowsY[r], y1 = rowsY[r + 1];
+        const cellH = y1 - y0;
+
+        // GUARD 1: Table row height sanity check
+        // If a row is significantly taller than the median row height of the table (e.g. 117px gap vs 20px rows),
+        // it is an inter-section layout gap between the table and notes/footer, NOT a table data row!
+        if (cellH > Math.max(38, medianRowH * 2.0)) {
+            continue;
+        }
+
         for (const col of columns) {
             const x0 = col.x0, x1 = col.x1;
-            const cellW = x1 - x0, cellH = y1 - y0;
+            const cellW = x1 - x0;
             if (cellW < 12 || cellH < 10) continue; // too small to be a usable field
 
-            // Don't overwrite a cell that already has real static content
-            // (e.g. a pre-filled label or a $ symbol printed in the cell).
+            // GUARD 2: Don't overwrite a cell that has static text (like $ symbol, BALANCE DUE, Tax, etc.)
             const existingText = textInCell(x0, y0, x1, y1);
             if (existingText.some(tb => tb.str.replace(/[\s.,$]/g, "").length > 0)) continue;
 
@@ -994,7 +1045,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
 
             for (const tb of rawBlocks) {
                 if (tb.y > tableTopY + 15) {
-                    if (/^(?:subtotal|total|notes|terms|payment|authorized|signature)/i.test(tb.str) || (tb.str.includes(":") && !tb.str.includes("http"))) {
+                    if (/^(?:subtotal|total|balance|amount\s*due|tax|vat|gst|discount|notes|terms|payment|authorized|signature|thank\s*you|eforms)/i.test(tb.str) || (tb.str.includes(":") && !tb.str.includes("http"))) {
                         tableBottomY = Math.min(tableBottomY, tb.y - 6);
                     }
                 }
@@ -1020,9 +1071,31 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 if (rowMarkers.length >= 2) {
                     const sortedY = rowMarkers.map(m => m.y).sort((a, b) => a - b);
                     for (const y of sortedY) {
-                        if (!rowYs.some(ry => Math.abs(ry - y) <= 6)) {
+                        if (!rowYs.some(ry => Math.abs(ry - y) <= 14)) {
                             rowYs.push(y);
                         }
+                    }
+
+                    // Filter out any row marker separated by a large gap from the previous table rows
+                    if (rowYs.length >= 2) {
+                        const cleanedRowYs = [rowYs[0]];
+                        const deltas = [];
+                        for (let i = 1; i < rowYs.length; i++) {
+                            deltas.push(rowYs[i] - rowYs[i - 1]);
+                        }
+                        deltas.sort((a, b) => a - b);
+                        const medianDelta = deltas[Math.floor(deltas.length / 2)] || 22;
+
+                        for (let i = 1; i < rowYs.length; i++) {
+                            const gap = rowYs[i] - cleanedRowYs[cleanedRowYs.length - 1];
+                            if (gap <= Math.max(34, medianDelta * 1.6)) {
+                                cleanedRowYs.push(rowYs[i]);
+                            } else {
+                                // Table body has ended; stop accepting rows from below
+                                break;
+                            }
+                        }
+                        rowYs = cleanedRowYs;
                     }
                 }
 
@@ -1034,9 +1107,20 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                     }
                 }
 
+                let cellHeight = 18;
+                if (rowYs.length >= 2) {
+                    const medianRowGap = (rowYs[rowYs.length - 1] - rowYs[0]) / (rowYs.length - 1);
+                    cellHeight = Math.min(24, Math.max(15, Math.round(medianRowGap - 4)));
+                }
+
                 for (let rIdx = 0; rIdx < rowYs.length; rIdx++) {
                     const rowY = rowYs[rIdx];
                     const rowNum = rIdx + 1;
+
+                    // Never place a field that bleeds past the bottom of the table
+                    if (rowY + cellHeight > tableBottomY - 4) {
+                        continue;
+                    }
 
                     for (const col of columns) {
                         if (col.id === "item_no") continue;
@@ -1047,6 +1131,17 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
 
                         const cellWidth = isCheckboxCol ? 16 : col.width;
                         const cellX = isCheckboxCol ? Math.round(col.x + Math.max(0, (col.width - 16) / 2)) : col.x;
+                        const currentCellH = isCheckboxCol ? 16 : cellHeight;
+
+                        // Static text collision check: never place a field over existing static text
+                        const textCollisions = rawBlocks.filter(tb => {
+                            const overlapX = Math.max(0, Math.min(cellX + cellWidth, tb.x + tb.width) - Math.max(cellX, tb.x));
+                            const overlapY = Math.max(0, Math.min(rowY + currentCellH, tb.y + tb.height) - Math.max(rowY, tb.y));
+                            return overlapX > 2 && overlapY > 2;
+                        });
+                        if (textCollisions.some(tb => tb.str.replace(/[\s.,$]/g, "").length > 0)) {
+                            continue;
+                        }
 
                         const cellField = {
                             id: generateFieldId(),
@@ -1055,7 +1150,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                             x: cellX,
                             y: rowY,
                             width: cellWidth,
-                            height: isCheckboxCol ? 16 : 18,
+                            height: cellHeight,
                             page: pageNum,
                             borderStyle: "solid",
                             fillStyle: "white",

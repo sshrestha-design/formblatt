@@ -25,3 +25,7 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Test and temp browser files
+.chrome-test-profile/
+assets/frame-*.jpg
