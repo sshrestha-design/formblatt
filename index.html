@@ -113,7 +113,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=5.8">
+    <link rel="stylesheet" href="styles/main.css?v=6.5">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -621,18 +621,19 @@
     <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
         <header class="toolbar">
             <div class="toolbar-left">
-                <button id="toggleSidebarBtn" class="btn-secondary" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" style="height: 28px; padding: 0 8px; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; color: #475569; cursor: pointer;">
-                    <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
-                </button>
-                <span style="font-weight: 800; font-size: 1.05rem; letter-spacing: -0.5px; color: var(--text-color); cursor:pointer; display:flex; align-items:center; gap:6px;" id="editorBrandLogo" title="JustForms Dashboard">
-                    <span style="width:22px; height:22px; border-radius:5px; background:linear-gradient(135deg, #0284c7, #2563eb); display:inline-flex; align-items:center; justify-content:center; color:white;">
+                <span class="editor-brand-logo" id="editorBrandLogo" title="JustForms Dashboard">
+                    <span class="editor-brand-icon">
                         <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
-                    <span>JustForms</span>
-                    <span style="font-size: 10px; font-weight: 700; background: #eff6ff; color: #2563eb; border: 1px solid #bfdbfe; padding: 1px 6px; border-radius: 4px; line-height:1.2;">RC v1.1</span>
+                    <span class="editor-brand-name">JustForms</span>
+                    <span class="editor-brand-badge">RC v1.1</span>
                 </span>
+                <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
+                <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)">
+                    <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
+                </button>
                 <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn" id="fileMenuBtn">File ▼</button>
+                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn">File ▼</button>
 
                     <div class="dropdown-content">
                         <button class="dropdown-item" id="newBlankDocMenuBtn">
@@ -698,11 +699,11 @@
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L20 7.5V13"/><path d="M12 18s1.5-2 3-2 3 2 4.5 2"/><path d="M7 14s2-3 4-3 3 3 5 3"/></svg>
                     </button>
                     <div class="tool-divider"></div>
-                    <button id="autoDetectBtn" title="Auto-Detect Form Fields & Signatures" style="height: 28px; font-size: 11.5px; padding: 0 9px; display: flex; align-items: center; gap: 4px; background: #ffffff; color: #6366f1; border: 1px solid #c7d2fe; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.15s ease;">
-                        <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+                    <button id="autoDetectBtn" class="toolbar-smart-btn" title="Auto-Detect Form Fields & Signatures">
+                        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
                         <span>Auto-Detect</span>
                     </button>
-                    <button id="toggleGuidesBtn" class="tool-btn active" title="Toggle Smart Alignment Guides (Ctrl/Cmd+;)" style="margin-left: 2px;">
+                    <button id="toggleGuidesBtn" class="tool-btn active" title="Toggle Smart Alignment Guides (Ctrl/Cmd+;)">
                         <i data-lucide="grid" style="width: 15px; height: 15px;"></i>
                     </button>
                 </div>
@@ -719,11 +720,12 @@
                         <span>Fill & Test</span>
                     </button>
                 </div>
-                <button id="shortcutsHelpBtn" class="btn-secondary" title="Keyboard Shortcuts & Help (?)" style="height: 32px; width: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 6px;">
+                <button id="shortcutsHelpBtn" class="toolbar-action-btn" title="Keyboard Shortcuts & Help (?)">
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
-                <button id="generatePdfBtn" class="btn-primary" style="height: 32px; font-size: 12px; padding: 0 13px; display: flex; align-items: center; gap: 5px;">
-                    <i data-lucide="download" style="width: 14px; height: 14px;"></i> Export PDF
+                <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" title="Download Standard Fillable AcroForm PDF">
+                    <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                    <span>Export PDF</span>
                 </button>
             </div>
         </header>
@@ -2049,7 +2051,7 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=5.8"></script>
+    <script type="module" src="js/main.js?v=6.5"></script>
 </body>
 </html>
 

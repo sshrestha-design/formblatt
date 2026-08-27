@@ -97,6 +97,7 @@ const bootstrapApp = async () => {
     );
     initCanvasController(canvasHandlers);
     initLandingController(() => refreshUI());
+    if (typeof lucide !== "undefined") lucide.createIcons();
 
     // Toolbar Tool Selection Buttons
     document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
