@@ -26,6 +26,84 @@
     flex-shrink: 0;
 }
 
+.editor-brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 800;
+    font-size: 1.02rem;
+    letter-spacing: -0.02em;
+    color: var(--text-color);
+    cursor: pointer;
+    user-select: none;
+    text-decoration: none;
+    padding-right: 4px;
+}
+
+.editor-brand-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #0284c7, #2563eb);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+
+.editor-brand-name {
+    font-weight: 800;
+    color: var(--text-color);
+}
+
+.editor-brand-badge {
+    font-size: 10px;
+    font-weight: 700;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #bfdbfe;
+    padding: 1px 6px;
+    border-radius: 4px;
+    line-height: 1.2;
+}
+
+.toolbar-action-btn {
+    height: 32px;
+    min-height: 32px;
+    width: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: all 0.15s ease;
+}
+
+.toolbar-action-btn:hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+}
+
+.toolbar-action-btn:active {
+    transform: scale(0.96);
+}
+
+.menu-btn.toolbar-action-btn {
+    width: auto;
+    padding: 0 11px;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 4px;
+    color: #334155;
+}
+
 .toolbar-center {
     display: flex;
     align-items: center;
@@ -44,11 +122,13 @@
 .segmented-toolbar {
     display: inline-flex;
     align-items: center;
+    height: 38px;
     background: #f1f5f9;
-    padding: 3px 5px;
-    border-radius: 9px;
+    padding: 3px;
+    border-radius: 8px;
     border: 1px solid #e2e8f0;
-    gap: 3px;
+    gap: 2px;
+    box-sizing: border-box;
 }
 
 .segmented-toolbar .tool-btn {
@@ -60,9 +140,10 @@
     padding: 0;
     border-radius: 6px;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    box-sizing: border-box;
     transition: transform var(--anim-fast), background var(--anim-fast), color var(--anim-fast), border-color var(--anim-fast), box-shadow var(--anim-fast);
     will-change: transform;
 }
@@ -70,19 +151,17 @@
 .segmented-toolbar .tool-btn:hover {
     background: #e2e8f0;
     color: #0f172a;
-    transform: translateY(-1px);
 }
 
 .segmented-toolbar .tool-btn:active {
-    transform: scale(0.92);
+    transform: scale(0.94);
 }
 
 .segmented-toolbar .tool-btn.active {
     background: #ffffff;
     color: #2563eb;
     border-color: #cbd5e1;
-    transform: scale(1.03);
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.16), 0 1px 2px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(37, 99, 235, 0.12);
 }
 
 .tool-group {
@@ -92,49 +171,47 @@
 
 .tool-divider {
     width: 1px;
-    height: 20px;
+    height: 18px;
     background: #cbd5e1;
-    margin: 0 8px;
+    margin: 0 4px;
+    flex-shrink: 0;
 }
 
-/* ── Auto-Detect Button ──────────────────────────────────────────
-   Previously fell back to the generic .btn-secondary (8px/16px
-   padding, no fixed height), so it sat visually disconnected from
-   the crisp 32px pill controls around it. This gives it its own
-   identity as the toolbar's signature "smart" action. */
-#autoDetectBtn {
+/* ── Auto-Detect Smart Action ──────────────────────────────────── */
+.toolbar-smart-btn {
     height: 32px;
+    min-height: 32px;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 13px;
-    border-radius: 8px;
+    gap: 5px;
+    padding: 0 11px;
+    border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
-    color: #7c3aed;
+    color: #6366f1;
     background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%);
-    border: 1px solid #ddd6fe;
-    box-shadow: 0 1px 2px rgba(124, 58, 237, 0.06);
+    border: 1px solid #c7d2fe;
+    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.08);
     white-space: nowrap;
+    cursor: pointer;
     transition: transform var(--anim-fast), box-shadow var(--anim-fast), background var(--anim-fast), border-color var(--anim-fast);
 }
 
-#autoDetectBtn:hover {
+.toolbar-smart-btn:hover {
     background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
-    border-color: #c4b5fd;
-    box-shadow: 0 3px 10px rgba(124, 58, 237, 0.18);
-    transform: translateY(-1px);
+    border-color: #a5b4fc;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.18);
+    color: #4f46e5;
 }
 
-#autoDetectBtn:active {
-    transform: scale(0.965) translateY(0);
-    box-shadow: 0 1px 3px rgba(124, 58, 237, 0.12);
+.toolbar-smart-btn:active {
+    transform: scale(0.96);
 }
 
-#autoDetectBtn svg,
-#autoDetectBtn i,
-#autoDetectBtn [data-lucide] {
+.toolbar-smart-btn svg,
+.toolbar-smart-btn i,
+.toolbar-smart-btn [data-lucide] {
     width: 14px;
     height: 14px;
     color: #7c3aed;
@@ -1102,20 +1179,28 @@
 }
 
 .menu-btn {
-    background: transparent;
-    color: var(--text-color);
-    border: 1px solid var(--border-color);
-    font-size: 13px;
-    font-weight: 500;
+    height: 32px;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
-    padding: 5px 12px;
+    padding: 0 11px;
     border-radius: 6px;
     font-family: inherit;
-    transition: background 0.15s;
+    gap: 4px;
+    transition: all 0.15s ease;
 }
 
 .menu-btn:hover {
-    background: #f1f5f9;
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
 
 .dropdown-content {
@@ -1321,7 +1406,7 @@
     align-items: center;
     background: #f1f5f9;
     padding: 3px;
-    border-radius: 8px;
+    border-radius: 7px;
     border: 1px solid #cbd5e1;
     gap: 2px;
     height: 32px;
@@ -1343,6 +1428,7 @@
     gap: 5px;
     transition: all 0.15s ease;
     user-select: none;
+    box-sizing: border-box;
 }
 
 .mode-toggle-btn:hover {
@@ -1364,24 +1450,33 @@
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
 }
 
-/* ── Toolbar control height alignment ────────────────────────────
-   Direct-child controls of the toolbar (e.g. #generatePdfBtn, which
-   otherwise inherits base.css's .btn-primary padding with no fixed
-   height) are pinned to the same 32px row-height as .tool-btn and
-   .mode-segmented-toggle. Scoped to direct children only, so the
-   24px inner buttons of .mode-segmented-toggle are untouched. */
-.toolbar-left > button,
-.toolbar-right > button {
+.toolbar-export-btn {
     height: 32px;
+    min-height: 32px;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    padding: 0 14px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    background: var(--primary-color);
+    color: #ffffff;
+    border: 1px solid #1d4ed8;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    cursor: pointer;
+    transition: all 0.15s ease;
 }
 
-#generatePdfBtn {
-    padding: 0 16px;
-    font-size: 12.5px;
+.toolbar-export-btn:hover {
+    background: #1d4ed8;
+    border-color: #1e40af;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+}
+
+.toolbar-export-btn:active {
+    transform: scale(0.97);
 }
 
 /* ── Workspace in Fill Mode ──────────────────────────────────── */
