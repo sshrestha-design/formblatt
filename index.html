@@ -112,7 +112,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=7.4">
+    <link rel="stylesheet" href="styles/main.css?v=7.5">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -1119,22 +1119,26 @@
 
                     <!-- 4. Appearance & Style -->
                     <div class="prop-group">
-                        <div class="prop-section-heading">Appearance</div>
-                        <div class="prop-appearance-row">
-                            <span class="prop-label">Border:</span>
-                            <div class="segmented-toggle" id="multiBorderSegmentedToggle" data-active="solid">
-                                <div class="segmented-glider"></div>
-                                <button id="multiBorderSolidBtn" type="button" class="segmented-opt active" data-val="solid">Solid</button>
-                                <button id="multiBorderNoneBtn" type="button" class="segmented-opt" data-val="none">None</button>
+                        <div class="prop-section-heading">Layout & Style</div>
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label" for="multiBorderStyle">Border</label>
+                                <select id="multiBorderStyle" class="prop-select">
+                                    <option value="" style="color: #64748b; font-style: italic;">Border (Mixed)</option>
+                                    <option value="solid">Solid</option>
+                                    <option value="none">None</option>
+                                    <option value="thick">Thick</option>
+                                </select>
                             </div>
-                        </div>
-                        <div class="prop-appearance-row">
-                            <span class="prop-label">Fill:</span>
-                            <div class="prop-swatches-row">
-                                <button id="multiFillWhiteBtn" type="button" class="color-swatch-btn" title="White Background" style="background: #ffffff; border: 1.5px solid #cbd5e1;"></button>
-                                <button id="multiFillTintBtn" type="button" class="color-swatch-btn" title="Soft Blue Tint" style="background: #eff6ff; border: 1.5px solid #3b82f6;"></button>
-                                <button id="multiFillYellowBtn" type="button" class="color-swatch-btn" title="Soft Yellow" style="background: #fef08a; border: 1.5px solid #eab308;"></button>
-                                <button id="multiFillTransBtn" type="button" class="color-swatch-btn" title="Transparent" style="background: transparent; border: 1.5px dashed #94a3b8;"></button>
+                            <div class="prop-field">
+                                <label class="prop-label" for="multiFillStyle">Fill</label>
+                                <select id="multiFillStyle" class="prop-select">
+                                    <option value="" style="color: #64748b; font-style: italic;">Fill (Mixed)</option>
+                                    <option value="tint">Faint Blue</option>
+                                    <option value="white">White</option>
+                                    <option value="yellow">Yellow</option>
+                                    <option value="transparent">Transparent</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -2055,7 +2059,7 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=7.4"></script>
+    <script type="module" src="js/main.js?v=7.5"></script>
 </body>
 </html>
 

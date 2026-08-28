@@ -386,43 +386,23 @@ export function populateProperties(field) {
                 }
             }
 
-            // Sync border segmented toggle
-            const commonBorder = selectedFields[0]?.borderStyle;
-            const allSameBorder = selectedFields.every(f => f.borderStyle === commonBorder);
-            const borderToggle = document.getElementById("multiBorderSegmentedToggle");
-            const btnSolid = document.getElementById("multiBorderSolidBtn");
-            const btnNone = document.getElementById("multiBorderNoneBtn");
-            if (borderToggle && btnSolid && btnNone) {
-                if (allSameBorder && commonBorder === "none") {
-                    borderToggle.dataset.active = "none";
-                    btnNone.classList.add("active");
-                    btnSolid.classList.remove("active");
-                } else if (allSameBorder && commonBorder === "solid") {
-                    borderToggle.dataset.active = "solid";
-                    btnSolid.classList.add("active");
-                    btnNone.classList.remove("active");
-                } else {
-                    borderToggle.dataset.active = "mixed";
-                    btnSolid.classList.remove("active");
-                    btnNone.classList.remove("active");
-                }
+            // Sync border select
+            const borderInput = document.getElementById("multiBorderStyle");
+            if (borderInput && document.activeElement !== borderInput) {
+                const commonBorder = selectedFields[0]?.borderStyle;
+                const allSameBorder = selectedFields.every(f => f.borderStyle === commonBorder);
+                borderInput.value = (allSameBorder && commonBorder) ? commonBorder : "";
+                borderInput.classList.toggle("is-mixed", !allSameBorder || !commonBorder);
             }
 
-            // Sync fill swatches
-            const commonFill = selectedFields[0]?.fillStyle;
-            const allSameFill = selectedFields.every(f => f.fillStyle === commonFill);
-            const swatchesList = [
-                { id: "multiFillWhiteBtn", fill: "white" },
-                { id: "multiFillTintBtn", fill: "tint" },
-                { id: "multiFillYellowBtn", fill: "yellow" },
-                { id: "multiFillTransBtn", fill: "transparent" }
-            ];
-            swatchesList.forEach(s => {
-                const el = document.getElementById(s.id);
-                if (el) {
-                    el.classList.toggle("active", allSameFill && s.fill === commonFill);
-                }
-            });
+            // Sync fill select
+            const fillInput = document.getElementById("multiFillStyle");
+            if (fillInput && document.activeElement !== fillInput) {
+                const commonFill = selectedFields[0]?.fillStyle;
+                const allSameFill = selectedFields.every(f => f.fillStyle === commonFill);
+                fillInput.value = (allSameFill && commonFill) ? commonFill : "";
+                fillInput.classList.toggle("is-mixed", !allSameFill || !commonFill);
+            }
         }
         if (typeof lucide !== "undefined") lucide.createIcons();
         return;
@@ -680,60 +660,23 @@ function initMultiSelectTools(onUpdated) {
         });
     });
 
-    // ── 1-Click Batch Border Changes (Animated Sliding Segmented Toggle) ─
-    const borderToggle = document.getElementById("multiBorderSegmentedToggle");
-    const btnSolid = document.getElementById("multiBorderSolidBtn");
-    const btnNone = document.getElementById("multiBorderNoneBtn");
-
-    btnSolid?.addEventListener("click", () => {
-        if (borderToggle) {
-            borderToggle.classList.remove("anim-none");
-            borderToggle.classList.remove("anim-solid");
-            void borderToggle.offsetWidth; // force reflow for fresh animation
-            borderToggle.classList.add("anim-solid");
-            borderToggle.dataset.active = "solid";
+    // ── Batch Border & Fill Style Dropdowns ───────────────────────────
+    const multiBorderInput = document.getElementById("multiBorderStyle");
+    multiBorderInput?.addEventListener("change", e => {
+        multiBorderInput.classList.remove("is-mixed");
+        const val = e.target.value;
+        if (val) {
+            batchUpdate(f => f.borderStyle = val, true);
         }
-        btnSolid.classList.add("active");
-        if (btnNone) btnNone.classList.remove("active");
-        batchUpdate(f => f.borderStyle = "solid", true);
     });
 
-    btnNone?.addEventListener("click", () => {
-        if (borderToggle) {
-            borderToggle.classList.remove("anim-solid");
-            borderToggle.classList.remove("anim-none");
-            void borderToggle.offsetWidth; // force reflow for fresh animation
-            borderToggle.classList.add("anim-none");
-            borderToggle.dataset.active = "none";
+    const multiFillInput = document.getElementById("multiFillStyle");
+    multiFillInput?.addEventListener("change", e => {
+        multiFillInput.classList.remove("is-mixed");
+        const val = e.target.value;
+        if (val) {
+            batchUpdate(f => f.fillStyle = val, true);
         }
-        btnNone.classList.add("active");
-        if (btnSolid) btnSolid.classList.remove("active");
-        batchUpdate(f => f.borderStyle = "none", true);
-    });
-
-    // ── 1-Click Batch Box Fill / Background Swatches ──────────────────
-    const swatches = [
-        { id: "multiFillWhiteBtn", fill: "white" },
-        { id: "multiFillTintBtn", fill: "tint" },
-        { id: "multiFillYellowBtn", fill: "yellow" },
-        { id: "multiFillTransBtn", fill: "transparent" }
-    ];
-    swatches.forEach(sw => {
-        const btn = document.getElementById(sw.id);
-        btn?.addEventListener("click", () => {
-            swatches.forEach(s => {
-                const el = document.getElementById(s.id);
-                if (el) {
-                    el.classList.toggle("active", s.id === sw.id);
-                    if (s.id === sw.id) {
-                        el.classList.remove("just-clicked");
-                        void el.offsetWidth;
-                        el.classList.add("just-clicked");
-                    }
-                }
-            });
-            batchUpdate(f => f.fillStyle = sw.fill, true);
-        });
     });
 
     // ── Batch Text, Typography & Alignment ───────────────────────────
