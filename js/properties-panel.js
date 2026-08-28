@@ -913,6 +913,15 @@ function initMultiSelectTools(onUpdated) {
         if (onUpdated) onUpdated();
     });
 
+    // ── Duplicate All Selected ───────────────────────────────────────
+    document.getElementById("multiDuplicateBtn")?.addEventListener("click", () => {
+        const dups = duplicateSelectedFields();
+        if (dups.length > 0) {
+            saveHistory();
+            if (onUpdated) onUpdated();
+        }
+    });
+
     // ── Group Selected Fields ─────────────────────────────────────────
     document.getElementById("multiGroupBtn")?.addEventListener("click", () => {
         const grp = createGroupForSelected();
@@ -933,6 +942,7 @@ function initMultiSelectTools(onUpdated) {
     document.getElementById("deleteMultiBtn")?.addEventListener("click", () => {
         state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
         state.selectedFieldIds.clear();
+        state.selectedFieldId = null;
         saveHistory();
         if (onUpdated) onUpdated();
     });

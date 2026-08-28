@@ -112,7 +112,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=7.3">
+    <link rel="stylesheet" href="styles/main.css?v=7.4">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -955,7 +955,7 @@
                                     <option value="tint">Faint Blue</option>
                                     <option value="white">White</option>
                                     <option value="yellow">Yellow</option>
-                                    <option value="none">Transparent</option>
+                                    <option value="transparent">Transparent</option>
                                 </select>
                             </div>
                         </div>
@@ -1039,11 +1039,11 @@
                             <select id="multiFieldType" class="prop-select">
                                 <option value="" disabled selected>Convert Selected Types...</option>
                                 <option value="textField">Text Field</option>
-                                <option value="checkBox">Checkbox</option>
-                                <option value="radioGroup">Radio Button</option>
                                 <option value="dateField">Date Field</option>
-                                <option value="signature">Signature</option>
                                 <option value="dropdown">Dropdown</option>
+                                <option value="checkBox">Checkbox</option>
+                                <option value="radioGroup">Radio Group</option>
+                                <option value="signature">Signature Field</option>
                             </select>
                         </div>
                         <div class="prop-quick-types-grid">
@@ -1081,10 +1081,10 @@
                                 <button id="alignBottomBtn" class="tool-btn prop-tool-btn" title="Align Bottom Edges"><i data-lucide="arrow-down-to-line" style="width: 13px; height: 13px;"></i></button>
                             </div>
                             <div class="prop-distribute-row">
-                                <button id="distributeVerticalBtn" class="btn-secondary prop-distribute-btn" title="Distribute Vertical Spacing Evenly">
+                                <button id="distributeVerticalBtn" type="button" class="prop-distribute-btn" title="Distribute Vertical Spacing Evenly">
                                     <i data-lucide="distribute-vertical" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute V
                                 </button>
-                                <button id="distributeHorizontalBtn" class="btn-secondary prop-distribute-btn" title="Distribute Horizontal Spacing Evenly">
+                                <button id="distributeHorizontalBtn" type="button" class="prop-distribute-btn" title="Distribute Horizontal Spacing Evenly">
                                     <i data-lucide="distribute-horizontal" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute H
                                 </button>
                             </div>
@@ -1096,22 +1096,22 @@
                         <div class="prop-section-heading">Dimensions</div>
                         <div class="prop-grid-2">
                             <div class="prop-field">
-                                <label class="prop-label" for="multiFieldWidth">Width (px)</label>
+                                <label class="prop-label scrubbable" for="multiFieldWidth">Width (px)</label>
                                 <input type="number" id="multiFieldWidth" class="prop-input" placeholder="Mixed" min="16" max="2000">
                             </div>
                             <div class="prop-field">
-                                <label class="prop-label" for="multiFieldHeight">Height (px)</label>
+                                <label class="prop-label scrubbable" for="multiFieldHeight">Height (px)</label>
                                 <input type="number" id="multiFieldHeight" class="prop-input" placeholder="Mixed" min="16" max="1000">
                             </div>
                         </div>
                         <div class="prop-match-row">
-                            <button id="multiMatchWidthBtn" type="button" class="btn-secondary prop-match-btn" title="Equalize Widths">
+                            <button id="multiMatchWidthBtn" type="button" class="prop-match-btn" title="Equalize Widths">
                                 <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
                             </button>
-                            <button id="multiMatchHeightBtn" type="button" class="btn-secondary prop-match-btn" title="Equalize Heights">
+                            <button id="multiMatchHeightBtn" type="button" class="prop-match-btn" title="Equalize Heights">
                                 <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
                             </button>
-                            <button id="multiMatchBothBtn" type="button" class="btn-secondary prop-match-btn" title="Equalize Both Width & Height">
+                            <button id="multiMatchBothBtn" type="button" class="prop-match-btn" title="Equalize Both Width & Height">
                                 <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
                             </button>
                         </div>
@@ -1143,22 +1143,25 @@
                     <div class="prop-group">
                         <div class="prop-section-heading">Typography</div>
                         <div class="prop-field">
+                            <label class="prop-label" for="multiFontFamily">Font Family</label>
                             <select id="multiFontFamily" class="prop-select">
                                 <option value="" style="color: #64748b; font-style: italic;">Font (Mixed)</option>
-                                <option value="helvetica">Calibri / Helvetica</option>
-                                <option value="times">Times New Roman</option>
-                                <option value="courier">Courier Monospace</option>
-                                <option value="helvetica-bold">Calibri Bold</option>
-                                <option value="times-italic">Times New Roman Italic</option>
+                                <option value="helvetica">Calibri / Helvetica (Sans)</option>
+                                <option value="times">Times New Roman (Serif)</option>
+                                <option value="courier">Courier (Mono)</option>
+                                <option value="helvetica-bold">Helvetica Bold</option>
+                                <option value="times-italic">Times Italic</option>
                             </select>
                         </div>
                         <div class="prop-grid-2">
                             <div class="prop-field">
-                                <input type="number" id="multiFontSize" class="prop-input" placeholder="Size (pt)" min="6" max="72">
+                                <label class="prop-label scrubbable" for="multiFontSize">Size (pt)</label>
+                                <input type="number" id="multiFontSize" class="prop-input" placeholder="Mixed" min="6" max="72">
                             </div>
                             <div class="prop-field">
+                                <label class="prop-label" for="multiTextAlignment">Align</label>
                                 <select id="multiTextAlignment" class="prop-select">
-                                    <option value="" style="color: #64748b; font-style: italic;">Align</option>
+                                    <option value="" style="color: #64748b; font-style: italic;">Align (Mixed)</option>
                                     <option value="left">Left</option>
                                     <option value="center">Center</option>
                                     <option value="right">Right</option>
@@ -1186,6 +1189,16 @@
                 <!-- Pinned Footer -->
                 <div class="prop-footer">
                     <div class="prop-footer-actions">
+                        <button id="multiDuplicateBtn" type="button" class="prop-footer-btn prop-btn-duplicate" title="Duplicate Selected Fields (Cmd/Ctrl+D)">
+                            <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+                            <span>Duplicate</span>
+                        </button>
+                        <button id="deleteMultiBtn" type="button" class="prop-footer-btn prop-btn-delete" title="Delete All Selected (Backspace/Del)">
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                            <span>Delete</span>
+                        </button>
+                    </div>
+                    <div class="prop-footer-actions">
                         <button id="multiGroupBtn" type="button" class="prop-footer-btn prop-btn-group" title="Group Selected Fields (Cmd/Ctrl+G)">
                             <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i>
                             <span>Group</span>
@@ -1195,10 +1208,6 @@
                             <span>Ungroup</span>
                         </button>
                     </div>
-                    <button id="deleteMultiBtn" type="button" class="prop-footer-btn prop-btn-delete" style="width: 100%;" title="Delete All Selected (Backspace/Del)">
-                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
-                        <span>Delete Selected</span>
-                    </button>
                 </div>
             </div>
         </aside>
@@ -2046,7 +2055,7 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=7.3"></script>
+    <script type="module" src="js/main.js?v=7.4"></script>
 </body>
 </html>
 
