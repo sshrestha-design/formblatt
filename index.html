@@ -112,7 +112,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=7.2">
+    <link rel="stylesheet" href="styles/main.css?v=7.3">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -825,6 +825,7 @@
                 <div class="prop-panel-body">
                     <!-- 1. Field Essentials -->
                     <div class="prop-group">
+                        <div class="prop-section-heading">Field Essentials</div>
                         <div class="prop-field">
                             <label class="prop-label" for="fieldName">Field Name</label>
                             <input type="text" id="fieldName" class="prop-input" placeholder="e.g. full_name">
@@ -1002,16 +1003,20 @@
                 </div>
 
                 <!-- Pinned Actions Footer -->
+                <!-- Pinned Actions Footer -->
                 <div class="prop-footer">
-                    <button id="addTableRowBtn" type="button" class="prop-btn-table" title="Clone row item">
-                        <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i> + Add Next Table Row
+                    <button id="addTableRowBtn" type="button" class="prop-btn-table" title="Clone row item with auto-incremented numbering">
+                        <i data-lucide="plus-circle" style="width: 13px; height: 13px;"></i>
+                        <span>Add Next Table Row</span>
                     </button>
                     <div class="prop-footer-actions">
-                        <button id="duplicateFieldBtn" type="button" class="btn-secondary prop-footer-btn">
-                            <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Duplicate
+                        <button id="duplicateFieldBtn" type="button" class="prop-footer-btn prop-btn-duplicate" title="Duplicate Field (Cmd/Ctrl+D)">
+                            <i data-lucide="copy" style="width: 13px; height: 13px;"></i>
+                            <span>Duplicate</span>
                         </button>
-                        <button id="deleteFieldBtn" type="button" class="btn-danger-outline prop-footer-btn">
-                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete
+                        <button id="deleteFieldBtn" type="button" class="prop-footer-btn prop-btn-delete" title="Delete Field (Backspace/Del)">
+                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                            <span>Delete</span>
                         </button>
                     </div>
                 </div>
@@ -1028,8 +1033,9 @@
                 <div class="prop-panel-body">
                     <!-- 1. Batch Convert Type -->
                     <div class="prop-group">
+                        <div class="prop-section-heading">Batch Convert Type</div>
                         <div class="prop-field">
-                            <label class="prop-label" for="multiFieldType">Batch Convert Type</label>
+                            <label class="prop-label" for="multiFieldType">Target Type</label>
                             <select id="multiFieldType" class="prop-select">
                                 <option value="" disabled selected>Convert Selected Types...</option>
                                 <option value="textField">Text Field</option>
@@ -1180,18 +1186,19 @@
                 <!-- Pinned Footer -->
                 <div class="prop-footer">
                     <div class="prop-footer-actions">
-                        <button id="multiGroupBtn" type="button" class="btn-secondary prop-footer-btn" style="background: #eff6ff; color: #2563eb; border-color: #bfdbfe;">
-                            <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i> Group
+                        <button id="multiGroupBtn" type="button" class="prop-footer-btn prop-btn-group" title="Group Selected Fields (Cmd/Ctrl+G)">
+                            <i data-lucide="folder-plus" style="width: 13px; height: 13px;"></i>
+                            <span>Group</span>
                         </button>
-                        <button id="multiUngroupBtn" type="button" class="btn-secondary prop-footer-btn" title="Ungroup Selected">
-                            <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i> Ungroup
-                        </button>
-                    </div>
-                    <div>
-                        <button id="deleteMultiBtn" type="button" class="btn-danger-outline prop-footer-btn" style="width: 100%;">
-                            <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i> Delete Selected
+                        <button id="multiUngroupBtn" type="button" class="prop-footer-btn prop-btn-duplicate" title="Ungroup Selected Fields (Cmd/Ctrl+Shift+G)">
+                            <i data-lucide="folder-minus" style="width: 13px; height: 13px;"></i>
+                            <span>Ungroup</span>
                         </button>
                     </div>
+                    <button id="deleteMultiBtn" type="button" class="prop-footer-btn prop-btn-delete" style="width: 100%;" title="Delete All Selected (Backspace/Del)">
+                        <i data-lucide="trash-2" style="width: 13px; height: 13px;"></i>
+                        <span>Delete Selected</span>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -2039,7 +2046,7 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=7.2"></script>
+    <script type="module" src="js/main.js?v=7.3"></script>
 </body>
 </html>
 

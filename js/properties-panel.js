@@ -444,8 +444,8 @@ export function populateProperties(field) {
         const labels = {
             textField: "Text Field",
             dateField: "Date Field",
-            dropdown: "Drop Down",
-            checkBox: "Check Box",
+            dropdown: "Dropdown",
+            checkBox: "Checkbox",
             radioGroup: "Radio Group",
             signature: "Signature"
         };
