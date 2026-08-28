@@ -243,7 +243,7 @@ export function getAdaptiveFieldDimensions(type, x, y, rawBlocks) {
     };
 }
 
-async function createFieldAt(type, x, y, handlers, customWidth, customHeight, customX, customY) {
+async function createFieldAt(type, x, y, handlers, customWidth, customHeight, customX, customY, isAltHeld = false) {
     const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
     const adaptive = getAdaptiveFieldDimensions(type, x, y, pageTextBlocks);
 
@@ -283,11 +283,21 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
     saveHistory();
     handlers.onFieldCreated(field);
 
-    // Multi-place sticky mode: activeTool remains active for continuous placement
-    // Dismiss anytime via Escape, V key, right-click, or selecting the pointer tool.
     hideGuides();
     if (ghostElement) {
         ghostElement.classList.remove("is-drawing");
+    }
+
+    // Auto-switch back to Select tool with new field selected, unless Alt/Option is held for rapid multi-placement
+    if (!isAltHeld) {
+        state.activeTool = "select";
+        document.body.classList.remove("placing-mode");
+        document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
+            b.classList.toggle("active", b.dataset.tool === "select");
+        });
+        if (ghostElement) ghostElement.style.display = "none";
+        const stamp = document.getElementById("floatingToolStamp");
+        if (stamp) stamp.style.display = "none";
     }
 
     // Auto-open signature modal for instant sign
@@ -648,16 +658,25 @@ export function initCanvasController(handlers) {
         }
     });
 
-    // Escape or V Key cancels placement tool or active drawing
+    // Escape key: cancel current action, switch to Select tool, and deselect
+    // V key: switch directly to Select tool
     window.addEventListener("keydown", e => {
         const tag = (e.target?.tagName || "").toLowerCase();
         const isEditing = tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable;
 
-        if (e.key === "Escape" && state.activeTool !== "select") {
+        if (e.key === "Escape") {
+            // 1. Cancel in-progress drawing, drag, resize, lasso, or temporary panning
             isDrawingField = false;
             drawStart = null;
+            state.isDragging = false;
+            state.isResizing = false;
+            state.isLassoing = false;
+            if (state.isPanning && state.activeTool !== "hand") stopPanning();
+
+            // 2. Switch tool back to Select tool
             state.activeTool = "select";
             document.body.classList.remove("placing-mode");
+            document.body.classList.remove("tool-hand");
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
                 b.classList.toggle("active", b.dataset.tool === "select");
             });
@@ -667,7 +686,19 @@ export function initCanvasController(handlers) {
                 ghostElement.style.display = "none";
                 ghostElement.classList.remove("is-drawing");
             }
+            if (selectionBox) selectionBox.style.display = "none";
             hideGuides();
+
+            // 3. Deselect any active field selections
+            if (state.selectedFieldIds.size > 0 || state.selectedFieldId) {
+                setSelectedField(null);
+                handlers.onSelectionChange();
+            }
+
+            // 4. If focused in an input, blur it
+            if (isEditing && e.target && typeof e.target.blur === "function") {
+                e.target.blur();
+            }
         } else if (!isEditing && (e.key === "v" || e.key === "V") && !e.metaKey && !e.ctrlKey && !e.altKey) {
             if (state.activeTool !== "select") {
                 isDrawingField = false;
@@ -809,9 +840,9 @@ export function initCanvasController(handlers) {
             hideGuides();
 
             if (isDragDrawn) {
-                createFieldAt(tool, minX, minY, handlers, w, h, minX, minY);
+                createFieldAt(tool, minX, minY, handlers, w, h, minX, minY, e.altKey);
             } else {
-                createFieldAt(tool, minX, minY, handlers);
+                createFieldAt(tool, minX, minY, handlers, undefined, undefined, undefined, undefined, e.altKey);
             }
             return;
         }
