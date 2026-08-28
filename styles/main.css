@@ -2,8 +2,9 @@
    JustForms — Master Bundle (styles/main.css)
    ============================================================ */
 
-@import url("./base.css?v=7.9");
-@import url("./landing.css?v=7.9");
-@import url("./editor.css?v=7.9");
-@import url("./canvas.css?v=7.9");
-@import url("./modals.css?v=7.9");
+@import url("./fonts.css?v=8.0");
+@import url("./base.css?v=8.0");
+@import url("./landing.css?v=8.0");
+@import url("./editor.css?v=8.0");
+@import url("./canvas.css?v=8.0");
+@import url("./modals.css?v=8.0");
