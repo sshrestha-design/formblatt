@@ -170,8 +170,7 @@ nav.landing-nav-bar {
   display: flex; align-items: center; gap: 14px; margin-top: 32px; flex-wrap: wrap;
   opacity: 0; animation: fadeUp .6s ease forwards; animation-delay: .56s;
 }
-.landing-page .btn-primary,
-.btn-primary {
+.landing-page .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
   background: var(--blue); color: #fff;
   height: auto;
@@ -182,11 +181,9 @@ nav.landing-nav-bar {
   transition: transform .18s ease, box-shadow .18s ease;
   border: none; cursor: pointer;
 }
-.landing-page .btn-primary:hover,
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 34px -10px rgba(11,99,206,0.62); }
+.landing-page .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 20px 34px -10px rgba(11,99,206,0.62); }
 
-.landing-page .btn-secondary,
-.btn-secondary {
+.landing-page .btn-secondary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   background: #fff; color: var(--ink);
   height: auto;
@@ -195,11 +192,9 @@ nav.landing-nav-bar {
   font-size: 15px; font-weight: 600; text-decoration: none;
   transition: transform .18s ease, background .18s ease, border-color .18s ease;
 }
-.landing-page .btn-secondary:hover,
-.btn-secondary:hover { transform: translateY(-2px); background: #F7F8FA; border-color: #D7DBE2; }
+.landing-page .btn-secondary:hover { transform: translateY(-2px); background: #F7F8FA; border-color: #D7DBE2; }
 
-.landing-page .btn-inverse,
-.btn-inverse {
+.landing-page .btn-inverse {
   display: inline-flex; align-items: center; justify-content: center; gap: 9px;
   background: #fff; color: var(--blue-deep);
   height: auto;
@@ -209,8 +204,7 @@ nav.landing-nav-bar {
   transition: transform .18s ease, box-shadow .18s ease;
   border: none; cursor: pointer;
 }
-.landing-page .btn-inverse:hover,
-.btn-inverse:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -10px rgba(0,0,0,0.35); }
+.landing-page .btn-inverse:hover { transform: translateY(-2px); box-shadow: 0 16px 30px -10px rgba(0,0,0,0.35); }
 
 .trusted {
   margin-top: 56px; padding-bottom: 44px;
