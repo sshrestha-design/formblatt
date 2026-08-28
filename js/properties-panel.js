@@ -317,6 +317,7 @@ export function populateProperties(field) {
                 const commonAlign = selectedFields[0]?.textAlignment;
                 const allSameAlign = selectedFields.every(f => f.textAlignment === commonAlign);
                 alignInput.value = (allSameAlign && commonAlign) ? commonAlign : "";
+                alignInput.classList.toggle("is-mixed", !allSameAlign || !commonAlign);
             }
 
             // Sync font family input if not actively focused
@@ -325,6 +326,7 @@ export function populateProperties(field) {
                 const commonFam = selectedFields[0]?.fontFamily;
                 const allSameFam = selectedFields.every(f => f.fontFamily === commonFam);
                 ffInput.value = (allSameFam && commonFam) ? commonFam : "";
+                ffInput.classList.toggle("is-mixed", !allSameFam || !commonFam);
             }
 
             // Sync font size input if not actively focused by user
@@ -334,9 +336,11 @@ export function populateProperties(field) {
                 const allHaveSameExplicitSize = selectedFields.every(f => f.fontSize === firstSize);
                 if (allHaveSameExplicitSize && firstSize) {
                     fsInput.value = firstSize;
+                    fsInput.classList.remove("is-mixed");
                     updateQuickSizeButtons(firstSize, "multi-quick-size-btn");
                 } else {
                     fsInput.value = "";
+                    fsInput.classList.add("is-mixed");
                     updateQuickSizeButtons(null, "multi-quick-size-btn");
                 }
             }
@@ -346,14 +350,26 @@ export function populateProperties(field) {
             if (wInput && document.activeElement !== wInput) {
                 const firstW = selectedFields[0]?.width;
                 const allSameW = selectedFields.every(f => f.width === firstW);
-                wInput.value = (allSameW && firstW) ? firstW : "";
+                if (allSameW && firstW) {
+                    wInput.value = firstW;
+                    wInput.classList.remove("is-mixed");
+                } else {
+                    wInput.value = "";
+                    wInput.classList.add("is-mixed");
+                }
             }
 
             const hInput = document.getElementById("multiFieldHeight");
             if (hInput && document.activeElement !== hInput) {
                 const firstH = selectedFields[0]?.height;
                 const allSameH = selectedFields.every(f => f.height === firstH);
-                hInput.value = (allSameH && firstH) ? firstH : "";
+                if (allSameH && firstH) {
+                    hInput.value = firstH;
+                    hInput.classList.remove("is-mixed");
+                } else {
+                    hInput.value = "";
+                    hInput.classList.add("is-mixed");
+                }
             }
 
             // Sync default value input if not actively focused
@@ -361,7 +377,13 @@ export function populateProperties(field) {
             if (defInput && document.activeElement !== defInput) {
                 const commonVal = selectedFields[0]?.defaultValue;
                 const allSameVal = selectedFields.every(f => f.defaultValue === commonVal);
-                defInput.value = (allSameVal && commonVal) ? commonVal : "";
+                if (allSameVal && commonVal) {
+                    defInput.value = commonVal;
+                    defInput.classList.remove("is-mixed");
+                } else {
+                    defInput.value = "";
+                    defInput.classList.toggle("is-mixed", selectedFields.some(f => f.defaultValue));
+                }
             }
 
             // Sync border segmented toggle
@@ -562,6 +584,7 @@ function initMultiSelectTools(onUpdated) {
     const multiWInput = document.getElementById("multiFieldWidth");
     if (multiWInput) {
         multiWInput.addEventListener("input", e => {
+            multiWInput.classList.remove("is-mixed");
             const raw = e.target.value.trim();
             const val = raw === "" ? null : parseInt(raw);
             if (val !== null && val >= 16 && val <= 2000) {
@@ -581,6 +604,7 @@ function initMultiSelectTools(onUpdated) {
     const multiHInput = document.getElementById("multiFieldHeight");
     if (multiHInput) {
         multiHInput.addEventListener("input", e => {
+            multiHInput.classList.remove("is-mixed");
             const raw = e.target.value.trim();
             const val = raw === "" ? null : parseInt(raw);
             if (val !== null && val >= 16 && val <= 1000) {
@@ -604,7 +628,10 @@ function initMultiSelectTools(onUpdated) {
         const primary = (state.lastSelectedFieldId && sel.find(f => f.id === state.lastSelectedFieldId)) || sel[0];
         if (!primary) return;
         const targetW = primary.width;
-        if (multiWInput) multiWInput.value = targetW;
+        if (multiWInput) {
+            multiWInput.value = targetW;
+            multiWInput.classList.remove("is-mixed");
+        }
         batchUpdate(f => f.width = targetW);
     });
 
@@ -615,7 +642,10 @@ function initMultiSelectTools(onUpdated) {
         const primary = (state.lastSelectedFieldId && sel.find(f => f.id === state.lastSelectedFieldId)) || sel[0];
         if (!primary) return;
         const targetH = primary.height;
-        if (multiHInput) multiHInput.value = targetH;
+        if (multiHInput) {
+            multiHInput.value = targetH;
+            multiHInput.classList.remove("is-mixed");
+        }
         batchUpdate(f => f.height = targetH);
     });
 
@@ -627,8 +657,14 @@ function initMultiSelectTools(onUpdated) {
         if (!primary) return;
         const targetW = primary.width;
         const targetH = primary.height;
-        if (multiWInput) multiWInput.value = targetW;
-        if (multiHInput) multiHInput.value = targetH;
+        if (multiWInput) {
+            multiWInput.value = targetW;
+            multiWInput.classList.remove("is-mixed");
+        }
+        if (multiHInput) {
+            multiHInput.value = targetH;
+            multiHInput.classList.remove("is-mixed");
+        }
         batchUpdate(f => {
             f.width = targetW;
             f.height = targetH;
@@ -702,6 +738,7 @@ function initMultiSelectTools(onUpdated) {
 
     // ── Batch Text, Typography & Alignment ───────────────────────────
     document.getElementById("multiDefaultValue")?.addEventListener("input", e => {
+        e.target.classList.remove("is-mixed");
         const val = e.target.value;
         batchUpdate(f => {
             if (f.type === "textField") {
@@ -711,6 +748,7 @@ function initMultiSelectTools(onUpdated) {
     });
 
     document.getElementById("multiFontFamily")?.addEventListener("change", e => {
+        e.target.classList.remove("is-mixed");
         const val = e.target.value;
         if (val) {
             batchUpdate(f => {
@@ -722,6 +760,7 @@ function initMultiSelectTools(onUpdated) {
     });
 
     document.getElementById("multiFontSize")?.addEventListener("input", e => {
+        e.target.classList.remove("is-mixed");
         const raw = e.target.value.trim();
         const val = raw === "" ? null : parseInt(raw);
         updateQuickSizeButtons(val, "multi-quick-size-btn");
@@ -743,7 +782,10 @@ function initMultiSelectTools(onUpdated) {
         btn.addEventListener("click", () => {
             const size = parseInt(btn.dataset.size);
             const fsInput = document.getElementById("multiFontSize");
-            if (fsInput) fsInput.value = size;
+            if (fsInput) {
+                fsInput.value = size;
+                fsInput.classList.remove("is-mixed");
+            }
             updateQuickSizeButtons(size, "multi-quick-size-btn");
             batchUpdate(f => {
                 if (f.type === "textField" || f.type === "dropdown") {
@@ -754,6 +796,7 @@ function initMultiSelectTools(onUpdated) {
     });
 
     document.getElementById("multiTextAlignment")?.addEventListener("change", e => {
+        e.target.classList.remove("is-mixed");
         const val = e.target.value;
         if (val) {
             batchUpdate(f => {
