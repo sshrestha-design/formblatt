@@ -177,45 +177,50 @@
     flex-shrink: 0;
 }
 
-/* ── Auto-Detect Smart Action ──────────────────────────────────── */
+/* ── Auto-Detect Smart Action (Assistive Helper Pill) ────────── */
 .toolbar-smart-btn {
     height: 32px;
     min-height: 32px;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     padding: 0 11px;
     border-radius: 6px;
     font-size: 12px;
-    font-weight: 600;
-    color: #6366f1;
-    background: linear-gradient(135deg, #f5f3ff 0%, #eff6ff 100%);
-    border: 1px solid #c7d2fe;
-    box-shadow: 0 1px 2px rgba(99, 102, 241, 0.08);
+    font-weight: 500;
+    color: #475569;
+    background: #ffffff;
+    border: 1px solid var(--border-subtle, #cbd5e1);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     white-space: nowrap;
     cursor: pointer;
-    transition: transform var(--anim-fast), box-shadow var(--anim-fast), background var(--anim-fast), border-color var(--anim-fast);
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
 }
 
 .toolbar-smart-btn:hover {
-    background: linear-gradient(135deg, #ede9fe 0%, #dbeafe 100%);
-    border-color: #a5b4fc;
-    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.18);
-    color: #4f46e5;
+    background: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
 }
 
 .toolbar-smart-btn:active {
-    transform: scale(0.96);
+    transform: scale(0.97);
 }
 
 .toolbar-smart-btn svg,
 .toolbar-smart-btn i,
 .toolbar-smart-btn [data-lucide] {
-    width: 14px;
-    height: 14px;
-    color: #7c3aed;
+    width: 13.5px;
+    height: 13.5px;
+    color: #64748b;
     flex-shrink: 0;
+}
+
+.toolbar-smart-btn:hover svg,
+.toolbar-smart-btn:hover i,
+.toolbar-smart-btn:hover [data-lucide] {
+    color: #334155;
 }
 
 .tool-btn {
@@ -239,8 +244,9 @@
 }
 
 .tool-btn.active {
-    background: #eff6ff;
-    color: #2563eb;
+    background: var(--selection-light, #eef2ff);
+    color: var(--selection-color, #4f46e5);
+    border: 1px solid var(--selection-border, #c7d2fe);
 }
 
 /* ── Workspace (3-column layout) ─────────────────────────────── */
@@ -413,8 +419,9 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #64748b;
+    color: var(--text-label, #475569);
     margin-bottom: 2px;
+    font-style: normal;
 }
 
 .prop-label-row {
@@ -425,7 +432,7 @@
 
 .prop-meta-badge {
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--text-muted, #64748b);
 }
 
 .prop-input,
@@ -436,13 +443,20 @@
     font-size: 12px;
     font-weight: 500;
     font-family: inherit;
-    color: #0f172a;
+    color: var(--text-color, #0f172a);
     background: #ffffff;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--border-subtle, #cbd5e1);
     border-radius: var(--radius-sm, 6px);
     outline: none;
     box-sizing: border-box;
     transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.prop-input::placeholder,
+.prop-textarea::placeholder {
+    color: var(--text-placeholder, #94a3b8);
+    font-style: italic;
+    font-weight: 400;
 }
 
 /* ── Distinctive Mixed Value Indicator for Multi-Select ──────── */
@@ -450,13 +464,14 @@
 .prop-select.is-mixed {
     background: #f8fafc;
     border: 1px dashed #94a3b8;
-    color: #475569;
+    color: var(--text-muted, #64748b);
+    font-style: italic;
 }
 
 .prop-input.is-mixed::placeholder {
-    color: #64748b;
+    color: var(--text-placeholder, #94a3b8);
     font-style: italic;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: 0.01em;
 }
 
@@ -464,9 +479,10 @@
 .prop-select.is-mixed:focus {
     background: #ffffff;
     border-style: solid;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
-    color: #0f172a;
+    border-color: var(--selection-color, #4f46e5);
+    box-shadow: 0 0 0 2px var(--selection-glow, rgba(79, 70, 229, 0.18));
+    color: var(--text-color, #0f172a);
+    font-style: normal;
 }
 
 .prop-textarea {
@@ -680,7 +696,7 @@
 
 .prop-footer-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
 }
 
@@ -704,7 +720,7 @@
 
 .prop-btn-duplicate {
     background: #ffffff;
-    border: 1px solid var(--border-color, #cbd5e1);
+    border: 1px solid var(--border-subtle, #cbd5e1);
     color: #334155;
 }
 
@@ -728,12 +744,12 @@
 
 .prop-btn-delete {
     background: #ffffff;
-    border: 1px solid #fecaca;
-    color: #dc2626;
+    border: 1px solid var(--danger-border, #fecaca);
+    color: var(--danger-hover, #dc2626);
 }
 
 .prop-btn-delete:hover {
-    background: #fef2f2;
+    background: var(--danger-light, #fef2f2);
     border-color: #fca5a5;
     color: #b91c1c;
     transform: translateY(-1px);
@@ -747,7 +763,7 @@
 .prop-btn-delete i {
     width: 13px;
     height: 13px;
-    color: #dc2626;
+    color: var(--danger-hover, #dc2626);
 }
 
 .prop-btn-group {

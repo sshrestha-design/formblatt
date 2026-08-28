@@ -4,35 +4,50 @@
 
 :root {
     /* ── Color Palette ─────────────────────────────────────────── */
-    --primary-color:   #2563eb;
-    --primary-hover:   #1d4ed8;
-    --primary-active:  #1e40af;
-    --primary-light:   #eff6ff;
-    --primary-border:  #bfdbfe;
+    /* Primary Export Action (Reserved Solid Saturated Blue) */
+    --primary-color:      #2563eb;
+    --primary-hover:      #1d4ed8;
+    --primary-active:     #1e40af;
+    --primary-light:      #eff6ff;
+    --primary-border:     #bfdbfe;
+
+    /* Editor Tool Selection & Active State (Distinct Electric Indigo) */
+    --selection-color:    #4f46e5;
+    --selection-hover:    #4338ca;
+    --selection-light:    #eef2ff;
+    --selection-border:   #c7d2fe;
+    --selection-glow:     rgba(79, 70, 229, 0.22);
     
-    --success-color:   #059669;
-    --success-hover:   #047857;
-    --success-light:   #ecfdf5;
+    /* Semantic Status & Destructive */
+    --danger-color:       #ef4444;
+    --danger-hover:       #dc2626;
+    --danger-light:       #fef2f2;
+    --danger-border:      #fecaca;
     
-    --warning-color:   #d97706;
-    --warning-light:   #fffbeb;
+    --success-color:      #059669;
+    --success-hover:      #047857;
+    --success-light:      #ecfdf5;
     
-    --danger-color:    #ef4444;
-    --danger-hover:    #dc2626;
-    --danger-light:    #fef2f2;
+    --warning-color:      #d97706;
+    --warning-light:      #fffbeb;
     
-    --bg-color:        #f8fafc;
-    --panel-bg:        #ffffff;
-    --border-color:    #e2e8f0;
-    --border-subtle:   #cbd5e1;
-    --border-strong:   #94a3b8;
+    /* Structural Chrome & Surfaces */
+    --bg-color:           #f8fafc;
+    --panel-bg:           #ffffff;
+    --panel-subtle-bg:    #f8fafc;
+    --border-color:       #e2e8f0;
+    --border-subtle:      #cbd5e1;
+    --border-strong:      #94a3b8;
     
-    --text-color:      #0f172a;
-    --text-muted:      #64748b;
-    --text-subtle:     #94a3b8;
+    /* Semantic Typography Hierarchy */
+    --text-color:         #0f172a; /* 1. High contrast content & input values */
+    --text-label:         #475569; /* 2. Static uppercase labels & headers (Slate 600) */
+    --text-muted:         #64748b; /* 3. Helper descriptions & metadata (Slate 500) */
+    --text-subtle:        #94a3b8; /* 4. Subtle secondary hints */
+    --text-placeholder:   #94a3b8; /* 5. Dedicated Empty/Unset/Placeholder gray (Slate 400, Italic) */
     
-    --toolbar-bg:      #ffffff;
-    --canvas-bg:       #f1f5f9;
+    --toolbar-bg:         #ffffff;
+    --canvas-bg:          #f1f5f9;
 
     /* ── Sizing & Scale Design Tokens ──────────────────────────── */
     /* Component Heights */

@@ -57,29 +57,29 @@
 }
 
 .field-overlay:not(.selected):hover {
-    border-color: #2563eb !important;
-    background: rgba(219, 234, 254, 0.55) !important;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.18);
+    border-color: var(--selection-color, #4f46e5) !important;
+    background: rgba(238, 242, 255, 0.60) !important;
+    box-shadow: 0 0 0 2px var(--selection-glow, rgba(79, 70, 229, 0.18));
 }
 
 .field-overlay.selected {
-    border: 2px solid #2563eb !important;
-    background: rgba(219, 234, 254, 0.40) !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.22);
+    border: 2px solid var(--selection-color, #4f46e5) !important;
+    background: rgba(238, 242, 255, 0.45) !important;
+    box-shadow: 0 0 0 3px var(--selection-glow, rgba(79, 70, 229, 0.22));
     z-index: 50;
     animation: fieldSelectPulse 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .field-overlay.selected.multi-selected {
-    border: 1.5px solid rgba(37, 99, 235, 0.85) !important;
-    background: rgba(219, 234, 254, 0.30) !important;
+    border: 1.5px solid rgba(79, 70, 229, 0.85) !important;
+    background: rgba(238, 242, 255, 0.32) !important;
     box-shadow: none !important;
     z-index: 45;
     animation: none;
 }
 
 .field-overlay:focus-visible {
-    outline: 2px solid #2563eb !important;
+    outline: 2px solid var(--selection-color, #4f46e5) !important;
     outline-offset: 2px !important;
     z-index: 55;
 }
@@ -101,7 +101,7 @@
     position: absolute;
     top: -16px;
     left: -1px;
-    background: #2563eb;
+    background: var(--selection-color, #4f46e5);
     color: #ffffff;
     font-size: 9px;
     font-weight: 600;
@@ -126,17 +126,17 @@
     width: 7.5px;
     height: 7.5px;
     background: #ffffff;
-    border: 1.5px solid #2563eb;
+    border: 1.5px solid var(--selection-color, #4f46e5);
     border-radius: 2px;
     pointer-events: auto;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+    box-shadow: 0 1px 3px rgba(79, 70, 229, 0.25);
     z-index: 70;
     transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease;
 }
 
 .resize-handle:hover {
     transform: scale(1.4);
-    background: #2563eb;
+    background: var(--selection-color, #4f46e5);
     border-color: #ffffff;
 }
 
@@ -214,8 +214,8 @@
 /* ── Interactive Marquee Lasso Selection Box ─────────────────── */
 #selectionBox {
     position: absolute;
-    border: 1.5px dashed #0f172a;
-    background: rgba(15, 23, 42, 0.06);
+    border: 1.5px dashed var(--selection-color, #4f46e5);
+    background: rgba(79, 70, 229, 0.08);
     border-radius: 3px;
     pointer-events: none;
     display: none;
