@@ -112,7 +112,7 @@
 
     <link href="https://fonts.googleapis.com/css2?family=Carlito:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@500;700&family=Cedarville+Cursive&family=Inter:wght@400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=7.5">
+    <link rel="stylesheet" href="styles/main.css?v=7.6">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -1060,7 +1060,7 @@
                                 <i data-lucide="calendar" style="width: 12px; height: 12px; color: #2563eb;"></i> Date
                             </button>
                             <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="signature" title="Convert to Signatures">
-                                <i data-lucide="pen-tool" style="width: 12px; height: 12px; color: #7c3aed;"></i> Signature
+                                <i data-lucide="pen-tool" style="width: 12px; height: 12px; color: #2563eb;"></i> Signature
                             </button>
                             <button type="button" class="multi-type-quick-btn prop-quick-type-btn" data-type="dropdown" title="Convert to Dropdowns">
                                 <i data-lucide="chevron-down-square" style="width: 12px; height: 12px; color: #2563eb;"></i> Dropdown
@@ -1091,59 +1091,7 @@
                         </div>
                     </div>
 
-                    <!-- 3. Dimensions & Matching -->
-                    <div class="prop-group">
-                        <div class="prop-section-heading">Dimensions</div>
-                        <div class="prop-grid-2">
-                            <div class="prop-field">
-                                <label class="prop-label scrubbable" for="multiFieldWidth">Width (px)</label>
-                                <input type="number" id="multiFieldWidth" class="prop-input" placeholder="Mixed" min="16" max="2000">
-                            </div>
-                            <div class="prop-field">
-                                <label class="prop-label scrubbable" for="multiFieldHeight">Height (px)</label>
-                                <input type="number" id="multiFieldHeight" class="prop-input" placeholder="Mixed" min="16" max="1000">
-                            </div>
-                        </div>
-                        <div class="prop-match-row">
-                            <button id="multiMatchWidthBtn" type="button" class="prop-match-btn" title="Equalize Widths">
-                                <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
-                            </button>
-                            <button id="multiMatchHeightBtn" type="button" class="prop-match-btn" title="Equalize Heights">
-                                <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
-                            </button>
-                            <button id="multiMatchBothBtn" type="button" class="prop-match-btn" title="Equalize Both Width & Height">
-                                <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 4. Appearance & Style -->
-                    <div class="prop-group">
-                        <div class="prop-section-heading">Layout & Style</div>
-                        <div class="prop-grid-2">
-                            <div class="prop-field">
-                                <label class="prop-label" for="multiBorderStyle">Border</label>
-                                <select id="multiBorderStyle" class="prop-select">
-                                    <option value="" style="color: #64748b; font-style: italic;">Border (Mixed)</option>
-                                    <option value="solid">Solid</option>
-                                    <option value="none">None</option>
-                                    <option value="thick">Thick</option>
-                                </select>
-                            </div>
-                            <div class="prop-field">
-                                <label class="prop-label" for="multiFillStyle">Fill</label>
-                                <select id="multiFillStyle" class="prop-select">
-                                    <option value="" style="color: #64748b; font-style: italic;">Fill (Mixed)</option>
-                                    <option value="tint">Faint Blue</option>
-                                    <option value="white">White</option>
-                                    <option value="yellow">Yellow</option>
-                                    <option value="transparent">Transparent</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 5. Typography -->
+                    <!-- 3. Typography -->
                     <div class="prop-group">
                         <div class="prop-section-heading">Typography</div>
                         <div class="prop-field">
@@ -1174,17 +1122,68 @@
                         </div>
                     </div>
 
-                    <!-- 6. Value & Validation -->
+                    <!-- 4. Layout & Style -->
+                    <div class="prop-group">
+                        <div class="prop-section-heading">Layout & Style</div>
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label scrubbable" for="multiFieldWidth">Width (px)</label>
+                                <input type="number" id="multiFieldWidth" class="prop-input" placeholder="Mixed" min="16" max="2000">
+                            </div>
+                            <div class="prop-field">
+                                <label class="prop-label scrubbable" for="multiFieldHeight">Height (px)</label>
+                                <input type="number" id="multiFieldHeight" class="prop-input" placeholder="Mixed" min="16" max="1000">
+                            </div>
+                        </div>
+                        <div class="prop-match-row" style="margin-bottom: 8px;">
+                            <button id="multiMatchWidthBtn" type="button" class="prop-match-btn" title="Equalize Widths">
+                                <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
+                            </button>
+                            <button id="multiMatchHeightBtn" type="button" class="prop-match-btn" title="Equalize Heights">
+                                <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
+                            </button>
+                            <button id="multiMatchBothBtn" type="button" class="prop-match-btn" title="Equalize Both Width & Height">
+                                <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
+                            </button>
+                        </div>
+                        <div class="prop-grid-2">
+                            <div class="prop-field">
+                                <label class="prop-label" for="multiBorderStyle">Border</label>
+                                <select id="multiBorderStyle" class="prop-select">
+                                    <option value="" style="color: #64748b; font-style: italic;">Border (Mixed)</option>
+                                    <option value="solid">Solid</option>
+                                    <option value="none">None</option>
+                                    <option value="thick">Thick</option>
+                                </select>
+                            </div>
+                            <div class="prop-field">
+                                <label class="prop-label" for="multiFillStyle">Fill</label>
+                                <select id="multiFillStyle" class="prop-select">
+                                    <option value="" style="color: #64748b; font-style: italic;">Fill (Mixed)</option>
+                                    <option value="tint">Faint Blue</option>
+                                    <option value="white">White</option>
+                                    <option value="yellow">Yellow</option>
+                                    <option value="transparent">Transparent</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Value & Rules -->
                     <div class="prop-group">
                         <div class="prop-section-heading">Value & Rules</div>
                         <div class="prop-field">
                             <label class="prop-label" for="multiDefaultValue">Default Text</label>
                             <input type="text" id="multiDefaultValue" class="prop-input" placeholder="Apply text to all selected">
                         </div>
-                        <div class="prop-chips-grid" style="grid-template-columns: 1fr;">
+                        <div class="prop-chips-grid">
                             <label class="prop-chip-toggle">
                                 <input type="checkbox" id="multiFieldRequired">
-                                <span>Make All Selected Required</span>
+                                <span>Required</span>
+                            </label>
+                            <label class="prop-chip-toggle">
+                                <input type="checkbox" id="multiFieldReadOnly">
+                                <span>Read-Only</span>
                             </label>
                         </div>
                     </div>
@@ -2059,7 +2058,7 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=7.5"></script>
+    <script type="module" src="js/main.js?v=7.6"></script>
 </body>
 </html>
 

@@ -311,6 +311,11 @@ export function populateProperties(field) {
                 multiReq.checked = selectedFields.length > 0 && selectedFields.every(f => f.required);
             }
 
+            const multiReadOnly = document.getElementById("multiFieldReadOnly");
+            if (multiReadOnly) {
+                multiReadOnly.checked = selectedFields.length > 0 && selectedFields.every(f => f.readOnly);
+            }
+
             // Sync text alignment
             const alignInput = document.getElementById("multiTextAlignment");
             if (alignInput && document.activeElement !== alignInput) {
@@ -754,6 +759,12 @@ function initMultiSelectTools(onUpdated) {
     document.getElementById("multiFieldRequired")?.addEventListener("change", e => {
         const req = e.target.checked;
         batchUpdate(f => f.required = req);
+    });
+
+    // ── Batch Read-Only Toggle ───────────────────────────────────────
+    document.getElementById("multiFieldReadOnly")?.addEventListener("change", e => {
+        const ro = e.target.checked;
+        batchUpdate(f => f.readOnly = ro);
     });
 
     // ── Alignment Tools ──────────────────────────────────────────────
