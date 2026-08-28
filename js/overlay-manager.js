@@ -431,8 +431,8 @@ export function renderOverlays(handlers) {
 
         const handles = [
             { dir: "se", cursor: "se-resize", style: "bottom: -4px; right: -4px;" },
-            { dir: "e", cursor: "ew-resize", style: "top: calc(50% - 4px); right: -4px;" },
-            { dir: "s", cursor: "ns-resize", style: "bottom: -4px; left: calc(50% - 4px);" }
+            { dir: "e", cursor: "ew-resize", style: "top: calc(50% - 3.75px); right: -4px;" },
+            { dir: "s", cursor: "ns-resize", style: "bottom: -4px; left: calc(50% - 3.75px);" }
         ];
 
         handles.forEach(h => {
