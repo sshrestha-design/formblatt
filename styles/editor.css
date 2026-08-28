@@ -357,13 +357,17 @@
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: 12px 14px 16px 14px;
+    padding: 12px 14px 36px 14px;
     display: flex;
     flex-direction: column;
     gap: 12px;
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
     -webkit-overflow-scrolling: touch;
+}
+
+.prop-panel-body > *:last-child {
+    margin-bottom: 16px;
 }
 
 .prop-panel-body::-webkit-scrollbar {
@@ -427,7 +431,31 @@
     border-radius: 6px;
     outline: none;
     box-sizing: border-box;
-    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+/* ── Distinctive Mixed Value Indicator for Multi-Select ──────── */
+.prop-input.is-mixed,
+.prop-select.is-mixed {
+    background: #f8fafc;
+    border: 1px dashed #94a3b8;
+    color: #475569;
+}
+
+.prop-input.is-mixed::placeholder {
+    color: #64748b;
+    font-style: italic;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.prop-input.is-mixed:focus,
+.prop-select.is-mixed:focus {
+    background: #ffffff;
+    border-style: solid;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+    color: #0f172a;
 }
 
 .prop-textarea {
