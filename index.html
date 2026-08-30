@@ -669,6 +669,52 @@
                         </button>
                     </div>
                 </div>
+
+                <div class="dropdown-menu" id="editMenuDropdown" style="position: relative; display: flex; align-items: center;">
+                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn">Edit ▼</button>
+
+                    <div class="dropdown-content">
+                        <button class="dropdown-item" id="menuUndoBtn">
+                            <i data-lucide="undo-2" style="width:14px; height:14px;"></i> Undo
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘Z</span>
+                        </button>
+                        <button class="dropdown-item" id="menuRedoBtn">
+                            <i data-lucide="redo-2" style="width:14px; height:14px;"></i> Redo
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘⇧Z</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="menuCutBtn">
+                            <i data-lucide="scissors" style="width:14px; height:14px;"></i> Cut
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘X</span>
+                        </button>
+                        <button class="dropdown-item" id="menuCopyBtn">
+                            <i data-lucide="copy" style="width:14px; height:14px;"></i> Copy
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘C</span>
+                        </button>
+                        <button class="dropdown-item" id="menuPasteBtn">
+                            <i data-lucide="clipboard" style="width:14px; height:14px;"></i> Paste
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘V</span>
+                        </button>
+                        <button class="dropdown-item" id="menuDuplicateBtn">
+                            <i data-lucide="copy-plus" style="width:14px; height:14px;"></i> Duplicate
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘D</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item" id="menuSelectAllBtn">
+                            <i data-lucide="check-square" style="width:14px; height:14px;"></i> Select All
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘A</span>
+                        </button>
+                        <button class="dropdown-item" id="menuDeselectAllBtn">
+                            <i data-lucide="square-dashed" style="width:14px; height:14px;"></i> Deselect All
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">Esc</span>
+                        </button>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item danger" id="menuDeleteBtn">
+                            <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete Selected
+                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#ef4444; font-weight:600;">Del</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         
             <div class="toolbar-center">
@@ -1074,17 +1120,13 @@
                                 <button id="alignLeftBtn" class="tool-btn prop-tool-btn" title="Align Left Edges"><i data-lucide="align-left" style="width: 13px; height: 13px;"></i></button>
                                 <button id="alignCenterBtn" class="tool-btn prop-tool-btn" title="Align Centers Horizontally"><i data-lucide="align-center" style="width: 13px; height: 13px;"></i></button>
                                 <button id="alignRightBtn" class="tool-btn prop-tool-btn" title="Align Right Edges"><i data-lucide="align-right" style="width: 13px; height: 13px;"></i></button>
+                                <button id="distributeHorizontalBtn" class="tool-btn prop-tool-btn" title="Distribute Horizontal Spacing Evenly"><i data-lucide="align-horizontal-space-between" style="width: 13px; height: 13px;"></i></button>
+                            </div>
+                            <div class="prop-align-row">
                                 <button id="alignTopBtn" class="tool-btn prop-tool-btn" title="Align Top Edges"><i data-lucide="arrow-up-to-line" style="width: 13px; height: 13px;"></i></button>
                                 <button id="alignMiddleBtn" class="tool-btn prop-tool-btn" title="Align Centers Vertically"><i data-lucide="fold-vertical" style="width: 13px; height: 13px;"></i></button>
                                 <button id="alignBottomBtn" class="tool-btn prop-tool-btn" title="Align Bottom Edges"><i data-lucide="arrow-down-to-line" style="width: 13px; height: 13px;"></i></button>
-                            </div>
-                            <div class="prop-distribute-row">
-                                <button id="distributeVerticalBtn" type="button" class="prop-distribute-btn" title="Distribute Vertical Spacing Evenly">
-                                    <i data-lucide="distribute-vertical" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute V
-                                </button>
-                                <button id="distributeHorizontalBtn" type="button" class="prop-distribute-btn" title="Distribute Horizontal Spacing Evenly">
-                                    <i data-lucide="distribute-horizontal" style="width: 12px; height: 12px; color: #2563eb;"></i> Distribute H
-                                </button>
+                                <button id="distributeVerticalBtn" class="tool-btn prop-tool-btn" title="Distribute Vertical Spacing Evenly"><i data-lucide="align-vertical-space-between" style="width: 13px; height: 13px;"></i></button>
                             </div>
                         </div>
                     </div>
@@ -1134,14 +1176,14 @@
                             </div>
                         </div>
                         <div class="prop-match-row" style="margin-bottom: 8px;">
-                            <button id="multiMatchWidthBtn" type="button" class="prop-match-btn" title="Equalize Widths">
-                                <i data-lucide="arrow-left-right" style="width: 12px; height: 12px; color: #2563eb;"></i> Match W
+                            <button id="multiMatchWidthBtn" type="button" class="tool-btn prop-tool-btn" title="Match Width (Equalize Width of Selected Fields)">
+                                <i data-lucide="arrow-left-right" style="width: 13px; height: 13px;"></i>
                             </button>
-                            <button id="multiMatchHeightBtn" type="button" class="prop-match-btn" title="Equalize Heights">
-                                <i data-lucide="arrow-up-down" style="width: 12px; height: 12px; color: #2563eb;"></i> Match H
+                            <button id="multiMatchHeightBtn" type="button" class="tool-btn prop-tool-btn" title="Match Height (Equalize Height of Selected Fields)">
+                                <i data-lucide="arrow-up-down" style="width: 13px; height: 13px;"></i>
                             </button>
-                            <button id="multiMatchBothBtn" type="button" class="prop-match-btn" title="Equalize Both Width & Height">
-                                <i data-lucide="maximize-2" style="width: 12px; height: 12px; color: #2563eb;"></i> Both
+                            <button id="multiMatchBothBtn" type="button" class="tool-btn prop-tool-btn" title="Match Both (Equalize Width & Height)">
+                                <i data-lucide="maximize-2" style="width: 13px; height: 13px;"></i>
                             </button>
                         </div>
                         <div class="prop-grid-2">
@@ -1497,7 +1539,7 @@
                     <span class="ctx-label">Align Top</span>
                 </button>
                 <button type="button" class="ctx-item" data-action="distribute-v">
-                    <i data-lucide="distribute-vertical" style="width:14px; height:14px; color:#64748b;"></i>
+                    <i data-lucide="align-vertical-space-between" style="width:14px; height:14px; color:#64748b;"></i>
                     <span class="ctx-label">Distribute Vertically</span>
                 </button>
             </div>

@@ -182,9 +182,15 @@ export function renderOverlays(handlers) {
         if (f.type === "radioGroup") {
             div.style.borderRadius = "50%";
             if (isSelected) {
-                div.style.border = "2px solid #2563eb";
-                div.style.background = "rgba(219, 234, 254, 0.45)";
-                div.style.boxShadow = isMultiSelected ? "none" : "0 0 0 3px rgba(37, 99, 235, 0.20)";
+                if (isMultiSelected) {
+                    div.style.border = "1px solid #93C5FD";
+                    div.style.background = "rgba(219, 234, 254, 0.25)";
+                    div.style.boxShadow = "none";
+                } else {
+                    div.style.border = "2px solid #2563eb";
+                    div.style.background = "rgba(219, 234, 254, 0.45)";
+                    div.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.20)";
+                }
             } else {
                 div.style.border = "1.5px solid rgba(59, 130, 246, 0.70)";
                 div.style.background = "rgba(239, 246, 255, 0.75)";
@@ -193,9 +199,15 @@ export function renderOverlays(handlers) {
         } else if (f.type === "checkBox") {
             div.style.borderRadius = "3px";
             if (isSelected) {
-                div.style.border = "2px solid #2563eb";
-                div.style.background = "rgba(219, 234, 254, 0.45)";
-                div.style.boxShadow = isMultiSelected ? "none" : "0 0 0 3px rgba(37, 99, 235, 0.20)";
+                if (isMultiSelected) {
+                    div.style.border = "1px solid #93C5FD";
+                    div.style.background = "rgba(219, 234, 254, 0.25)";
+                    div.style.boxShadow = "none";
+                } else {
+                    div.style.border = "2px solid #2563eb";
+                    div.style.background = "rgba(219, 234, 254, 0.45)";
+                    div.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.20)";
+                }
             } else {
                 div.style.border = "1.5px solid rgba(59, 130, 246, 0.70)";
                 div.style.background = "rgba(239, 246, 255, 0.75)";
@@ -205,8 +217,8 @@ export function renderOverlays(handlers) {
             div.style.borderRadius = "3px";
             if (isSelected) {
                 if (isMultiSelected) {
-                    div.style.border = "1.5px solid rgba(37, 99, 235, 0.85)";
-                    div.style.background = "rgba(219, 234, 254, 0.30)";
+                    div.style.border = "1px solid #93C5FD";
+                    div.style.background = "rgba(219, 234, 254, 0.25)";
                     div.style.boxShadow = "none";
                 } else {
                     div.style.border = "2px solid #2563eb";

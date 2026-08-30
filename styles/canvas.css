@@ -12,12 +12,15 @@
     align-items: center;
     justify-content: flex-start;
     padding: 36px 36px 36px 36px;
+    background-color: var(--canvas-bg, #eaeef4);
+    background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
 }
 
 .canvas-container {
     position: relative;
     background: #ffffff;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 20px 25px -5px rgba(0, 0, 0, 0.04);
     flex-shrink: 0;
     transform-origin: top center;
     will-change: transform;
@@ -71,8 +74,8 @@
 }
 
 .field-overlay.selected.multi-selected {
-    border: 1.5px solid rgba(79, 70, 229, 0.85) !important;
-    background: rgba(238, 242, 255, 0.32) !important;
+    border: 1px solid #93C5FD !important;
+    background: rgba(238, 242, 255, 0.25) !important;
     box-shadow: none !important;
     z-index: 45;
     animation: none;
@@ -151,12 +154,12 @@
 
 .multi-selection-bounding-frame {
     position: absolute;
-    border: 1.5px dashed var(--selection-color, #4f46e5);
+    border: 1.5px solid var(--selection-color, #4f46e5);
     border-radius: 4px;
     pointer-events: none;
     z-index: 95;
     background: rgba(79, 70, 229, 0.03);
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
+    box-shadow: none;
     animation: selectionFramePop 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
