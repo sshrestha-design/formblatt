@@ -1,5 +1,5 @@
 import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
-import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./pdf-engine.js";
+import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
 import { initPropertiesPanel, populateProperties, syncDimensionInputsLive } from "./properties-panel.js";
@@ -910,10 +910,38 @@ const bootstrapApp = async () => {
             return;
         }
 
-        // Toggle Fill & Test Mode (Ctrl+P / Cmd+P or Alt+P)
-        if ((e.ctrlKey || e.metaKey || e.altKey) && e.key.toLowerCase() === "p") {
+        // Toggle Right Properties Sidebar (Ctrl+] / Cmd+] or Ctrl+Alt+\)
+        if ((e.ctrlKey || e.metaKey) && (e.key === "]" || e.code === "BracketRight")) {
             e.preventDefault();
-            switchEditorMode(state.editorMode === "fill" ? "design" : "fill");
+            toggleRightSidebar();
+            return;
+        }
+
+        // Zoom In (Ctrl++ / Cmd++)
+        if ((e.ctrlKey || e.metaKey) && (e.key === "=" || e.key === "+")) {
+            e.preventDefault();
+            setTransformScale(state.currentScale + 0.15, refreshUI);
+            return;
+        }
+
+        // Zoom Out (Ctrl+- / Cmd+-)
+        if ((e.ctrlKey || e.metaKey) && (e.key === "-" || e.key === "_")) {
+            e.preventDefault();
+            setTransformScale(state.currentScale - 0.15, refreshUI);
+            return;
+        }
+
+        // Reset Zoom 100% (Ctrl+0 / Cmd+0)
+        if ((e.ctrlKey || e.metaKey) && e.key === "0") {
+            e.preventDefault();
+            setTransformScale(1.0, refreshUI);
+            return;
+        }
+
+        // Fit to Width (Ctrl+9 / Cmd+9)
+        if ((e.ctrlKey || e.metaKey) && e.key === "9") {
+            e.preventDefault();
+            fitToWidth(refreshUI);
             return;
         }
 
@@ -999,8 +1027,28 @@ const bootstrapApp = async () => {
         }
     });
 
-    // Toggle Sidebar Button
+    // Toggle Sidebar & Panels
     document.getElementById("toggleSidebarBtn")?.addEventListener("click", toggleLeftSidebar);
+    document.getElementById("collapseLeftPanelBtn")?.addEventListener("click", toggleLeftSidebar);
+    document.getElementById("collapseRightPanelBtn")?.addEventListener("click", toggleRightSidebar);
+    document.getElementById("toggleRightSidebarBtn")?.addEventListener("click", toggleRightSidebar);
+
+    // Zoom & View Controls
+    document.getElementById("zoomInBtn")?.addEventListener("click", () => setTransformScale(state.currentScale + 0.15, refreshUI));
+    document.getElementById("zoomOutBtn")?.addEventListener("click", () => setTransformScale(state.currentScale - 0.15, refreshUI));
+    document.getElementById("fitWidthQuickBtn")?.addEventListener("click", () => fitToWidth(refreshUI));
+    document.getElementById("fitPageQuickBtn")?.addEventListener("click", () => fitToPage(refreshUI));
+    document.getElementById("zoomFitWidthBtn")?.addEventListener("click", () => fitToWidth(refreshUI));
+    document.getElementById("zoomFitPageBtn")?.addEventListener("click", () => fitToPage(refreshUI));
+
+    document.querySelectorAll(".zoom-preset-item").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const z = parseFloat(btn.dataset.zoom);
+            if (!isNaN(z)) setTransformScale(z, refreshUI);
+        });
+    });
+
+    setupMenuDropdown("zoomLevelDisplay", "zoomDropdownMenu");
 
     // Default to landing screen
     showLandingScreen(true, true);
@@ -1026,6 +1074,23 @@ function toggleLeftSidebar() {
         toggleBtn.innerHTML = isCollapsed
             ? `<i data-lucide="panel-left-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
             : `<i data-lucide="panel-left-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
+        if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+}
+
+function toggleRightSidebar() {
+    const rightPanel = document.querySelector(".right-panel");
+    const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+    if (!rightPanel) return;
+
+    rightPanel.classList.toggle("collapsed");
+    const isCollapsed = rightPanel.classList.contains("collapsed");
+
+    if (toggleBtn) {
+        toggleBtn.title = isCollapsed ? "Expand Properties (Ctrl+])" : "Collapse Properties (Ctrl+])";
+        toggleBtn.innerHTML = isCollapsed
+            ? `<i data-lucide="panel-right-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
+            : `<i data-lucide="panel-right-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
         if (typeof lucide !== "undefined") lucide.createIcons();
     }
 }

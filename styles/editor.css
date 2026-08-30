@@ -308,6 +308,20 @@
     border: 1px solid var(--border-color, #e2e8f0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     overflow: hidden;
+    transition: width 0.25s var(--ease-spring), min-width 0.25s var(--ease-spring), margin 0.25s var(--ease-spring), opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.right-panel.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding: 0 !important;
+    opacity: 0 !important;
+    border: none !important;
+    pointer-events: none !important;
+    visibility: hidden;
 }
 
 .right-panel-empty {
@@ -445,7 +459,7 @@
     font-family: inherit;
     color: var(--text-color, #0f172a);
     background: #ffffff;
-    border: 1px solid var(--border-subtle, #cbd5e1);
+    border: 1px solid var(--border-strong, #94a3b8);
     border-radius: var(--radius-sm, 6px);
     outline: none;
     box-sizing: border-box;
@@ -454,7 +468,7 @@
 
 .prop-input::placeholder,
 .prop-textarea::placeholder {
-    color: var(--text-placeholder, #94a3b8);
+    color: var(--text-placeholder, #475569);
     font-style: italic;
     font-weight: 400;
 }
@@ -469,7 +483,7 @@
 }
 
 .prop-input.is-mixed::placeholder {
-    color: var(--text-placeholder, #94a3b8);
+    color: var(--text-placeholder, #475569);
     font-style: italic;
     font-weight: 500;
     letter-spacing: 0.01em;
@@ -1217,6 +1231,108 @@
 .layer-rename-btn:hover {
     color: #0284c7;
     background: #e2e8f0;
+}
+
+.layer-action-btn {
+    background: none;
+    border: none;
+    padding: 2px 3px;
+    border-radius: 4px;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.layer-item:hover .layer-action-btn,
+.layer-item.is-locked .layer-action-btn,
+.layer-item.is-hidden .layer-action-btn,
+.layer-item.selected .layer-action-btn {
+    opacity: 1;
+}
+
+.layer-action-btn:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.layer-grip-handle {
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 1px;
+    color: #cbd5e1;
+    transition: color 0.15s ease;
+}
+
+.layer-item:hover .layer-grip-handle {
+    color: #64748b;
+}
+
+.layer-item.is-hidden {
+    opacity: 0.55;
+}
+
+.layer-item.is-locked {
+    background: #fffbeb !important;
+}
+
+/* ── Docked Bottom Zoom & View Controls ──────────────────────── */
+.docked-zoom-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    background: transparent;
+    border: 1px solid transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.docked-zoom-btn:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.docked-zoom-pill {
+    height: 26px;
+    padding: 0 8px;
+    font-size: 11.5px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #334155;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.docked-zoom-pill:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #1d4ed8;
+}
+
+.panel-collapse-btn {
+    transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.panel-collapse-btn:hover {
+    background: #eff6ff !important;
+    border-color: #93c5fd !important;
+    color: #1d4ed8 !important;
 }
 
 .empty-msg {
