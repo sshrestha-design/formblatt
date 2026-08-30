@@ -324,9 +324,6 @@ function createFieldLayerItem(f, onSelect, onRerender) {
     item.draggable = true;
 
     const style = FIELD_TYPE_STYLES[f.type] || FIELD_TYPE_STYLES.textField;
-    const pageNum = f.page || 1;
-    const pageBadge = state.totalPages > 1 ? `<span style="font-size:10px; background:${isSelected ? '#bae6fd' : '#e0f2fe'}; color:#0284c7; padding:1px 5px; border-radius:4px; font-weight:600;">P${pageNum}</span>` : "";
-
     const badgeBg = style.bg;
     const badgeText = style.text;
     const badgeBorder = isSelected ? "#cbd5e1" : style.border;
@@ -335,7 +332,6 @@ function createFieldLayerItem(f, onSelect, onRerender) {
 
     item.innerHTML = `
         <span class="layer-grip-handle" title="Drag to reorder"><i data-lucide="grip-vertical" style="width: 12px; height: 12px;"></i></span>
-        ${pageBadge}
         <span style="font-size: 11px; color: ${isSelected ? '#0284c7' : '#94a3b8'}; width: 16px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0;">${globalIdx}</span>
         <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
             <span class="layer-name" title="${f.name || style.label} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSelected ? '600' : '500'}; cursor: grab;">${formatFieldDisplayName(f)}</span>
