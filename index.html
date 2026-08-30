@@ -111,7 +111,7 @@
     </script>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=8.0">
+    <link rel="stylesheet" href="styles/main.css?v=8.8">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -623,7 +623,6 @@
                         <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
                     <span class="editor-brand-name">JustForms</span>
-                    <span class="editor-brand-badge">RC v1.1</span>
                 </span>
                 <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
                 <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)">
@@ -777,12 +776,15 @@
         </header>
 
     <div class="workspace">
-        <aside class="left-panel">
+        <aside class="left-panel" id="leftPanel">
             <div class="left-panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: #ffffff;">
                 <h2 style="margin: 0; padding: 0; border: none; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Layers</h2>
                 <div style="display: flex; gap: 4px; align-items: center;">
                     <button id="groupSelectedBtn" type="button" title="Group Selected Fields (Ctrl+G)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 7px; font-size: 11px; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
                         <i data-lucide="folder-plus" style="width: 12px; height: 12px; color: #0284c7;"></i> Group
+                    </button>
+                    <button id="expandLeftPanelWidthBtn" type="button" class="panel-collapse-btn" title="Toggle Wider Panel (Click or drag right edge to resize)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="chevrons-left-right" style="width: 13px; height: 13px;"></i>
                     </button>
                     <button id="collapseLeftPanelBtn" type="button" class="panel-collapse-btn" title="Collapse Left Sidebar (Ctrl+\)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="chevron-left" style="width: 13px; height: 13px;"></i>
@@ -796,6 +798,7 @@
                 Designed by <strong>Sagar Shrestha</strong> © 2026
             </div>
         </aside>
+        <div class="panel-resizer" id="leftPanelResizer" role="separator" aria-orientation="vertical" title="Drag to resize Layers panel (Double-click to reset width)"></div>
         
         <div class="canvas-workspace-area" style="flex: 1; display: flex; flex-direction: column; height: calc(100vh - 56px); min-width: 0; position: relative; background: var(--canvas-bg);">
             <main class="center-canvas" id="centerCanvas" style="flex: 1; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 36px 36px 36px 36px;">
@@ -890,8 +893,8 @@
                 </div>
             </footer>
         </div>
-
-        <aside class="right-panel">
+        <div class="panel-resizer" id="rightPanelResizer" role="separator" aria-orientation="vertical" title="Drag to resize Properties panel (Double-click to reset width)"></div>
+        <aside class="right-panel" id="rightPanel">
             <div id="rightPanelEmpty" class="right-panel-empty">
                 <i data-lucide="mouse-pointer-click" style="width: 36px; height: 36px; margin-bottom: 12px; opacity: 0.35; color: #64748b;"></i>
                 <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.4;">Select a field on the canvas to view and edit its properties.</p>
@@ -2144,7 +2147,7 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <script type="module" src="js/main.js?v=8.0"></script>
+    <script type="module" src="js/main.js?v=8.8"></script>
 </body>
 </html>
 

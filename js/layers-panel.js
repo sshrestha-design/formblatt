@@ -16,46 +16,52 @@ import { formatFieldDisplayName } from "./overlay-manager.js";
 
 const FIELD_TYPE_STYLES = {
     textField: {
-        label: "Text Field",
-        bg: "#F3F4F6",
-        text: "#374151",
-        border: "#E5E7EB",
-        solidBg: "#4B5563"
+        label: "Text",
+        fullLabel: "Text Field",
+        bg: "#f1f5f9",
+        text: "#475569",
+        border: "#e2e8f0",
+        solidBg: "#475569"
     },
     signature: {
-        label: "Signature",
-        bg: "#F3F4F6",
-        text: "#374151",
-        border: "#E5E7EB",
-        solidBg: "#4B5563"
+        label: "Sign",
+        fullLabel: "Signature",
+        bg: "#eff6ff",
+        text: "#2563eb",
+        border: "#bfdbfe",
+        solidBg: "#2563eb"
     },
     dropdown: {
-        label: "Dropdown",
-        bg: "#F3F4F6",
-        text: "#374151",
-        border: "#E5E7EB",
-        solidBg: "#4B5563"
+        label: "Select",
+        fullLabel: "Dropdown",
+        bg: "#f5f3ff",
+        text: "#7c3aed",
+        border: "#ddd6fe",
+        solidBg: "#7c3aed"
     },
     checkBox: {
-        label: "Checkbox",
-        bg: "#F3F4F6",
-        text: "#374151",
-        border: "#E5E7EB",
-        solidBg: "#4B5563"
+        label: "Check",
+        fullLabel: "Checkbox",
+        bg: "#f0fdf4",
+        text: "#16a34a",
+        border: "#bbf7d0",
+        solidBg: "#16a34a"
     },
     radioGroup: {
         label: "Radio",
-        bg: "#F3F4F6",
-        text: "#374151",
-        border: "#E5E7EB",
-        solidBg: "#4B5563"
+        fullLabel: "Radio Group",
+        bg: "#fff7ed",
+        text: "#ea580c",
+        border: "#fed7aa",
+        solidBg: "#ea580c"
     },
     dateField: {
         label: "Date",
-        bg: "#F3F4F6",
-        text: "#374151",
-        border: "#E5E7EB",
-        solidBg: "#4B5563"
+        fullLabel: "Date Field",
+        bg: "#fdf4ff",
+        text: "#c026d3",
+        border: "#f5d0fe",
+        solidBg: "#c026d3"
     }
 };
 
@@ -193,6 +199,7 @@ export function renderLayers(onSelect, onRerender) {
             const nameSpan = header.querySelector(".group-name");
             if (!nameSpan || header.querySelector(".inline-rename-input")) return;
 
+            header.classList.add("is-renaming");
             const input = document.createElement("input");
             input.type = "text";
             input.className = "inline-rename-input";
@@ -210,6 +217,7 @@ export function renderLayers(onSelect, onRerender) {
             const finishRename = () => {
                 if (finished) return;
                 finished = true;
+                header.classList.remove("is-renaming");
                 const newName = input.value.trim();
                 if (newName) g.name = newName;
                 saveHistory();
@@ -225,6 +233,7 @@ export function renderLayers(onSelect, onRerender) {
                 if (ev.key === "Escape") {
                     ev.preventDefault();
                     finished = true;
+                    header.classList.remove("is-renaming");
                     renderLayers(onSelect, onRerender);
                 }
             });
@@ -347,7 +356,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
                 <i data-lucide="${f.locked ? 'lock' : 'unlock'}" style="width: 12px; height: 12px; color: ${f.locked ? '#d97706' : '#94a3b8'};"></i>
             </button>
         </div>
-        <span class="layer-type-badge" style="font-size: 10px; font-weight: 600; color: ${badgeText}; background: ${badgeBg}; border: 1px solid ${badgeBorder}; padding: 2px 7px; border-radius: 9999px; letter-spacing: 0.02em; transition: all 0.15s ease; flex-shrink: 0;">${style.label}</span>
+        <span class="layer-type-badge" title="${style.fullLabel || style.label}" style="font-size: 10px; font-weight: 600; color: ${badgeText}; background: ${badgeBg}; border: 1px solid ${badgeBorder}; padding: 2px 6px; border-radius: 9999px; letter-spacing: 0.02em; transition: all 0.15s ease; flex-shrink: 0;">${style.label}</span>
     `;
 
     item.querySelector(".layer-vis-btn")?.addEventListener("click", e => {
@@ -499,6 +508,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
         const nameSpan = item.querySelector(".layer-name");
         if (!nameSpan || item.querySelector(".inline-rename-input")) return;
 
+        item.classList.add("is-renaming");
         const currentName = f.name || style.label;
         const input = document.createElement("input");
         input.type = "text";
@@ -517,6 +527,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
         const finishRename = () => {
             if (finished) return;
             finished = true;
+            item.classList.remove("is-renaming");
             const newName = input.value.trim();
             if (newName) f.name = newName;
             saveHistory();
@@ -533,6 +544,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
             if (ev.key === "Escape") {
                 ev.preventDefault();
                 finished = true;
+                item.classList.remove("is-renaming");
                 renderLayers(onSelect, onRerender);
             }
         });
