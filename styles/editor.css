@@ -254,8 +254,8 @@
     flex: 1;
     display: flex;
     overflow: hidden;
-    background-color: #f1f5f9;
-    background-image: radial-gradient(#cbd5e1 1.5px, transparent 1.5px);
+    background-color: var(--canvas-bg, #eaeef4);
+    background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1.5px, transparent 1.5px);
     background-size: 24px 24px;
 }
 
@@ -842,7 +842,7 @@
     padding: 6px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 
 .prop-align-row {
@@ -907,8 +907,8 @@
 
 .prop-match-row {
     display: flex;
-    gap: 6px;
-    margin-top: 2px;
+    gap: 4px;
+    margin-top: 4px;
 }
 
 .prop-match-btn {
