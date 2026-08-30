@@ -1050,6 +1050,9 @@ const bootstrapApp = async () => {
 
     setupMenuDropdown("zoomLevelDisplay", "zoomDropdownMenu");
 
+    // Initialize Draggable Panel Resizers
+    initPanelResizers();
+
     // Default to landing screen
     showLandingScreen(true, true);
     if (typeof lucide !== "undefined") lucide.createIcons();
@@ -1060,14 +1063,274 @@ if (document.readyState === "loading") {
 } else {
     bootstrapApp();
 }
+function initPanelResizers() {
+    const leftPanel = document.querySelector(".left-panel");
+    const leftResizer = document.getElementById("leftPanelResizer");
+    const rightPanel = document.querySelector(".right-panel");
+    const rightResizer = document.getElementById("rightPanelResizer");
+    const expandBtn = document.getElementById("expandLeftPanelWidthBtn");
 
+    const applyLeftWidth = (w) => {
+        if (!leftPanel) return;
+        const clamped = Math.max(200, Math.min(700, Math.round(w)));
+        const px = `${clamped}px`;
+        leftPanel.style.width = px;
+        leftPanel.style.minWidth = px;
+        leftPanel.style.maxWidth = px;
+        leftPanel.style.setProperty("--left-panel-width", px);
+    };
+
+    const applyRightWidth = (w) => {
+        if (!rightPanel) return;
+        const clamped = Math.max(220, Math.min(700, Math.round(w)));
+        const px = `${clamped}px`;
+        rightPanel.style.width = px;
+        rightPanel.style.minWidth = px;
+        rightPanel.style.maxWidth = px;
+        rightPanel.style.setProperty("--right-panel-width", px);
+    };
+
+    // Restore saved panel widths from localStorage or apply comfortable default
+    try {
+        const savedLeft = localStorage.getItem("justforms_left_panel_width");
+        if (savedLeft && leftPanel) {
+            const val = parseInt(savedLeft, 10);
+            if (!isNaN(val) && val >= 200 && val <= 700) {
+                applyLeftWidth(val);
+            } else {
+                applyLeftWidth(300);
+            }
+        } else {
+            applyLeftWidth(300);
+        }
+
+        const savedRight = localStorage.getItem("justforms_right_panel_width");
+        if (savedRight && rightPanel) {
+            const val = parseInt(savedRight, 10);
+            if (!isNaN(val) && val >= 220 && val <= 700) {
+                applyRightWidth(val);
+            } else {
+                applyRightWidth(300);
+            }
+        } else {
+            applyRightWidth(300);
+        }
+    } catch (e) {}
+
+    // Quick Width Toggle Button in Layers Header
+    if (expandBtn && leftPanel) {
+        expandBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const currentW = leftPanel.getBoundingClientRect().width;
+            const targetW = currentW < 380 ? 440 : 300;
+            applyLeftWidth(targetW);
+            try { localStorage.setItem("justforms_left_panel_width", targetW.toString()); } catch (e) {}
+        });
+    }
+
+    // Left Panel Resizer Logic
+    if (leftPanel) {
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const startLeftDrag = (clientX) => {
+            isDragging = true;
+            startX = clientX;
+            startWidth = leftPanel.getBoundingClientRect().width || 300;
+
+            if (leftResizer) leftResizer.classList.add("is-resizing");
+            leftPanel.classList.add("is-resizing");
+            document.body.style.cursor = "col-resize";
+            document.body.style.userSelect = "none";
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const currentX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : startX);
+                const deltaX = currentX - startX;
+                const maxAllowed = Math.min(700, Math.floor(window.innerWidth * 0.6));
+                const newWidth = Math.max(200, Math.min(maxAllowed, Math.round(startWidth + deltaX)));
+                applyLeftWidth(newWidth);
+            };
+
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                if (leftResizer) leftResizer.classList.remove("is-resizing");
+                leftPanel.classList.remove("is-resizing");
+                document.body.style.cursor = "";
+                document.body.style.userSelect = "";
+
+                window.removeEventListener("pointermove", onMove);
+                window.removeEventListener("pointerup", onEnd);
+                window.removeEventListener("pointercancel", onEnd);
+                window.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onEnd);
+                window.removeEventListener("touchmove", onMove);
+                window.removeEventListener("touchend", onEnd);
+
+                const finalW = parseInt(leftPanel.style.width, 10);
+                if (!isNaN(finalW)) {
+                    try { localStorage.setItem("justforms_left_panel_width", finalW.toString()); } catch (e) {}
+                }
+            };
+
+            window.addEventListener("pointermove", onMove, { passive: false });
+            window.addEventListener("pointerup", onEnd);
+            window.addEventListener("pointercancel", onEnd);
+            window.addEventListener("mousemove", onMove, { passive: false });
+            window.addEventListener("mouseup", onEnd);
+            window.addEventListener("touchmove", onMove, { passive: false });
+            window.addEventListener("touchend", onEnd);
+        };
+
+        if (leftResizer) {
+            leftResizer.addEventListener("pointerdown", (e) => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startLeftDrag(e.clientX);
+            });
+
+            leftResizer.addEventListener("mousedown", (e) => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startLeftDrag(e.clientX);
+            });
+
+            leftResizer.addEventListener("touchstart", (e) => {
+                if (e.touches && e.touches[0]) {
+                    startLeftDrag(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            leftResizer.addEventListener("dblclick", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                applyLeftWidth(300);
+                try { localStorage.setItem("justforms_left_panel_width", "300px"); } catch (e) {}
+            });
+        }
+
+        // Also enable direct drag along the right border of the left panel card itself
+        leftPanel.addEventListener("mousedown", (e) => {
+            if (e.button !== 0) return;
+            const rect = leftPanel.getBoundingClientRect();
+            if (e.clientX >= rect.right - 12 && e.clientX <= rect.right + 6) {
+                e.preventDefault();
+                e.stopPropagation();
+                startLeftDrag(e.clientX);
+            }
+        });
+    }
+
+    // Right Panel Resizer Logic
+    if (rightPanel) {
+        let isDragging = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        const startRightDrag = (clientX) => {
+            isDragging = true;
+            startX = clientX;
+            startWidth = rightPanel.getBoundingClientRect().width || 300;
+
+            if (rightResizer) rightResizer.classList.add("is-resizing");
+            rightPanel.classList.add("is-resizing");
+            document.body.style.cursor = "col-resize";
+            document.body.style.userSelect = "none";
+
+            const onMove = (e) => {
+                if (!isDragging) return;
+                const currentX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : startX);
+                const deltaX = startX - currentX;
+                const maxAllowed = Math.min(700, Math.floor(window.innerWidth * 0.6));
+                const newWidth = Math.max(220, Math.min(maxAllowed, Math.round(startWidth + deltaX)));
+                applyRightWidth(newWidth);
+            };
+
+            const onEnd = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                if (rightResizer) rightResizer.classList.remove("is-resizing");
+                rightPanel.classList.remove("is-resizing");
+                document.body.style.cursor = "";
+                document.body.style.userSelect = "";
+
+                window.removeEventListener("pointermove", onMove);
+                window.removeEventListener("pointerup", onEnd);
+                window.removeEventListener("pointercancel", onEnd);
+                window.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onEnd);
+                window.removeEventListener("touchmove", onMove);
+                window.removeEventListener("touchend", onEnd);
+
+                const finalW = parseInt(rightPanel.style.width, 10);
+                if (!isNaN(finalW)) {
+                    try { localStorage.setItem("justforms_right_panel_width", finalW.toString()); } catch (e) {}
+                }
+            };
+
+            window.addEventListener("pointermove", onMove, { passive: false });
+            window.addEventListener("pointerup", onEnd);
+            window.addEventListener("pointercancel", onEnd);
+            window.addEventListener("mousemove", onMove, { passive: false });
+            window.addEventListener("mouseup", onEnd);
+            window.addEventListener("touchmove", onMove, { passive: false });
+            window.addEventListener("touchend", onEnd);
+        };
+
+        if (rightResizer) {
+            rightResizer.addEventListener("pointerdown", (e) => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startRightDrag(e.clientX);
+            });
+
+            rightResizer.addEventListener("mousedown", (e) => {
+                if (e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                startRightDrag(e.clientX);
+            });
+
+            rightResizer.addEventListener("touchstart", (e) => {
+                if (e.touches && e.touches[0]) {
+                    startRightDrag(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            rightResizer.addEventListener("dblclick", (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                applyRightWidth(300);
+                try { localStorage.setItem("justforms_right_panel_width", "300px"); } catch (e) {}
+            });
+        }
+
+        // Also enable direct drag along the left border of the right panel card itself
+        rightPanel.addEventListener("mousedown", (e) => {
+            if (e.button !== 0) return;
+            const rect = rightPanel.getBoundingClientRect();
+            if (e.clientX >= rect.left - 6 && e.clientX <= rect.left + 12) {
+                e.preventDefault();
+                e.stopPropagation();
+                startRightDrag(e.clientX);
+            }
+        });
+    }
+}
 function toggleLeftSidebar() {
     const leftPanel = document.querySelector(".left-panel");
     const toggleBtn = document.getElementById("toggleSidebarBtn");
+    const resizer = document.getElementById("leftPanelResizer");
     if (!leftPanel) return;
 
     leftPanel.classList.toggle("collapsed");
     const isCollapsed = leftPanel.classList.contains("collapsed");
+    if (resizer) resizer.style.display = isCollapsed ? "none" : "flex";
 
     if (toggleBtn) {
         toggleBtn.title = isCollapsed ? "Expand Sidebar (Ctrl+\\)" : "Collapse Sidebar (Ctrl+\\)";
@@ -1081,10 +1344,12 @@ function toggleLeftSidebar() {
 function toggleRightSidebar() {
     const rightPanel = document.querySelector(".right-panel");
     const toggleBtn = document.getElementById("toggleRightSidebarBtn");
+    const resizer = document.getElementById("rightPanelResizer");
     if (!rightPanel) return;
 
     rightPanel.classList.toggle("collapsed");
     const isCollapsed = rightPanel.classList.contains("collapsed");
+    if (resizer) resizer.style.display = isCollapsed ? "none" : "flex";
 
     if (toggleBtn) {
         toggleBtn.title = isCollapsed ? "Expand Properties (Ctrl+])" : "Collapse Properties (Ctrl+])";

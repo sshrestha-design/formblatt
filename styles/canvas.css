@@ -240,11 +240,16 @@
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.85);
 }
 
-/* ── Magnetic Alignment Guidelines & Snap Points ──────────────────
-   Uses one consistent magenta/pink hue for every smart-guide element —
-   the de facto industry convention (Figma, Sketch, Adobe XD, Illustrator
-   all render alignment guides in this hue family), kept visually distinct
-   from any selection-blue UI elsewhere in the app. */
+.smart-guides-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
 .align-line {
     position: absolute;
     background: #ff2d78;

@@ -255,15 +255,14 @@
     display: flex;
     overflow: hidden;
     background-color: var(--canvas-bg, #eaeef4);
-    background-image: radial-gradient(rgba(148, 163, 184, 0.14) 1.5px, transparent 1.5px);
-    background-size: 24px 24px;
 }
 
 /* ── Side panels ─────────────────────────────────────────────── */
 .left-panel {
-    width: 256px;
-    min-width: 256px;
-    max-width: 256px;
+    position: relative;
+    width: var(--left-panel-width, 300px);
+    min-width: 200px;
+    max-width: 700px;
     height: calc(100% - 24px);
     max-height: calc(100% - 24px);
     flex-shrink: 0;
@@ -271,12 +270,17 @@
     display: flex;
     flex-direction: column;
     z-index: 10;
-    margin: 12px;
+    margin: 12px 0 12px 12px;
     border-radius: 10px;
     border: 1px solid var(--border-color, #e2e8f0);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     overflow: hidden;
     transition: width 0.25s var(--ease-spring), min-width 0.25s var(--ease-spring), margin 0.25s var(--ease-spring), opacity 0.2s ease, border-color 0.2s ease;
+}
+
+.left-panel.is-resizing {
+    transition: none !important;
+    user-select: none;
 }
 
 .left-panel.collapsed {
@@ -292,10 +296,15 @@
     visibility: hidden;
 }
 
+.left-panel.collapsed + #leftPanelResizer {
+    display: none !important;
+}
+
 .right-panel {
-    width: 256px;
-    min-width: 256px;
-    max-width: 256px;
+    position: relative;
+    width: var(--right-panel-width, 300px);
+    min-width: 220px;
+    max-width: 700px;
     height: calc(100% - 24px);
     max-height: calc(100% - 24px);
     flex-shrink: 0;
@@ -311,6 +320,11 @@
     transition: width 0.25s var(--ease-spring), min-width 0.25s var(--ease-spring), margin 0.25s var(--ease-spring), opacity 0.2s ease, border-color 0.2s ease;
 }
 
+.right-panel.is-resizing {
+    transition: none !important;
+    user-select: none;
+}
+
 .right-panel.collapsed {
     width: 0 !important;
     min-width: 0 !important;
@@ -322,6 +336,53 @@
     border: none !important;
     pointer-events: none !important;
     visibility: hidden;
+}
+
+#rightPanelResizer:has(+ .right-panel.collapsed) {
+    display: none !important;
+}
+
+/* ── Dedicated Panel Resizer Dividers ────────────────────────── */
+.panel-resizer {
+    width: 14px;
+    height: calc(100% - 24px);
+    margin: 12px -7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: col-resize;
+    flex-shrink: 0;
+    z-index: 50;
+    user-select: none;
+    touch-action: none;
+    position: relative;
+    background: transparent;
+    transition: background-color 0.15s ease;
+}
+
+.panel-resizer::after {
+    content: '';
+    width: 3px;
+    height: 36px;
+    border-radius: 3px;
+    background: transparent;
+    transition: background-color 0.15s ease, height 0.15s ease;
+}
+
+.panel-resizer:hover::after,
+.panel-resizer.is-resizing::after {
+    background: #0284c7;
+    height: 52px;
+}
+
+.panel-resizer:hover {
+    background: rgba(2, 132, 199, 0.05);
+    border-radius: 6px;
+}
+
+.panel-resizer.is-resizing {
+    background: rgba(2, 132, 199, 0.1);
+    border-radius: 6px;
 }
 
 .right-panel-empty {
@@ -1198,16 +1259,32 @@
 
 .inline-rename-input {
     flex: 1;
-    font-size: 13px;
+    width: 100%;
+    min-width: 0;
+    font-size: 12.5px;
+    font-weight: 500;
     font-family: inherit;
-    color: var(--text-color);
+    color: #0f172a;
     background: #ffffff;
-    border: 1px solid var(--primary-color);
-    border-radius: 4px;
-    padding: 2px 6px;
+    border: 1.5px solid #0284c7;
+    border-radius: 5px;
+    padding: 3px 8px;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
-    min-width: 60px;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18), 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+}
+
+.layer-item.is-renaming .layer-action-btn,
+.layer-item.is-renaming .layer-type-badge,
+.layer-item.is-renaming .layer-rename-btn,
+.layer-group-header.is-renaming .group-actions,
+.layer-group-header.is-renaming .layer-rename-btn {
+    display: none !important;
+}
+
+.layer-item.is-renaming,
+.layer-group-header.is-renaming {
+    background: #f0f9ff !important;
 }
 
 .layer-rename-btn {
