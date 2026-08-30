@@ -766,6 +766,9 @@
                 <button id="shortcutsHelpBtn" class="toolbar-action-btn" title="Keyboard Shortcuts & Help (?)">
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
+                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" title="Toggle Properties Sidebar (Ctrl+] / Cmd+])">
+                    <i data-lucide="panel-right-close" style="width: 14px; height: 14px;"></i>
+                </button>
                 <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" title="Download Standard Fillable AcroForm PDF">
                     <i data-lucide="download" style="width: 14px; height: 14px;"></i>
                     <span>Export PDF</span>
@@ -777,9 +780,12 @@
         <aside class="left-panel">
             <div class="left-panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: #ffffff;">
                 <h2 style="margin: 0; padding: 0; border: none; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Layers</h2>
-                <div style="display: flex; gap: 4px;">
+                <div style="display: flex; gap: 4px; align-items: center;">
                     <button id="groupSelectedBtn" type="button" title="Group Selected Fields (Ctrl+G)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 7px; font-size: 11px; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
                         <i data-lucide="folder-plus" style="width: 12px; height: 12px; color: #0284c7;"></i> Group
+                    </button>
+                    <button id="collapseLeftPanelBtn" type="button" class="panel-collapse-btn" title="Collapse Left Sidebar (Ctrl+\)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="chevron-left" style="width: 13px; height: 13px;"></i>
                     </button>
                 </div>
             </div>
@@ -799,7 +805,7 @@
                     </div>
                     <div>
                         <h3 style="margin: 0 0 6px; font-size: 16px; color: #1e293b; font-weight: 700;">No Document Loaded</h3>
-                        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Please upload a PDF document to start placing interactive form fields and signatures.</p>
+                        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Please upload a PDF document or pick a starter template to begin placing form fields.</p>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto;">
                         <button type="button" id="emptyStateCreateBlankBtn" class="btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
@@ -815,24 +821,16 @@
                 <div class="canvas-container" id="canvasContainer">
                     <canvas id="pdfCanvas"></canvas>
                     <div id="overlayContainer" class="overlay-container"></div>
-                    <div id="hAlignLine" class="align-line horizontal"></div>
-                    <div id="vAlignLine" class="align-line vertical"></div>
+                    <div id="smartGuides" class="smart-guides-container"></div>
                     <div id="snapPointDot" class="snap-point-dot"></div>
                     <div id="selectionBox"></div>
                     <div id="fieldPlacementGhost" class="field-placement-ghost" style="display: none;"></div>
                 </div>
             </main>
 
-            <!-- Docked Bottom Toolbar Frame (NEVER overlays canvas inputs) -->
+            <!-- Docked Bottom Toolbar Frame (Page Navigation + Zoom & View Controls) -->
             <footer class="canvas-docked-footer" style="height: 42px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; z-index: 20; box-shadow: 0 -1px 3px rgba(0,0,0,0.03);">
-                <!-- Left: Hint / Status -->
-                <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 8px;">
-                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Shift</kbd> Select Range</span>
-                    <span style="color:#cbd5e1;">•</span>
-                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Ctrl+G</kbd> Group</span>
-                </div>
-
-                <!-- Center: Pinned Docked Page Navigation Controls -->
+                <!-- Left: Pinned Page Navigation Controls -->
                 <div id="pageNavControls" class="docked-page-nav" style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 2px 8px;">
                     <button id="prevPageBtn" title="Previous Page ([)" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
                         <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
@@ -845,9 +843,50 @@
                     </button>
                 </div>
 
-                <!-- Right: Shortcuts & Status -->
-                <div style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
-                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Right-Click</kbd> for Menu</span>
+                <!-- Center: Helper Hints -->
+                <div class="docked-footer-hints" style="font-size: 11.5px; color: #64748b; display: flex; align-items: center; gap: 8px;">
+                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Shift</kbd> Lock Aspect</span>
+                    <span style="color:#cbd5e1;">•</span>
+                    <span><kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:10.5px;">Alt+Drag</kbd> Duplicate</span>
+                </div>
+
+                <!-- Right: Zoom & View Controls -->
+                <div class="docked-zoom-controls" style="display: flex; align-items: center; gap: 4px;">
+                    <button id="zoomOutBtn" class="docked-zoom-btn" title="Zoom Out (⌘-)">
+                        <i data-lucide="minus" style="width: 13px; height: 13px;"></i>
+                    </button>
+
+                    <div class="dropdown-menu" id="zoomDropdownMenu" style="position: relative; display: flex; align-items: center;">
+                        <button id="zoomLevelDisplay" class="docked-zoom-pill" title="Zoom Presets">100%</button>
+                        <div class="dropdown-content zoom-dropdown-content" style="bottom: calc(100% + 6px); top: auto; min-width: 130px; right: 0; left: auto;">
+                            <button class="dropdown-item zoom-preset-item" data-zoom="0.5">50%</button>
+                            <button class="dropdown-item zoom-preset-item" data-zoom="0.75">75%</button>
+                            <button class="dropdown-item zoom-preset-item" data-zoom="1.0">100% (Reset)</button>
+                            <button class="dropdown-item zoom-preset-item" data-zoom="1.25">125%</button>
+                            <button class="dropdown-item zoom-preset-item" data-zoom="1.5">150%</button>
+                            <button class="dropdown-item zoom-preset-item" data-zoom="2.0">200%</button>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item" id="zoomFitWidthBtn">
+                                <i data-lucide="move-horizontal" style="width: 12px; height: 12px;"></i> Fit to Width
+                            </button>
+                            <button class="dropdown-item" id="zoomFitPageBtn">
+                                <i data-lucide="maximize" style="width: 12px; height: 12px;"></i> Fit to Page
+                            </button>
+                        </div>
+                    </div>
+
+                    <button id="zoomInBtn" class="docked-zoom-btn" title="Zoom In (⌘+)">
+                        <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
+                    </button>
+                    
+                    <div style="width: 1px; height: 16px; background: #e2e8f0; margin: 0 4px;"></div>
+
+                    <button id="fitWidthQuickBtn" class="docked-zoom-btn" title="Fit to Width (⌘9)">
+                        <i data-lucide="move-horizontal" style="width: 13px; height: 13px;"></i>
+                    </button>
+                    <button id="fitPageQuickBtn" class="docked-zoom-btn" title="Fit to Page (⌘0)">
+                        <i data-lucide="maximize" style="width: 13px; height: 13px;"></i>
+                    </button>
                 </div>
             </footer>
         </div>
@@ -860,9 +899,14 @@
 
             <div id="fieldProps" style="display: none;" class="field-props-wrapper">
                 <!-- Header -->
-                <div class="prop-panel-header">
+                <div class="prop-panel-header" style="display: flex; align-items: center; justify-content: space-between;">
                     <h3 class="prop-panel-title">Properties</h3>
-                    <span id="propFieldTypeBadge" class="prop-type-pill">Text Field</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="propFieldTypeBadge" class="prop-type-pill">Text Field</span>
+                        <button id="collapseRightPanelBtn" type="button" class="panel-collapse-btn" title="Collapse Properties Sidebar (Ctrl+])" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Scrollable Properties Body -->

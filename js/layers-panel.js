@@ -319,7 +319,7 @@ export function renderLayers(onSelect, onRerender) {
 function createFieldLayerItem(f, onSelect, onRerender) {
     const isSelected = state.selectedFieldIds.has(f.id);
     const item = document.createElement("div");
-    item.className = "layer-item" + (isSelected ? " selected" : "");
+    item.className = "layer-item" + (isSelected ? " selected" : "") + (f.locked ? " is-locked" : "") + (f.hidden ? " is-hidden" : "");
     item.dataset.fieldId = f.id;
     item.draggable = true;
 
@@ -334,6 +334,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
     const globalIdx = state.fields.findIndex(item => item.id === f.id) + 1;
 
     item.innerHTML = `
+        <span class="layer-grip-handle" title="Drag to reorder"><i data-lucide="grip-vertical" style="width: 12px; height: 12px;"></i></span>
         ${pageBadge}
         <span style="font-size: 11px; color: ${isSelected ? '#0284c7' : '#94a3b8'}; width: 16px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0;">${globalIdx}</span>
         <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
@@ -342,8 +343,32 @@ function createFieldLayerItem(f, onSelect, onRerender) {
                 <i data-lucide="pencil" style="width: 11px; height: 11px;"></i>
             </button>
         </div>
+        <div style="display: flex; align-items: center; gap: 2px; flex-shrink: 0;">
+            <button type="button" class="layer-action-btn layer-vis-btn" title="${f.hidden ? 'Show on canvas' : 'Hide from canvas'}">
+                <i data-lucide="${f.hidden ? 'eye-off' : 'eye'}" style="width: 12px; height: 12px; color: ${f.hidden ? '#ef4444' : '#64748b'};"></i>
+            </button>
+            <button type="button" class="layer-action-btn layer-lock-btn" title="${f.locked ? 'Unlock field' : 'Lock field'}">
+                <i data-lucide="${f.locked ? 'lock' : 'unlock'}" style="width: 12px; height: 12px; color: ${f.locked ? '#d97706' : '#94a3b8'};"></i>
+            </button>
+        </div>
         <span class="layer-type-badge" style="font-size: 10px; font-weight: 600; color: ${badgeText}; background: ${badgeBg}; border: 1px solid ${badgeBorder}; padding: 2px 7px; border-radius: 9999px; letter-spacing: 0.02em; transition: all 0.15s ease; flex-shrink: 0;">${style.label}</span>
     `;
+
+    item.querySelector(".layer-vis-btn")?.addEventListener("click", e => {
+        e.stopPropagation();
+        f.hidden = !f.hidden;
+        saveHistory();
+        renderLayers(onSelect, onRerender);
+        if (onRerender) onRerender();
+    });
+
+    item.querySelector(".layer-lock-btn")?.addEventListener("click", e => {
+        e.stopPropagation();
+        f.locked = !f.locked;
+        saveHistory();
+        renderLayers(onSelect, onRerender);
+        if (onRerender) onRerender();
+    });
 
     if (isSelected && state.selectedFieldIds.size === 1) {
         setTimeout(() => {
