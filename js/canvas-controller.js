@@ -986,7 +986,7 @@ export function handleFieldMouseDown(e, field, handlers) {
     }
 
     // Alt + Drag Instant Clone (Option key on Mac / Alt on Windows)
-    if (e.altKey) {
+    if (e.altKey && !field.locked) {
         state.isDuplicating = true;
         duplicateSelectedFields();
         handlers.onSelectionChange();
@@ -994,17 +994,22 @@ export function handleFieldMouseDown(e, field, handlers) {
         state.isDuplicating = false;
     }
 
-    // Start Dragging
+    // Start Dragging (Ignore if field is locked)
+    if (field.locked) {
+        state.isDragging = false;
+        return;
+    }
     state.isDragging = true;
     state.dragStart = { x: e.clientX, y: e.clientY };
     state.initialFieldPositions = new Map();
     state.selectedFieldIds.forEach(id => {
         const f = state.fields.find(item => item.id === id);
-        if (f) state.initialFieldPositions.set(id, { x: f.x, y: f.y });
+        if (f && !f.locked) state.initialFieldPositions.set(id, { x: f.x, y: f.y });
     });
 }
 
 export function handleResizeStart(e, field, direction = "se") {
+    if (field.locked) return;
     state.isResizing = true;
     state.resizeFieldId = field.id;
     state.resizeDirection = direction;
@@ -1015,7 +1020,7 @@ export function handleResizeStart(e, field, direction = "se") {
     if (state.selectedFieldIds.has(field.id)) {
         state.selectedFieldIds.forEach(id => {
             const f = state.fields.find(item => item.id === id);
-            if (f) state.initialFieldDims.set(id, { x: f.x, y: f.y, width: f.width, height: f.height });
+            if (f && !f.locked) state.initialFieldDims.set(id, { x: f.x, y: f.y, width: f.width, height: f.height });
         });
     } else {
         state.initialFieldDims.set(field.id, { x: field.x, y: field.y, width: field.width, height: field.height });
@@ -1028,7 +1033,7 @@ function handleFieldResize(e, handlers) {
     const dir = state.resizeDirection || "se";
 
     const field = state.fields.find(f => f.id === state.resizeFieldId) || getSelectedField();
-    if (!field) return;
+    if (!field || field.locked) return;
 
     const dimsMap = (state.initialFieldDims && state.initialFieldDims.size > 0)
         ? state.initialFieldDims
@@ -1038,11 +1043,10 @@ function handleFieldResize(e, handlers) {
 
     // Pass 1: resize every selected field by the same drag delta, each
     // anchored on its own fixed edge (so a "w" drag keeps each field's
-    // right edge in place, etc.) — mirrors the original single-field math,
-    // just looped across the whole selection instead of one field.
+    // right edge in place, etc.)
     dimsMap.forEach((base, id) => {
         const f = state.fields.find(item => item.id === id);
-        if (!f) return;
+        if (!f || f.locked) return;
 
         let newX = base.x, newY = base.y, newW = base.width, newH = base.height;
 
@@ -1069,6 +1073,18 @@ function handleFieldResize(e, handlers) {
             } else {
                 newH = 14;
                 newY = base.y + base.height - 14;
+            }
+        }
+
+        // Shift-key aspect ratio locking on corner handles or square fields
+        if ((e.shiftKey || f.type === "checkBox" || f.type === "radioGroup") && (dir === "nw" || dir === "ne" || dir === "se" || dir === "sw")) {
+            const aspect = (f.type === "checkBox" || f.type === "radioGroup") ? 1.0 : (base.width / base.height);
+            if (aspect > 0) {
+                const adjustedH = Math.max(14, Math.round(newW / aspect));
+                if (dir.includes("n")) {
+                    newY = base.y + base.height - adjustedH;
+                }
+                newH = adjustedH;
             }
         }
 

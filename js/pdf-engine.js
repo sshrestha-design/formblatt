@@ -20,6 +20,11 @@ export async function renderPage(forceRerender = false) {
     try {
         currentRenderPage = await state.pdfDoc.getPage(state.currentPageNum);
         const baseViewport = currentRenderPage.getViewport({ scale: 1.0 });
+        state.pdfViewport = baseViewport;
+
+        const es = document.getElementById("emptyState");
+        if (es) es.style.display = "none";
+        container.style.display = "block";
 
         container.style.width = baseViewport.width + "px";
         container.style.height = baseViewport.height + "px";
@@ -60,6 +65,28 @@ export function setTransformScale(newScale, onRerender) {
             });
         }
     }, 150);
+}
+
+export function fitToWidth(onRerender) {
+    const wrapper = document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
+    if (!wrapper) return;
+    const availableWidth = Math.max(200, wrapper.clientWidth - 64);
+    const docWidth = state.pdfViewport ? state.pdfViewport.width : 595.28;
+    const newScale = Math.min(Math.max(availableWidth / docWidth, 0.25), 3.0);
+    setTransformScale(newScale, onRerender);
+}
+
+export function fitToPage(onRerender) {
+    const wrapper = document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
+    if (!wrapper) return;
+    const availableWidth = Math.max(200, wrapper.clientWidth - 64);
+    const availableHeight = Math.max(200, wrapper.clientHeight - 64);
+    const docWidth = state.pdfViewport ? state.pdfViewport.width : 595.28;
+    const docHeight = state.pdfViewport ? state.pdfViewport.height : 841.89;
+    const scaleX = availableWidth / docWidth;
+    const scaleY = availableHeight / docHeight;
+    const newScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 3.0);
+    setTransformScale(newScale, onRerender);
 }
 
 export async function goToPage(pageNum, onPageChange) {

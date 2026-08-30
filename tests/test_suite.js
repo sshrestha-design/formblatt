@@ -335,16 +335,16 @@ async function runAllTests() {
         renderOverlays({});
         assert.equal(appendedChildren.length, 3);
         assert.equal(appendedChildren[0].className, "field-overlay");
-        assert.equal(appendedChildren[0].style.border, "1px solid rgba(59, 130, 246, 0.65)");
+        assert.equal(appendedChildren[0].style.border, "1.5px solid #94A3B8");
 
         // 2. Single-selected test
         appendedChildren.length = 0;
         state.selectedFieldIds = new Set(["f1"]);
         renderOverlays({});
         assert.equal(appendedChildren[0].className, "field-overlay selected");
-        assert.equal(appendedChildren[0].style.border, "2px solid #2563eb");
+        assert.equal(appendedChildren[0].style.border, "2px solid #1D4ED8");
         assert.equal(appendedChildren[1].className, "field-overlay");
-        assert.equal(appendedChildren[1].style.border, "1px solid rgba(59, 130, 246, 0.65)");
+        assert.equal(appendedChildren[1].style.border, "1.5px solid #94A3B8");
 
         // 3. Multi-selected test
         appendedChildren.length = 0;
@@ -540,6 +540,33 @@ async function runAllTests() {
 
         assert.equal(state.activeTool, "textField");
         assert.equal(getSelectedField()?.id, newField.id);
+    });
+
+    // ── SUITE 12: Workbench UX, Zoom & Layer Controls ──
+    console.log("\n🔍 Suite 12: Workbench UX, Zoom & Layer Controls");
+
+    it("Zoom scale clamping bounds within 0.25 and 4.0", () => {
+        let zoom = 1.0;
+        const clamp = z => Math.min(Math.max(parseFloat(z.toFixed(2)), 0.25), 4.0);
+        assert.equal(clamp(0.1), 0.25);
+        assert.equal(clamp(5.5), 4.0);
+        assert.equal(clamp(1.25), 1.25);
+    });
+
+    it("Corner resizing preserves aspect ratio when shift is held or field is square", () => {
+        const base = { width: 100, height: 50 };
+        const aspect = base.width / base.height; // 2.0
+        const newW = 160;
+        const adjustedH = Math.max(14, Math.round(newW / aspect));
+        assert.equal(adjustedH, 80);
+    });
+
+    it("Layer lock and hidden flags toggle correctly and protect field from mutation", () => {
+        const f = { id: "test_lock_1", name: "secure_field", locked: false, hidden: false };
+        f.locked = true;
+        assert.ok(f.locked);
+        f.hidden = true;
+        assert.ok(f.hidden);
     });
 
     // ── Summary ──

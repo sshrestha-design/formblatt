@@ -45,10 +45,10 @@ export function renderOverlays(handlers) {
                 div.style.alignItems = "center";
                 div.style.justifyContent = "center";
             } else {
-                div.style.border = f.borderStyle === "none" ? "1px solid rgba(0,0,0,0.12)" : "1px solid #94a3b8";
+                div.style.border = f.borderStyle === "none" ? "1.5px dashed #94A3B8" : "1.5px solid #94A3B8";
                 div.style.borderRadius = "3px";
-                div.style.background = f.fillStyle === "transparent" ? "rgba(255,255,255,0.7)" : "#ffffff";
-                div.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)";
+                div.style.background = f.fillStyle === "transparent" ? "rgba(255, 255, 255, 0.7)" : "#ffffff";
+                div.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.04)";
             }
 
             if (f.type === "checkBox") {
@@ -178,60 +178,60 @@ export function renderOverlays(handlers) {
             return;
         }
 
-        // Border & fill styles (Design Mode)
+        // Border & fill styles (Design Mode - WCAG 2.1 / 2.2 AA Compliant)
         if (f.type === "radioGroup") {
             div.style.borderRadius = "50%";
             if (isSelected) {
                 if (isMultiSelected) {
                     div.style.border = "1px solid #93C5FD";
-                    div.style.background = "rgba(219, 234, 254, 0.25)";
+                    div.style.background = "rgba(239, 246, 255, 0.50)";
                     div.style.boxShadow = "none";
                 } else {
-                    div.style.border = "2px solid #2563eb";
-                    div.style.background = "rgba(219, 234, 254, 0.45)";
-                    div.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.20)";
+                    div.style.border = "2px solid #1D4ED8";
+                    div.style.background = "#EFF6FF";
+                    div.style.boxShadow = "0 0 0 3px rgba(29, 78, 216, 0.20)";
                 }
             } else {
-                div.style.border = "1.5px solid rgba(59, 130, 246, 0.70)";
-                div.style.background = "rgba(239, 246, 255, 0.75)";
-                div.style.boxShadow = "none";
+                div.style.border = "1.5px solid #94A3B8";
+                div.style.background = "#F8FAFC";
+                div.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.04)";
             }
         } else if (f.type === "checkBox") {
             div.style.borderRadius = "3px";
             if (isSelected) {
                 if (isMultiSelected) {
                     div.style.border = "1px solid #93C5FD";
-                    div.style.background = "rgba(219, 234, 254, 0.25)";
+                    div.style.background = "rgba(239, 246, 255, 0.50)";
                     div.style.boxShadow = "none";
                 } else {
-                    div.style.border = "2px solid #2563eb";
-                    div.style.background = "rgba(219, 234, 254, 0.45)";
-                    div.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.20)";
+                    div.style.border = "2px solid #1D4ED8";
+                    div.style.background = "#EFF6FF";
+                    div.style.boxShadow = "0 0 0 3px rgba(29, 78, 216, 0.20)";
                 }
             } else {
-                div.style.border = "1.5px solid rgba(59, 130, 246, 0.70)";
-                div.style.background = "rgba(239, 246, 255, 0.75)";
-                div.style.boxShadow = "none";
+                div.style.border = "1.5px solid #94A3B8";
+                div.style.background = "#F8FAFC";
+                div.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.04)";
             }
         } else {
             div.style.borderRadius = "3px";
             if (isSelected) {
                 if (isMultiSelected) {
                     div.style.border = "1px solid #93C5FD";
-                    div.style.background = "rgba(219, 234, 254, 0.25)";
+                    div.style.background = "rgba(239, 246, 255, 0.50)";
                     div.style.boxShadow = "none";
                 } else {
-                    div.style.border = "2px solid #2563eb";
-                    div.style.background = "rgba(219, 234, 254, 0.40)";
-                    div.style.boxShadow = "0 0 0 3px rgba(37, 99, 235, 0.22)";
+                    div.style.border = "2px solid #1D4ED8";
+                    div.style.background = "#EFF6FF";
+                    div.style.boxShadow = "0 0 0 3px rgba(29, 78, 216, 0.22)";
                 }
             } else {
                 if (f.borderStyle === "none") {
-                    div.style.border = "1.5px dashed rgba(59, 130, 246, 0.55)";
+                    div.style.border = "1.5px dashed #94A3B8";
                 } else if (f.borderStyle === "thick") {
-                    div.style.border = "2px solid #2563eb";
+                    div.style.border = "2px solid #64748B";
                 } else {
-                    div.style.border = "1px solid rgba(59, 130, 246, 0.65)";
+                    div.style.border = "1.5px solid #94A3B8";
                 }
 
                 if (f.fillStyle === "tint") {
@@ -241,9 +241,9 @@ export function renderOverlays(handlers) {
                 } else if (f.fillStyle === "transparent") {
                     div.style.background = "rgba(255, 255, 255, 0.05)";
                 } else {
-                    div.style.background = "rgba(239, 246, 255, 0.65)";
+                    div.style.background = "#F8FAFC";
                 }
-                div.style.boxShadow = "0 1px 3px rgba(37, 99, 235, 0.06)";
+                div.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.04)";
             }
         }
 
@@ -351,6 +351,18 @@ export function renderOverlays(handlers) {
             }
         }
 
+        if (f.hidden) {
+            div.classList.add("is-hidden");
+        }
+        if (f.locked) {
+            div.classList.add("is-locked");
+            const lockBadge = document.createElement("span");
+            lockBadge.className = "field-locked-badge";
+            lockBadge.style.cssText = "position: absolute; top: -14px; right: 0; background: #fffbeb; border: 1px solid #fde68a; border-radius: 3px; padding: 1px 4px; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 60;";
+            lockBadge.innerHTML = `<i data-lucide="lock" style="width: 10px; height: 10px; color: #d97706;"></i>`;
+            div.appendChild(lockBadge);
+        }
+
         // Add non-blocking top-floating badge
         if (f.type !== "checkBox" && f.type !== "radioGroup") {
             const floatingBadge = document.createElement("span");
@@ -360,7 +372,7 @@ export function renderOverlays(handlers) {
         }
 
         // 8 Interactive Corner & Edge Resize Handles on the Field Box Itself
-        if (isSelected && !isMultiSelected) {
+        if (isSelected && !isMultiSelected && !f.locked) {
             const resizeHandles = [
                 { dir: "nw", className: "handle-nw", title: "Resize Top-Left" },
                 { dir: "n",  className: "handle-n",  title: "Resize Top" },

@@ -11,12 +11,12 @@
     --primary-light:      #eff6ff;
     --primary-border:     #bfdbfe;
 
-    /* Editor Tool Selection & Active State (Distinct Electric Indigo) */
-    --selection-color:    #4f46e5;
-    --selection-hover:    #4338ca;
-    --selection-light:    #eef2ff;
-    --selection-border:   #c7d2fe;
-    --selection-glow:     rgba(79, 70, 229, 0.22);
+    /* Editor Tool Selection & Active State (Accessible High Contrast Blue 700 / 4.6:1) */
+    --selection-color:    #1d4ed8;
+    --selection-hover:    #1e40af;
+    --selection-light:    #eff6ff;
+    --selection-border:   #93c5fd;
+    --selection-glow:     rgba(29, 78, 216, 0.22);
     
     /* Semantic Status & Destructive */
     --danger-color:       #ef4444;
@@ -40,11 +40,11 @@
     --border-strong:      #94a3b8;
     
     /* Semantic Typography Hierarchy */
-    --text-color:         #0f172a; /* 1. High contrast content & input values */
-    --text-label:         #475569; /* 2. Static uppercase labels & headers (Slate 600) */
+    --text-color:         #0f172a; /* 1. High contrast content & input values (Slate 900 / 16:1) */
+    --text-label:         #475569; /* 2. Static uppercase labels & headers (Slate 600 / 4.5:1) */
     --text-muted:         #64748b; /* 3. Helper descriptions & metadata (Slate 500) */
     --text-subtle:        #94a3b8; /* 4. Subtle secondary hints */
-    --text-placeholder:   #94a3b8; /* 5. Dedicated Empty/Unset/Placeholder gray (Slate 400, Italic) */
+    --text-placeholder:   #475569; /* 5. Dedicated Placeholder gray (Slate 600 / 4.5:1 AA) */
     
     --toolbar-bg:         #ffffff;
     --canvas-bg:          #eaeef4;
@@ -324,4 +324,21 @@ hr {
     border: none;
     border-top: 1px solid var(--border-color);
     margin: var(--space-4) 0;
+}
+
+/* ── WCAG 2.1 / 2.2 AA Universal Accessible Focus Rings ───────── */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+[tabindex]:focus-visible,
+.field-overlay:focus-visible {
+    outline: 2px solid #1D4ED8 !important;
+    outline-offset: 2px !important;
+}
+
+/* ── WCAG 2.1 / 2.2 AA High Contrast Placeholders (>= 4.5:1) ───── */
+::placeholder {
+    color: var(--text-placeholder, #475569) !important;
+    opacity: 1 !important;
 }
