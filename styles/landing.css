@@ -310,13 +310,7 @@ nav.landing-nav-bar {
 }
 
 .video-card-glass {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, transparent 40%);
-  pointer-events: none;
+  display: none;
 }
 
 .video-play-badge {
@@ -324,31 +318,31 @@ nav.landing-nav-bar {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.96);
-  background: rgba(15, 23, 42, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 100px;
-  padding: 10px 22px 10px 14px;
+  padding: 9px 20px 9px 12px;
   display: inline-flex;
   align-items: center;
-  gap: 11px;
-  color: #ffffff;
-  font-size: 14px;
-  font-weight: 600;
+  gap: 10px;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 700;
   letter-spacing: -0.01em;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1);
-  opacity: 0.90;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease, background 0.2s ease, box-shadow 0.25s ease;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.04);
+  opacity: 0.95;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease, background 0.2s ease, box-shadow 0.25s ease;
   pointer-events: none;
   z-index: 5;
 }
 
 .hero-video-card:hover .video-play-badge {
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1.05);
-  background: rgba(15, 23, 42, 0.94);
-  box-shadow: 0 20px 45px rgba(37, 99, 235, 0.35), 0 0 0 2px rgba(56, 189, 248, 0.4);
+  transform: translate(-50%, -50%) scale(1.04);
+  background: #ffffff;
+  box-shadow: 0 14px 30px -4px rgba(37, 99, 235, 0.2), 0 0 0 2px rgba(37, 99, 235, 0.2);
 }
 
 .play-badge-icon {
@@ -360,13 +354,13 @@ nav.landing-nav-bar {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
   flex-shrink: 0;
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .hero-video-card:hover .play-badge-icon {
-  transform: scale(1.08);
+  transform: scale(1.06);
   background: #1d4ed8;
 }
 
