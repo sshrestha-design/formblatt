@@ -599,9 +599,10 @@ export function initLandingController(onLoaded) {
         modal.classList.add("active");
         modal.style.display = "flex";
         
-        if (bgVideo && bgVideo.currentTime) {
-            try { expVideo.currentTime = bgVideo.currentTime; } catch(e){}
-        }
+        // Always playback from the start (00:00)
+        try {
+            expVideo.currentTime = 0;
+        } catch (e) {}
         
         try {
             bgVideo?.pause();
@@ -622,6 +623,7 @@ export function initLandingController(onLoaded) {
         
         try {
             expVideo.pause();
+            expVideo.currentTime = 0;
             bgVideo?.play().catch(() => {});
         } catch (e) {}
 
@@ -660,6 +662,14 @@ export function initLandingController(onLoaded) {
 
     const videoModalEl = document.getElementById("videoPlayerModal");
     const pureVideoCardEl = document.getElementById("pureVideoCard");
+
+    document.getElementById("closeVideoModalBtn")?.addEventListener("click", () => {
+        window.closeHeroVideoModal();
+    });
+
+    document.getElementById("closeVideoModalBackdrop")?.addEventListener("click", () => {
+        window.closeHeroVideoModal();
+    });
 
     videoModalEl?.addEventListener("click", e => {
         if (!e.target.closest("#pureVideoCard")) {
