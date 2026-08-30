@@ -353,7 +353,7 @@ async function runAllTests() {
         // Should have 2 multi-selected overlays + 1 unselected overlay + 1 bounding frame = 4
         assert.equal(appendedChildren.length, 4);
         assert.equal(appendedChildren[0].className, "field-overlay selected multi-selected");
-        assert.equal(appendedChildren[0].style.border, "1.5px solid rgba(37, 99, 235, 0.85)");
+        assert.equal(appendedChildren[0].style.border, "1px solid #93C5FD");
         assert.equal(appendedChildren[1].className, "field-overlay selected multi-selected");
         assert.equal(appendedChildren[2].className, "field-overlay");
         assert.equal(appendedChildren[3].className, "multi-selection-bounding-frame");

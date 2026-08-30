@@ -1,4 +1,4 @@
-import { state, getSelectedField, setSelectedField, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
+import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
 import { renderPage, goToPage, setTransformScale, updateTopBarDocInfo } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
@@ -115,22 +115,33 @@ const bootstrapApp = async () => {
         });
     });
 
-    // File Menu Actions
-    const fileMenuBtn = document.getElementById("fileMenuBtn");
-    const fileMenuDropdown = document.getElementById("fileMenuDropdown");
-    if (fileMenuBtn && fileMenuDropdown) {
-        fileMenuBtn.addEventListener("click", e => {
-            e.stopPropagation();
-            fileMenuDropdown.classList.toggle("active");
-        });
-        document.addEventListener("click", e => {
-            if (!fileMenuDropdown.contains(e.target)) fileMenuDropdown.classList.remove("active");
-        });
-        fileMenuDropdown.querySelectorAll(".dropdown-item").forEach(item => {
-            item.addEventListener("click", () => setTimeout(() => fileMenuDropdown.classList.remove("active"), 100));
-        });
-    }
+    // Header Dropdown Menus Setup (File & Edit)
+    const setupMenuDropdown = (btnId, dropdownId) => {
+        const btn = document.getElementById(btnId);
+        const dropdown = document.getElementById(dropdownId);
+        if (btn && dropdown) {
+            btn.addEventListener("click", e => {
+                e.stopPropagation();
+                document.querySelectorAll(".dropdown-menu").forEach(dm => {
+                    if (dm !== dropdown) dm.classList.remove("active");
+                });
+                dropdown.classList.toggle("active");
+            });
+            dropdown.querySelectorAll(".dropdown-item").forEach(item => {
+                item.addEventListener("click", () => setTimeout(() => dropdown.classList.remove("active"), 100));
+            });
+        }
+    };
+    setupMenuDropdown("fileMenuBtn", "fileMenuDropdown");
+    setupMenuDropdown("editMenuBtn", "editMenuDropdown");
 
+    document.addEventListener("click", e => {
+        document.querySelectorAll(".dropdown-menu").forEach(dm => {
+            if (!dm.contains(e.target)) dm.classList.remove("active");
+        });
+    });
+
+    // File Menu Actions
     document.getElementById("newBlankDocMenuBtn")?.addEventListener("click", () => {
         loadTemplate("blank", () => {
             refreshUI();
@@ -141,6 +152,62 @@ const bootstrapApp = async () => {
         const file = e.target.files[0];
         if (file) importProjectJson(file, () => refreshUI());
         e.target.value = "";
+    });
+
+    // Edit Menu Actions
+    document.getElementById("menuUndoBtn")?.addEventListener("click", () => undo(refreshUI));
+    document.getElementById("menuRedoBtn")?.addEventListener("click", () => redo(refreshUI));
+    document.getElementById("menuCutBtn")?.addEventListener("click", () => {
+        if (state.selectedFieldIds.size === 0) return;
+        copySelectedFields();
+        const deletedCount = state.selectedFieldIds.size;
+        state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
+        setSelectedField(null);
+        saveHistory();
+        refreshUI();
+        showUndoToast(deletedCount > 1 ? `${deletedCount} fields cut` : "Field cut");
+    });
+    document.getElementById("menuCopyBtn")?.addEventListener("click", () => {
+        if (state.selectedFieldIds.size === 0) return;
+        copySelectedFields();
+        showToast(state.selectedFieldIds.size > 1 ? `${state.selectedFieldIds.size} fields copied` : "Field copied");
+    });
+    document.getElementById("menuPasteBtn")?.addEventListener("click", () => {
+        const pasted = pasteClipboardFields();
+        if (pasted.length > 0) {
+            saveHistory();
+            refreshUI();
+        }
+    });
+    document.getElementById("menuDuplicateBtn")?.addEventListener("click", () => {
+        if (state.selectedFieldIds.size === 0) return;
+        const dups = duplicateSelectedFields();
+        if (dups.length > 0) {
+            saveHistory();
+            refreshUI();
+        }
+    });
+    document.getElementById("menuSelectAllBtn")?.addEventListener("click", () => {
+        const currentPageFields = getFieldsForCurrentPage();
+        if (currentPageFields.length === 0) return;
+        state.selectedFieldIds.clear();
+        currentPageFields.forEach(f => state.selectedFieldIds.add(f.id));
+        state.lastSelectedFieldId = currentPageFields[0]?.id || null;
+        refreshUI();
+    });
+    document.getElementById("menuDeselectAllBtn")?.addEventListener("click", () => {
+        state.selectedFieldIds.clear();
+        state.lastSelectedFieldId = null;
+        refreshUI();
+    });
+    document.getElementById("menuDeleteBtn")?.addEventListener("click", () => {
+        if (state.selectedFieldIds.size === 0) return;
+        const deletedCount = state.selectedFieldIds.size;
+        state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
+        setSelectedField(null);
+        saveHistory();
+        refreshUI();
+        showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
     });
 
     // Keyboard Shortcuts & Help Modal Controls
