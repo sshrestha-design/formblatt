@@ -362,8 +362,12 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
         };
     }
 
-    const left = x, right = x + width;
-    const top = y, bottom = y + height;
+    const scale = state.currentScale || 1;
+    // Scale-independent snap threshold in PDF document points so magnetic snapping feels identically precise at 25% to 400% zoom
+    const effectiveSnapThreshold = Math.max(1.5, SNAP_THRESHOLD / scale);
+
+    const left = x, right = x + width, centerX = x + width / 2;
+    const top = y, bottom = y + height, centerY = y + height / 2;
 
     // Collect candidate edge alignments within threshold per axis
     const candidatesX = [];
@@ -371,33 +375,39 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
 
     const pushX = (edge, myPos, otherPos) => {
         const diff = Math.abs(myPos - otherPos);
-        if (diff < SNAP_THRESHOLD) candidatesX.push({ edge, otherPos, diff });
+        if (diff < effectiveSnapThreshold) candidatesX.push({ edge, otherPos, diff });
     };
     const pushY = (edge, myPos, otherPos) => {
         const diff = Math.abs(myPos - otherPos);
-        if (diff < SNAP_THRESHOLD) candidatesY.push({ edge, otherPos, diff });
+        if (diff < effectiveSnapThreshold) candidatesY.push({ edge, otherPos, diff });
     };
 
-    // 1. Pure Edge Snapping to other form fields (Left, Right, Top, Bottom)
+    // 1. Pure Edge & Center Snapping to other form fields (Left, Right, Center, Top, Bottom, Middle)
     for (const o of others) {
-        const oLeft = o.x, oRight = o.x + o.width;
-        const oTop = o.y, oBottom = o.y + o.height;
+        const oLeft = o.x, oRight = o.x + o.width, oCenterX = o.x + o.width / 2;
+        const oTop = o.y, oBottom = o.y + o.height, oCenterY = o.y + o.height / 2;
 
-        // Primary Column Alignments (Left-to-Left, Right-to-Right)
+        // Primary Column Alignments
         pushX("left", left, oLeft);
         pushX("right", right, oRight);
-
-        // Adjacent / Cross-Edge Alignments (Left-to-Right, Right-to-Left)
         pushX("left", left, oRight);
         pushX("right", right, oLeft);
+        pushX("center", centerX, oCenterX);
 
-        // Primary Row Alignments (Top-to-Top, Bottom-to-Bottom)
+        // Primary Row Alignments
         pushY("top", top, oTop);
         pushY("bottom", bottom, oBottom);
-
-        // Stacked Row Alignments (Top-to-Bottom, Bottom-to-Top)
         pushY("top", top, oBottom);
         pushY("bottom", bottom, oTop);
+        pushY("center", centerY, oCenterY);
+    }
+
+    // Page Center Snapping
+    if (pageWidth && pageWidth > 0) {
+        pushX("center", centerX, pageWidth / 2);
+    }
+    if (pageHeight && pageHeight > 0) {
+        pushY("center", centerY, pageHeight / 2);
     }
 
     // 2. Snap to background document text blocks (column edges & baseline guides)
@@ -430,23 +440,23 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
 
     let snapX = 0, snapY = 0;
     if (bestX) {
-        const myPos = bestX.edge === "left" ? left : right;
+        const myPos = bestX.edge === "left" ? left : (bestX.edge === "right" ? right : centerX);
         snapX = bestX.otherPos - myPos;
     }
     if (bestY) {
-        const myPos = bestY.edge === "top" ? top : bottom;
+        const myPos = bestY.edge === "top" ? top : (bestY.edge === "bottom" ? bottom : centerY);
         snapY = bestY.otherPos - myPos;
     }
 
     // Re-derive final resting edges after edge snapping
-    const finalLeft = left + snapX, finalRight = right + snapX;
-    const finalTop = top + snapY, finalBottom = bottom + snapY;
+    const finalLeft = left + snapX, finalRight = right + snapX, finalCenterX = centerX + snapX;
+    const finalTop = top + snapY, finalBottom = bottom + snapY, finalCenterY = centerY + snapY;
 
-    const EPS = 0.75;
+    const EPS = Math.max(0.5, 1.5 / scale);
     const guidesX = [];
     const seenX = new Set();
     for (const c of candidatesX) {
-        const myFinalPos = c.edge === "left" ? finalLeft : finalRight;
+        const myFinalPos = c.edge === "left" ? finalLeft : (c.edge === "right" ? finalRight : finalCenterX);
         if (Math.abs(myFinalPos - c.otherPos) <= EPS) {
             const key = Math.round(c.otherPos);
             if (!seenX.has(key)) { seenX.add(key); guidesX.push(c.otherPos); }
@@ -455,7 +465,7 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
     const guidesY = [];
     const seenY = new Set();
     for (const c of candidatesY) {
-        const myFinalPos = c.edge === "top" ? finalTop : finalBottom;
+        const myFinalPos = c.edge === "top" ? finalTop : (c.edge === "bottom" ? finalBottom : finalCenterY);
         if (Math.abs(myFinalPos - c.otherPos) <= EPS) {
             const key = Math.round(c.otherPos);
             if (!seenY.has(key)) { seenY.add(key); guidesY.push(c.otherPos); }
@@ -1167,7 +1177,7 @@ let spacingBadgeEls = [];
 let guideContainer = null;
 
 function getGuideContainer() {
-    if (!guideContainer) guideContainer = (vAlignLine && vAlignLine.parentNode) || document.getElementById("canvasContainer");
+    if (!guideContainer) guideContainer = document.getElementById("smartGuides") || document.getElementById("canvasContainer");
     return guideContainer;
 }
 
@@ -1196,6 +1206,8 @@ function getPooledEl(pool, index, className) {
 function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, spacingX = null, spacingY = null, pageWidth = null, pageHeight = null) {
     if (!snapPointDot) snapPointDot = document.getElementById("snapPointDot");
     const scale = state.currentScale || 1;
+    const invScale = 1 / scale;
+    const lineWidth = Math.max(0.75, 1.5 * invScale);
 
     // Back-compat: callers may still pass a single number instead of an array.
     const guidesX = Array.isArray(guidesXInput) ? guidesXInput : (guidesXInput !== null && guidesXInput !== undefined ? [guidesXInput] : []);
@@ -1204,7 +1216,8 @@ function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, 
     guidesX.forEach((gx, i) => {
         const isCenter = pageWidth != null && Math.abs(gx - pageWidth / 2) < 0.5;
         const el = getPooledEl(vGuideEls, i, `align-line vertical${isCenter ? " center-guide" : ""}`);
-        el.style.left = Math.round(gx * scale) + "px";
+        el.style.left = Math.round(gx) + "px";
+        el.style.width = lineWidth + "px";
         el.style.display = "block";
     });
     for (let i = guidesX.length; i < vGuideEls.length; i++) {
@@ -1214,7 +1227,8 @@ function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, 
     guidesY.forEach((gy, i) => {
         const isCenter = pageHeight != null && Math.abs(gy - pageHeight / 2) < 0.5;
         const el = getPooledEl(hGuideEls, i, `align-line horizontal${isCenter ? " center-guide" : ""}`);
-        el.style.top = Math.round(gy * scale) + "px";
+        el.style.top = Math.round(gy) + "px";
+        el.style.height = lineWidth + "px";
         el.style.display = "block";
     });
     for (let i = guidesY.length; i < hGuideEls.length; i++) {
@@ -1225,8 +1239,9 @@ function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, 
         const posX = activeX !== null ? activeX : guidesX[0];
         const posY = activeY !== null ? activeY : guidesY[0];
         if (posX !== undefined && posX !== null && posY !== undefined && posY !== null) {
-            snapPointDot.style.left = Math.round(posX * scale) + "px";
-            snapPointDot.style.top = Math.round(posY * scale) + "px";
+            snapPointDot.style.left = Math.round(posX) + "px";
+            snapPointDot.style.top = Math.round(posY) + "px";
+            snapPointDot.style.transform = `translate(-50%, -50%) scale(${invScale})`;
             snapPointDot.style.display = "block";
         } else {
             snapPointDot.style.display = "none";
@@ -1249,13 +1264,14 @@ function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, 
         badge.textContent = sp.gap + "px";
         if (isX) {
             const midGapX = (sp.seg1.to + sp.seg2.from) / 2;
-            badge.style.left = Math.round(midGapX * scale) + "px";
-            badge.style.top = Math.round(sp.crossMid * scale) + "px";
+            badge.style.left = Math.round(midGapX) + "px";
+            badge.style.top = Math.round(sp.crossMid) + "px";
         } else {
             const midGapY = (sp.seg1.to + sp.seg2.from) / 2;
-            badge.style.left = Math.round(sp.crossMid * scale) + "px";
-            badge.style.top = Math.round(midGapY * scale) + "px";
+            badge.style.left = Math.round(sp.crossMid) + "px";
+            badge.style.top = Math.round(midGapY) + "px";
         }
+        badge.style.transform = `translate(-50%, -50%) scale(${invScale})`;
         badge.style.display = "block";
     });
     for (let i = spacings.length; i < spacingBadgeEls.length; i++) {

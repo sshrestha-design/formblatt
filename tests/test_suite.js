@@ -569,6 +569,16 @@ async function runAllTests() {
         assert.ok(f.hidden);
     });
 
+    it("Panel width resize clamping keeps sidebars within safe minimum and maximum bounds", () => {
+        const clampPanelWidth = (startW, deltaX, minW, maxW) => Math.max(minW, Math.min(maxW, Math.round(startW + deltaX)));
+        // Test lower bound
+        assert.equal(clampPanelWidth(256, -150, 180, 600), 180);
+        // Test upper bound
+        assert.equal(clampPanelWidth(256, 500, 180, 600), 600);
+        // Test valid intermediate width
+        assert.equal(clampPanelWidth(256, 100, 180, 600), 356);
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

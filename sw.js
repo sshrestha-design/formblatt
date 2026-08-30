@@ -1,7 +1,7 @@
 // ── JustForms Offline Service Worker (sw.js) ──────────────────────────
 // Enables 100% client-side offline execution (PWA) — works in Airplane Mode.
 
-const CACHE_NAME = "justforms-cache-v2.4";
+const CACHE_NAME = "justforms-cache-v2.5";
 const STATIC_ASSETS = [
     "/",
     "/index.html",
@@ -58,7 +58,7 @@ self.addEventListener("activate", event => {
     );
 });
 
-// Fetch event: Stale-While-Revalidate for local assets, Cache-First for static fonts/CDNs
+// Fetch event: Network-First with Cache Fallback (guarantees newest code while preserving 100% offline PWA)
 self.addEventListener("fetch", event => {
     const url = new URL(event.request.url);
 
@@ -68,35 +68,24 @@ self.addEventListener("fetch", event => {
     }
 
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            if (cachedResponse) {
-                // Fetch updated version in background to update cache (Stale-While-Revalidate)
-                fetch(event.request).then(networkResponse => {
-                    if (networkResponse && networkResponse.status === 200) {
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(event.request, networkResponse);
-                        });
-                    }
-                }).catch(() => {/* Offline fallback */});
-                return cachedResponse;
-            }
-
-            // Fetch from network and cache
-            return fetch(event.request).then(networkResponse => {
-                if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== "basic" && networkResponse.type !== "cors") {
-                    return networkResponse;
+        fetch(event.request)
+            .then(networkResponse => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseToCache = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, responseToCache);
+                    });
                 }
-                const responseToCache = networkResponse.clone();
-                caches.open(CACHE_NAME).then(cache => {
-                    cache.put(event.request, responseToCache);
-                });
                 return networkResponse;
-            }).catch(() => {
-                // Return cached root for navigation requests when completely offline
-                if (event.request.mode === "navigate") {
-                    return caches.match("/index.html") || caches.match("/");
-                }
-            });
-        })
+            })
+            .catch(() => {
+                // Offline fallback from Cache Storage
+                return caches.match(event.request).then(cachedResponse => {
+                    if (cachedResponse) return cachedResponse;
+                    if (event.request.mode === "navigate") {
+                        return caches.match("/index.html") || caches.match("/");
+                    }
+                });
+            })
     );
 });

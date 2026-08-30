@@ -11,7 +11,6 @@ export async function renderPage(forceRerender = false) {
     const canvas = document.getElementById("pdfCanvas");
     const container = document.getElementById("canvasContainer");
     if (!canvas || !container) return;
-    const ctx = canvas.getContext("2d");
 
     if (renderTask) {
         try { renderTask.cancel(); } catch(e) {}
@@ -33,13 +32,22 @@ export async function renderPage(forceRerender = false) {
         lastRasterScale = rasterScale;
         const viewport = currentRenderPage.getViewport({ scale: rasterScale });
 
+        // Double-Buffered Offscreen Render to eliminate canvas blanking/flicker
+        const offscreenCanvas = document.createElement("canvas");
+        offscreenCanvas.width = viewport.width;
+        offscreenCanvas.height = viewport.height;
+        const offscreenCtx = offscreenCanvas.getContext("2d");
+
+        renderTask = currentRenderPage.render({ canvasContext: offscreenCtx, viewport: viewport });
+        await renderTask.promise;
+
+        // Atomic swap to visible canvas without any white flash
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         canvas.style.width = baseViewport.width + "px";
         canvas.style.height = baseViewport.height + "px";
-
-        renderTask = currentRenderPage.render({ canvasContext: ctx, viewport: viewport });
-        await renderTask.promise;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(offscreenCanvas, 0, 0);
     } catch(err) {
         if (err.name !== "RenderingCancelledException") {
             console.error("PDF Render error:", err);
@@ -57,14 +65,17 @@ export function setTransformScale(newScale, onRerender) {
     const zoomDisplay = document.getElementById("zoomLevelDisplay");
     if (zoomDisplay) zoomDisplay.textContent = Math.round(state.currentScale * 100) + "%";
 
+    // Hide any active guides during zoom
+    document.querySelectorAll(".align-line, .spacing-badge, .snap-point-dot").forEach(el => {
+        el.style.display = "none";
+    });
+
     clearTimeout(rasterDebounceTimer);
     rasterDebounceTimer = setTimeout(() => {
         if (Math.abs(lastRasterScale - (state.currentScale * (window.devicePixelRatio || 1))) > 0.05) {
-            renderPage(true).then(() => {
-                if (onRerender) onRerender();
-            });
+            renderPage(true);
         }
-    }, 150);
+    }, 200);
 }
 
 export function fitToWidth(onRerender) {
