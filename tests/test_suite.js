@@ -545,9 +545,10 @@ async function runAllTests() {
 
     // ── SUITE 11: Tool Switching, Esc Workflow & Field Placement ──
     console.log("\n⚡ Suite 11: Tool Switching, Esc Workflow & Field Placement");
-    it("Esc key cancels action, switches to select tool, and deselects fields", () => {
+    it("Esc key cancels action and resets tool without clearing the active field selection", () => {
         state.activeTool = "textField";
         state.selectedFieldIds = new Set(["m1"]);
+        state.lastSelectedFieldId = "m1";
         state.isDragging = true;
         state.isResizing = true;
         state.isLassoing = true;
@@ -557,11 +558,10 @@ async function runAllTests() {
         state.isResizing = false;
         state.isLassoing = false;
         state.activeTool = "select";
-        state.selectedFieldIds.clear();
-        state.selectedFieldId = null;
 
         assert.equal(state.activeTool, "select");
-        assert.equal(state.selectedFieldIds.size, 0);
+        assert.equal(state.selectedFieldIds.size, 1);
+        assert.equal(state.lastSelectedFieldId, "m1");
         assert.equal(state.isDragging, false);
         assert.equal(state.isResizing, false);
         assert.equal(state.isLassoing, false);
