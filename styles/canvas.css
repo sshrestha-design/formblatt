@@ -57,6 +57,7 @@
     border-radius: 3px;
     overflow: visible;
     transition: border-color var(--anim-fast), box-shadow var(--anim-fast), background var(--anim-fast);
+    touch-action: none;
 }
 
 .field-overlay:not(.selected):hover {
