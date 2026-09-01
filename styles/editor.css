@@ -2140,6 +2140,11 @@ body.mode-fill #toggleGuidesBtn {
         touch-action: none;
     }
 
+    .center-canvas.fit-page-view {
+        align-items: center !important;
+        justify-content: center;
+    }
+
     .canvas-container {
         margin: 0 auto;
     }
