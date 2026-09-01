@@ -57,9 +57,16 @@ export const state = {
 };
 
 export function getSelectedField() {
-    if (state.selectedFieldIds.size !== 1) return null;
-    const id = Array.from(state.selectedFieldIds)[0];
-    return state.fields.find(f => f.id === id) || null;
+    if (state.selectedFieldIds.size === 1) {
+        const id = Array.from(state.selectedFieldIds)[0];
+        return state.fields.find(f => f.id === id) || null;
+    }
+
+    if (state.selectedFieldIds.size === 0 && state.lastSelectedFieldId !== null) {
+        return state.fields.find(f => f.id === state.lastSelectedFieldId) || null;
+    }
+
+    return null;
 }
 
 export function setSelectedField(fieldOrId) {
@@ -229,7 +236,6 @@ export function addNextTableRow() {
 export function setEditorMode(mode = "design") {
     state.editorMode = mode;
     state.selectedFieldIds.clear();
-    state.lastSelectedFieldId = null;
     if (mode === "fill") {
         state.activeTool = "select";
     }
