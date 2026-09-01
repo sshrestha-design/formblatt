@@ -1367,6 +1367,14 @@ function initMobileEditorLayout() {
     const rightPanel = document.querySelector(".right-panel");
     if (!leftPanel || !rightPanel) return;
 
+    document.addEventListener("pointerdown", e => {
+        if (!mediaQuery.matches) return;
+        if (e.target.closest(".left-panel, .right-panel, #toggleSidebarBtn, #toggleRightSidebarBtn")) return;
+
+        if (!leftPanel.classList.contains("collapsed")) toggleLeftSidebar();
+        if (!rightPanel.classList.contains("collapsed")) toggleRightSidebar();
+    }, true);
+
     const applyLayout = (isMobile) => {
         if (isMobile) {
             if (!document.body.dataset.mobilePanelState) {
