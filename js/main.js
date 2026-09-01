@@ -97,6 +97,7 @@ const bootstrapApp = async () => {
     );
     initCanvasController(canvasHandlers);
     initLandingController(() => refreshUI());
+    initUiZoomGuard();
     if (typeof lucide !== "undefined") lucide.createIcons();
 
     // Toolbar Tool Selection Buttons
@@ -1058,6 +1059,22 @@ const bootstrapApp = async () => {
     showLandingScreen(true, true);
     if (typeof lucide !== "undefined") lucide.createIcons();
 };
+
+function initUiZoomGuard() {
+    const isCanvasGesture = target => target?.closest("#centerCanvas, #canvasContainer");
+    const preventBrowserWheelZoom = e => {
+        if ((e.ctrlKey || e.metaKey) && !isCanvasGesture(e.target)) e.preventDefault();
+    };
+    const preventBrowserGestureZoom = e => {
+        if (!isCanvasGesture(e.target)) e.preventDefault();
+    };
+
+    // Keep browser-level pinch/Ctrl+wheel zoom from resizing the editor UI.
+    document.addEventListener("wheel", preventBrowserWheelZoom, { capture: true, passive: false });
+    ["gesturestart", "gesturechange", "gestureend"].forEach(type => {
+        document.addEventListener(type, preventBrowserGestureZoom, { capture: true, passive: false });
+    });
+}
 
 if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", bootstrapApp);
