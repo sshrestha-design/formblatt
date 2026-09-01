@@ -273,8 +273,22 @@ function isOverlapping(field, list, threshold = 0.35) {
         const fieldArea = field.width * field.height;
         const existingArea = existing.width * existing.height;
         const minArea = Math.min(fieldArea, existingArea);
+        const unionArea = fieldArea + existingArea - overlapArea;
+        const iou = unionArea > 0 ? overlapArea / unionArea : 0;
+        const centerDistance = Math.hypot(
+            (field.x + field.width / 2) - (existing.x + existing.width / 2),
+            (field.y + field.height / 2) - (existing.y + existing.height / 2)
+        );
+        const similarSize = field.width / existing.width > 0.65 &&
+            field.width / existing.width < 1.5 &&
+            field.height / existing.height > 0.65 &&
+            field.height / existing.height < 1.5;
 
-        return minArea > 0 && (overlapArea / minArea) > threshold;
+        return minArea > 0 && (
+            (overlapArea / minArea) > threshold ||
+            (iou >= 0.15 && similarSize) ||
+            (centerDistance <= 6 && similarSize)
+        );
     });
 }
 
@@ -305,6 +319,7 @@ export async function autoDetectFields(scope = "current") {
             // rest of the page has no blank fields left to detect. We run
             // geometric detection seeded with the widget rects as occupied space.
             const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
+            const boundaryLines = await detectTableGridLines(page);
 
             const textContent = await page.getTextContent();
             
@@ -327,11 +342,14 @@ export async function autoDetectFields(scope = "current") {
             // inside detectVisualAffordances; anywhere it succeeds, the
             // region gets registered so the heuristic never re-guesses a
             // second, competing table over the same area.
-            const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames);
+            const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, boundaryLines);
+            const boundaryFields = boundaryLines[0]
+                ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields])
+                : [];
 
-            const seedFields = [...widgetFields, ...latticeResult.fields];
+            const seedFields = [...widgetFields, ...latticeResult.fields, ...boundaryFields];
             const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions);
-            newFields.push(...widgetFields, ...latticeResult.fields, ...geometricFields);
+            newFields.push(...widgetFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
@@ -471,6 +489,7 @@ async function detectTableGridLines(page) {
     // pixels along its row/column. Scattered text produces many short runs
     // instead, so a length threshold cleanly separates the two.
     const MIN_LINE_RUN = 120 * RENDER_SCALE;
+    const MIN_BOUNDARY_RUN = 40 * RENDER_SCALE;
 
     const rowBestRun = new Array(height).fill(0);
     for (let y = 0; y < height; y++) {
@@ -491,6 +510,48 @@ async function detectTableGridLines(page) {
         }
         colBestRun[x] = best;
     }
+
+    function findLineSegments(minRun, horizontal) {
+        const segments = [];
+        const limit = horizontal ? height : width;
+        for (let offset = 0; offset < limit; offset++) {
+            let bestStart = -1, bestEnd = -1, runStart = -1;
+            const span = horizontal ? width : height;
+            for (let cursor = 0; cursor <= span; cursor++) {
+                const dark = cursor < span && (horizontal ? isDark(cursor, offset) : isDark(offset, cursor));
+                if (dark && runStart < 0) runStart = cursor;
+                if ((!dark || cursor === span) && runStart >= 0) {
+                    if (cursor - runStart > bestEnd - bestStart) {
+                        bestStart = runStart;
+                        bestEnd = cursor;
+                    }
+                    runStart = -1;
+                }
+            }
+            if (bestEnd - bestStart >= minRun) {
+                segments.push({ offset, start: bestStart, end: bestEnd });
+            }
+        }
+
+        const merged = [];
+        for (const segment of segments) {
+            const previous = merged[merged.length - 1];
+            if (previous &&
+                segment.offset - previous.offset <= 3 &&
+                segment.start <= previous.end + 6 &&
+                segment.end >= previous.start - 6) {
+                previous.offset = Math.round((previous.offset + segment.offset) / 2);
+                previous.start = Math.min(previous.start, segment.start);
+                previous.end = Math.max(previous.end, segment.end);
+            } else {
+                merged.push({ ...segment });
+            }
+        }
+        return merged;
+    }
+
+    const horizontalLines = findLineSegments(MIN_BOUNDARY_RUN, true);
+    const verticalLines = findLineSegments(MIN_BOUNDARY_RUN, false);
 
     function mergeAdjacent(candidates, maxGap = 3) {
         const merged = [];
@@ -520,14 +581,16 @@ async function detectTableGridLines(page) {
     // Need at least 2 rows (3 horizontal boundaries) and 2 columns (3
     // vertical boundaries) to call this a real table grid rather than a
     // stray horizontal rule under a title or a single vertical divider.
-    if (hLinesPx.length < 3 || vLinesPx.length < 3) return [];
+    if (hLinesPx.length < 3 || vLinesPx.length < 3) {
+        return [{ rowsY: [], colsX: [], horizontalLines, verticalLines }];
+    }
 
     // Convert back from render-pixel space to the same viewport-scale-1.0,
     // top-left-origin coordinate space that rawBlocks and fields already use.
     const rowsY = hLinesPx.map(y => y / RENDER_SCALE).sort((a, b) => a - b);
     const colsX = vLinesPx.map(x => x / RENDER_SCALE).sort((a, b) => a - b);
 
-    return [{ rowsY, colsX }];
+    return [{ rowsY, colsX, horizontalLines, verticalLines }];
 }
 
 // Builds fields directly from a detected ruling-line grid: the header row's
@@ -646,10 +709,10 @@ function buildFieldsFromTableGrid(grid, rawBlocks, pageNum, usedNames) {
     return { fields, region };
 }
 
-async function detectLatticeTableFields(page, rawBlocks, pageNum, usedNames) {
+async function detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, detectedGrids = null) {
     let grids;
     try {
-        grids = await detectTableGridLines(page);
+        grids = detectedGrids || await detectTableGridLines(page);
     } catch (err) {
         console.error("Lattice table detection failed, falling back to text-based table detection:", err);
         return { fields: [], regions: [] };
@@ -658,6 +721,7 @@ async function detectLatticeTableFields(page, rawBlocks, pageNum, usedNames) {
     const allFields = [];
     const regions = [];
     for (const grid of grids) {
+        if (!grid.rowsY?.length || !grid.colsX?.length) continue;
         const { fields, region } = buildFieldsFromTableGrid(grid, rawBlocks, pageNum, usedNames);
         if (fields.length > 0 && region) {
             allFields.push(...fields);
@@ -665,6 +729,81 @@ async function detectLatticeTableFields(page, rawBlocks, pageNum, usedNames) {
         }
     }
     return { fields: allFields, regions };
+}
+
+function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFields) {
+    const fields = [];
+    const horizontalLines = grid?.horizontalLines || [];
+    const verticalLines = grid?.verticalLines || [];
+
+    for (const line of horizontalLines) {
+        const x = line.start / 2;
+        const width = (line.end - line.start) / 2;
+        const y = line.offset / 2;
+        if (width < 40) continue;
+
+        // Table borders have several vertical intersections. A lone rule is
+        // more likely to be an underline or a single blank form boundary.
+        const intersections = verticalLines.filter(v => {
+            const vx = v.offset / 2;
+            return vx >= x - 3 && vx <= x + width + 3;
+        }).length;
+        if (intersections >= 3) continue;
+
+        const pairedBoundary = horizontalLines.find(other =>
+            other.offset > line.offset &&
+            other.offset - line.offset >= 24 &&
+            other.offset - line.offset <= 160 &&
+            Math.abs(other.start - line.start) <= 8 &&
+            Math.abs(other.end - line.end) <= 8
+        );
+        const endpointIntersections = verticalLines.filter(v => {
+            const vx = v.offset / 2;
+            return Math.abs(vx - x) <= 3 || Math.abs(vx - (x + width)) <= 3;
+        }).length;
+        if (pairedBoundary && endpointIntersections >= 2) {
+            // A closed rectangle is one field, not two underline fields.
+            if (line.offset > pairedBoundary.offset) continue;
+        }
+
+        const isBox = Boolean(pairedBoundary && endpointIntersections >= 2);
+        const fieldHeight = isBox
+            ? Math.round((pairedBoundary.offset - line.offset) / 2)
+            : 22;
+        const candidate = {
+            x: Math.max(0, Math.round(x)),
+            y: Math.max(0, Math.round(isBox ? y : y - 22)),
+            width: Math.round(width),
+            height: Math.max(16, fieldHeight),
+            page: pageNum
+        };
+        if (candidate.width < 40 || isOverlapping(candidate, existingFields, 0.2) ||
+            isOverlapping(candidate, fields, 0.5)) continue;
+
+        const nearbyLabel = rawBlocks
+            .filter(tb => tb.y + tb.height <= y + 3 && tb.y + tb.height >= y - 45 &&
+                tb.x + tb.width <= x + 12)
+            .sort((a, b) => (y - (a.y + a.height)) - (y - (b.y + b.height)))[0];
+        const label = nearbyLabel?.str || "";
+        const sem = resolveSemanticProps(label || "field", "textField", usedNames);
+        fields.push({
+            id: generateFieldId(),
+            type: /signature|sign\s*here/i.test(label) ? "signature" : "textField",
+            name: sem.name,
+            x: candidate.x,
+            y: candidate.y,
+            width: candidate.width,
+            height: candidate.height,
+            page: pageNum,
+            borderStyle: "solid",
+            fillStyle: "white",
+            multiline: false,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            detectedBy: "boundary_underline"
+        });
+    }
+    return fields;
 }
 
 // ============================================================================
