@@ -417,6 +417,29 @@ export function populateProperties(field) {
         if (emptyPanel) emptyPanel.style.display = "flex";
         if (singleProps) singleProps.style.display = "none";
         if (multiProps) multiProps.style.display = "none";
+
+        const clearText = id => {
+            const el = document.getElementById(id);
+            if (el && document.activeElement !== el) el.value = "";
+        };
+        const clearChecked = id => {
+            const el = document.getElementById(id);
+            if (el) el.checked = false;
+        };
+
+        [
+            "fieldType", "fieldName", "fieldDefaultValue", "fieldFontFamily", "fontSize",
+            "textAlignment", "fieldTooltip", "autofillType", "fieldAutofill",
+            "fieldBorderStyle", "borderStyleSelect", "fieldFillStyle", "fillStyleSelect",
+            "width", "height", "dropdownOptions"
+        ].forEach(clearText);
+
+        [
+            "fieldRequired", "fieldReadOnly", "fieldMultiline", "fieldDefaultChecked"
+        ].forEach(clearChecked);
+
+        document.querySelectorAll(".quick-size-btn").forEach(btn => btn.classList.remove("active"));
+        document.querySelectorAll(".multi-quick-size-btn").forEach(btn => btn.classList.remove("active"));
         return;
     }
 
