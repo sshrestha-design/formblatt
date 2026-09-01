@@ -2167,6 +2167,57 @@ body.mode-fill #toggleGuidesBtn {
         min-height: 38px;
         padding: 0 10px;
     }
+
+    .canvas-docked-footer {
+        height: 52px !important;
+        min-height: 52px;
+        padding: 0 8px !important;
+        gap: 8px;
+    }
+
+    .docked-page-nav {
+        flex: 0 0 auto;
+        padding: 2px 4px !important;
+    }
+
+    .docked-page-nav button {
+        min-width: 36px;
+        min-height: 36px;
+        justify-content: center;
+    }
+
+    .docked-page-nav #pageIndicator {
+        min-width: 58px !important;
+        padding-inline: 3px !important;
+        font-size: 11px !important;
+    }
+
+    .docked-footer-hints {
+        display: none !important;
+    }
+
+    .docked-zoom-controls {
+        margin-left: auto;
+        gap: 2px !important;
+        flex: 0 0 auto;
+    }
+
+    .docked-zoom-btn,
+    .docked-zoom-pill {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+    }
+
+    .docked-zoom-pill {
+        padding: 0 4px;
+        font-size: 11px;
+    }
+
+    .docked-zoom-controls > div[style*="width: 1px"] {
+        display: none !important;
+    }
 }
 
 /* ── Floating Fill & Test Mode Banner HUD ────────────────────── */
