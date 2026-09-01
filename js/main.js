@@ -214,6 +214,15 @@ const bootstrapApp = async () => {
         refreshUI();
         showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
     });
+    document.getElementById("quickUndoBtn")?.addEventListener("click", () => {
+        document.getElementById("menuUndoBtn")?.click();
+    });
+    document.getElementById("quickRedoBtn")?.addEventListener("click", () => {
+        document.getElementById("menuRedoBtn")?.click();
+    });
+    document.getElementById("quickDeleteBtn")?.addEventListener("click", () => {
+        document.getElementById("menuDeleteBtn")?.click();
+    });
 
     // Keyboard Shortcuts & Help Modal Controls
     const shortcutsModal = document.getElementById("shortcutsModal");
