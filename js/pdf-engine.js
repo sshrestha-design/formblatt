@@ -57,6 +57,7 @@ export async function renderPage(forceRerender = false) {
 
 export function setTransformScale(newScale, onRerender) {
     state.currentScale = Math.min(Math.max(newScale, 0.25), 4.0);
+    document.getElementById("centerCanvas")?.classList.remove("fit-page-view");
     const container = document.getElementById("canvasContainer");
     if (container) {
         container.style.transform = `scale(${state.currentScale})`;
@@ -102,6 +103,7 @@ export function fitToPage(onRerender) {
     const scaleY = availableHeight / docHeight;
     const newScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 3.0);
     setTransformScale(newScale, onRerender);
+    document.getElementById("centerCanvas")?.classList.add("fit-page-view");
 }
 
 export async function goToPage(pageNum, onPageChange) {
