@@ -32,6 +32,46 @@ function resolveAutofillTooltip(f) {
     return AUTOFILL_ROLE_TITLES[autofillRole] || autofillRole;
 }
 
+function applyTextFieldAppearance(fieldObj, font, fontSize, fontFamily = "Helvetica") {
+    if (!fieldObj) return;
+
+    const family = {
+        helvetica: "Helvetica",
+        "helvetica-bold": "Helvetica-Bold",
+        times: "Times-Roman",
+        "times-italic": "Times-Italic",
+        courier: "Courier"
+    }[fontFamily] || "Helvetica";
+
+    const appearance = `(0 0 0 rg /${family} ${fontSize} Tf)`;
+
+    try {
+        fieldObj.acroField.dict.set(
+            PDFLib.PDFName.of("DA"),
+            PDFLib.PDFString.of(appearance)
+        );
+    } catch (err) {
+        console.warn("Could not set field DA explicitly:", err);
+    }
+
+    try { fieldObj.setFontSize(fontSize); } catch (e) {}
+
+    try {
+        fieldObj.acroField?.dict?.set?.(PDFLib.PDFName.of("Q"), PDFLib.PDFNumber.of(0));
+    } catch (e) {}
+
+    try {
+        const widgets = fieldObj.acroField?.getWidgets?.() || [];
+        widgets.forEach(widget => {
+            try { widget.setDefaultAppearance(appearance); } catch (e) {}
+            try { widget.dict.set(PDFLib.PDFName.of("DA"), PDFLib.PDFString.of(appearance)); } catch (e) {}
+            try { widget.dict.set(PDFLib.PDFName.of("Q"), PDFLib.PDFNumber.of(0)); } catch (e) {}
+        });
+    } catch (err) {
+        console.warn("Could not set widget appearance explicitly:", err);
+    }
+}
+
 export async function buildPdf(options = {}) {
     if (!state.originalPdfBytes) throw new Error("No PDF loaded.");
 
@@ -116,6 +156,7 @@ export async function buildPdf(options = {}) {
                 // Enhanced PDF Viewer Autofill Descriptor (/TU)
                 const autoFillTooltip = resolveAutofillTooltip(f);
                 try { tf.setToolTip(autoFillTooltip || f.name.replace(/_/g, " ")); } catch(e) {}
+                if (!f.textAlignment) f.textAlignment = "left";
 
                 // Select font & font size
                 let font = helvetica;
@@ -144,6 +185,7 @@ export async function buildPdf(options = {}) {
                 // Add to page and compile vector appearance
                 tf.addToPage(page, common);
                 try { tf.updateAppearances(font); } catch(e) {}
+                applyTextFieldAppearance(tf, font, fontSize, f.fontFamily || "helvetica");
 
             } else if (f.type === "checkBox") {
                 let cb;
@@ -172,6 +214,14 @@ export async function buildPdf(options = {}) {
                 
                 const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 11;
                 try { dd.setFontSize(fontSize); } catch(e) {}
+                if (!f.textAlignment) f.textAlignment = "left";
+                try {
+                    if (PDFLib.TextAlignment && dd.setAlignment) {
+                        if (f.textAlignment === "center") dd.setAlignment(PDFLib.TextAlignment.Center);
+                        else if (f.textAlignment === "right") dd.setAlignment(PDFLib.TextAlignment.Right);
+                        else dd.setAlignment(PDFLib.TextAlignment.Left);
+                    }
+                } catch(e) {}
 
                 dd.addToPage(page, common);
 
@@ -182,6 +232,7 @@ export async function buildPdf(options = {}) {
                 } catch(e) {}
 
                 try { dd.updateAppearances(font); } catch(e) {}
+                applyTextFieldAppearance(dd, font, fontSize, f.fontFamily || "helvetica");
 
             } else if (f.type === "radioGroup") {
                 let rg;
