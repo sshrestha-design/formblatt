@@ -929,6 +929,39 @@ export function initCanvasController(handlers) {
 
     // Initialize Canvas Context Menu
     initContextMenu(handlers);
+
+    let pinchStartDistance = 0;
+    let pinchStartScale = state.currentScale;
+    let isPinching = false;
+    const getPinchDistance = touches => Math.hypot(
+        touches[0].clientX - touches[1].clientX,
+        touches[0].clientY - touches[1].clientY
+    );
+
+    centerCanvas?.addEventListener("touchstart", e => {
+        if (e.touches.length !== 2) return;
+        pinchStartDistance = getPinchDistance(e.touches);
+        pinchStartScale = state.currentScale;
+        isPinching = pinchStartDistance > 0;
+    }, { passive: true });
+
+    centerCanvas?.addEventListener("touchmove", e => {
+        if (!isPinching || e.touches.length !== 2) return;
+        e.preventDefault();
+        const distance = getPinchDistance(e.touches);
+        if (!distance || !pinchStartDistance) return;
+        const nextScale = pinchStartScale * (distance / pinchStartDistance);
+        setTransformScale(nextScale, handlers.onRerender);
+    }, { passive: false });
+
+    const stopPinching = () => {
+        isPinching = false;
+        pinchStartDistance = 0;
+    };
+    centerCanvas?.addEventListener("touchend", e => {
+        if (e.touches.length < 2) stopPinching();
+    }, { passive: true });
+    centerCanvas?.addEventListener("touchcancel", stopPinching, { passive: true });
 }
 
 let isSpacePressed = false;
