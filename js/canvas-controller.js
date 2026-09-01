@@ -275,6 +275,7 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
         borderStyle: "solid",
         fillStyle: "white",
         fontSize: detectedFontSize,
+        textAlignment: "left",
         ...(type === "dateField" ? { dateFormat: "MM/DD/YYYY", defaultValue: "MM/DD/YYYY" } : {}),
         ...(type === "dropdown" ? { options: ["Select...", "Option 1", "Option 2", "Option 3"], defaultValue: "Select..." } : {})
     };
