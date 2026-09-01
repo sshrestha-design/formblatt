@@ -1934,12 +1934,16 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .toolbar {
+        display: grid;
+        grid-template-columns: max-content minmax(0, 1fr);
+        grid-template-areas:
+            "left right"
+            "center center";
         height: auto;
-        min-height: 52px;
+        min-height: 126px;
         padding: calc(8px + env(safe-area-inset-top)) 10px 8px;
         gap: 8px;
-        flex-wrap: wrap;
-        align-content: center;
+        align-items: center;
         overflow-x: hidden;
     }
 
@@ -1949,12 +1953,14 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .toolbar-left {
-        min-width: 0;
-        flex: 1 1 auto;
+        grid-area: left;
+        min-width: max-content;
     }
 
     .toolbar-right {
-        flex: 0 0 auto;
+        grid-area: right;
+        min-width: 0;
+        justify-content: flex-end;
     }
 
     .editor-brand-name,
@@ -1967,6 +1973,9 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .editor-brand-logo {
+        width: 40px;
+        height: 40px;
+        justify-content: center;
         padding-right: 2px;
     }
 
@@ -1984,6 +1993,24 @@ body.mode-fill #toggleGuidesBtn {
         font-size: 0;
     }
 
+    .mode-segmented-toggle {
+        min-width: 0;
+        max-width: 172px;
+        flex: 1 1 auto;
+    }
+
+    .mode-toggle-btn {
+        min-width: 0;
+        padding: 0 9px;
+        gap: 5px;
+        white-space: nowrap;
+    }
+
+    .mode-toggle-btn span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
     .toolbar-export-btn svg,
     .toolbar-export-btn i {
         width: 18px;
@@ -1991,8 +2018,10 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .toolbar-center {
+        grid-area: center;
         order: 3;
-        flex: 1 0 100%;
+        width: 100%;
+        min-height: 52px;
         justify-content: flex-start;
         min-width: 0;
         overflow-x: auto;
@@ -2006,20 +2035,24 @@ body.mode-fill #toggleGuidesBtn {
 
     .segmented-toolbar {
         flex-shrink: 0;
-        height: 42px;
+        height: 48px;
+        padding: 4px;
+        border-radius: 12px;
     }
 
     .segmented-toolbar .tool-btn {
-        width: 40px;
-        height: 36px;
+        width: 44px;
+        height: 40px;
+        border-radius: 9px;
     }
 
     .toolbar-smart-btn {
-        height: 40px;
-        min-height: 40px;
+        height: 44px;
+        min-height: 44px;
         padding: 0 12px;
         flex: 0 0 auto;
         white-space: nowrap;
+        border-radius: 9px;
     }
 
     .toolbar-center > * {
