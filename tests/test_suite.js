@@ -106,7 +106,7 @@ async function runAllTests() {
         assert.equal(getSelectedField(), null);
     });
 
-    it("setEditorMode clears stale selection when switching between design and fill", () => {
+    it("keeps the last selected field available for the properties panel after mode changes", () => {
         state.fields = [
             { id: "f1", name: "first_name", type: "textField", x: 10, y: 20, width: 100, height: 25, page: 1 }
         ];
@@ -116,16 +116,16 @@ async function runAllTests() {
 
         setEditorMode("fill");
         assert.equal(state.selectedFieldIds.size, 0);
-        assert.equal(state.lastSelectedFieldId, null);
+        assert.equal(state.lastSelectedFieldId, "f1");
+        assert.equal(getSelectedField()?.id, "f1");
 
-        setSelectedField("f1");
         setEditorMode("design");
         assert.equal(state.selectedFieldIds.size, 0);
-        assert.equal(state.lastSelectedFieldId, null);
-        assert.equal(getSelectedField(), null);
+        assert.equal(state.lastSelectedFieldId, "f1");
+        assert.equal(getSelectedField()?.id, "f1");
     });
 
-    it("populateProperties clears stale values when selection is cleared", () => {
+    it("populateProperties falls back to the last selected field when selection is cleared", () => {
         const elements = {};
         const makeEl = (id, value = "") => {
             const el = {
@@ -145,29 +145,41 @@ async function runAllTests() {
         };
 
         global.document = {
+            activeElement: null,
             getElementById(id) { return elements[id] || null; },
+            querySelector() { return null; },
             querySelectorAll() { return []; }
         };
 
-        makeEl("fieldName", "First Name");
-        makeEl("fieldDefaultValue", "Jane");
-        makeEl("fontSize", "14");
-        makeEl("textAlignment", "left");
-        makeEl("fieldRequired").checked = true;
-        makeEl("fieldReadOnly").checked = true;
+        state.fields = [{ id: "f1", type: "textField", name: "First Name", defaultValue: "Jane", fontSize: 14, textAlignment: "left", required: true, readOnly: true }];
+        state.selectedFieldIds = new Set();
+        state.lastSelectedFieldId = "f1";
+
+        makeEl("fieldName");
+        makeEl("fieldDefaultValue");
+        makeEl("fontSize");
+        makeEl("textAlignment");
+        makeEl("fieldRequired");
+        makeEl("fieldReadOnly");
+        makeEl("fieldFontFamily");
+        makeEl("fieldBorderStyle");
+        makeEl("fieldFillStyle");
+        makeEl("fieldTooltip");
+        makeEl("fieldAutofill");
+        makeEl("fieldType");
+        makeEl("width");
+        makeEl("height");
         makeEl("rightPanelEmpty");
         makeEl("fieldProps");
         makeEl("multiSelectProps");
 
-        state.selectedFieldIds = new Set(["f1"]);
-        state.fields = [{ id: "f1", type: "textField", name: "First Name", defaultValue: "Jane", fontSize: 14, textAlignment: "left", required: true, readOnly: true }];
         populateProperties(null);
 
-        assert.equal(elements.fieldName.value, "");
-        assert.equal(elements.fontSize.value, "");
-        assert.equal(elements.textAlignment.value, "");
-        assert.equal(elements.fieldRequired.checked, false);
-        assert.equal(elements.fieldReadOnly.checked, false);
+        assert.equal(elements.fieldName.value, "First Name");
+        assert.equal(String(elements.fontSize.value), "14");
+        assert.equal(elements.textAlignment.value, "left");
+        assert.equal(elements.fieldRequired.checked, true);
+        assert.equal(elements.fieldReadOnly.checked, true);
     });
 
     it("createGroupForSelected groups selected fields and handles ungrouping", () => {
