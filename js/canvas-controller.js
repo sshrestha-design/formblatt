@@ -873,79 +873,39 @@ export function initCanvasController(handlers) {
         }
     });
 
-    // Touch drag lifecycle for mobile field manipulation. The canvas itself
-    // remains scrollable; once a field is touched, its drag owns the gesture.
-    const getTouchPoint = e => e.touches?.[0] || e.changedTouches?.[0] || e;
-    const toCanvasEvent = (e, point = getTouchPoint(e)) => ({
-        clientX: point.clientX,
-        clientY: point.clientY,
-        button: 0,
-        altKey: e.altKey || false,
-        shiftKey: e.shiftKey || false,
-        ctrlKey: e.ctrlKey || false,
-        metaKey: e.metaKey || false,
-        preventDefault: () => e.preventDefault(),
-        stopPropagation: () => e.stopPropagation()
-    });
-
-    window.addEventListener("touchmove", e => {
-        if (!state.isDragging && !state.isResizing && !isDrawingField && !state.isLassoing) return;
+    window.addEventListener("pointermove", e => {
+        if (e.pointerType !== "touch" || (!state.isDragging && !state.isResizing && !isDrawingField && !state.isLassoing)) return;
         e.preventDefault();
-        const point = getTouchPoint(e);
-        const moveEvent = toCanvasEvent(e, point);
         if (isDrawingField && drawStart && state.activeTool !== "select") {
-            handleFieldDrawMove(moveEvent, container, handlers);
+            handleFieldDrawMove(e, container, handlers);
         } else if (state.isDragging) {
-            handleFieldDrag(moveEvent, container, handlers);
+            handleFieldDrag(e, container, handlers);
         } else if (state.isResizing) {
-            handleFieldResize(moveEvent, handlers);
+            handleFieldResize(e, handlers);
         } else if (state.isLassoing) {
-            handleLassoMove(moveEvent, container, handlers);
+            handleLassoMove(e, container, handlers);
         }
     }, { passive: false });
 
-    window.addEventListener("touchend", e => {
-        if (!state.isDragging && !state.isResizing && !isDrawingField && !state.isLassoing) return;
-        const point = getTouchPoint(e);
-        const endEvent = toCanvasEvent(e, point);
-
-        if (isDrawingField && drawStart && state.activeTool !== "select") {
-            const rect = container.getBoundingClientRect();
-            const curX = (endEvent.clientX - rect.left) / state.currentScale;
-            const curY = (endEvent.clientY - rect.top) / state.currentScale;
-            const tool = state.activeTool;
-            let minX = Math.min(drawStart.x, curX);
-            let minY = Math.min(drawStart.y, curY);
-            let w = Math.abs(curX - drawStart.x);
-            let h = Math.abs(curY - drawStart.y);
-            if (tool === "checkBox" || tool === "radioGroup" || tool === "radio") {
-                const side = Math.max(w, h);
-                w = side;
-                h = side;
-            }
-            isDrawingField = false;
-            drawStart = null;
-            if (ghostElement) {
-                ghostElement.style.display = "none";
-                ghostElement.classList.remove("is-drawing");
-            }
-            hideGuides();
-            createFieldAt(tool, minX, minY, handlers, w >= 16 && h >= 12 ? w : undefined, h >= 12 ? h : undefined, minX, minY, false);
-        } else if (state.isDragging) {
+    window.addEventListener("pointerup", e => {
+        if (e.pointerType !== "touch") return;
+        if (state.isDragging) {
             state.isDragging = false;
             hideGuides();
             saveHistory(true);
             handlers.onFieldUpdated();
-        } else if (state.isResizing) {
+        }
+        if (state.isResizing) {
             state.isResizing = false;
             saveHistory(true);
             handlers.onFieldUpdated();
-        } else if (state.isLassoing) {
+        }
+        if (state.isLassoing) {
             state.isLassoing = false;
             if (selectionBox) selectionBox.style.display = "none";
             handlers.onSelectionChange();
         }
-    }, { passive: false });
+    });
 
     // Spacebar temporary pan listener
     window.addEventListener("keydown", e => {
@@ -1672,4 +1632,37 @@ export function initContextMenu(handlers) {
         menuEl.style.left = `${posX}px`;
         menuEl.style.top = `${posY}px`;
     });
+
+    let longPressTimer = null;
+    let longPressStart = null;
+    const cancelLongPress = () => {
+        if (longPressTimer) clearTimeout(longPressTimer);
+        longPressTimer = null;
+        longPressStart = null;
+    };
+
+    document.addEventListener("pointerdown", e => {
+        if (e.pointerType !== "touch" || e.target.closest(".field-overlay, input, textarea, select, .right-panel, .left-panel, .modal")) return;
+        longPressStart = { x: e.clientX, y: e.clientY };
+        longPressTimer = setTimeout(() => {
+            if (!longPressStart) return;
+            const contextEvent = new MouseEvent("contextmenu", {
+                bubbles: true,
+                cancelable: true,
+                clientX: longPressStart.x,
+                clientY: longPressStart.y
+            });
+            e.target.dispatchEvent(contextEvent);
+            cancelLongPress();
+        }, 350);
+    }, { passive: true });
+
+    document.addEventListener("pointermove", e => {
+        if (!longPressStart || e.pointerType !== "touch") return;
+        if (Math.hypot(e.clientX - longPressStart.x, e.clientY - longPressStart.y) > 10) {
+            cancelLongPress();
+        }
+    }, { passive: true });
+    document.addEventListener("pointerup", cancelLongPress, { passive: true });
+    document.addEventListener("pointercancel", cancelLongPress, { passive: true });
 }
