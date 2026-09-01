@@ -403,6 +403,13 @@ export function renderOverlays(handlers) {
                     e.preventDefault();
                     if (handlers.onResizeStart) handlers.onResizeStart(e, f, h.dir);
                 });
+                handle.addEventListener("pointerdown", e => {
+                    if (e.pointerType !== "touch") return;
+                    e.stopPropagation();
+                    e.preventDefault();
+                    if (handlers.onResizeStart) handlers.onResizeStart(e, f, h.dir);
+                    if (handle.setPointerCapture) handle.setPointerCapture(e.pointerId);
+                });
                 div.appendChild(handle);
             });
         }
@@ -444,22 +451,11 @@ export function renderOverlays(handlers) {
         div.addEventListener("mousedown", e => {
             if (handlers.onFieldMouseDown) handlers.onFieldMouseDown(e, f);
         });
-        div.addEventListener("touchstart", e => {
-            const touch = e.touches[0];
-            if (handlers.onFieldMouseDown && touch) {
-                handlers.onFieldMouseDown({
-                    clientX: touch.clientX,
-                    clientY: touch.clientY,
-                    button: 0,
-                    altKey: false,
-                    shiftKey: false,
-                    ctrlKey: false,
-                    metaKey: false,
-                    preventDefault: () => e.preventDefault(),
-                    stopPropagation: () => e.stopPropagation()
-                }, f);
-            }
-        }, { passive: false });
+        div.addEventListener("pointerdown", e => {
+            if (e.pointerType !== "touch") return;
+            if (handlers.onFieldMouseDown) handlers.onFieldMouseDown(e, f);
+            if (div.setPointerCapture) div.setPointerCapture(e.pointerId);
+        });
 
         container.appendChild(div);
     });

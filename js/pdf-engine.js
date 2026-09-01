@@ -60,6 +60,10 @@ export function setTransformScale(newScale, onRerender) {
     const container = document.getElementById("canvasContainer");
     if (container) {
         container.style.transform = `scale(${state.currentScale})`;
+        const baseWidth = container.offsetWidth;
+        const baseHeight = container.offsetHeight;
+        container.style.marginRight = `${Math.max(0, (state.currentScale - 1) * baseWidth)}px`;
+        container.style.marginBottom = `${Math.max(0, (state.currentScale - 1) * baseHeight)}px`;
     }
 
     const zoomDisplay = document.getElementById("zoomLevelDisplay");
