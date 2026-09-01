@@ -1518,7 +1518,34 @@ input.prop-input {
 }
 
 .panel-collapse-btn {
+    width: 36px !important;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0 !important;
+    border-radius: 7px !important;
     transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.panel-collapse-btn svg,
+.panel-collapse-btn i {
+    width: 16px !important;
+    height: 16px !important;
+}
+
+.left-panel-header #groupSelectedBtn {
+    height: 36px;
+    min-height: 36px;
+    padding: 0 10px !important;
+    border-radius: 7px !important;
+    font-size: 12px !important;
+    gap: 6px !important;
+}
+
+.left-panel-header #groupSelectedBtn svg,
+.left-panel-header #groupSelectedBtn i {
+    width: 15px !important;
+    height: 15px !important;
 }
 
 .panel-collapse-btn:hover {
@@ -2187,14 +2214,16 @@ body.mode-fill #toggleGuidesBtn {
 
     .left-panel-header .panel-collapse-btn,
     .prop-panel-header .panel-collapse-btn {
-        min-width: 36px;
-        min-height: 36px;
-        padding: 0 !important;
+        width: 40px !important;
+        min-width: 40px;
+        height: 40px;
+        min-height: 40px;
     }
 
     .left-panel-header #groupSelectedBtn {
-        min-height: 36px;
-        padding: 0 9px !important;
+        height: 40px;
+        min-height: 40px;
+        padding: 0 12px !important;
     }
 
     .layers-list,
