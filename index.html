@@ -111,7 +111,7 @@
     </script>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=9.5">
+    <link rel="stylesheet" href="styles/main.css?v=9.6">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -618,14 +618,14 @@
     <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
         <header class="toolbar">
             <div class="toolbar-left">
-                <span class="editor-brand-logo" id="editorBrandLogo" title="JustForms Dashboard">
+                <span class="editor-brand-logo" id="editorBrandLogo" title="JustForms Dashboard" aria-label="JustForms Dashboard" role="button" tabindex="0">
                     <span class="editor-brand-icon">
                         <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
                     <span class="editor-brand-name">JustForms</span>
                 </span>
                 <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
-                <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)">
+                <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" aria-label="Toggle Layers">
                     <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
                 </button>
                 <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
@@ -765,10 +765,10 @@
                 <button id="shortcutsHelpBtn" class="toolbar-action-btn" title="Keyboard Shortcuts & Help (?)">
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
-                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" title="Toggle Properties Sidebar (Ctrl+] / Cmd+])">
+                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" title="Toggle Properties Sidebar (Ctrl+] / Cmd+])" aria-label="Toggle Properties">
                     <i data-lucide="panel-right-close" style="width: 14px; height: 14px;"></i>
                 </button>
-                <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" title="Download Standard Fillable AcroForm PDF">
+                <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" title="Download Standard Fillable AcroForm PDF" aria-label="Export PDF">
                     <i data-lucide="download" style="width: 14px; height: 14px;"></i>
                     <span>Export PDF</span>
                 </button>
