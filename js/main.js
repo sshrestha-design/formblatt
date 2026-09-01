@@ -10,6 +10,7 @@ import { initSignaturePad } from "./signature-pad.js";
 import { autoDetectFields } from "./auto-detector.js";
 import { saveHistory, undo, redo, exportProjectJson, importProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
+import { triggerHaptic } from "./haptics.js";
 
 // Initialize Vercel Analytics event queue
 window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -65,11 +66,13 @@ const overlayHandlers = {
 
 const canvasHandlers = {
     onSelectionChange: () => {
+        triggerHaptic();
         populateProperties(getSelectedField());
         renderOverlays(overlayHandlers);
         updateLayerSelectionDOM();
     },
     onFieldCreated: field => {
+        triggerHaptic(12);
         refreshUI();
     },
     onFieldMoving: () => {
@@ -103,6 +106,7 @@ const bootstrapApp = async () => {
     // Toolbar Tool Selection Buttons
     document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
         btn.addEventListener("click", () => {
+            triggerHaptic();
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
             state.activeTool = btn.dataset.tool;
@@ -491,7 +495,10 @@ const bootstrapApp = async () => {
     });
 
     // Export and Preview Buttons
-    document.getElementById("generatePdfBtn")?.addEventListener("click", openExportModal);
+    document.getElementById("generatePdfBtn")?.addEventListener("click", () => {
+        triggerHaptic(12);
+        openExportModal();
+    });
     document.getElementById("previewDownloadBtn")?.addEventListener("click", openExportModal);
 
     // ── 2-Step Export Modal & Toast Controller ──────────────────────
@@ -750,8 +757,14 @@ const bootstrapApp = async () => {
     docTitleInlineInput?.addEventListener("blur", commitInlineRename);
 
     // ── Mode Switcher & Fill & Test Mode Actions ────────────────────
-    document.getElementById("modeDesignBtn")?.addEventListener("click", () => switchEditorMode("design"));
-    document.getElementById("modeFillBtn")?.addEventListener("click", () => switchEditorMode("fill"));
+    document.getElementById("modeDesignBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        switchEditorMode("design");
+    });
+    document.getElementById("modeFillBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        switchEditorMode("fill");
+    });
     document.getElementById("fillExitBtn")?.addEventListener("click", () => switchEditorMode("design"));
     document.getElementById("fillResetDataBtn")?.addEventListener("click", () => {
         if (confirm("Reset and clear all entered test data?")) {
@@ -1029,10 +1042,16 @@ const bootstrapApp = async () => {
     });
 
     // Toggle Sidebar & Panels
-    document.getElementById("toggleSidebarBtn")?.addEventListener("click", toggleLeftSidebar);
+    document.getElementById("toggleSidebarBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleLeftSidebar();
+    });
     document.getElementById("collapseLeftPanelBtn")?.addEventListener("click", toggleLeftSidebar);
     document.getElementById("collapseRightPanelBtn")?.addEventListener("click", toggleRightSidebar);
-    document.getElementById("toggleRightSidebarBtn")?.addEventListener("click", toggleRightSidebar);
+    document.getElementById("toggleRightSidebarBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleRightSidebar();
+    });
 
     // Zoom & View Controls
     document.getElementById("zoomInBtn")?.addEventListener("click", () => setTransformScale(state.currentScale + 0.15, refreshUI));

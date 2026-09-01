@@ -3,6 +3,7 @@ import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, gen
 import { DEFAULT_FIELD_SIZES, SNAP_THRESHOLD } from "./constants.js";
 import { setTransformScale, getPageTextBlocks } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
+import { triggerHaptic } from "./haptics.js";
 
 let hAlignLine, vAlignLine, selectionBox, ghostElement;
 let isDrawingField = false;
@@ -1704,6 +1705,7 @@ export function initContextMenu(handlers) {
                 clientY: longPressStart.y
             });
             e.target.dispatchEvent(contextEvent);
+            triggerHaptic(16);
             cancelLongPress();
         }, 350);
     }, { passive: true });
