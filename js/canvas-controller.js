@@ -873,6 +873,80 @@ export function initCanvasController(handlers) {
         }
     });
 
+    // Touch drag lifecycle for mobile field manipulation. The canvas itself
+    // remains scrollable; once a field is touched, its drag owns the gesture.
+    const getTouchPoint = e => e.touches?.[0] || e.changedTouches?.[0] || e;
+    const toCanvasEvent = (e, point = getTouchPoint(e)) => ({
+        clientX: point.clientX,
+        clientY: point.clientY,
+        button: 0,
+        altKey: e.altKey || false,
+        shiftKey: e.shiftKey || false,
+        ctrlKey: e.ctrlKey || false,
+        metaKey: e.metaKey || false,
+        preventDefault: () => e.preventDefault(),
+        stopPropagation: () => e.stopPropagation()
+    });
+
+    window.addEventListener("touchmove", e => {
+        if (!state.isDragging && !state.isResizing && !isDrawingField && !state.isLassoing) return;
+        e.preventDefault();
+        const point = getTouchPoint(e);
+        const moveEvent = toCanvasEvent(e, point);
+        if (isDrawingField && drawStart && state.activeTool !== "select") {
+            handleFieldDrawMove(moveEvent, container, handlers);
+        } else if (state.isDragging) {
+            handleFieldDrag(moveEvent, container, handlers);
+        } else if (state.isResizing) {
+            handleFieldResize(moveEvent, handlers);
+        } else if (state.isLassoing) {
+            handleLassoMove(moveEvent, container, handlers);
+        }
+    }, { passive: false });
+
+    window.addEventListener("touchend", e => {
+        if (!state.isDragging && !state.isResizing && !isDrawingField && !state.isLassoing) return;
+        const point = getTouchPoint(e);
+        const endEvent = toCanvasEvent(e, point);
+
+        if (isDrawingField && drawStart && state.activeTool !== "select") {
+            const rect = container.getBoundingClientRect();
+            const curX = (endEvent.clientX - rect.left) / state.currentScale;
+            const curY = (endEvent.clientY - rect.top) / state.currentScale;
+            const tool = state.activeTool;
+            let minX = Math.min(drawStart.x, curX);
+            let minY = Math.min(drawStart.y, curY);
+            let w = Math.abs(curX - drawStart.x);
+            let h = Math.abs(curY - drawStart.y);
+            if (tool === "checkBox" || tool === "radioGroup" || tool === "radio") {
+                const side = Math.max(w, h);
+                w = side;
+                h = side;
+            }
+            isDrawingField = false;
+            drawStart = null;
+            if (ghostElement) {
+                ghostElement.style.display = "none";
+                ghostElement.classList.remove("is-drawing");
+            }
+            hideGuides();
+            createFieldAt(tool, minX, minY, handlers, w >= 16 && h >= 12 ? w : undefined, h >= 12 ? h : undefined, minX, minY, false);
+        } else if (state.isDragging) {
+            state.isDragging = false;
+            hideGuides();
+            saveHistory(true);
+            handlers.onFieldUpdated();
+        } else if (state.isResizing) {
+            state.isResizing = false;
+            saveHistory(true);
+            handlers.onFieldUpdated();
+        } else if (state.isLassoing) {
+            state.isLassoing = false;
+            if (selectionBox) selectionBox.style.display = "none";
+            handlers.onSelectionChange();
+        }
+    }, { passive: false });
+
     // Spacebar temporary pan listener
     window.addEventListener("keydown", e => {
         const tag = (e.target?.tagName || "").toLowerCase();

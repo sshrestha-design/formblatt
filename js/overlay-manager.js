@@ -444,6 +444,22 @@ export function renderOverlays(handlers) {
         div.addEventListener("mousedown", e => {
             if (handlers.onFieldMouseDown) handlers.onFieldMouseDown(e, f);
         });
+        div.addEventListener("touchstart", e => {
+            const touch = e.touches[0];
+            if (handlers.onFieldMouseDown && touch) {
+                handlers.onFieldMouseDown({
+                    clientX: touch.clientX,
+                    clientY: touch.clientY,
+                    button: 0,
+                    altKey: false,
+                    shiftKey: false,
+                    ctrlKey: false,
+                    metaKey: false,
+                    preventDefault: () => e.preventDefault(),
+                    stopPropagation: () => e.stopPropagation()
+                }, f);
+            }
+        }, { passive: false });
 
         container.appendChild(div);
     });
