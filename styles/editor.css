@@ -110,6 +110,19 @@
     background: #f8fafc;
 }
 
+/* Keep document menus next to the sidebar toggle, before edit shortcuts. */
+.toolbar-left > #fileMenuDropdown {
+    order: 1;
+}
+
+.toolbar-left > #editMenuDropdown {
+    order: 2;
+}
+
+.toolbar-left > .toolbar-quick-actions {
+    order: 3;
+}
+
 .toolbar-quick-actions .toolbar-action-btn {
     width: 30px;
     height: 30px;
