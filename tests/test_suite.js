@@ -153,7 +153,7 @@ async function runAllTests() {
 
         state.fields = [{ id: "f1", type: "textField", name: "First Name", defaultValue: "Jane", fontSize: 14, textAlignment: "left", required: true, readOnly: true }];
         state.selectedFieldIds = new Set();
-        state.lastSelectedFieldId = "f1";
+        state.lastSelectedFieldId = null;
 
         makeEl("fieldName");
         makeEl("fieldDefaultValue");
