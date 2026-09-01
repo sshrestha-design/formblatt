@@ -105,6 +105,25 @@ async function runAllTests() {
         assert.equal(getSelectedField(), null);
     });
 
+    it("setEditorMode clears stale selection when switching between design and fill", () => {
+        state.fields = [
+            { id: "f1", name: "first_name", type: "textField", x: 10, y: 20, width: 100, height: 25, page: 1 }
+        ];
+        setSelectedField("f1");
+        assert.equal(state.selectedFieldIds.size, 1);
+        assert.equal(state.lastSelectedFieldId, "f1");
+
+        setEditorMode("fill");
+        assert.equal(state.selectedFieldIds.size, 0);
+        assert.equal(state.lastSelectedFieldId, null);
+
+        setSelectedField("f1");
+        setEditorMode("design");
+        assert.equal(state.selectedFieldIds.size, 0);
+        assert.equal(state.lastSelectedFieldId, null);
+        assert.equal(getSelectedField(), null);
+    });
+
     it("createGroupForSelected groups selected fields and handles ungrouping", () => {
         state.fields = [
             { id: "f1", name: "first_name", type: "textField", x: 10, y: 20, width: 100, height: 25, page: 1 },
