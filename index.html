@@ -111,7 +111,7 @@
     </script>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=10.0">
+    <link rel="stylesheet" href="styles/main.css?v=10.1">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -640,7 +640,9 @@
                     </button>
                 </div>
                 <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn">File ▼</button>
+                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn" title="File menu" aria-label="File menu">
+                        <i data-lucide="folder" style="width: 15px; height: 15px;"></i>
+                    </button>
 
                     <div class="dropdown-content">
                         <button class="dropdown-item" id="newBlankDocMenuBtn">
@@ -681,7 +683,9 @@
                 </div>
 
                 <div class="dropdown-menu" id="editMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn">Edit ▼</button>
+                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn" title="Edit menu" aria-label="Edit menu">
+                        <i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i>
+                    </button>
 
                     <div class="dropdown-content">
                         <button class="dropdown-item" id="menuUndoBtn">
