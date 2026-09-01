@@ -83,6 +83,7 @@ async function runAllTests() {
         setGuidesEnabled,
         toggleGuides
     } = await import(path.join(WEB_DIR, 'js', 'state.js'));
+    const { populateProperties } = await import(path.join(WEB_DIR, 'js', 'properties-panel.js'));
 
     it("generateFieldId should return unique formatted string", () => {
         const id1 = generateFieldId("fld");
@@ -122,6 +123,51 @@ async function runAllTests() {
         assert.equal(state.selectedFieldIds.size, 0);
         assert.equal(state.lastSelectedFieldId, null);
         assert.equal(getSelectedField(), null);
+    });
+
+    it("populateProperties clears stale values when selection is cleared", () => {
+        const elements = {};
+        const makeEl = (id, value = "") => {
+            const el = {
+                id,
+                value,
+                checked: false,
+                style: {},
+                classList: {
+                    add() {},
+                    remove() {},
+                    toggle() {},
+                    contains() { return false; }
+                }
+            };
+            elements[id] = el;
+            return el;
+        };
+
+        global.document = {
+            getElementById(id) { return elements[id] || null; },
+            querySelectorAll() { return []; }
+        };
+
+        makeEl("fieldName", "First Name");
+        makeEl("fieldDefaultValue", "Jane");
+        makeEl("fontSize", "14");
+        makeEl("textAlignment", "left");
+        makeEl("fieldRequired").checked = true;
+        makeEl("fieldReadOnly").checked = true;
+        makeEl("rightPanelEmpty");
+        makeEl("fieldProps");
+        makeEl("multiSelectProps");
+
+        state.selectedFieldIds = new Set(["f1"]);
+        state.fields = [{ id: "f1", type: "textField", name: "First Name", defaultValue: "Jane", fontSize: 14, textAlignment: "left", required: true, readOnly: true }];
+        populateProperties(null);
+
+        assert.equal(elements.fieldName.value, "");
+        assert.equal(elements.fontSize.value, "");
+        assert.equal(elements.textAlignment.value, "");
+        assert.equal(elements.fieldRequired.checked, false);
+        assert.equal(elements.fieldReadOnly.checked, false);
     });
 
     it("createGroupForSelected groups selected fields and handles ungrouping", () => {
