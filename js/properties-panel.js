@@ -297,6 +297,9 @@ export function populateProperties(field) {
     const singleProps = document.getElementById("fieldProps");
     const multiProps = document.getElementById("multiSelectProps");
     const countBadge = document.getElementById("multiSelectedCountBadge");
+    const fallbackField = field || (state.selectedFieldIds.size === 0 && state.lastSelectedFieldId !== null
+        ? state.fields.find(f => f.id === state.lastSelectedFieldId) || null
+        : null);
 
     if (state.selectedFieldIds.size > 1) {
         if (emptyPanel) emptyPanel.style.display = "none";
@@ -413,7 +416,7 @@ export function populateProperties(field) {
         return;
     }
 
-    if (!field) {
+    if (!fallbackField) {
         if (emptyPanel) emptyPanel.style.display = "flex";
         if (singleProps) singleProps.style.display = "none";
         if (multiProps) multiProps.style.display = "none";
@@ -457,7 +460,7 @@ export function populateProperties(field) {
             radioGroup: "Radio Group",
             signature: "Signature"
         };
-        badge.textContent = labels[field.type] || "Field";
+        badge.textContent = labels[fallbackField.type] || "Field";
     }
 
     const setVal = (id, val) => { 
@@ -466,58 +469,58 @@ export function populateProperties(field) {
     };
     const setChecked = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
 
-    setVal("fieldType", field.type);
-    setVal("fieldName", field.name || "");
-    setVal("fieldDefaultValue", field.defaultValue || "");
-    setVal("fieldFontFamily", field.fontFamily || "helvetica");
-    setVal("fontSize", field.fontSize || "");
+    setVal("fieldType", fallbackField.type);
+    setVal("fieldName", fallbackField.name || "");
+    setVal("fieldDefaultValue", fallbackField.defaultValue || "");
+    setVal("fieldFontFamily", fallbackField.fontFamily || "helvetica");
+    setVal("fontSize", fallbackField.fontSize || "");
     
-    const activeSize = (field.fontSize && field.fontSize >= 6) ? field.fontSize : 11;
+    const activeSize = (fallbackField.fontSize && fallbackField.fontSize >= 6) ? fallbackField.fontSize : 11;
     updateQuickSizeButtons(activeSize, "quick-size-btn");
 
-    setVal("textAlignment", field.textAlignment || "left");
-    setVal("fieldTooltip", field.tooltip || "");
-    setVal("autofillType", field.autofill || "");
-    setVal("fieldAutofill", field.autofill || "");
-    setVal("fieldBorderStyle", field.borderStyle || "solid");
-    setVal("borderStyleSelect", field.borderStyle || "solid");
-    setVal("fieldFillStyle", field.fillStyle || "white");
-    setVal("fillStyleSelect", field.fillStyle || "white");
-    setVal("width", field.width || "");
-    setVal("height", field.height || "");
-    setChecked("fieldRequired", field.required);
-    setChecked("fieldReadOnly", field.readOnly);
-    setChecked("fieldMultiline", field.multiline);
-    setChecked("fieldDefaultChecked", field.defaultChecked);
+    setVal("textAlignment", fallbackField.textAlignment || "left");
+    setVal("fieldTooltip", fallbackField.tooltip || "");
+    setVal("autofillType", fallbackField.autofill || "");
+    setVal("fieldAutofill", fallbackField.autofill || "");
+    setVal("fieldBorderStyle", fallbackField.borderStyle || "solid");
+    setVal("borderStyleSelect", fallbackField.borderStyle || "solid");
+    setVal("fieldFillStyle", fallbackField.fillStyle || "white");
+    setVal("fillStyleSelect", fallbackField.fillStyle || "white");
+    setVal("width", fallbackField.width || "");
+    setVal("height", fallbackField.height || "");
+    setChecked("fieldRequired", fallbackField.required);
+    setChecked("fieldReadOnly", fallbackField.readOnly);
+    setChecked("fieldMultiline", fallbackField.multiline);
+    setChecked("fieldDefaultChecked", fallbackField.defaultChecked);
 
     // Signature controls visibility
     const sigGroup = document.getElementById("signatureActionsGroup");
     const propClearSig = document.getElementById("propClearSignatureBtn");
     const propOpenSigSpan = document.querySelector("#propOpenSignatureBtn span");
     if (sigGroup) {
-        sigGroup.style.display = field.type === "signature" ? "block" : "none";
-        if (field.type === "signature") {
-            if (propClearSig) propClearSig.style.display = field.signatureImage ? "block" : "none";
-            if (propOpenSigSpan) propOpenSigSpan.textContent = field.signatureImage ? "Redraw / Retype Signature" : "Pre-sign Document";
+        sigGroup.style.display = fallbackField.type === "signature" ? "block" : "none";
+        if (fallbackField.type === "signature") {
+            if (propClearSig) propClearSig.style.display = fallbackField.signatureImage ? "block" : "none";
+            if (propOpenSigSpan) propOpenSigSpan.textContent = fallbackField.signatureImage ? "Redraw / Retype Signature" : "Pre-sign Document";
         }
     }
 
     // Typography accordion visibility
     const accTypography = document.getElementById("accTypography");
     if (accTypography) {
-        accTypography.style.display = (field.type === "textField" || field.type === "dropdown" || field.type === "dateField") ? "block" : "none";
+        accTypography.style.display = (fallbackField.type === "textField" || fallbackField.type === "dropdown" || fallbackField.type === "dateField") ? "block" : "none";
     }
 
     const multilineGroup = document.getElementById("multilineGroup");
     if (multilineGroup) {
-        multilineGroup.style.display = (field.type === "textField") ? "flex" : "none";
+        multilineGroup.style.display = (fallbackField.type === "textField") ? "flex" : "none";
     }
 
     const ddGroup = document.getElementById("dropdownOptionsGroup");
     if (ddGroup) {
-        ddGroup.style.display = field.type === "dropdown" ? "block" : "none";
-        if (field.type === "dropdown") {
-            const opts = field.options || [];
+        ddGroup.style.display = fallbackField.type === "dropdown" ? "block" : "none";
+        if (fallbackField.type === "dropdown") {
+            const opts = fallbackField.options || [];
             setVal("dropdownOptions", opts.join("\n"));
             const countEl = document.getElementById("dropdownOptionsCount");
             if (countEl) countEl.textContent = `${opts.length} ${opts.length === 1 ? 'item' : 'items'}`;
@@ -526,7 +529,7 @@ export function populateProperties(field) {
 
     const checkGroup = document.getElementById("defaultCheckedGroup");
     if (checkGroup) {
-        checkGroup.style.display = (field.type === "checkBox" || field.type === "radioGroup") ? "flex" : "none";
+        checkGroup.style.display = (fallbackField.type === "checkBox" || fallbackField.type === "radioGroup") ? "flex" : "none";
     }
 
     if (typeof lucide !== "undefined") lucide.createIcons();
