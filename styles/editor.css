@@ -680,6 +680,31 @@ input.prop-input {
     cursor: pointer;
 }
 
+.prop-inline-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 3px 6px 3px 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.prop-inline-select select {
+    height: 24px;
+    min-width: 76px;
+    padding: 0 4px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #0f172a;
+    font: inherit;
+}
+
 /* ── Preset Pills ───────────────────────────────────────────── */
 .preset-pills-row {
     display: flex;
