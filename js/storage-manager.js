@@ -25,6 +25,20 @@ export function base64ToUint8Array(base64) {
 
 let historyDebounceTimer = null;
 
+export function safeJsonStringify(value, space = 2) {
+    const seen = new WeakSet();
+    return JSON.stringify(value, (key, current) => {
+        if (typeof current === "function") return undefined;
+        if (current instanceof Set) return Array.from(current.values());
+        if (current instanceof Map) return Object.fromEntries(current.entries());
+        if (typeof current === "object" && current !== null) {
+            if (seen.has(current)) return "[Circular]";
+            seen.add(current);
+        }
+        return current;
+    }, space);
+}
+
 export function saveHistory(immediate = false) {
     if (immediate) {
         if (historyDebounceTimer) {
@@ -44,7 +58,7 @@ export function saveHistory(immediate = false) {
 }
 
 function commitHistorySnapshot() {
-    const snapshot = JSON.stringify({ fields: state.fields, groups: state.groups || [] });
+    const snapshot = safeJsonStringify({ fields: state.fields, groups: state.groups || [] });
     if (state.historyIndex >= 0 && state.history[state.historyIndex] === snapshot) {
         return;
     }
@@ -106,7 +120,7 @@ export function exportProjectJson(customFileName) {
         pdfBase64: pdfBase64
     };
 
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: "application/json" });
+    const blob = new Blob([safeJsonStringify(projectData, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
