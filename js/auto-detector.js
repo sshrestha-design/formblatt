@@ -179,7 +179,7 @@ function isUniversalStaticText(text) {
 // ============================================================================
 // 2.5 EXISTING ACROFORM WIDGET PASSTHROUGH
 // ============================================================================
-async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
+export async function getExistingWidgetFields(page, viewport, pageNum, usedNames = new Set()) {
     let annotations;
     try {
         annotations = await page.getAnnotations({ intent: "display" });
@@ -189,7 +189,10 @@ async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
     }
 
     if (!Array.isArray(annotations)) return [];
-    const widgets = annotations.filter(a => a.subtype === "Widget" && a.rect && a.fieldName);
+    const widgets = annotations.filter(a => {
+        return a.subtype === "Widget" && Array.isArray(a.rect) && a.rect.length === 4 &&
+            (a.fieldName || a.alternativeText || a.id);
+    });
     const fields = [];
 
     for (const w of widgets) {
@@ -222,12 +225,21 @@ async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
             type = "dateField";
         }
 
-        const sem = resolveSemanticProps(w.fieldName || w.alternativeText || "field", type, isRadio ? new Set() : usedNames);
+        const sourceName = w.fieldName || w.alternativeText || w.id || "field";
+        const semanticNames = isRadio ? new Set() : usedNames;
+        const sem = resolveSemanticProps(sourceName, type, semanticNames);
+        const fieldName = isRadio
+            ? sourceName
+            : (usedNames.has(sourceName) ? sem.name : sourceName);
+        if (!isRadio) usedNames.add(fieldName);
 
         fields.push({
             id: generateFieldId(),
             type,
-            name: sem.name,
+            // Keep the PDF field name when possible. This makes exported
+            // fields stable and prevents native viewer autofill from losing
+            // the original field identity.
+            name: fieldName || sem.name,
             value: w.buttonValue || w.fieldValue || "",
             ...(type === "dropdown" ? { options, defaultValue } : {}),
             x: Math.max(0, Math.round(left)),
@@ -240,7 +252,8 @@ async function getExistingWidgetFields(page, viewport, pageNum, usedNames) {
             multiline: isMultiline || sem.multiline || false,
             autofill: sem.autofill || "",
             dataFormat: sem.dataFormat || "text",
-            sourcedFrom: "acroform"
+            sourcedFrom: "acroform",
+            sourceFieldName: sourceName
         });
     }
 
@@ -325,16 +338,24 @@ export async function autoDetectFields(scope = "current") {
     }
 
     if (newFields.length > 0) {
-        state.fields = state.fields.filter(f => !pagesToScan.includes(f.page || 1));
-        
+        // Keep manually placed/template fields. Only replace fields produced
+        // by an earlier detector run, then use their rectangles as occupied
+        // space so rerunning detection cannot duplicate existing widgets.
+        const preservedFields = state.fields.filter(f => {
+            const pageIsScanned = pagesToScan.includes(f.page || 1);
+            const isDetectorField = Boolean(f.detectedBy || f.sourcedFrom === "acroform");
+            return !pageIsScanned || !isDetectorField;
+        });
+
         const finalUnique = [];
         for (let f of newFields) {
-            if (!isOverlapping(f, finalUnique, 0.35)) {
+            if (!isOverlapping(f, preservedFields, 0.35) &&
+                !isOverlapping(f, finalUnique, 0.35)) {
                 finalUnique.push(f);
             }
         }
 
-        state.fields.push(...finalUnique);
+        state.fields = [...preservedFields, ...finalUnique];
         state.selectedFieldIds.clear();
         saveHistory();
         totalDetected = finalUnique.length;

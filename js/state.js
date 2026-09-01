@@ -235,7 +235,6 @@ export function addNextTableRow() {
 
 export function setEditorMode(mode = "design") {
     state.editorMode = mode;
-    state.selectedFieldIds.clear();
     if (mode === "fill") {
         state.activeTool = "select";
     }

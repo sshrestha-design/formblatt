@@ -106,7 +106,7 @@ async function runAllTests() {
         assert.equal(getSelectedField(), null);
     });
 
-    it("keeps the last selected field available for the properties panel after mode changes", () => {
+    it("keeps the active field selection and properties panel state across mode changes", () => {
         state.fields = [
             { id: "f1", name: "first_name", type: "textField", x: 10, y: 20, width: 100, height: 25, page: 1 }
         ];
@@ -115,12 +115,12 @@ async function runAllTests() {
         assert.equal(state.lastSelectedFieldId, "f1");
 
         setEditorMode("fill");
-        assert.equal(state.selectedFieldIds.size, 0);
+        assert.equal(state.selectedFieldIds.size, 1);
         assert.equal(state.lastSelectedFieldId, "f1");
         assert.equal(getSelectedField()?.id, "f1");
 
         setEditorMode("design");
-        assert.equal(state.selectedFieldIds.size, 0);
+        assert.equal(state.selectedFieldIds.size, 1);
         assert.equal(state.lastSelectedFieldId, "f1");
         assert.equal(getSelectedField()?.id, "f1");
     });
@@ -296,7 +296,7 @@ async function runAllTests() {
 
     // ── SUITE 5: Base64 & Project Serialization ──
     console.log("\n💾 Suite 5: Serialization & Base64 Utilities");
-    const { uint8ArrayToBase64, base64ToUint8Array } = await import(path.join(WEB_DIR, 'js', 'storage-manager.js'));
+    const { uint8ArrayToBase64, base64ToUint8Array, safeJsonStringify } = await import(path.join(WEB_DIR, 'js', 'storage-manager.js'));
 
     it("uint8ArrayToBase64 and base64ToUint8Array roundtrip lossless binary data", () => {
         const sample = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x37]); // "%PDF-1.7"
@@ -307,6 +307,15 @@ async function runAllTests() {
         for (let i = 0; i < sample.length; i++) {
             assert.equal(restored[i], sample[i]);
         }
+    });
+
+    it("safeJsonStringify handles circular references and non-serializable values", () => {
+        const data = { fields: [{ id: 'f1' }], seen: null };
+        data.self = data;
+        const json = safeJsonStringify(data);
+        assert.ok(typeof json === 'string');
+        assert.ok(json.includes('"self"'));
+        assert.ok(json.includes('[Circular]'));
     });
 
     it("Handles null and empty inputs safely", () => {
@@ -368,6 +377,31 @@ async function runAllTests() {
         assert.equal(AUTOFILL_ROLE_TITLES["postal-code"], "Zip / Postal Code");
         assert.equal(AUTOFILL_ROLE_TITLES["address-line1"], "Street Address");
         assert.equal(AUTOFILL_ROLE_TITLES["tel"], "Phone Number");
+    });
+
+    const { getExistingWidgetFields } = await import(path.join(WEB_DIR, 'js', 'auto-detector.js'));
+
+    it("imports existing AcroForm widgets without losing their names or positions", async () => {
+        const page = {
+            async getAnnotations() {
+                return [
+                    { subtype: "Widget", rect: [40, 700, 220, 730], fieldName: "first_name", fieldType: "Tx", fieldValue: "Jane" },
+                    { subtype: "Widget", rect: [260, 700, 280, 720], fieldName: "agree", fieldType: "Btn", checkBox: true },
+                    { subtype: "Widget", rect: [300, 650, 440, 680], fieldName: "country", fieldType: "Ch", options: ["US", "CA"], fieldValue: "CA" },
+                    { subtype: "Link", rect: [0, 0, 10, 10], url: "https://example.com" }
+                ];
+            }
+        };
+
+        const fields = await getExistingWidgetFields(page, { height: 800 }, 1);
+        assert.equal(fields.length, 3);
+        assert.equal(fields[0].name, "first_name");
+        assert.equal(fields[0].sourcedFrom, "acroform");
+        assert.equal(fields[0].x, 40);
+        assert.equal(fields[0].y, 70);
+        assert.equal(fields[1].type, "checkBox");
+        assert.equal(fields[2].type, "dropdown");
+        assert.equal(fields[2].defaultValue, "CA");
     });
 
     // ── SUITE 8: Overlay DOM Rendering & Visual Hierarchy ──
