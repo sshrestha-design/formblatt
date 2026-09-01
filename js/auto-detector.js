@@ -399,6 +399,11 @@ export async function autoDetectFields(scope = "current") {
 
         state.fields = [...preservedFields, ...finalUnique];
         state.selectedFieldIds.clear();
+        if (state.lastSelectedFieldId === null) {
+            state.lastSelectedFieldId = state.fields.find(f => (f.page || 1) === state.currentPageNum)?.id
+                || state.fields[0]?.id
+                || null;
+        }
         saveHistory();
         totalDetected = finalUnique.length;
 

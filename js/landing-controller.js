@@ -351,6 +351,7 @@ export async function loadPdfFile(file, onLoaded) {
 
         await analyzePdfDocument();
         await importExistingAcroFormFields("all");
+        state.lastSelectedFieldId = state.fields[0]?.id || null;
 
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
@@ -375,6 +376,7 @@ export async function loadTemplate(key, onLoaded) {
         state.fields.forEach(f => { f.page = 1; });
         state.fieldCounter = state.fields.length + 1;
         state.selectedFieldIds.clear();
+        state.lastSelectedFieldId = state.fields[0]?.id || null;
         state.fileName = key + "_form.pdf";
 
         await analyzePdfDocument();

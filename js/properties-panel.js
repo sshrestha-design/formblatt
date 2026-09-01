@@ -297,9 +297,15 @@ export function populateProperties(field) {
     const singleProps = document.getElementById("fieldProps");
     const multiProps = document.getElementById("multiSelectProps");
     const countBadge = document.getElementById("multiSelectedCountBadge");
-    const fallbackField = field || (state.selectedFieldIds.size === 0 && state.lastSelectedFieldId !== null
-        ? state.fields.find(f => f.id === state.lastSelectedFieldId) || null
+    let fallbackField = field || (state.selectedFieldIds.size === 0
+        ? state.fields.find(f => f.id === state.lastSelectedFieldId)
+            || state.fields.find(f => (f.page || 1) === state.currentPageNum)
+            || state.fields[0]
+            || null
         : null);
+    if (!field && state.selectedFieldIds.size === 0 && fallbackField && state.lastSelectedFieldId === null) {
+        state.lastSelectedFieldId = fallbackField.id;
+    }
 
     if (state.selectedFieldIds.size > 1) {
         if (emptyPanel) emptyPanel.style.display = "none";
