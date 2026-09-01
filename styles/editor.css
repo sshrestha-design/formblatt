@@ -1940,6 +1940,7 @@ body.mode-fill #toggleGuidesBtn {
         gap: 8px;
         flex-wrap: wrap;
         align-content: center;
+        overflow-x: hidden;
     }
 
     .toolbar-left,
@@ -2141,8 +2142,12 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .center-canvas.fit-page-view {
-        align-items: center !important;
+        align-items: flex-start !important;
         justify-content: center;
+    }
+
+    .center-canvas.fit-page-view .canvas-container {
+        transform-origin: top left;
     }
 
     .canvas-container {

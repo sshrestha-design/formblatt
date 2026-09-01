@@ -57,9 +57,12 @@ export async function renderPage(forceRerender = false) {
 
 export function setTransformScale(newScale, onRerender) {
     state.currentScale = Math.min(Math.max(newScale, 0.25), 4.0);
-    document.getElementById("centerCanvas")?.classList.remove("fit-page-view");
+    const centerCanvas = document.getElementById("centerCanvas");
+    centerCanvas?.classList.remove("fit-page-view");
     const container = document.getElementById("canvasContainer");
     if (container) {
+        container.style.marginTop = "";
+        container.style.marginLeft = "";
         container.style.transform = `scale(${state.currentScale})`;
         const baseWidth = container.offsetWidth;
         const baseHeight = container.offsetHeight;
@@ -103,7 +106,22 @@ export function fitToPage(onRerender) {
     const scaleY = availableHeight / docHeight;
     const newScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 3.0);
     setTransformScale(newScale, onRerender);
-    document.getElementById("centerCanvas")?.classList.add("fit-page-view");
+    const centerCanvas = document.getElementById("centerCanvas");
+    const container = document.getElementById("canvasContainer");
+    if (centerCanvas && container && window.matchMedia("(max-width: 767px)").matches) {
+        const visualHeight = container.offsetHeight * state.currentScale;
+        const visualWidth = container.offsetWidth * state.currentScale;
+        const availableHeight = centerCanvas.clientHeight
+            - parseFloat(getComputedStyle(centerCanvas).paddingTop)
+            - parseFloat(getComputedStyle(centerCanvas).paddingBottom);
+        const availableWidth = centerCanvas.clientWidth
+            - parseFloat(getComputedStyle(centerCanvas).paddingLeft)
+            - parseFloat(getComputedStyle(centerCanvas).paddingRight);
+        centerCanvas.scrollLeft = 0;
+        container.style.marginLeft = `${Math.max(0, (availableWidth - visualWidth) / 2)}px`;
+        container.style.marginTop = `${Math.max(0, (availableHeight - visualHeight) / 2)}px`;
+        centerCanvas.classList.add("fit-page-view");
+    }
 }
 
 export async function goToPage(pageNum, onPageChange) {
