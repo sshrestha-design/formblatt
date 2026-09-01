@@ -1052,6 +1052,7 @@ const bootstrapApp = async () => {
 
     // Initialize Draggable Panel Resizers
     initPanelResizers();
+    initMobileEditorLayout();
 
     // Default to landing screen
     showLandingScreen(true, true);
@@ -1358,6 +1359,36 @@ function toggleRightSidebar() {
             : `<i data-lucide="panel-right-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
         if (typeof lucide !== "undefined") lucide.createIcons();
     }
+}
+
+function initMobileEditorLayout() {
+    const mediaQuery = window.matchMedia("(max-width: 767px)");
+    const leftPanel = document.querySelector(".left-panel");
+    const rightPanel = document.querySelector(".right-panel");
+    if (!leftPanel || !rightPanel) return;
+
+    const applyLayout = (isMobile) => {
+        if (isMobile) {
+            if (!document.body.dataset.mobilePanelState) {
+                document.body.dataset.mobilePanelState = JSON.stringify({
+                    leftOpen: !leftPanel.classList.contains("collapsed"),
+                    rightOpen: !rightPanel.classList.contains("collapsed")
+                });
+            }
+            leftPanel.classList.add("collapsed");
+            rightPanel.classList.add("collapsed");
+        } else {
+            const savedState = document.body.dataset.mobilePanelState;
+            if (!savedState) return;
+            const panelState = JSON.parse(savedState);
+            leftPanel.classList.toggle("collapsed", !panelState.leftOpen);
+            rightPanel.classList.toggle("collapsed", !panelState.rightOpen);
+            delete document.body.dataset.mobilePanelState;
+        }
+    };
+
+    applyLayout(mediaQuery.matches);
+    mediaQuery.addEventListener("change", (event) => applyLayout(event.matches));
 }
 
 // Transient Undo Toast Notification

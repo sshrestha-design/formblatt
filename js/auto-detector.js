@@ -260,6 +260,30 @@ export async function getExistingWidgetFields(page, viewport, pageNum, usedNames
     return fields;
 }
 
+export async function importExistingAcroFormFields(scope = "all") {
+    if (!state.pdfDoc) return 0;
+    const pagesToScan = scope === "current"
+        ? [state.currentPageNum]
+        : Array.from({ length: state.totalPages }, (_, i) => i + 1);
+    const imported = [];
+    const usedNames = new Set(state.fields.map(field => field.name));
+
+    for (const pageNum of pagesToScan) {
+        const page = await state.pdfDoc.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 1.0 });
+        imported.push(...await getExistingWidgetFields(page, viewport, pageNum, usedNames));
+    }
+
+    const existing = state.fields.filter(field => !pagesToScan.includes(field.page || 1));
+    const current = state.fields.filter(field => pagesToScan.includes(field.page || 1));
+    const merged = [...existing, ...current];
+    for (const field of imported) {
+        if (!isOverlapping(field, merged, 0.2)) merged.push(field);
+    }
+    state.fields = merged;
+    return imported.length;
+}
+
 function isOverlapping(field, list, threshold = 0.35) {
     return list.some(existing => {
         if (field.id && existing.id && field.id === existing.id) return false;
@@ -447,12 +471,9 @@ function matchColumnKeyword(text) {
 // exact row/column boundaries with no guessing at all: cell membership
 // becomes a simple point-in-rect test instead of a proximity heuristic.
 //
-// This detects ruling lines by rendering the page to an offscreen canvas and
-// scanning for long contiguous runs of dark pixels — not by parsing the PDF
-// content stream's drawing operators. Content-stream parsing has to handle
-// save/restore transform stacks, clipping paths, curves, and filled-rect-vs-
-// stroked-path variations; a rendered-pixel scan sidesteps all of that and
-// picks up a ruling line regardless of how the PDF encodes it.
+// This combines PDF content-stream operators with a rendered-pixel fallback.
+// Operators provide precise vector boundaries; raster scanning still catches
+// lines emitted through less common PDF constructs.
 async function detectTableGridLines(page) {
     const RENDER_SCALE = 2; // enough resolution for thin ruling lines, cheap to scan
     const viewport = page.getViewport({ scale: RENDER_SCALE });
@@ -552,6 +573,9 @@ async function detectTableGridLines(page) {
 
     const horizontalLines = findLineSegments(MIN_BOUNDARY_RUN, true);
     const verticalLines = findLineSegments(MIN_BOUNDARY_RUN, false);
+    const vectorLines = await getVectorBoundaryLines(page, RENDER_SCALE);
+    horizontalLines.push(...vectorLines.horizontal);
+    verticalLines.push(...vectorLines.vertical);
 
     function mergeAdjacent(candidates, maxGap = 3) {
         const merged = [];
@@ -564,6 +588,78 @@ async function detectTableGridLines(page) {
             } else {
                 merged.push(Math.round((clusterStart + clusterEnd) / 2));
                 clusterStart = clusterEnd = c;
+            }
+
+            async function getVectorBoundaryLines(page, scale = 2) {
+                const result = { horizontal: [], vertical: [] };
+                if (!page.getOperatorList || typeof pdfjsLib === "undefined" || !pdfjsLib.OPS) return result;
+
+                let operatorList;
+                try {
+                    operatorList = await page.getOperatorList();
+                } catch (err) {
+                    console.warn("Could not read PDF drawing operators:", err);
+                    return result;
+                }
+
+                const OPS = pdfjsLib.OPS;
+                const stack = [];
+                let matrix = [1, 0, 0, 1, 0, 0];
+                let pathStart = null;
+                let current = null;
+                const multiply = (left, right) => [
+                    left[0] * right[0] + left[2] * right[1],
+                    left[1] * right[0] + left[3] * right[1],
+                    left[0] * right[2] + left[2] * right[3],
+                    left[1] * right[2] + left[3] * right[3],
+                    left[0] * right[4] + left[2] * right[5] + left[4],
+                    left[1] * right[4] + left[3] * right[5] + left[5]
+                ];
+                const point = (x, y) => {
+                    const pdfPoint = [
+                        matrix[0] * x + matrix[2] * y + matrix[4],
+                        matrix[1] * x + matrix[3] * y + matrix[5]
+                    ];
+                    const viewportPoint = page.getViewport({ scale }).convertToViewportPoint(...pdfPoint);
+                    return { x: viewportPoint[0], y: viewportPoint[1] };
+                };
+                const addSegment = (a, b) => {
+                    if (!a || !b) return;
+                    const dx = Math.abs(a.x - b.x);
+                    const dy = Math.abs(a.y - b.y);
+                    if (dx >= 80 && dy <= 3) result.horizontal.push({ offset: Math.round((a.y + b.y) / 2), start: Math.round(Math.min(a.x, b.x)), end: Math.round(Math.max(a.x, b.x)) });
+                    if (dy >= 80 && dx <= 3) result.vertical.push({ offset: Math.round((a.x + b.x) / 2), start: Math.round(Math.min(a.y, b.y)), end: Math.round(Math.max(a.y, b.y)) });
+                };
+
+                for (let i = 0; i < operatorList.fnArray.length; i++) {
+                    const fn = operatorList.fnArray[i];
+                    const args = operatorList.argsArray[i] || [];
+                    if (fn === OPS.save) stack.push(matrix);
+                    else if (fn === OPS.restore) matrix = stack.pop() || matrix;
+                    else if (fn === OPS.transform) matrix = multiply(matrix, args);
+                    else if (fn === OPS.moveTo) {
+                        current = point(args[0], args[1]);
+                        pathStart = current;
+                    } else if (fn === OPS.lineTo) {
+                        const next = point(args[0], args[1]);
+                        addSegment(current, next);
+                        current = next;
+                    } else if (fn === OPS.rectangle) {
+                        const [x, y, w, h] = args;
+                        const p1 = point(x, y), p2 = point(x + w, y);
+                        const p3 = point(x + w, y + h), p4 = point(x, y + h);
+                        addSegment(p1, p2);
+                        addSegment(p2, p3);
+                        addSegment(p3, p4);
+                        addSegment(p4, p1);
+                        current = p1;
+                        pathStart = p1;
+                    } else if (fn === OPS.closePath && current && pathStart) {
+                        addSegment(current, pathStart);
+                        current = pathStart;
+                    }
+                }
+                return result;
             }
         }
         if (clusterStart !== null) merged.push(Math.round((clusterStart + clusterEnd) / 2));
@@ -782,9 +878,12 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
 
         const nearbyLabel = rawBlocks
             .filter(tb => tb.y + tb.height <= y + 3 && tb.y + tb.height >= y - 45 &&
-                tb.x + tb.width <= x + 12)
+                tb.x + tb.width <= x + 12 && x - (tb.x + tb.width) <= 180)
             .sort((a, b) => (y - (a.y + a.height)) - (y - (b.y + b.height)))[0];
         const label = nearbyLabel?.str || "";
+        // A standalone decorative rule has no form affordance. Require a
+        // nearby, non-banner label unless the pixels clearly form a closed box.
+        if (!isBox && (!label || isUniversalStaticText(label))) continue;
         const sem = resolveSemanticProps(label || "field", "textField", usedNames);
         fields.push({
             id: generateFieldId(),
