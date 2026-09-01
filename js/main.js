@@ -37,6 +37,7 @@ export function switchEditorMode(mode = "design") {
         showToast("Please upload a PDF document first before testing form fields.", "warning");
         return;
     }
+    setSelectedField(null);
     setEditorMode(mode);
     const isFill = (mode === "fill");
     document.body.classList.toggle("mode-fill", isFill);
