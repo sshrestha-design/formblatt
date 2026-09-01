@@ -104,6 +104,14 @@
     color: #334155;
 }
 
+/* Keep labeled toolbar actions aligned with icon actions. */
+.menu-btn.toolbar-action-btn {
+    height: 32px;
+    min-height: 32px;
+    line-height: 1;
+    padding-inline: 9px;
+}
+
 .toolbar-center {
     display: flex;
     align-items: center;
@@ -580,6 +588,44 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
+}
+
+#accTypography .prop-grid-2 {
+    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 16px;
+    margin-top: 4px;
+}
+
+#accTypography .prop-field {
+    gap: 6px;
+}
+
+#accTypography .prop-label {
+    font-size: 10px;
+    line-height: 1.2;
+}
+
+#accTypography > .prop-field:nth-of-type(2) {
+    margin-bottom: 8px;
+}
+
+#accTypography .prop-input,
+#accTypography .prop-select {
+    height: 34px;
+    min-height: 34px;
+    padding-inline: 10px;
+}
+
+#accTypography > .prop-field:nth-of-type(2) .prop-select {
+    height: 28px;
+    min-height: 28px;
+    padding-inline: 8px;
+}
+
+input.prop-input {
+    height: 28px;
+    min-height: 28px;
 }
 
 .prop-section-heading {
@@ -1874,6 +1920,253 @@ body.mode-fill .segmented-toolbar {
 body.mode-fill #autoDetectBtn,
 body.mode-fill #toggleGuidesBtn {
     display: none !important;
+}
+
+/* ── Phone layout: canvas first, panels as touch drawers ───────── */
+@media (max-width: 767px) {
+    body.editor-active .mobile-handoff-bar {
+        display: none !important;
+    }
+
+    #appEditorScreen {
+        min-height: 100dvh;
+    }
+
+    .toolbar {
+        height: auto;
+        min-height: 52px;
+        padding: 8px 10px;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-content: center;
+    }
+
+    .toolbar-left,
+    .toolbar-right {
+        gap: 6px;
+    }
+
+    .toolbar-left {
+        min-width: 0;
+        flex: 1 1 auto;
+    }
+
+    .toolbar-right {
+        flex: 0 0 auto;
+    }
+
+    .editor-brand-name,
+    .editor-brand-badge,
+    .toolbar-left > .tool-divider,
+    #fileMenuDropdown,
+    #editMenuDropdown,
+    #shortcutsHelpBtn {
+        display: none !important;
+    }
+
+    .editor-brand-logo {
+        padding-right: 2px;
+    }
+
+    .toolbar-action-btn,
+    .toolbar-export-btn {
+        min-width: 40px;
+        min-height: 40px;
+        height: 40px;
+    }
+
+    .toolbar-export-btn {
+        width: 40px;
+        padding: 0;
+        justify-content: center;
+        font-size: 0;
+    }
+
+    .toolbar-export-btn svg,
+    .toolbar-export-btn i {
+        width: 18px;
+        height: 18px;
+    }
+
+    .toolbar-center {
+        order: 3;
+        flex: 1 0 100%;
+        justify-content: flex-start;
+        min-width: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        padding-bottom: 1px;
+    }
+
+    .toolbar-center::-webkit-scrollbar {
+        display: none;
+    }
+
+    .segmented-toolbar {
+        flex-shrink: 0;
+        height: 42px;
+    }
+
+    .segmented-toolbar .tool-btn {
+        width: 40px;
+        height: 36px;
+    }
+
+    .toolbar-smart-btn {
+        height: 40px;
+        min-height: 40px;
+        padding: 0 12px;
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    .toolbar-center > * {
+        flex: 0 0 auto;
+    }
+
+    .workspace {
+        position: relative;
+        min-height: 0;
+    }
+
+    .canvas-workspace-area {
+        height: auto !important;
+        min-height: 0;
+    }
+
+    .left-panel,
+    .right-panel {
+        position: absolute;
+        top: 8px;
+        bottom: 8px;
+        height: auto;
+        max-height: none;
+        width: min(88vw, 340px);
+        min-width: 0;
+        max-width: none;
+        margin: 0;
+        border-radius: 12px;
+        box-shadow: 0 12px 36px rgba(15, 23, 42, 0.22);
+        transition: transform 0.25s var(--ease-spring), opacity 0.2s ease, visibility 0.2s ease;
+    }
+
+    .left-panel-header,
+    .prop-panel-header {
+        padding: 10px 12px !important;
+    }
+
+    .left-panel-header .panel-collapse-btn,
+    .prop-panel-header .panel-collapse-btn {
+        min-width: 36px;
+        min-height: 36px;
+        padding: 0 !important;
+    }
+
+    .left-panel-header #groupSelectedBtn {
+        min-height: 36px;
+        padding: 0 9px !important;
+    }
+
+    .layers-list,
+    .prop-panel-body {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .layer-item {
+        min-height: 46px;
+        padding: 9px 12px;
+    }
+
+    .left-panel {
+        left: 8px;
+        transform: translateX(calc(-100% - 16px));
+    }
+
+    .right-panel {
+        right: 8px;
+        transform: translateX(calc(100% + 16px));
+    }
+
+    .left-panel:not(.collapsed),
+    .right-panel:not(.collapsed) {
+        width: min(88vw, 340px) !important;
+        min-width: 0 !important;
+        opacity: 1 !important;
+        visibility: visible;
+        pointer-events: auto;
+    }
+
+    .left-panel:not(.collapsed) {
+        transform: translateX(0);
+    }
+
+    .right-panel:not(.collapsed) {
+        transform: translateX(0);
+    }
+
+    .left-panel.collapsed,
+    .right-panel.collapsed {
+        width: min(88vw, 340px) !important;
+        min-width: 0 !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        opacity: 0 !important;
+        visibility: hidden;
+        pointer-events: none !important;
+        border: 1px solid var(--border-color, #e2e8f0) !important;
+    }
+
+    .left-panel.collapsed {
+        transform: translateX(calc(-100% - 16px));
+    }
+
+    .right-panel.collapsed {
+        transform: translateX(calc(100% + 16px));
+    }
+
+    #leftPanelResizer,
+    #rightPanelResizer {
+        display: none !important;
+    }
+
+    .center-canvas {
+        padding: 18px 12px 28px;
+        overscroll-behavior: contain;
+        touch-action: pan-x pan-y;
+    }
+
+    .canvas-container {
+        margin: 0 auto;
+    }
+
+    .prop-panel-header,
+    .left-panel-header {
+        min-height: 52px;
+    }
+
+    .prop-footer-btn,
+    .prop-btn-table {
+        min-height: 40px;
+    }
+
+    .fill-mode-banner {
+        bottom: 12px;
+        width: calc(100% - 24px);
+        max-width: none;
+        padding: 8px 10px 8px 12px;
+        gap: 8px;
+    }
+
+    .fill-mode-actions {
+        margin-left: auto;
+    }
+
+    .fill-hud-btn {
+        min-height: 38px;
+        padding: 0 10px;
+    }
 }
 
 /* ── Floating Fill & Test Mode Banner HUD ────────────────────── */

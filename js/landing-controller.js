@@ -1,6 +1,7 @@
 // ── Landing Page View Transitions & Actions (js/landing-controller.js) ─
 import { state } from "./state.js";
 import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
+import { importExistingAcroFormFields } from "./auto-detector.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
 import { saveHistory, exportProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
@@ -37,6 +38,7 @@ export function showLandingScreen(force = false, skipPush = false) {
     const landing = document.getElementById("landingScreen");
     if (landing) landing.style.display = "block";
     if (editor) editor.style.display = "none";
+    document.body.classList.remove("editor-active");
 
     closeLeaveEditorModal();
 
@@ -310,6 +312,7 @@ export function showEditorScreen(onReady, skipPush = false) {
     if (landing) landing.style.display = "none";
     if (editor) {
         editor.style.display = "flex";
+        document.body.classList.add("editor-active");
         renderPage(true).then(() => {
             if (onReady) onReady();
         });
@@ -347,6 +350,7 @@ export async function loadPdfFile(file, onLoaded) {
         state.fileName = file.name ? file.name.replace(/\.pdf$/i, "") + "_form.pdf" : "interactive_form.pdf";
 
         await analyzePdfDocument();
+        await importExistingAcroFormFields("all");
 
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
@@ -401,6 +405,7 @@ export function initLandingController(onLoaded) {
         if (hasActiveSession) {
             // Keep editor visible
             if (editor) editor.style.display = "flex";
+            document.body.classList.add("editor-active");
             const landing = document.getElementById("landingScreen");
             if (landing) landing.style.display = "none";
 
