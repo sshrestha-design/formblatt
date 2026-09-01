@@ -103,7 +103,7 @@ async function runAllTests() {
 
         setSelectedField(null);
         assert.equal(state.selectedFieldIds.size, 0);
-        assert.equal(getSelectedField(), null);
+        assert.equal(getSelectedField().id, "f1");
     });
 
     it("keeps the active field selection and properties panel state across mode changes", () => {

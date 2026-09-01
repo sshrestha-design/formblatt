@@ -62,8 +62,15 @@ export function getSelectedField() {
         return state.fields.find(f => f.id === id) || null;
     }
 
-    if (state.selectedFieldIds.size === 0 && state.lastSelectedFieldId !== null) {
-        return state.fields.find(f => f.id === state.lastSelectedFieldId) || null;
+    if (state.selectedFieldIds.size === 0) {
+        const fallbackField = state.fields.find(f => f.id === state.lastSelectedFieldId)
+            || state.fields.find(f => (f.page || 1) === state.currentPageNum)
+            || state.fields[0]
+            || null;
+        if (fallbackField && state.lastSelectedFieldId === null) {
+            state.lastSelectedFieldId = fallbackField.id;
+        }
+        return fallbackField;
     }
 
     return null;
@@ -75,8 +82,6 @@ export function setSelectedField(fieldOrId) {
         const id = typeof fieldOrId === "object" ? fieldOrId.id : fieldOrId;
         state.selectedFieldIds.add(id);
         state.lastSelectedFieldId = id;
-    } else {
-        state.lastSelectedFieldId = null;
     }
 }
 
@@ -258,4 +263,3 @@ export function toggleGuides() {
     setGuidesEnabled(!state.guidesEnabled);
     return state.guidesEnabled;
 }
-
