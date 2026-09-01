@@ -2134,7 +2134,7 @@ body.mode-fill #toggleGuidesBtn {
     .center-canvas {
         padding: 18px 12px 28px;
         overscroll-behavior: contain;
-        touch-action: pan-x pan-y;
+        touch-action: none;
     }
 
     .canvas-container {

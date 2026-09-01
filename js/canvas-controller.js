@@ -933,19 +933,35 @@ export function initCanvasController(handlers) {
     let pinchStartDistance = 0;
     let pinchStartScale = state.currentScale;
     let isPinching = false;
+    let singleTouchStart = null;
     const getPinchDistance = touches => Math.hypot(
         touches[0].clientX - touches[1].clientX,
         touches[0].clientY - touches[1].clientY
     );
 
     centerCanvas?.addEventListener("touchstart", e => {
+        if (e.touches.length === 1 && !e.target.closest(".field-overlay")) {
+            singleTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            return;
+        }
         if (e.touches.length !== 2) return;
+        e.preventDefault();
+        singleTouchStart = null;
         pinchStartDistance = getPinchDistance(e.touches);
         pinchStartScale = state.currentScale;
         isPinching = pinchStartDistance > 0;
-    }, { passive: true });
+        centerCanvas.classList.add("is-pinch-zooming");
+    }, { passive: false });
 
     centerCanvas?.addEventListener("touchmove", e => {
+        if (!isPinching && e.touches.length === 1 && singleTouchStart) {
+            const touch = e.touches[0];
+            centerCanvas.scrollLeft -= touch.clientX - singleTouchStart.x;
+            centerCanvas.scrollTop -= touch.clientY - singleTouchStart.y;
+            singleTouchStart = { x: touch.clientX, y: touch.clientY };
+            e.preventDefault();
+            return;
+        }
         if (!isPinching || e.touches.length !== 2) return;
         e.preventDefault();
         const distance = getPinchDistance(e.touches);
@@ -957,8 +973,10 @@ export function initCanvasController(handlers) {
     const stopPinching = () => {
         isPinching = false;
         pinchStartDistance = 0;
+        centerCanvas?.classList.remove("is-pinch-zooming");
     };
     centerCanvas?.addEventListener("touchend", e => {
+        if (e.touches.length === 0) singleTouchStart = null;
         if (e.touches.length < 2) stopPinching();
     }, { passive: true });
     centerCanvas?.addEventListener("touchcancel", stopPinching, { passive: true });
