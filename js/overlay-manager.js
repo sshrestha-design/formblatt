@@ -5,6 +5,12 @@ import { openSignatureModal } from "./signature-pad.js";
 import { makeScrubbableAndScrollable } from "./properties-panel.js";
 import { saveHistory } from "./storage-manager.js";
 
+function getFillInputFontSize(field, fallback = 12) {
+    const explicit = Number(field?.fontSize);
+    if (Number.isFinite(explicit) && explicit >= 6) return explicit;
+    return fallback;
+}
+
 export function formatFieldDisplayName(f) {
     if (!f) return "Field";
     const raw = f.name || FIELD_TYPE_LABELS[f.type] || "Text Field";
@@ -47,8 +53,8 @@ export function renderOverlays(handlers) {
             } else {
                 div.style.border = f.borderStyle === "none" ? "1.5px dashed #94A3B8" : "1.5px solid #94A3B8";
                 div.style.borderRadius = "3px";
-                div.style.background = f.fillStyle === "transparent" ? "rgba(255, 255, 255, 0.7)" : "#ffffff";
-                div.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.04)";
+                div.style.background = "rgba(255, 255, 255, 0.98)";
+                div.style.boxShadow = "0 1px 2px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(148,163,184,0.18)";
             }
 
             if (f.type === "checkBox") {
@@ -80,7 +86,8 @@ export function renderOverlays(handlers) {
             } else if (f.type === "dropdown") {
                 const sel = document.createElement("select");
                 sel.className = "fill-input-select";
-                sel.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, f.height - 4)}px; font-family: inherit; padding: 0 4px; outline: none; cursor: pointer; color: #0f172a;`;
+                const dropdownFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
+                sel.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${dropdownFontSize}px; font-family: inherit; padding: 0 4px; outline: none; cursor: pointer; color: #0f172a; appearance: none; -webkit-appearance: none; text-align: left;`;
                 const opts = (f.options && f.options.length) ? f.options : ["Select..."];
                 opts.forEach(opt => {
                     const optEl = document.createElement("option");
@@ -128,7 +135,8 @@ export function renderOverlays(handlers) {
                 dateInput.type = "date";
                 dateInput.className = "fill-input-date";
                 dateInput.value = f.value || f.defaultValue || "";
-                dateInput.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, f.height - 4)}px; font-family: inherit; padding: 0 4px; outline: none; box-sizing: border-box; color: #0f172a;`;
+                const dateFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
+                dateInput.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${dateFontSize}px; font-family: inherit; padding: 0 4px; outline: none; box-sizing: border-box; color: #0f172a; text-align: left;`;
                 dateInput.addEventListener("input", () => {
                     f.value = dateInput.value;
                     f.defaultValue = dateInput.value;
@@ -140,7 +148,8 @@ export function renderOverlays(handlers) {
                 ta.className = "fill-input-textarea";
                 ta.value = f.value || f.defaultValue || "";
                 ta.placeholder = f.placeholder || "";
-                ta.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, Math.max(10, f.height / 3))}px; font-family: inherit; padding: 4px; outline: none; resize: none; box-sizing: border-box; line-height: 1.3; color: #0f172a;`;
+                const textareaFontSize = getFillInputFontSize(f, Math.min(12, Math.max(10, f.height / 3)));
+                ta.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${textareaFontSize}px; font-family: inherit; padding: 4px; outline: none; resize: none; box-sizing: border-box; line-height: 1.3; color: #0f172a; text-align: left;`;
                 ta.addEventListener("input", () => {
                     f.value = ta.value;
                     f.defaultValue = ta.value;
@@ -153,7 +162,8 @@ export function renderOverlays(handlers) {
                 inp.className = "fill-input-text";
                 inp.value = f.value || f.defaultValue || "";
                 inp.placeholder = f.placeholder || "";
-                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${Math.min(12, f.height - 4)}px; font-family: inherit; padding: 0 5px; outline: none; box-sizing: border-box; text-align: ${f.textAlignment || "left"}; color: #0f172a;`;
+                const inputFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
+                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${inputFontSize}px; font-family: inherit; padding: 0 5px; outline: none; box-sizing: border-box; text-align: left; color: #0f172a; appearance: none; -webkit-appearance: none;`;
 
                 if (f.dataFormat === "currency") {
                     inp.addEventListener("blur", () => {
