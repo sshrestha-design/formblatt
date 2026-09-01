@@ -1861,24 +1861,24 @@ input.prop-input {
 .mode-segmented-toggle {
     display: inline-flex;
     align-items: center;
-    background: #f1f5f9;
-    padding: 3px;
-    border-radius: 7px;
+    background: #ffffff;
+    padding: 2px;
+    border-radius: 6px;
     border: 1px solid #cbd5e1;
-    gap: 2px;
+    gap: 1px;
     height: 32px;
     box-sizing: border-box;
 }
 
 .mode-toggle-btn {
-    height: 24px;
-    padding: 0 9px;
-    font-size: 11.5px;
+    height: 26px;
+    padding: 0 10px;
+    font-size: 11px;
     font-weight: 600;
     color: #64748b;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -1890,21 +1890,21 @@ input.prop-input {
 
 .mode-toggle-btn:hover {
     color: #0f172a;
-    background: #e2e8f0;
+    background: #f1f5f9;
 }
 
 .mode-toggle-btn.active {
-    background: #ffffff;
-    color: #0f172a;
-    border-color: #cbd5e1;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    background: #eff6ff;
+    color: #1d4ed8;
+    border-color: #bfdbfe;
+    box-shadow: none;
 }
 
 .mode-toggle-btn.mode-fill-active {
     background: #2563eb !important;
     color: #ffffff !important;
-    border-color: #2563eb !important;
-    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+    border-color: #1d4ed8 !important;
+    box-shadow: none !important;
 }
 
 .toolbar-export-btn {
@@ -2041,6 +2041,7 @@ body.mode-fill #toggleGuidesBtn {
 
     .mode-segmented-toggle {
         grid-area: mode;
+        height: 40px;
         min-width: 0;
         max-width: 172px;
         flex: 1 1 auto;
@@ -2049,7 +2050,8 @@ body.mode-fill #toggleGuidesBtn {
 
     .mode-toggle-btn {
         min-width: 0;
-        padding: 0 9px;
+        height: 34px;
+        padding: 0 10px;
         gap: 5px;
         white-space: nowrap;
     }
