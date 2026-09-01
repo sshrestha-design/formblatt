@@ -1,5 +1,5 @@
 // ── Right Properties Inspector & Alignment (js/properties-panel.js) ─
-import { state, getSelectedField, setSelectedField, duplicateSelectedFields, addNextTableRow, createGroupForSelected, ungroupSelected } from "./state.js";
+import { state, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "./state.js";
 import { saveHistory } from "./storage-manager.js";
 import { openSignatureModal } from "./signature-pad.js";
 
@@ -235,15 +235,6 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         field.signatureImage = null;
         saveHistory();
         if (onFieldUpdated) onFieldUpdated(field);
-    });
-
-    // Add Next Table Row
-    document.getElementById("addTableRowBtn")?.addEventListener("click", () => {
-        const newIds = addNextTableRow();
-        if (newIds.length > 0) {
-            saveHistory();
-            if (onFieldUpdated) onFieldUpdated();
-        }
     });
 
     // Duplicate single field
