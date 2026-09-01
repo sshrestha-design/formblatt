@@ -100,6 +100,35 @@
     transform: scale(0.96);
 }
 
+.toolbar-quick-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+.toolbar-quick-actions .toolbar-action-btn {
+    width: 30px;
+    height: 30px;
+    min-height: 30px;
+    border-color: transparent;
+    background: transparent;
+}
+
+.toolbar-quick-actions .toolbar-action-btn:hover {
+    background: #ffffff;
+    border-color: #cbd5e1;
+}
+
+.toolbar-quick-actions .toolbar-delete-btn:hover {
+    color: #dc2626;
+    border-color: #fecaca;
+    background: #fffafa;
+}
+
 .menu-btn.toolbar-action-btn {
     width: auto;
     padding: 0 11px;
@@ -1988,6 +2017,7 @@ body.mode-fill #toggleGuidesBtn {
     .editor-brand-name,
     .editor-brand-badge,
     .toolbar-left > .tool-divider,
+    .toolbar-quick-actions,
     #fileMenuDropdown,
     #editMenuDropdown,
     #shortcutsHelpBtn {
