@@ -162,6 +162,7 @@ export async function importProjectJson(file, onLoaded) {
                 state.fields = fieldsToRestore;
                 state.groups = groupsToRestore;
                 state.selectedFieldIds.clear();
+                state.lastSelectedFieldId = state.fields[0]?.id || null;
 
                 const es = document.getElementById("emptyState");
                 if (es) es.style.display = "none";
@@ -180,6 +181,7 @@ export async function importProjectJson(file, onLoaded) {
             state.fields = fieldsToRestore;
             state.groups = groupsToRestore;
             state.selectedFieldIds.clear();
+            state.lastSelectedFieldId = state.fields[0]?.id || null;
             saveHistory();
             if (onLoaded) onLoaded();
             return;
@@ -190,6 +192,7 @@ export async function importProjectJson(file, onLoaded) {
             state.fields = fieldsToRestore;
             state.groups = groupsToRestore;
             state.selectedFieldIds.clear();
+            state.lastSelectedFieldId = state.fields[0]?.id || null;
             saveHistory();
             alert(`Project fields loaded (${fieldsToRestore.length} fields)! Please upload the corresponding PDF document ("${data.fileName || "original PDF"}") to view the canvas background.`);
             if (onLoaded) onLoaded();
