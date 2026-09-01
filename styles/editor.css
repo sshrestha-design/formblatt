@@ -31,7 +31,7 @@
     align-items: center;
     gap: 7px;
     font-weight: 800;
-    font-size: 1.02rem;
+    font-size: 1.1rem;
     letter-spacing: -0.02em;
     color: var(--text-color);
     cursor: pointer;
@@ -41,8 +41,8 @@
 }
 
 .editor-brand-icon {
-    width: 22px;
-    height: 22px;
+    width: 30px;
+    height: 30px;
     border-radius: 6px;
     background: linear-gradient(135deg, #0284c7, #2563eb);
     display: inline-flex;
@@ -50,6 +50,11 @@
     justify-content: center;
     color: #ffffff;
     box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+}
+
+.editor-brand-icon svg {
+    width: 18px;
+    height: 18px;
 }
 
 .editor-brand-name {
@@ -1960,10 +1965,10 @@ body.mode-fill #toggleGuidesBtn {
 
     .toolbar {
         display: grid;
-        grid-template-columns: max-content minmax(0, 1fr);
+        grid-template-columns: max-content minmax(0, 1fr) max-content max-content max-content;
         grid-template-areas:
-            "left right"
-            "center center";
+            "brand mode layers properties export"
+            "tools tools tools tools tools";
         height: auto;
         min-height: 126px;
         padding: calc(8px + env(safe-area-inset-top)) 10px 8px;
@@ -1972,20 +1977,12 @@ body.mode-fill #toggleGuidesBtn {
         overflow-x: hidden;
     }
 
-    .toolbar-left,
-    .toolbar-right {
-        gap: 6px;
-    }
-
     .toolbar-left {
-        grid-area: left;
-        min-width: max-content;
+        display: contents;
     }
 
     .toolbar-right {
-        grid-area: right;
-        min-width: 0;
-        justify-content: flex-end;
+        display: contents;
     }
 
     .editor-brand-name,
@@ -1998,10 +1995,29 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .editor-brand-logo {
-        width: 40px;
-        height: 40px;
+        grid-area: brand;
+        width: 44px;
+        height: 44px;
         justify-content: center;
         padding-right: 2px;
+    }
+
+    .editor-brand-icon {
+        width: 32px;
+        height: 32px;
+    }
+
+    .editor-brand-icon svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    #toggleSidebarBtn {
+        grid-area: layers;
+    }
+
+    #toggleRightSidebarBtn {
+        grid-area: properties;
     }
 
     .toolbar-action-btn,
@@ -2012,6 +2028,7 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .toolbar-export-btn {
+        grid-area: export;
         width: 40px;
         padding: 0;
         justify-content: center;
@@ -2023,9 +2040,11 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .mode-segmented-toggle {
+        grid-area: mode;
         min-width: 0;
         max-width: 172px;
         flex: 1 1 auto;
+        justify-self: stretch;
     }
 
     .mode-toggle-btn {
@@ -2047,7 +2066,7 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .toolbar-center {
-        grid-area: center;
+        grid-area: tools;
         order: 3;
         width: 100%;
         min-height: 52px;
@@ -2056,6 +2075,10 @@ body.mode-fill #toggleGuidesBtn {
         overflow-x: auto;
         scrollbar-width: none;
         padding-bottom: 1px;
+    }
+
+    .toolbar-right .mode-segmented-toggle {
+        width: 100%;
     }
 
     .toolbar-center::-webkit-scrollbar {
