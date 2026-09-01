@@ -2,6 +2,36 @@
 import { state } from "./state.js";
 import { showToast } from "./toast.js";
 
+function checkboxAppearanceProvider(mark) {
+    return (checkBox, widget) => {
+        const rectangle = widget.getRectangle();
+        const ap = widget.getAppearanceCharacteristics?.();
+        const bs = widget.getBorderStyle?.();
+        const borderWidth = bs?.getWidth?.() ?? 0;
+        const width = rectangle.width - borderWidth;
+        const height = rectangle.height - borderWidth;
+        const borderColor = PDFLib.rgb(0, 0, 0);
+        const markColor = PDFLib.rgb(0, 0, 0);
+        const backgroundColor = ap?.getBackgroundColor?.();
+        const outline = PDFLib.drawCheckBox({
+            x: borderWidth / 2, y: borderWidth / 2, width, height,
+            thickness: 1.5, borderWidth, borderColor, markColor,
+            color: backgroundColor, filled: false
+        });
+        const markOperators = mark === "x"
+            ? [
+                ...PDFLib.drawLine({ start: { x: width * 0.25, y: height * 0.25 }, end: { x: width * 0.75, y: height * 0.75 }, thickness: 1.5, color: markColor }),
+                ...PDFLib.drawLine({ start: { x: width * 0.25, y: height * 0.75 }, end: { x: width * 0.75, y: height * 0.25 }, thickness: 1.5, color: markColor })
+            ]
+            : PDFLib.drawCheckMark({ x: width / 2, y: height / 2, size: Math.min(width, height) / 2, thickness: 1.5, color: markColor });
+        const on = [...outline, ...markOperators];
+        return {
+            normal: { on, off: outline },
+            down: { on, off: outline }
+        };
+    };
+}
+
 // Maps an autofill role to a human-readable label for the PDF's /TU
 // tooltip, which is what Chrome's and Acrobat's native form-fill features
 // key off to suggest saved name/email/address/etc. Two naming schemes are
@@ -196,6 +226,9 @@ export async function buildPdf(options = {}) {
                 cb.addToPage(page, common);
                 if (f.defaultChecked) {
                     try { cb.check(); } catch(e) {}
+                }
+                try { cb.updateAppearances(checkboxAppearanceProvider(f.checkboxMark || "check")); } catch(e) {
+                    console.warn("Could not set checkbox appearance:", e);
                 }
 
             } else if (f.type === "dropdown") {

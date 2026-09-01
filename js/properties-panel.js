@@ -87,6 +87,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const heightInput = document.getElementById("height");
     const dropdownOptions = document.getElementById("dropdownOptions");
     const fieldDefaultChecked = document.getElementById("fieldDefaultChecked");
+    const fieldCheckboxMark = document.getElementById("fieldCheckboxMark");
 
     const syncChange = (updater, immediate = false) => {
         const field = getSelectedField();
@@ -169,6 +170,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     fieldTooltip?.addEventListener("change", e => syncChange(f => f.tooltip = e.target.value, true));
     autofillType?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true));
     fieldDefaultChecked?.addEventListener("change", e => syncChange(f => f.defaultChecked = e.target.checked, true));
+    fieldCheckboxMark?.addEventListener("change", e => syncChange(f => f.checkboxMark = e.target.value, true));
 
     // Enable Scrubbing and Scrolling on Number Inputs
     makeScrubbableAndScrollable(widthInput, null, { min: 16, max: 2000, step: 1 });
@@ -481,6 +483,7 @@ export function populateProperties(field) {
     setChecked("fieldReadOnly", fallbackField.readOnly);
     setChecked("fieldMultiline", fallbackField.multiline);
     setChecked("fieldDefaultChecked", fallbackField.defaultChecked);
+    setVal("fieldCheckboxMark", fallbackField.checkboxMark || "check");
 
     // Signature controls visibility
     const sigGroup = document.getElementById("signatureActionsGroup");
@@ -519,6 +522,10 @@ export function populateProperties(field) {
     const checkGroup = document.getElementById("defaultCheckedGroup");
     if (checkGroup) {
         checkGroup.style.display = (fallbackField.type === "checkBox" || fallbackField.type === "radioGroup") ? "flex" : "none";
+    }
+    const checkboxMarkGroup = document.getElementById("checkboxMarkGroup");
+    if (checkboxMarkGroup) {
+        checkboxMarkGroup.style.display = fallbackField.type === "checkBox" ? "flex" : "none";
     }
 
     if (typeof lucide !== "undefined") lucide.createIcons();

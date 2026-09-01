@@ -294,7 +294,7 @@ export function renderOverlays(handlers) {
             const badge = div.querySelector(".sig-prompt-badge");
             if (badge) badge.addEventListener("click", triggerSign);
         } else if (f.type === "checkBox") {
-            div.innerHTML = `<span style="font-size:12px; color:#2563eb; font-weight:bold;">${f.defaultChecked ? "✓" : ""}</span>`;
+            div.innerHTML = `<span style="font-size:12px; color:#2563eb; font-weight:bold;">${f.defaultChecked ? (f.checkboxMark === "x" ? "X" : "✓") : ""}</span>`;
         } else if (f.type === "radioGroup") {
             div.innerHTML = f.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#2563eb;"></div>` : "";
         } else {
@@ -686,7 +686,7 @@ export function openFieldQuickDimensionHUD(field, overlayEl, handlers) {
         }
 
         if (field.type === "checkBox") {
-            overlayEl.innerHTML = `<span style="font-size:12px; color:#0284c7; font-weight:bold;">${field.defaultChecked ? "✓" : ""}</span>`;
+            overlayEl.innerHTML = `<span style="font-size:12px; color:#0284c7; font-weight:bold;">${field.defaultChecked ? (field.checkboxMark === "x" ? "X" : "✓") : ""}</span>`;
         } else if (field.type === "radioGroup") {
             overlayEl.innerHTML = field.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#0284c7;"></div>` : "";
         }
