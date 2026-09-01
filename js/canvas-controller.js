@@ -676,6 +676,8 @@ export function initCanvasController(handlers) {
         const isEditing = tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable;
 
         if (e.key === "Escape") {
+            e.preventDefault();
+
             // 1. Cancel in-progress drawing, drag, resize, lasso, or temporary panning
             isDrawingField = false;
             drawStart = null;
@@ -684,7 +686,7 @@ export function initCanvasController(handlers) {
             state.isLassoing = false;
             if (state.isPanning && state.activeTool !== "hand") stopPanning();
 
-            // 2. Switch tool back to Select tool
+            // 2. Switch tool back to Select tool without clearing the active field selection
             state.activeTool = "select";
             document.body.classList.remove("placing-mode");
             document.body.classList.remove("tool-hand");
@@ -700,13 +702,8 @@ export function initCanvasController(handlers) {
             if (selectionBox) selectionBox.style.display = "none";
             hideGuides();
 
-            // 3. Deselect any active field selections
-            if (state.selectedFieldIds.size > 0 || state.selectedFieldId) {
-                setSelectedField(null);
-                handlers.onSelectionChange();
-            }
-
-            // 4. If focused in an input, blur it
+            // 3. If focused in an input, blur it; otherwise keep the current field selection
+            //    so the properties panel remains bound to the last active field.
             if (isEditing && e.target && typeof e.target.blur === "function") {
                 e.target.blur();
             }
