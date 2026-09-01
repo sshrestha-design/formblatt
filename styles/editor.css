@@ -1930,12 +1930,13 @@ body.mode-fill #toggleGuidesBtn {
 
     #appEditorScreen {
         min-height: 100dvh;
+        height: 100dvh !important;
     }
 
     .toolbar {
         height: auto;
         min-height: 52px;
-        padding: 8px 10px;
+        padding: calc(8px + env(safe-area-inset-top)) 10px 8px;
         gap: 8px;
         flex-wrap: wrap;
         align-content: center;
@@ -2031,6 +2032,7 @@ body.mode-fill #toggleGuidesBtn {
 
     .canvas-workspace-area {
         height: auto !important;
+        flex: 1 1 auto !important;
         min-height: 0;
     }
 
@@ -2132,7 +2134,8 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .center-canvas {
-        padding: 18px 12px 28px;
+        align-items: flex-start !important;
+        padding: 18px 12px calc(28px + env(safe-area-inset-bottom)) !important;
         overscroll-behavior: contain;
         touch-action: none;
     }
@@ -2171,7 +2174,7 @@ body.mode-fill #toggleGuidesBtn {
     .canvas-docked-footer {
         height: 52px !important;
         min-height: 52px;
-        padding: 0 8px !important;
+        padding: 0 8px env(safe-area-inset-bottom) !important;
         gap: 8px;
     }
 
