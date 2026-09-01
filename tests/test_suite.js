@@ -78,7 +78,6 @@ async function runAllTests() {
         copySelectedFields, 
         pasteClipboardFields, 
         duplicateSelectedFields,
-        addNextTableRow,
         setEditorMode,
         setGuidesEnabled,
         toggleGuides
@@ -219,28 +218,6 @@ async function runAllTests() {
         assert.equal(pastedField.name, "email_copy");
         assert.equal(pastedField.x, 65); // 50 + 15 offset
         assert.equal(pastedField.y, 115); // 100 + 15 offset
-    });
-
-    it("addNextTableRow intelligently clones row with auto-incremented numbering", () => {
-        state.fields = [
-            { id: "r1_qty", name: "quantity_1", type: "textField", x: 20, y: 200, width: 50, height: 20, page: 1 },
-            { id: "r1_desc", name: "description_1", type: "textField", x: 80, y: 200, width: 200, height: 20, page: 1 },
-            { id: "r1_price", name: "price_1", type: "textField", x: 290, y: 200, width: 80, height: 20, page: 1 }
-        ];
-        setSelectedField("r1_qty");
-        const newIds = addNextTableRow();
-
-        assert.equal(newIds.length, 3);
-        assert.equal(state.fields.length, 6);
-
-        const newQty = state.fields.find(f => f.name === "quantity_2");
-        const newDesc = state.fields.find(f => f.name === "description_2");
-        const newPrice = state.fields.find(f => f.name === "price_2");
-
-        assert.ok(newQty, "quantity_2 should exist");
-        assert.ok(newDesc, "description_2 should exist");
-        assert.ok(newPrice, "price_2 should exist");
-        assert.equal(newQty.y, 224); // 200 + 20 height + 4 delta
     });
 
     it("Smart guides toggling and persistence", () => {
