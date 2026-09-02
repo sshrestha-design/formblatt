@@ -1,4 +1,4 @@
-// ── Formblatt Complete Automated Test Suite (v1.1.0) ──────────────
+// ── Formblatt Complete Automated Test Suite (v2.0.0-alpha) ──────────
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
@@ -46,7 +46,7 @@ async function asyncIt(name, fn) {
 
 async function runAllTests() {
     console.log("=================================================");
-    console.log("🧪 RUNNING FORMBLATT AUTOMATED TEST SUITE (v1.1.0)");
+    console.log("🧪 RUNNING FORMBLATT AUTOMATED TEST SUITE (v2.0.0-alpha)");
     console.log("=================================================\n");
 
     // ── SUITE 1: Module Integrity & ES Module Imports ──

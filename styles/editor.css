@@ -79,15 +79,22 @@
     line-height: 1;
 }
 
+.brand-badge-alpha,
 .editor-brand-badge {
-    font-size: 10px;
-    font-weight: 700;
-    background: #eff6ff;
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: rgba(37, 99, 235, 0.08);
     color: #2563eb;
-    border: 1px solid #bfdbfe;
-    padding: 1px 6px;
-    border-radius: 4px;
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    padding: 1.5px 6px;
+    border-radius: 9999px;
     line-height: 1.2;
+    margin-left: 6px;
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
 }
 
 .toolbar-action-btn {
