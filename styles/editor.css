@@ -209,6 +209,7 @@
 }
 
 .segmented-toolbar {
+    position: relative;
     display: inline-flex;
     align-items: center;
     height: 38px;
@@ -220,7 +221,25 @@
     box-sizing: border-box;
 }
 
+.segmented-indicator {
+    position: absolute;
+    top: 3px;
+    left: 0;
+    height: 32px;
+    width: 32px;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid #cbd5e1;
+    box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(2, 132, 199, 0.25);
+    pointer-events: none;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), width 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+    z-index: 1;
+    opacity: 0;
+}
+
 .segmented-toolbar .tool-btn {
+    position: relative;
+    z-index: 2;
     background: transparent;
     border: 1px solid transparent;
     color: #64748b;
@@ -233,24 +252,20 @@
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
-    transition: transform var(--anim-fast), background var(--anim-fast), color var(--anim-fast), border-color var(--anim-fast), box-shadow var(--anim-fast);
+    transition: transform var(--anim-fast), color var(--anim-fast);
     will-change: transform;
 }
 
 .segmented-toolbar .tool-btn:hover {
-    background: #e2e8f0;
     color: #0f172a;
 }
 
 .segmented-toolbar .tool-btn:active {
-    transform: scale(0.94);
+    transform: scale(0.92);
 }
 
 .segmented-toolbar .tool-btn.active {
-    background: #ffffff;
     color: #0284c7;
-    border-color: #cbd5e1;
-    box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(2, 132, 199, 0.25);
 }
 
 .segmented-toolbar .tool-btn.active svg,
@@ -2072,9 +2087,10 @@ input.prop-input {
 
 /* ── Mode Segmented Toggle (Design vs Fill & Test Mode) ────────── */
 .mode-segmented-toggle {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    background: #ffffff;
+    background: #f1f5f9;
     padding: 2px;
     border-radius: 6px;
     border: 1px solid #cbd5e1;
@@ -2083,7 +2099,24 @@ input.prop-input {
     box-sizing: border-box;
 }
 
+.mode-segmented-indicator {
+    position: absolute;
+    top: 2px;
+    left: 0;
+    height: 26px;
+    background: #ffffff;
+    border-radius: 4px;
+    border: 1px solid #bfdbfe;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.12);
+    pointer-events: none;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), width 0.22s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease;
+    z-index: 1;
+    opacity: 0;
+}
+
 .mode-toggle-btn {
+    position: relative;
+    z-index: 2;
     height: 26px;
     padding: 0 10px;
     font-size: 11px;
@@ -2096,28 +2129,86 @@ input.prop-input {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    transition: all 0.15s ease;
+    transition: color 0.15s ease, transform 0.1s ease;
     user-select: none;
     box-sizing: border-box;
 }
 
-.mode-toggle-btn:hover {
-    color: #0f172a;
-    background: #f1f5f9;
+.mode-toggle-btn:active {
+    transform: scale(0.95);
 }
 
 .mode-toggle-btn.active {
-    background: #eff6ff;
     color: #1d4ed8;
-    border-color: #bfdbfe;
-    box-shadow: none;
 }
 
 .mode-toggle-btn.mode-fill-active {
-    background: #2563eb !important;
     color: #ffffff !important;
-    border-color: #1d4ed8 !important;
-    box-shadow: none !important;
+}
+
+/* ── Micro-Animations: SVG Draw-In, Radio Bloom, and Export CTA Morph ─ */
+.animated-checkmark-svg {
+    display: block;
+    overflow: visible;
+}
+
+.animated-checkmark-svg polyline,
+.animated-checkmark-svg line {
+    stroke-dasharray: 25;
+    stroke-dashoffset: 25;
+    animation: drawCheckmark 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes drawCheckmark {
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.animated-radio-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2563eb;
+    animation: radioDotBloom 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes radioDotBloom {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.export-spinner {
+    animation: exportSpin 0.75s linear infinite;
+}
+
+@keyframes exportSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.export-check-bounce {
+    animation: checkBounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes checkBounce {
+    0% {
+        transform: scale(0.4);
+        opacity: 0;
+    }
+    70% {
+        transform: scale(1.18);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 .toolbar-export-btn {

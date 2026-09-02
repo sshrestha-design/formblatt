@@ -31,7 +31,38 @@ function refreshUI() {
         () => refreshUI()
     );
     populateProperties(getSelectedField());
+    updateToolIndicator();
+    updateModeIndicator();
     if (typeof lucide !== "undefined") lucide.createIcons();
+}
+
+export function updateToolIndicator() {
+    if (typeof document === "undefined") return;
+    const activeBtn = document.querySelector(".segmented-toolbar .tool-btn.active");
+    const indicator = document.getElementById("toolIndicator");
+    if (activeBtn && indicator) {
+        indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+        indicator.style.width = `${activeBtn.offsetWidth}px`;
+        indicator.style.opacity = "1";
+    }
+}
+
+export function updateModeIndicator() {
+    if (typeof document === "undefined") return;
+    const activeBtn = document.querySelector(".mode-segmented-toggle .mode-toggle-btn.active");
+    const indicator = document.getElementById("modeIndicator");
+    if (activeBtn && indicator) {
+        indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
+        indicator.style.width = `${activeBtn.offsetWidth}px`;
+        indicator.style.opacity = "1";
+        if (activeBtn.id === "modeFillBtn") {
+            indicator.style.background = "#2563eb";
+            indicator.style.borderColor = "#1d4ed8";
+        } else {
+            indicator.style.background = "#ffffff";
+            indicator.style.borderColor = "#bfdbfe";
+        }
+    }
 }
 
 export function switchEditorMode(mode = "design") {
@@ -56,6 +87,7 @@ export function switchEditorMode(mode = "design") {
         fillModeBanner.style.display = isFill ? "flex" : "none";
     }
 
+    updateModeIndicator();
     refreshUI();
 }
 
@@ -111,6 +143,7 @@ const bootstrapApp = async () => {
             triggerHaptic();
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
+            updateToolIndicator();
             state.activeTool = btn.dataset.tool;
             document.body.classList.toggle("tool-hand", state.activeTool === "hand");
 
@@ -120,6 +153,11 @@ const bootstrapApp = async () => {
                 document.body.classList.remove("placing-mode");
             }
         });
+    });
+
+    window.addEventListener("resize", () => {
+        updateToolIndicator();
+        updateModeIndicator();
     });
 
     // Header Dropdown Menus Setup (File & Edit)
@@ -597,9 +635,12 @@ const bootstrapApp = async () => {
         const isFlatten = selectedMode === "flatten";
         const includeJsonBackup = document.getElementById("exportIncludeProjectJson")?.checked || false;
 
-        // Set Loading & Disabled State
+        // Set Loading & Disabled State with Morphing Spinner
         if (confirmExportBtn) confirmExportBtn.disabled = true;
-        if (confirmExportBtnText) confirmExportBtnText.innerHTML = 'Generating AcroForm...';
+        if (confirmExportBtn) {
+            confirmExportBtn.innerHTML = '<i data-lucide="loader-2" class="export-spinner" style="width: 14px; height: 14px;"></i> <span>Generating AcroForm...</span>';
+            if (typeof lucide !== "undefined") lucide.createIcons();
+        }
 
         try {
             const bytes = await buildPdf({ flatten: isFlatten });
@@ -615,15 +656,36 @@ const bootstrapApp = async () => {
                 exportProjectJson();
             }
 
-            closeExportModal();
-            showExportToast(customName);
+            // Success Morph: Emerald Green Checkmark Bounce
+            confirmExportBtn.style.background = "#16a34a";
+            confirmExportBtn.style.borderColor = "#15803d";
+            confirmExportBtn.innerHTML = '<i data-lucide="check" class="export-check-bounce" style="width: 15px; height: 15px; color: #ffffff;"></i> <span>Exported!</span>';
+            if (typeof lucide !== "undefined") lucide.createIcons();
+            triggerHaptic(20);
+
+            setTimeout(() => {
+                closeExportModal();
+                showExportToast(customName);
+                setTimeout(() => {
+                    if (confirmExportBtn) {
+                        confirmExportBtn.style.background = "";
+                        confirmExportBtn.style.borderColor = "";
+                        confirmExportBtn.disabled = false;
+                        confirmExportBtn.innerHTML = '<i data-lucide="download" style="width: 14px; height: 14px;"></i> <span id="confirmExportBtnText">Download PDF</span>';
+                        if (typeof lucide !== "undefined") lucide.createIcons();
+                    }
+                }, 400);
+            }, 750);
         } catch (err) {
             console.error("Export Error:", err);
             showToast("Failed to export PDF: " + err.message, "error");
-        } finally {
-            if (confirmExportBtn) confirmExportBtn.disabled = false;
-            if (confirmExportBtnText) confirmExportBtnText.textContent = "Download PDF";
-            if (typeof lucide !== "undefined") lucide.createIcons();
+            if (confirmExportBtn) {
+                confirmExportBtn.disabled = false;
+                confirmExportBtn.style.background = "";
+                confirmExportBtn.style.borderColor = "";
+                confirmExportBtn.innerHTML = '<i data-lucide="download" style="width: 14px; height: 14px;"></i> <span id="confirmExportBtnText">Download PDF</span>';
+                if (typeof lucide !== "undefined") lucide.createIcons();
+            }
         }
     });
 
