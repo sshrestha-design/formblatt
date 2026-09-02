@@ -1419,7 +1419,29 @@ input.prop-input {
     box-sizing: border-box;
 }
 
+.layer-type-tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+    user-select: none;
+    line-height: 1;
+    transition: color 0.15s ease;
+}
+
+.layer-item.selected .layer-type-tag {
+    color: #0284c7;
+}
+
+.layer-item:hover .layer-type-tag {
+    color: #64748b;
+}
+
 .layer-item.is-renaming .layer-action-btn,
+.layer-item.is-renaming .layer-type-tag,
 .layer-item.is-renaming .layer-type-badge,
 .layer-item.is-renaming .layer-rename-btn,
 .layer-group-header.is-renaming .group-actions,
