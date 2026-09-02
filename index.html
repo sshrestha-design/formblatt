@@ -111,7 +111,7 @@
     </script>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=10.3">
+    <link rel="stylesheet" href="styles/main.css?v=10.7">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -131,8 +131,29 @@
             <div class="header-inner">
                 <nav class="landing-nav-bar">
                     <a href="#hero" class="brand" id="landingLogoBtn" onclick="document.getElementById('landingScreen')?.scrollTo({top:0,behavior:'smooth'}); window.scrollTo({top:0,behavior:'smooth'}); return false;" style="cursor: pointer; text-decoration: none;">
-                        <span class="brand-mark">F</span>
-                        <span>FORMBLATT</span>
+                        <span class="brand-mark" title="Formblatt">
+                            <svg viewBox="0 0 40 40" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="fbNavCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#083E8A" />
+                                        <stop offset="100%" stop-color="#0B63CE" />
+                                    </linearGradient>
+                                </defs>
+                                <g transform="skewX(-13) translate(3, 0)">
+                                    <path d="M 10 7 L 28 7 L 28 12 L 17 12 L 17 17 L 25 17 L 25 22 L 17 22 L 17 33 L 10 33 Z" fill="#f1f5f9" stroke="#12161E" stroke-width="1.2" stroke-linejoin="round" />
+                                    <line x1="10" y1="9.5" x2="28" y2="9.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="14.5" x2="17" y2="14.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="19.5" x2="25" y2="19.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="25" x2="17" y2="25" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="29" x2="17" y2="29" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="13.5" y1="7" x2="13.5" y2="33" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="21" y1="7" x2="21" y2="12" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="24.5" y1="7" x2="24.5" y2="12" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                </g>
+                                <path d="M 10 22 L 16.5 29.5 L 30 11 L 33.5 14.5 L 34.5 7.5 L 27.5 8.5 L 30.5 11.5 L 16.5 25.5 L 13 21 Z" fill="url(#fbNavCheckGrad)" stroke="#083E8A" stroke-width="0.6" stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                        <span class="brand-text"><span class="brand-name-primary">Form</span><span class="brand-name-accent">blatt</span></span>
                     </a>
                     <div class="nav-links">
                         <a href="#how-it-works" onclick="document.getElementById('how-it-works')?.scrollIntoView({behavior:'smooth'}); return false;">How it works</a>
@@ -576,8 +597,29 @@
             <div class="foot-wrap">
                 <div>
                     <a href="#hero" class="foot-brand" id="footerBrandLogo" onclick="document.getElementById('landingScreen')?.scrollTo({top:0,behavior:'smooth'}); window.scrollTo({top:0,behavior:'smooth'}); return false;">
-                        <span class="brand-mark">F</span>
-                        <span>Formblatt</span>
+                        <span class="brand-mark" title="Formblatt">
+                            <svg viewBox="0 0 40 40" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <defs>
+                                    <linearGradient id="fbFootCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                        <stop offset="0%" stop-color="#083E8A" />
+                                        <stop offset="100%" stop-color="#0B63CE" />
+                                    </linearGradient>
+                                </defs>
+                                <g transform="skewX(-13) translate(3, 0)">
+                                    <path d="M 10 7 L 28 7 L 28 12 L 17 12 L 17 17 L 25 17 L 25 22 L 17 22 L 17 33 L 10 33 Z" fill="#ffffff" stroke="#12161E" stroke-width="1.2" stroke-linejoin="round" />
+                                    <line x1="10" y1="9.5" x2="28" y2="9.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="14.5" x2="17" y2="14.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="19.5" x2="25" y2="19.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="25" x2="17" y2="25" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="10" y1="29" x2="17" y2="29" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="13.5" y1="7" x2="13.5" y2="33" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="21" y1="7" x2="21" y2="12" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                    <line x1="24.5" y1="7" x2="24.5" y2="12" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                </g>
+                                <path d="M 10 22 L 16.5 29.5 L 30 11 L 33.5 14.5 L 34.5 7.5 L 27.5 8.5 L 30.5 11.5 L 16.5 25.5 L 13 21 Z" fill="url(#fbFootCheckGrad)" stroke="#083E8A" stroke-width="0.6" stroke-linejoin="round" />
+                            </svg>
+                        </span>
+                        <span class="brand-text"><span class="brand-name-primary">Form</span><span class="brand-name-accent">blatt</span></span>
                     </a>
                     <p class="desc">A PDF form editor that runs entirely in your browser. Free, open source, and built so your documents never have to leave your computer.</p>
                 </div>
@@ -620,9 +662,28 @@
             <div class="toolbar-left">
                 <span class="editor-brand-logo" id="editorBrandLogo" title="Formblatt Dashboard" aria-label="Formblatt Dashboard" role="button" tabindex="0">
                     <span class="editor-brand-icon">
-                        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
+                        <svg viewBox="0 0 40 40" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="fbEdCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#ffffff" />
+                                    <stop offset="100%" stop-color="#e0f2fe" />
+                                </linearGradient>
+                            </defs>
+                            <g transform="skewX(-13) translate(3, 0)">
+                                <path d="M 10 7 L 28 7 L 28 12 L 17 12 L 17 17 L 25 17 L 25 22 L 17 22 L 17 33 L 10 33 Z" fill="rgba(255,255,255,0.2)" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />
+                                <line x1="10" y1="9.5" x2="28" y2="9.5" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="14.5" x2="17" y2="14.5" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="19.5" x2="25" y2="19.5" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="25" x2="17" y2="25" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="29" x2="17" y2="29" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="13.5" y1="7" x2="13.5" y2="33" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="21" y1="7" x2="21" y2="12" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="24.5" y1="7" x2="24.5" y2="12" stroke="rgba(255,255,255,0.5)" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                            </g>
+                            <path d="M 10 22 L 16.5 29.5 L 30 11 L 33.5 14.5 L 34.5 7.5 L 27.5 8.5 L 30.5 11.5 L 16.5 25.5 L 13 21 Z" fill="url(#fbEdCheckGrad)" stroke="#083E8A" stroke-width="0.6" stroke-linejoin="round" />
+                        </svg>
                     </span>
-                    <span class="editor-brand-name">Formblatt</span>
+                    <span class="editor-brand-name"><span class="brand-name-primary">Form</span><span class="brand-name-accent">blatt</span></span>
                 </span>
                 <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
                 <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" aria-label="Toggle Layers">
@@ -2112,11 +2173,30 @@
         <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 36px; height: 36px; border-radius: 10px; background: #0284c7; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800;">
-                        F
+                    <div class="brand-mark" style="width: 36px; height: 36px; border-radius: 10px;">
+                        <svg viewBox="0 0 40 40" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="fbAboutCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                    <stop offset="0%" stop-color="#083E8A" />
+                                    <stop offset="100%" stop-color="#0B63CE" />
+                                </linearGradient>
+                            </defs>
+                            <g transform="skewX(-13) translate(3, 0)">
+                                <path d="M 10 7 L 28 7 L 28 12 L 17 12 L 17 17 L 25 17 L 25 22 L 17 22 L 17 33 L 10 33 Z" fill="#f1f5f9" stroke="#12161E" stroke-width="1.2" stroke-linejoin="round" />
+                                <line x1="10" y1="9.5" x2="28" y2="9.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="14.5" x2="17" y2="14.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="19.5" x2="25" y2="19.5" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="25" x2="17" y2="25" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="10" y1="29" x2="17" y2="29" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="13.5" y1="7" x2="13.5" y2="33" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="21" y1="7" x2="21" y2="12" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                                <line x1="24.5" y1="7" x2="24.5" y2="12" stroke="#94a3b8" stroke-width="0.6" stroke-dasharray="0.8 0.8" />
+                            </g>
+                            <path d="M 10 22 L 16.5 29.5 L 30 11 L 33.5 14.5 L 34.5 7.5 L 27.5 8.5 L 30.5 11.5 L 16.5 25.5 L 13 21 Z" fill="url(#fbAboutCheckGrad)" stroke="#083E8A" stroke-width="0.6" stroke-linejoin="round" />
+                        </svg>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">About Formblatt</h3>
+                        <h3 style="margin: 0; font-size: 18px; color: #0f172a;"><span style="font-weight: 900;">About Form</span><span style="font-weight: 900; font-style: normal; color: #0B63CE; display: inline-block;">blatt</span></h3>
                         <span style="font-size: 12px; color: #64748b;">Free • Open Source • Privacy-First</span>
                     </div>
                 </div>
