@@ -218,7 +218,7 @@ export function toggleGuides() {
 }
 
 export function updateDocumentTitle(customName) {
-    const defaultTitle = "Formblatt - Free Interactive PDF Form Creator & AcroForm Editor";
+    const defaultTitle = "Formblatt: Free Interactive PDF Form Creator & AcroForm Editor";
     if (typeof document === "undefined") return;
     
     const editor = document.getElementById("appEditorScreen");
