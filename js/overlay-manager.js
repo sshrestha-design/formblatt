@@ -337,9 +337,17 @@ export function renderOverlays(handlers) {
             const badge = div.querySelector(".sig-prompt-badge");
             if (badge) badge.addEventListener("click", triggerSign);
         } else if (f.type === "checkBox") {
-            div.innerHTML = `<span style="font-size:12px; color:#2563eb; font-weight:bold;">${f.defaultChecked ? (f.checkboxMark === "x" ? "X" : "✓") : ""}</span>`;
+            if (f.defaultChecked) {
+                if (f.checkboxMark === "x") {
+                    div.innerHTML = `<svg class="animated-checkmark-svg" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="3.5" y1="3.5" x2="12.5" y2="12.5"></line><line x1="12.5" y1="3.5" x2="3.5" y2="12.5"></line></svg>`;
+                } else {
+                    div.innerHTML = `<svg class="animated-checkmark-svg" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8.5 6.5 12 13 4"></polyline></svg>`;
+                }
+            } else {
+                div.innerHTML = "";
+            }
         } else if (f.type === "radioGroup") {
-            div.innerHTML = f.defaultChecked ? `<div style="width:8px; height:8px; border-radius:50%; background:#2563eb;"></div>` : "";
+            div.innerHTML = f.defaultChecked ? `<div class="animated-radio-dot"></div>` : "";
         } else {
             const label = document.createElement("span");
             label.className = "overlay-label";
