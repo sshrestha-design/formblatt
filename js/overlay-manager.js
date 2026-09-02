@@ -5,6 +5,45 @@ import { openSignatureModal } from "./signature-pad.js";
 import { makeScrubbableAndScrollable } from "./properties-panel.js";
 import { saveHistory } from "./storage-manager.js";
 
+export function getFieldCssFont(field) {
+    let fam = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+    let weight = "400";
+    let style = "normal";
+    let letterSpacing = "normal";
+
+    const family = field?.fontFamily || "helvetica";
+    if (family === "times") {
+        fam = "'Times New Roman', Times, Georgia, serif";
+    } else if (family === "courier") {
+        fam = "'Courier New', Courier, monospace";
+        letterSpacing = "0.5px";
+    } else if (family === "helvetica-bold") {
+        fam = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+        weight = "700";
+    } else if (family === "times-italic") {
+        fam = "'Times New Roman', Times, Georgia, serif";
+        style = "italic";
+    } else if (family === "inter") {
+        fam = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+        weight = "500";
+    } else if (family === "carlito") {
+        fam = "'Carlito', Calibri, sans-serif";
+    } else if (family === "roboto-mono") {
+        fam = "'Roboto Mono', monospace";
+        letterSpacing = "0.2px";
+    } else if (family === "ibm-plex-mono") {
+        fam = "'IBM Plex Mono', monospace";
+        letterSpacing = "0.3px";
+    } else if (family === "caveat") {
+        fam = "'Caveat', cursive";
+        weight = "600";
+    } else if (family === "cedarville") {
+        fam = "'Cedarville Cursive', cursive";
+    }
+
+    return { fam, weight, style, letterSpacing };
+}
+
 function getFillInputFontSize(field, fallback = 12) {
     const explicit = Number(field?.fontSize);
     if (Number.isFinite(explicit) && explicit >= 6) return explicit;
@@ -87,7 +126,8 @@ export function renderOverlays(handlers) {
                 const sel = document.createElement("select");
                 sel.className = "fill-input-select";
                 const dropdownFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
-                sel.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${dropdownFontSize}px; font-family: inherit; padding: 0 4px; outline: none; cursor: pointer; color: #0f172a; appearance: none; -webkit-appearance: none; text-align: left;`;
+                const { fam, weight, style: fontStyle } = getFieldCssFont(f);
+                sel.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${dropdownFontSize}px; font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; padding: 0 4px; outline: none; cursor: pointer; color: #0f172a; appearance: none; -webkit-appearance: none; text-align: ${f.textAlignment || 'left'};`;
                 const opts = (f.options && f.options.length) ? f.options : ["Select..."];
                 opts.forEach(opt => {
                     const optEl = document.createElement("option");
@@ -136,7 +176,8 @@ export function renderOverlays(handlers) {
                 dateInput.className = "fill-input-date";
                 dateInput.value = f.value || f.defaultValue || "";
                 const dateFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
-                dateInput.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${dateFontSize}px; font-family: inherit; padding: 0 4px; outline: none; box-sizing: border-box; color: #0f172a; text-align: left;`;
+                const { fam, weight, style: fontStyle } = getFieldCssFont(f);
+                dateInput.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${dateFontSize}px; font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; padding: 0 4px; outline: none; box-sizing: border-box; color: #0f172a; text-align: ${f.textAlignment || 'left'};`;
                 dateInput.addEventListener("input", () => {
                     f.value = dateInput.value;
                     f.defaultValue = dateInput.value;
@@ -149,7 +190,8 @@ export function renderOverlays(handlers) {
                 ta.value = f.value || f.defaultValue || "";
                 ta.placeholder = f.placeholder || "";
                 const textareaFontSize = getFillInputFontSize(f, Math.min(12, Math.max(10, f.height / 3)));
-                ta.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${textareaFontSize}px; font-family: inherit; padding: 4px; outline: none; resize: none; box-sizing: border-box; line-height: 1.3; color: #0f172a; text-align: left;`;
+                const { fam, weight, style: fontStyle } = getFieldCssFont(f);
+                ta.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${textareaFontSize}px; font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; padding: 4px; outline: none; resize: none; box-sizing: border-box; line-height: 1.3; color: #0f172a; text-align: ${f.textAlignment || 'left'};`;
                 ta.addEventListener("input", () => {
                     f.value = ta.value;
                     f.defaultValue = ta.value;
@@ -163,7 +205,8 @@ export function renderOverlays(handlers) {
                 inp.value = f.value || f.defaultValue || "";
                 inp.placeholder = f.placeholder || "";
                 const inputFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
-                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${inputFontSize}px; font-family: inherit; padding: 0 5px; outline: none; box-sizing: border-box; text-align: left; color: #0f172a; appearance: none; -webkit-appearance: none;`;
+                const { fam, weight, style: fontStyle } = getFieldCssFont(f);
+                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${inputFontSize}px; font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; padding: 0 5px; outline: none; box-sizing: border-box; text-align: ${f.textAlignment || 'left'}; color: #0f172a; appearance: none; -webkit-appearance: none;`;
 
                 if (f.dataFormat === "currency") {
                     inp.addEventListener("blur", () => {
@@ -303,23 +346,7 @@ export function renderOverlays(handlers) {
             label.style.width = "100%";
             label.style.textAlign = f.textAlignment || "left";
 
-            let fam = "'Carlito', Calibri, 'Inter', sans-serif";
-            let weight = "500";
-            let style = "normal";
-            let letterSpacing = "normal";
-
-            if (f.fontFamily === "times") {
-                fam = "'Times New Roman', Times, Georgia, serif";
-            } else if (f.fontFamily === "courier") {
-                fam = "'Courier New', Courier, 'Roboto Mono', monospace";
-                letterSpacing = "0.5px";
-            } else if (f.fontFamily === "helvetica-bold") {
-                fam = "'Carlito', Calibri, 'Inter', sans-serif";
-                weight = "800";
-            } else if (f.fontFamily === "times-italic") {
-                fam = "'Times New Roman', Times, Georgia, serif";
-                style = "italic";
-            }
+            let { fam, weight, style, letterSpacing } = getFieldCssFont(f);
 
             label.style.fontFamily = fam;
             label.style.fontWeight = weight;
@@ -336,9 +363,9 @@ export function renderOverlays(handlers) {
             label.style.textOverflow = "ellipsis";
 
             if (f.type === "dropdown") {
-                const displayText = f.defaultValue || (f.options && f.options.length ? f.options[0] : "Select...");
+                const displayText = f.value || f.defaultValue || (f.options && f.options.length ? f.options[0] : "Select...");
                 label.textContent = displayText;
-                label.style.color = f.defaultValue ? "#0f172a" : "rgba(100, 116, 139, 0.7)";
+                label.style.color = (f.value || f.defaultValue) ? "#0f172a" : "rgba(100, 116, 139, 0.7)";
                 
                 const arrow = document.createElement("span");
                 arrow.style.cssText = "font-size:8.5px; color:#64748b; margin-left:auto; padding-right:4px; flex-shrink:0; pointer-events:none; user-select:none;";
@@ -349,10 +376,22 @@ export function renderOverlays(handlers) {
                 div.appendChild(label);
                 div.appendChild(arrow);
             } else {
+                const isRealVal = (f.value !== undefined && f.value !== "");
                 const isFormatPlaceholder = f.defaultValue && /^(?:YYYY[-/]MM[-/]DD|MM[-/]DD[-/]YYYY|MM[-/]YY)$/i.test(f.defaultValue.trim());
-                if (f.defaultValue && !isFormatPlaceholder) {
-                    label.textContent = f.defaultValue;
+                
+                if (isRealVal) {
+                    label.textContent = f.value;
                     label.style.color = "#0f172a";
+                    label.style.fontStyle = (style === "italic") ? "italic" : "normal";
+                    label.style.fontWeight = weight || "500";
+                    label.style.opacity = "1.0";
+                } else if (f.defaultValue && !isFormatPlaceholder) {
+                    label.textContent = f.defaultValue;
+                    label.style.color = "#64748b";
+                    label.style.fontStyle = "italic";
+                    label.style.fontWeight = "400";
+                    label.style.opacity = "0.85";
+                    label.title = "Default / Placeholder Value";
                 } else {
                     // Do NOT show blocking text inside box; keep 100% see-through!
                     label.textContent = "";
