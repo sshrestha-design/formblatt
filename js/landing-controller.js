@@ -349,7 +349,7 @@ export async function loadPdfFile(file, onLoaded) {
         state.totalPages = state.pdfDoc.numPages;
         state.fields.length = 0;
         state.selectedFieldIds.clear();
-        state.fileName = file.name ? file.name.replace(/\.pdf$/i, "") + "_form.pdf" : "interactive_form.pdf";
+        state.fileName = file.name ? (file.name.toLowerCase().endsWith(".pdf") ? file.name : file.name + ".pdf") : "interactive_form.pdf";
 
         await analyzePdfDocument();
         await importExistingAcroFormFields("all");
@@ -379,7 +379,7 @@ export async function loadTemplate(key, onLoaded) {
         state.fieldCounter = state.fields.length + 1;
         state.selectedFieldIds.clear();
         state.lastSelectedFieldId = state.fields[0]?.id || null;
-        state.fileName = key + "_form.pdf";
+        state.fileName = key + ".pdf";
 
         await analyzePdfDocument();
 

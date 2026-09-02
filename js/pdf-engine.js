@@ -188,7 +188,7 @@ export async function analyzePdfDocument() {
     // 2. Metadata Extraction (Title, Author)
     try {
         const metadata = await state.pdfDoc.getMetadata();
-        if (metadata && metadata.info && metadata.info.Title) {
+        if (metadata && metadata.info && metadata.info.Title && (!state.fileName || state.fileName === "interactive_form.pdf")) {
             const rawTitle = metadata.info.Title.trim();
             if (rawTitle && !rawTitle.toLowerCase().includes("untitled") && rawTitle.length > 2) {
                 state.fileName = rawTitle.endsWith(".pdf") ? rawTitle : rawTitle + ".pdf";
