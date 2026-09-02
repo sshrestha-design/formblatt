@@ -667,6 +667,30 @@ async function runAllTests() {
         assert.equal(clampPanelWidth(256, 100, 180, 600), 356);
     });
 
+    it("updateDocumentTitle reflects current filename in editor and default on landing", async () => {
+        const { updateDocumentTitle, state } = await import("../js/state.js");
+        
+        global.document = {
+            title: "",
+            getElementById(id) {
+                if (id === "appEditorScreen") return { style: { display: "flex" } };
+                return null;
+            }
+        };
+
+        state.fileName = "invoice_2026.pdf";
+        updateDocumentTitle();
+        assert.equal(global.document.title, "invoice_2026.pdf – Formblatt");
+
+        updateDocumentTitle("w9_tax_form.pdf");
+        assert.equal(global.document.title, "w9_tax_form.pdf – Formblatt");
+
+        // When editor is hidden (landing mode)
+        global.document.getElementById = () => ({ style: { display: "none" } });
+        updateDocumentTitle();
+        assert.equal(global.document.title, "Formblatt - Free Interactive PDF Form Creator & AcroForm Editor");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

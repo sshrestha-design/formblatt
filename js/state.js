@@ -216,3 +216,23 @@ export function toggleGuides() {
     setGuidesEnabled(!state.guidesEnabled);
     return state.guidesEnabled;
 }
+
+export function updateDocumentTitle(customName) {
+    const defaultTitle = "Formblatt - Free Interactive PDF Form Creator & AcroForm Editor";
+    if (typeof document === "undefined") return;
+    
+    const editor = document.getElementById("appEditorScreen");
+    const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || (typeof getComputedStyle !== "undefined" && getComputedStyle(editor).display !== "none"));
+    
+    if (!isEditorActive) {
+        document.title = defaultTitle;
+        return;
+    }
+    
+    const name = customName !== undefined ? customName : state.fileName;
+    if (name && typeof name === "string" && name.trim()) {
+        document.title = `${name.trim()} – Formblatt`;
+    } else {
+        document.title = defaultTitle;
+    }
+}

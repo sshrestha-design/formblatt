@@ -1,5 +1,5 @@
 // ── Landing Page View Transitions & Actions (js/landing-controller.js) ─
-import { state } from "./state.js";
+import { state, updateDocumentTitle } from "./state.js";
 import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { importExistingAcroFormFields } from "./auto-detector.js";
 import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
@@ -103,6 +103,7 @@ export function showLandingScreen(force = false, skipPush = false) {
     }
 
     renderLandingReviews();
+    updateDocumentTitle();
     if (typeof lucide !== "undefined") lucide.createIcons();
     if (landing) {
         landing.scrollTo({ top: 0, behavior: "smooth" });
@@ -313,6 +314,7 @@ export function showEditorScreen(onReady, skipPush = false) {
     if (editor) {
         editor.style.display = "flex";
         document.body.classList.add("editor-active");
+        updateDocumentTitle();
         renderPage(true).then(() => {
             if (onReady) onReady();
         });
