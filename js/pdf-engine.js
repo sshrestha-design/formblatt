@@ -1,5 +1,5 @@
 // ── PDF.js Rendering & Navigation Pipeline (js/pdf-engine.js) ─
-import { state } from "./state.js";
+import { state, updateDocumentTitle } from "./state.js";
 
 let renderTask = null;
 let currentRenderPage = null;
@@ -232,6 +232,7 @@ export function updateTopBarDocInfo() {
     const currentName = state.fileName || "interactive_form.pdf";
     if (titleInline) titleInline.textContent = currentName;
     if (titleInput) titleInput.value = currentName;
+    updateDocumentTitle(currentName);
 
     if (categoryBadge) {
         categoryBadge.textContent = state.docCategory || "Document";
