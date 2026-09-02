@@ -312,7 +312,7 @@ const bootstrapApp = async () => {
         const payload = {
             name: sender,
             email: sender.includes("@") ? sender : "sagar.shrestha23@gmail.com",
-            _subject: `[JustForms Feedback] ${category} (${currentRating} Stars)`,
+            _subject: `[Formblatt Feedback] ${category} (${currentRating} Stars)`,
             rating: `${currentRating} / 5 Stars`,
             category: category,
             message: message,
@@ -644,7 +644,7 @@ const bootstrapApp = async () => {
         if (toastTimeout) clearTimeout(toastTimeout);
     });
 
-    // ── Save Project (.justforms) Modal Controller ──────────────────
+    // ── Save Project (.formblatt) Modal Controller ──────────────────
     const saveProjectModal = document.getElementById("saveProjectModal");
     const closeSaveProjectModalBtn = document.getElementById("closeSaveProjectModalBtn");
     const cancelSaveProjectBtn = document.getElementById("cancelSaveProjectBtn");
@@ -658,10 +658,10 @@ const bootstrapApp = async () => {
 
     function openSaveProjectModal() {
         if (!saveProjectModal) return;
-        const currentBase = (state.fileName || "interactive_form").replace(/\.pdf$/i, "").replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
+        const currentBase = (state.fileName || "interactive_form").replace(/\.pdf$/i, "").replace(/\.formblatt$/i, "").replace(/\.fblatt$/i, "").replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
         
         if (saveReplaceNameDisplay) {
-            saveReplaceNameDisplay.textContent = `${currentBase}.jform`;
+            saveReplaceNameDisplay.textContent = `${currentBase}.formblatt`;
         }
         if (saveNewCopyFilenameInput) {
             saveNewCopyFilenameInput.value = `${currentBase}_copy`;
