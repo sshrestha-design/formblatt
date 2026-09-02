@@ -688,7 +688,7 @@ async function runAllTests() {
         // When editor is hidden (landing mode)
         global.document.getElementById = () => ({ style: { display: "none" } });
         updateDocumentTitle();
-        assert.equal(global.document.title, "Formblatt - Free Interactive PDF Form Creator & AcroForm Editor");
+        assert.equal(global.document.title, "Formblatt: Free Interactive PDF Form Creator & AcroForm Editor");
     });
 
     // ── Summary ──
