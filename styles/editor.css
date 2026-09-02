@@ -30,8 +30,8 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    font-weight: 800;
-    font-size: 1.1rem;
+    font-weight: 900;
+    font-size: 1.15rem;
     letter-spacing: -0.02em;
     color: var(--text-color);
     cursor: pointer;
@@ -58,8 +58,25 @@
 }
 
 .editor-brand-name {
-    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    user-select: none;
+}
+
+.editor-brand-name .brand-name-primary {
+    font-weight: 900;
     color: var(--text-color);
+    letter-spacing: -0.03em;
+    line-height: 1;
+}
+
+.editor-brand-name .brand-name-accent {
+    font-weight: 900;
+    font-style: normal;
+    color: #2563eb;
+    letter-spacing: -0.03em;
+    display: inline-block;
+    line-height: 1;
 }
 
 .editor-brand-badge {
