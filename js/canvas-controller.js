@@ -1047,10 +1047,19 @@ export function handleFieldMouseDown(e, field, handlers) {
         state.isDragging = false;
         setSelectedField(field.id);
         handlers.onSelectionChange();
-        import("./overlay-manager.js").then(mod => {
-            const overlayEl = document.getElementById(`overlay_${field.id}`);
-            mod.openFieldQuickDimensionHUD(field, overlayEl, handlers);
-        });
+        if (field.type === "signature") {
+            import("./signature-pad.js").then(mod => {
+                mod.openSignatureModal(field, () => {
+                    if (handlers.onFieldUpdated) handlers.onFieldUpdated(field);
+                });
+            });
+        } else {
+            const nameInput = document.getElementById("fieldName");
+            if (nameInput) {
+                nameInput.focus();
+                nameInput.select();
+            }
+        }
         return;
     }
 
@@ -1510,10 +1519,19 @@ export function initContextMenu(handlers) {
             } else if (action === "edit-field") {
                 const selected = getSelectedField();
                 if (selected) {
-                    import("./overlay-manager.js").then(mod => {
-                        const overlayEl = document.getElementById(`overlay_${selected.id}`);
-                        mod.openFieldQuickDimensionHUD(selected, overlayEl, handlers);
-                    });
+                    if (selected.type === "signature") {
+                        import("./signature-pad.js").then(mod => {
+                            mod.openSignatureModal(selected, () => {
+                                if (handlers.onFieldUpdated) handlers.onFieldUpdated(selected);
+                            });
+                        });
+                    } else {
+                        const nameInput = document.getElementById("fieldName");
+                        if (nameInput) {
+                            nameInput.focus();
+                            nameInput.select();
+                        }
+                    }
                 }
             } else if (action === "copy-field") {
                 import("./clipboard-manager.js").then(mod => {
