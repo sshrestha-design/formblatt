@@ -241,9 +241,14 @@
 
 .segmented-toolbar .tool-btn.active {
     background: #ffffff;
-    color: #2563eb;
+    color: #0284c7;
     border-color: #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(37, 99, 235, 0.12);
+    box-shadow: 0 1.5px 4px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(2, 132, 199, 0.25);
+}
+
+.segmented-toolbar .tool-btn.active svg,
+.segmented-toolbar .tool-btn.active [data-lucide] {
+    stroke: #0284c7;
 }
 
 .tool-group {
@@ -259,7 +264,41 @@
     flex-shrink: 0;
 }
 
-/* ── Auto-Detect Smart Action (Assistive Helper Pill) ────────── */
+/* ── Smart Assistants & Canvas Guides Group ──────────────────── */
+.toolbar-assistants-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.toolbar-assistants-group .tool-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border: 1px solid var(--border-subtle, #e2e8f0);
+    background: #ffffff;
+    color: #64748b;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.12s ease;
+}
+
+.toolbar-assistants-group .tool-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #0f172a;
+}
+
+.toolbar-assistants-group .tool-btn.active {
+    background: #f0f9ff;
+    border-color: #7dd3fc;
+    color: #0284c7;
+    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.1);
+}
+
+/* ── Auto-Detect Smart Action (Assistive Helper Secondary Button) ── */
 .toolbar-smart-btn {
     height: 32px;
     min-height: 32px;
@@ -267,23 +306,24 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 0 11px;
+    padding: 0 10px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
     color: #475569;
     background: #ffffff;
-    border: 1px solid var(--border-subtle, #cbd5e1);
+    border: 1px solid var(--border-subtle, #e2e8f0);
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
     white-space: nowrap;
     cursor: pointer;
-    transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease, transform 0.12s ease;
+    transition: all 0.15s ease;
 }
 
 .toolbar-smart-btn:hover {
     background: #f8fafc;
-    border-color: #94a3b8;
+    border-color: #cbd5e1;
     color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .toolbar-smart-btn:active {
@@ -295,14 +335,14 @@
 .toolbar-smart-btn [data-lucide] {
     width: 13.5px;
     height: 13.5px;
-    color: #64748b;
+    color: #6366f1;
     flex-shrink: 0;
 }
 
 .toolbar-smart-btn:hover svg,
 .toolbar-smart-btn:hover i,
 .toolbar-smart-btn:hover [data-lucide] {
-    color: #334155;
+    color: #4f46e5;
 }
 
 .tool-btn {
@@ -326,9 +366,57 @@
 }
 
 .tool-btn.active {
-    background: var(--selection-light, #eef2ff);
-    color: var(--selection-color, #4f46e5);
-    border: 1px solid var(--selection-border, #c7d2fe);
+    background: #f0f9ff;
+    color: #0284c7;
+    border: 1px solid #7dd3fc;
+}
+
+/* ── Floating App Micro-Tooltips ─────────────────────────────── */
+.app-tooltip {
+    position: fixed;
+    z-index: 99999;
+    pointer-events: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #0f172a;
+    color: #f8fafc;
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.2;
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28), 0 1px 3px rgba(0, 0, 0, 0.15);
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(2px) scale(0.97);
+    transition: opacity 0.12s ease, transform 0.12s ease, visibility 0.12s ease;
+}
+
+.app-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
+}
+
+.app-tooltip-text {
+    color: #f1f5f9;
+}
+
+.app-tooltip-kbd {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 4px;
+    padding: 1px 4.5px;
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    font-size: 9.5px;
+    font-weight: 600;
+    color: #93c5fd;
+    line-height: 1.1;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
 }
 
 /* ── Workspace (3-column layout) ─────────────────────────────── */
@@ -2026,32 +2114,35 @@ input.prop-input {
 }
 
 .toolbar-export-btn {
-    height: 32px;
-    min-height: 32px;
+    height: 34px;
+    min-height: 34px;
     box-sizing: border-box;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 0 14px;
-    font-size: 12px;
-    font-weight: 600;
-    border-radius: 6px;
-    background: var(--primary-color);
+    gap: 6.5px;
+    padding: 0 15px;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    border-radius: 7px;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
     color: #ffffff;
-    border: 1px solid #1d4ed8;
-    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    border: 1px solid rgba(2, 132, 199, 0.4);
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.28), 0 1px 2px rgba(2, 132, 199, 0.18);
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .toolbar-export-btn:hover {
-    background: #1d4ed8;
-    border-color: #1e40af;
-    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+    border-color: #0369a1;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    transform: translateY(-0.5px);
 }
 
 .toolbar-export-btn:active {
-    transform: scale(0.97);
+    transform: scale(0.97) translateY(0);
+    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.2);
 }
 
 /* ── Workspace in Fill Mode ──────────────────────────────────── */
