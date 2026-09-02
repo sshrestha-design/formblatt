@@ -2,6 +2,9 @@
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
+import * as PDFLib from 'pdf-lib';
+
+globalThis.PDFLib = PDFLib;
 
 const WEB_DIR = path.resolve(import.meta.dirname, '..');
 
@@ -380,6 +383,37 @@ async function runAllTests() {
         assert.equal(fields[1].type, "checkBox");
         assert.equal(fields[2].type, "dropdown");
         assert.equal(fields[2].defaultValue, "CA");
+    });
+
+    it("buildPdf compiles fields with chosen font in AcroForm DA and DR dictionaries", async () => {
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+        const { PDFDocument } = PDFLib;
+        const testDoc = await PDFDocument.create();
+        testDoc.addPage([600, 800]);
+        const origBytes = await testDoc.save();
+
+        state.originalPdfBytes = origBytes;
+        state.fields = [
+            { id: "font_f1", name: "courier_text", type: "textField", x: 50, y: 50, width: 200, height: 30, page: 1, fontFamily: "courier", fontSize: 14, value: "MonoVal" },
+            { id: "font_f2", name: "times_text", type: "textField", x: 50, y: 100, width: 200, height: 30, page: 1, fontFamily: "times", fontSize: 12, value: "SerifVal" }
+        ];
+
+        const outputBytes = await buildPdf();
+        assert.ok(outputBytes instanceof Uint8Array, "buildPdf should return Uint8Array");
+        assert.ok(outputBytes.length > 500, "buildPdf should produce non-empty valid PDF");
+
+        // Parse compiled PDF and verify AcroForm fields retain DA and font mapping
+        const compiledDoc = await PDFDocument.load(outputBytes);
+        const compiledForm = compiledDoc.getForm();
+        const f1 = compiledForm.getTextField("courier_text");
+        const f2 = compiledForm.getTextField("times_text");
+        assert.equal(f1.getText(), "MonoVal");
+        assert.equal(f2.getText(), "SerifVal");
+        
+        const da1 = f1.acroField.dict.get(PDFLib.PDFName.of("DA"));
+        const da2 = f2.acroField.dict.get(PDFLib.PDFName.of("DA"));
+        assert.ok(da1.value.includes("Courier"), "Field 1 DA should reference Courier");
+        assert.ok(da2.value.includes("Times-Roman"), "Field 2 DA should reference Times-Roman");
     });
 
     // ── SUITE 8: Overlay DOM Rendering & Visual Hierarchy ──

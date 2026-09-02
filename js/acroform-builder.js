@@ -62,18 +62,12 @@ function resolveAutofillTooltip(f) {
     return AUTOFILL_ROLE_TITLES[autofillRole] || autofillRole;
 }
 
-function applyTextFieldAppearance(fieldObj, font, fontSize, fontFamily = "Helvetica") {
-    if (!fieldObj) return;
+function applyTextFieldAppearance(fieldObj, font, fontSize) {
+    if (!fieldObj || !font) return;
 
-    const family = {
-        helvetica: "Helvetica",
-        "helvetica-bold": "Helvetica-Bold",
-        times: "Times-Roman",
-        "times-italic": "Times-Italic",
-        courier: "Courier"
-    }[fontFamily] || "Helvetica";
-
-    const appearance = `(0 0 0 rg /${family} ${fontSize} Tf)`;
+    // PDF /DA formatting must be: "0 0 0 rg /FontName size Tf"
+    const fontName = font.name || "Helvetica";
+    const appearance = `0 0 0 rg /${fontName} ${fontSize} Tf`;
 
     try {
         fieldObj.acroField.dict.set(
@@ -108,6 +102,12 @@ export async function buildPdf(options = {}) {
     const { PDFDocument, StandardFonts, rgb } = PDFLib;
     // Load fresh slice of bytes
     const doc = await PDFDocument.load(state.originalPdfBytes.slice(), { ignoreEncryption: true });
+    
+    // Register fontkit if present in environment
+    if (typeof window !== "undefined" && window.fontkit) {
+        try { doc.registerFontkit(window.fontkit); } catch(e) {}
+    }
+
     const form = doc.getForm();
     const pages = doc.getPages();
     const usedNames = new Set();
@@ -115,9 +115,57 @@ export async function buildPdf(options = {}) {
     // Embed Standard Vector Fonts for razor-sharp vector rendering
     const helvetica = await doc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await doc.embedFont(StandardFonts.HelveticaBold);
+    const helveticaOblique = await doc.embedFont(StandardFonts.HelveticaOblique);
     const times = await doc.embedFont(StandardFonts.TimesRoman);
+    const timesBold = await doc.embedFont(StandardFonts.TimesRomanBold);
     const timesItalic = await doc.embedFont(StandardFonts.TimesRomanItalic);
     const courier = await doc.embedFont(StandardFonts.Courier);
+    const courierBold = await doc.embedFont(StandardFonts.CourierBold);
+    const courierOblique = await doc.embedFont(StandardFonts.CourierOblique);
+
+    const resolveFont = (fam) => {
+        switch (fam) {
+            case "times": return times;
+            case "times-bold": return timesBold;
+            case "times-italic": return timesItalic;
+            case "courier": return courier;
+            case "courier-bold": return courierBold;
+            case "courier-oblique": return courierOblique;
+            case "helvetica-bold": return helveticaBold;
+            case "helvetica-oblique": return helveticaOblique;
+            case "roboto-mono":
+            case "ibm-plex-mono": return courier;
+            case "caveat":
+            case "cedarville": return timesItalic;
+            case "inter":
+            case "carlito":
+            case "helvetica":
+            default: return helvetica;
+        }
+    };
+
+    // Populate AcroForm default resource font dictionary
+    try {
+        const acroFormDict = doc.catalog.getOrCreateAcroForm().dict;
+        let drDict = acroFormDict.get(PDFLib.PDFName.of("DR"));
+        if (!drDict || !(drDict instanceof PDFLib.PDFDict)) {
+            drDict = doc.context.obj({});
+            acroFormDict.set(PDFLib.PDFName.of("DR"), drDict);
+        }
+        let fontDict = drDict.get(PDFLib.PDFName.of("Font"));
+        if (!fontDict || !(fontDict instanceof PDFLib.PDFDict)) {
+            fontDict = doc.context.obj({});
+            drDict.set(PDFLib.PDFName.of("Font"), fontDict);
+        }
+        const embeddedFonts = [helvetica, helveticaBold, helveticaOblique, times, timesBold, timesItalic, courier, courierBold, courierOblique];
+        embeddedFonts.forEach(ef => {
+            if (ef && ef.name && ef.ref) {
+                fontDict.set(PDFLib.PDFName.of(ef.name), ef.ref);
+            }
+        });
+    } catch (e) {
+        console.warn("Could not register fonts in AcroForm DR dictionary:", e);
+    }
 
     for (let f of state.fields) {
         const pageIdx = (f.page || 1) - 1;
@@ -189,12 +237,7 @@ export async function buildPdf(options = {}) {
                 if (!f.textAlignment) f.textAlignment = "left";
 
                 // Select font & font size
-                let font = helvetica;
-                if (f.fontFamily === "times") font = times;
-                else if (f.fontFamily === "courier") font = courier;
-                else if (f.fontFamily === "helvetica-bold") font = helveticaBold;
-                else if (f.fontFamily === "times-italic") font = timesItalic;
-
+                const font = resolveFont(f.fontFamily);
                 const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 11;
                 try { tf.setFontSize(fontSize); } catch(e) {}
 
@@ -215,7 +258,7 @@ export async function buildPdf(options = {}) {
                 // Add to page and compile vector appearance
                 tf.addToPage(page, common);
                 try { tf.updateAppearances(font); } catch(e) {}
-                applyTextFieldAppearance(tf, font, fontSize, f.fontFamily || "helvetica");
+                applyTextFieldAppearance(tf, font, fontSize);
 
             } else if (f.type === "checkBox") {
                 let cb;
@@ -239,12 +282,7 @@ export async function buildPdf(options = {}) {
                 try { if (f.required) dd.enableRequired(); } catch(e) {}
                 try { const ddTooltip = resolveAutofillTooltip(f); if (ddTooltip) dd.setToolTip(ddTooltip); } catch(e) {}
                 
-                let font = helvetica;
-                if (f.fontFamily === "times") font = times;
-                else if (f.fontFamily === "courier") font = courier;
-                else if (f.fontFamily === "helvetica-bold") font = helveticaBold;
-                else if (f.fontFamily === "times-italic") font = timesItalic;
-                
+                const font = resolveFont(f.fontFamily);
                 const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 11;
                 try { dd.setFontSize(fontSize); } catch(e) {}
                 if (!f.textAlignment) f.textAlignment = "left";
@@ -265,7 +303,7 @@ export async function buildPdf(options = {}) {
                 } catch(e) {}
 
                 try { dd.updateAppearances(font); } catch(e) {}
-                applyTextFieldAppearance(dd, font, fontSize, f.fontFamily || "helvetica");
+                applyTextFieldAppearance(dd, font, fontSize);
 
             } else if (f.type === "radioGroup") {
                 let rg;
