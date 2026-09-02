@@ -454,6 +454,30 @@
         transform: scale(1);
         box-shadow: none;
     }
+/* Auto-Detect Indigo Shimmer Scan Wave */
+.field-overlay.field-scan-wave {
+    animation: fieldScanWave 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+@keyframes fieldScanWave {
+    0% {
+        transform: scale(0.92);
+        border-color: #6366f1 !important;
+        background: rgba(99, 102, 241, 0.25) !important;
+        box-shadow: 0 0 16px 4px rgba(99, 102, 241, 0.6), 0 0 0 2px rgba(99, 102, 241, 0.5) !important;
+    }
+    40% {
+        transform: scale(1.04);
+        border-color: #4f46e5 !important;
+        background: rgba(99, 102, 241, 0.18) !important;
+        box-shadow: 0 0 20px 6px rgba(79, 70, 229, 0.45), 0 0 0 3px rgba(79, 70, 229, 0.35) !important;
+    }
+    100% {
+        transform: scale(1);
+        border-color: #94a3b8;
+        background: #f8fafc;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
 }
 
 /* Field Deletion "Poof" Animation */

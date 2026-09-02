@@ -1959,13 +1959,19 @@ input.prop-input {
     background: #ffffff !important;
     color: #475569 !important;
     font-weight: 500 !important;
-    transition: all 0.15s ease !important;
+    transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, color 0.15s ease !important;
     cursor: pointer !important;
+    will-change: transform;
 }
 
 .quick-size-btn:hover, .multi-quick-size-btn:hover {
     background: #f8fafc !important;
     border-color: #94a3b8 !important;
+    transform: translateY(-0.5px);
+}
+
+.quick-size-btn:active, .multi-quick-size-btn:active {
+    transform: scale(0.92) !important;
 }
 
 .quick-size-btn.active, .multi-quick-size-btn.active {
@@ -1974,6 +1980,13 @@ input.prop-input {
     color: #0284c7 !important;
     font-weight: 700 !important;
     box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.4) !important;
+    animation: quickSizeSpring 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes quickSizeSpring {
+    0% { transform: scale(0.92); }
+    60% { transform: scale(1.08); }
+    100% { transform: scale(1); }
 }
 
 /* ── Preset Pill Buttons (Dropdowns, etc.) ───────────────────── */
