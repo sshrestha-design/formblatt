@@ -532,12 +532,16 @@ const bootstrapApp = async () => {
             if (count > 0) {
                 refreshUI();
                 
-                // Staggered pop-in animation on newly spawned field overlays
+                // Staggered indigo scan wave animation on newly detected field overlays
                 const overlayContainer = document.getElementById("overlayContainer");
                 if (overlayContainer) {
                     overlayContainer.querySelectorAll(".field-overlay").forEach((el, idx) => {
-                        el.classList.add("field-spawned");
-                        el.style.animationDelay = `${idx * 25}ms`;
+                        el.classList.add("field-scan-wave");
+                        el.style.animationDelay = `${idx * 40}ms`;
+                        setTimeout(() => {
+                            el.classList.remove("field-scan-wave");
+                            el.style.animationDelay = "";
+                        }, 1200 + (idx * 40));
                     });
                 }
 
