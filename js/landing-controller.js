@@ -333,7 +333,7 @@ export function showEditorScreen(onReady, skipPush = false) {
 export async function loadPdfFile(file, onLoaded) {
     if (!file) return;
 
-    if (file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms")) {
+    if (file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms") || file.name.endsWith(".formblatt") || file.name.endsWith(".fblatt")) {
         import("./storage-manager.js").then(mod => {
             mod.importProjectJson(file, onLoaded);
         });
@@ -347,20 +347,25 @@ export async function loadPdfFile(file, onLoaded) {
         state.originalPdfBytes = bytes;
         state.pdfDoc = loadedDoc;
         state.totalPages = state.pdfDoc.numPages;
+        state.currentPageNum = 1;
         state.fields.length = 0;
         state.selectedFieldIds.clear();
         state.fileName = file.name ? (file.name.toLowerCase().endsWith(".pdf") ? file.name : file.name + ".pdf") : "interactive_form.pdf";
 
         await analyzePdfDocument();
-        await importExistingAcroFormFields("all");
+        try {
+            await importExistingAcroFormFields("all");
+        } catch(importErr) {
+            console.warn("Could not import existing acroform widgets:", importErr);
+        }
         state.lastSelectedFieldId = state.fields[0]?.id || null;
 
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        showEditorScreen(onLoaded);
         await goToPage(1);
         saveHistory();
+        showEditorScreen(onLoaded);
     } catch(err) {
         console.error("Failed to load PDF:", err);
         showToast("Failed to load PDF: " + (err.message || err), "error");
