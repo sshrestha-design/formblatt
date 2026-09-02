@@ -105,25 +105,29 @@
 
 .field-floating-badge {
     position: absolute;
-    top: -16px;
-    left: -1px;
-    background: var(--selection-color, #4f46e5);
+    top: -20px;
+    left: 0;
+    background: #0f172a;
     color: #ffffff;
-    font-size: 9px;
+    font-size: 9.5px;
     font-weight: 600;
-    padding: 0 4px;
-    border-radius: 2px;
+    padding: 1px 6px;
+    border-radius: 4px;
     white-space: nowrap;
     pointer-events: none;
     line-height: 14px;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
     display: none;
     z-index: 60;
 }
 
-/* Only show floating badge on hover, never on mass multi-selection */
-.field-overlay:hover .field-floating-badge {
+/* Only show floating badge on hover for unselected fields */
+.field-overlay:not(.selected):hover .field-floating-badge {
     display: block;
+}
+
+.field-overlay.selected .field-floating-badge {
+    display: none !important;
 }
 
 /* ── 8-Direction Resize Handles on Field Box ─────────────────── */
