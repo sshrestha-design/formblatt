@@ -10,13 +10,13 @@ let isDrawingField = false;
 let drawStart = null;
 
 const TOOL_DISPLAY_INFO = {
-    textField: { name: "Text Field", icon: "", placeholder: "Text Field" },
-    checkBox: { name: "Checkbox", icon: "", placeholder: "" },
-    radio: { name: "Radio", icon: "", placeholder: "" },
-    radioGroup: { name: "Radio Group", icon: "", placeholder: "" },
-    dropdown: { name: "Dropdown", icon: "", placeholder: "Select..." },
-    dateField: { name: "Date Field", icon: "", placeholder: "MM/DD/YYYY" },
-    signature: { name: "Signature", icon: "", placeholder: "Sign here" }
+    textField: { name: "Text Field", icon: "T", placeholder: "Text Field" },
+    checkBox: { name: "Checkbox", icon: "☑", placeholder: "Checkbox" },
+    radio: { name: "Radio", icon: "◉", placeholder: "Radio" },
+    radioGroup: { name: "Radio Group", icon: "◉", placeholder: "Radio" },
+    dropdown: { name: "Dropdown", icon: "▾", placeholder: "Dropdown" },
+    dateField: { name: "Date Field", icon: "📅", placeholder: "MM/DD/YYYY" },
+    signature: { name: "Signature", icon: "✍", placeholder: "Signature" }
 };
 
 const SEMANTIC_DICTIONARY = [
