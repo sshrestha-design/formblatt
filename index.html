@@ -111,7 +111,7 @@
     </script>
 
     <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="styles/main.css?v=10.8">
+    <link rel="stylesheet" href="styles/main.css?v=10.9">
     
     <!-- PDF.js for rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
@@ -686,22 +686,22 @@
                     <span class="editor-brand-name"><span class="brand-name-primary">Form</span><span class="brand-name-accent">blatt</span></span>
                 </span>
                 <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
-                <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" aria-label="Toggle Layers">
+                <button id="toggleSidebarBtn" class="toolbar-action-btn" data-tooltip="Toggle Layers Sidebar" data-kbd="⌘\" aria-label="Toggle Layers">
                     <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
                 </button>
                 <div class="toolbar-quick-actions" aria-label="Edit actions">
-                    <button id="quickUndoBtn" class="toolbar-action-btn" title="Undo (Cmd/Ctrl+Z)" aria-label="Undo">
+                    <button id="quickUndoBtn" class="toolbar-action-btn" data-tooltip="Undo" data-kbd="⌘Z" aria-label="Undo">
                         <i data-lucide="undo-2" style="width: 14px; height: 14px;"></i>
                     </button>
-                    <button id="quickRedoBtn" class="toolbar-action-btn" title="Redo (Cmd/Ctrl+Shift+Z)" aria-label="Redo">
+                    <button id="quickRedoBtn" class="toolbar-action-btn" data-tooltip="Redo" data-kbd="⌘⇧Z" aria-label="Redo">
                         <i data-lucide="redo-2" style="width: 14px; height: 14px;"></i>
                     </button>
-                    <button id="quickDeleteBtn" class="toolbar-action-btn toolbar-delete-btn" title="Delete Selected (Delete)" aria-label="Delete selected">
+                    <button id="quickDeleteBtn" class="toolbar-action-btn toolbar-delete-btn" data-tooltip="Delete Selected" data-kbd="Del" aria-label="Delete selected">
                         <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
                     </button>
                 </div>
                 <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn" title="File menu" aria-label="File menu">
+                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn" data-tooltip="File &amp; Project Menu" aria-label="File menu">
                         <i data-lucide="folder" style="width: 15px; height: 15px;"></i>
                     </button>
 
@@ -744,7 +744,7 @@
                 </div>
 
                 <div class="dropdown-menu" id="editMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn" title="Edit menu" aria-label="Edit menu">
+                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn" data-tooltip="Edit &amp; Clipboard Menu" aria-label="Edit menu">
                         <i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i>
                     </button>
 
@@ -793,58 +793,80 @@
             </div>
         
             <div class="toolbar-center">
-                <div class="segmented-toolbar">
-                    <button class="tool-btn active" data-tool="select" title="Select (V)">
+                <div class="segmented-toolbar" role="toolbar" aria-label="Field creation and canvas tools">
+                    <!-- Navigation / View Tools -->
+                    <button class="tool-btn active" data-tool="select" data-tooltip="Select &amp; Move" data-kbd="V" aria-label="Select tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/></svg>
                     </button>
-                    <button class="tool-btn" data-tool="hand" title="Hand Tool / Pan (H or hold Spacebar)">
+                    <button class="tool-btn" data-tool="hand" data-tooltip="Hand / Pan Canvas" data-kbd="H" aria-label="Hand Pan tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
                     </button>
+
                     <div class="tool-divider"></div>
-                    <button class="tool-btn" data-tool="textField" title="Text Field (T)">
+
+                    <!-- Form Field Insertion Tools -->
+                    <button class="tool-btn" data-tool="textField" data-tooltip="Text Field" data-kbd="T" aria-label="Text Field tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
                     </button>
-                    <button class="tool-btn" data-tool="dropdown" title="Drop Down (D)">
+                    <button class="tool-btn" data-tool="dropdown" data-tooltip="Dropdown Select" data-kbd="D" aria-label="Dropdown Select tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 10l5 5 5-5"/></svg>
                     </button>
-                    <button class="tool-btn" data-tool="checkBox" title="Check Box (C)">
+                    <button class="tool-btn" data-tool="checkBox" data-tooltip="Checkbox" data-kbd="C" aria-label="Checkbox tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M9 12l2 2 4-4"/></svg>
                     </button>
-                    <button class="tool-btn" data-tool="radioGroup" title="Radio Group (R)">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+                    <button class="tool-btn" data-tool="radioGroup" data-tooltip="Radio Group" data-kbd="R" aria-label="Radio Group tool">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="8" cy="7" r="4.5"/>
+                            <circle cx="8" cy="7" r="1.8" fill="currentColor"/>
+                            <path d="M15 7h4"/>
+                            <circle cx="8" cy="17" r="4.5"/>
+                            <path d="M15 17h4"/>
+                        </svg>
                     </button>
-                    <button class="tool-btn" data-tool="signature" title="Signature Field (S)">
+                    <button class="tool-btn" data-tool="signature" data-tooltip="Signature Field" data-kbd="S" aria-label="Signature tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 19.5v.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8.5L20 7.5V13"/><path d="M12 18s1.5-2 3-2 3 2 4.5 2"/><path d="M7 14s2-3 4-3 3 3 5 3"/></svg>
-                    </button>
-                    <div class="tool-divider"></div>
-                    <button id="autoDetectBtn" class="toolbar-smart-btn" title="Auto-Detect Form Fields & Signatures">
-                        <i data-lucide="sparkles" style="width: 14px; height: 14px;"></i>
-                        <span>Auto-Detect</span>
-                    </button>
-                    <button id="toggleGuidesBtn" class="tool-btn active" title="Toggle Smart Alignment Guides (Ctrl/Cmd+;)">
-                        <i data-lucide="grid" style="width: 15px; height: 15px;"></i>
                     </button>
                 </div>
             </div>
             
             <div class="toolbar-right">
+                <!-- Smart Assistants & Canvas Guides -->
+                <div class="toolbar-assistants-group">
+                    <button id="toggleGuidesBtn" class="tool-btn active" data-tooltip="Smart Alignment Guides" data-kbd="⌘;" aria-label="Toggle Smart Alignment Guides">
+                        <i data-lucide="grid" style="width: 15px; height: 15px;"></i>
+                    </button>
+                    <button id="autoDetectBtn" class="toolbar-smart-btn" data-tooltip="AI Heuristic Field Scanner" aria-label="Auto-Detect Form Fields &amp; Signatures">
+                        <i data-lucide="sparkles" style="width: 13px; height: 13px; color: #6366f1;"></i>
+                        <span>Auto-Detect</span>
+                    </button>
+                </div>
+
+                <div class="tool-divider" style="height: 18px; margin: 0 1px;"></div>
+
+                <!-- Mode Toggle -->
                 <div class="mode-segmented-toggle" id="modeSegmentedToggle">
-                    <button id="modeDesignBtn" type="button" class="mode-toggle-btn active" title="Design Mode (Build & Arrange Fields)">
+                    <button id="modeDesignBtn" type="button" class="mode-toggle-btn active" data-tooltip="Design Mode (Build &amp; Arrange Fields)" aria-label="Design Mode">
                         <i data-lucide="edit-3" style="width: 12px; height: 12px;"></i>
                         <span>Design</span>
                     </button>
-                    <button id="modeFillBtn" type="button" class="mode-toggle-btn" title="Fill & Test Mode (Interactive Form Testing - Ctrl+P)">
+                    <button id="modeFillBtn" type="button" class="mode-toggle-btn" data-tooltip="Preview &amp; Test Interactive Form" data-kbd="⌘P" aria-label="Fill &amp; Test Mode">
                         <i data-lucide="play" style="width: 12px; height: 12px;"></i>
-                        <span>Fill & Test</span>
+                        <span>Fill &amp; Test</span>
                     </button>
                 </div>
-                <button id="shortcutsHelpBtn" class="toolbar-action-btn" title="Keyboard Shortcuts & Help (?)">
+
+                <div class="tool-divider" style="height: 18px; margin: 0 1px;"></div>
+
+                <!-- Secondary Actions -->
+                <button id="shortcutsHelpBtn" class="toolbar-action-btn" data-tooltip="Keyboard Shortcuts" data-kbd="?" aria-label="Keyboard Shortcuts &amp; Help">
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
-                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" title="Toggle Properties Sidebar (Ctrl+] / Cmd+])" aria-label="Toggle Properties">
+                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" data-tooltip="Toggle Properties Sidebar" data-kbd="⌘]" aria-label="Toggle Properties">
                     <i data-lucide="panel-right-close" style="width: 14px; height: 14px;"></i>
                 </button>
-                <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" title="Download Standard Fillable AcroForm PDF" aria-label="Export PDF">
+
+                <!-- Primary CTA -->
+                <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" data-tooltip="Export Standard AcroForm PDF" data-kbd="⌘E" aria-label="Export PDF">
                     <i data-lucide="download" style="width: 14px; height: 14px;"></i>
                     <span>Export PDF</span>
                 </button>
@@ -911,13 +933,13 @@
             <footer class="canvas-docked-footer" style="height: 42px; background: #ffffff; border-top: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; z-index: 20; box-shadow: 0 -1px 3px rgba(0,0,0,0.03);">
                 <!-- Left: Pinned Page Navigation Controls -->
                 <div id="pageNavControls" class="docked-page-nav" style="display: flex; align-items: center; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 2px 8px;">
-                    <button id="prevPageBtn" title="Previous Page ([)" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
+                    <button id="prevPageBtn" data-tooltip="Previous Page" data-kbd="[" data-tooltip-pos="top" aria-label="Previous Page" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
                         <i data-lucide="chevron-left" style="width:14px; height:14px;"></i>
                     </button>
                     <span id="pageIndicator" style="font-size:12px; font-weight:500; color:#334155; padding: 0 6px; min-width:80px; text-align:center;">
                         Page <strong id="currentPageNumDisplay">1</strong> of <span id="totalPagesDisplay">1</span>
                     </span>
-                    <button id="nextPageBtn" title="Next Page (])" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
+                    <button id="nextPageBtn" data-tooltip="Next Page" data-kbd="]" data-tooltip-pos="top" aria-label="Next Page" style="background:none; border:none; cursor:pointer; padding:3px 6px; display:flex; align-items:center; color:#64748b;">
                         <i data-lucide="chevron-right" style="width:14px; height:14px;"></i>
                     </button>
                 </div>
@@ -931,12 +953,12 @@
 
                 <!-- Right: Zoom & View Controls -->
                 <div class="docked-zoom-controls" style="display: flex; align-items: center; gap: 4px;">
-                    <button id="zoomOutBtn" class="docked-zoom-btn" title="Zoom Out (⌘-)">
+                    <button id="zoomOutBtn" class="docked-zoom-btn" data-tooltip="Zoom Out" data-kbd="⌘-" data-tooltip-pos="top" aria-label="Zoom Out">
                         <i data-lucide="minus" style="width: 13px; height: 13px;"></i>
                     </button>
 
                     <div class="dropdown-menu" id="zoomDropdownMenu" style="position: relative; display: flex; align-items: center;">
-                        <button id="zoomLevelDisplay" class="docked-zoom-pill" title="Zoom Presets">100%</button>
+                        <button id="zoomLevelDisplay" class="docked-zoom-pill" data-tooltip="Zoom Presets" data-tooltip-pos="top" aria-label="Zoom Presets">100%</button>
                         <div class="dropdown-content zoom-dropdown-content" style="bottom: calc(100% + 6px); top: auto; min-width: 130px; right: 0; left: auto;">
                             <button class="dropdown-item zoom-preset-item" data-zoom="0.5">50%</button>
                             <button class="dropdown-item zoom-preset-item" data-zoom="0.75">75%</button>
@@ -954,16 +976,16 @@
                         </div>
                     </div>
 
-                    <button id="zoomInBtn" class="docked-zoom-btn" title="Zoom In (⌘+)">
+                    <button id="zoomInBtn" class="docked-zoom-btn" data-tooltip="Zoom In" data-kbd="⌘+" data-tooltip-pos="top" aria-label="Zoom In">
                         <i data-lucide="plus" style="width: 13px; height: 13px;"></i>
                     </button>
                     
                     <div style="width: 1px; height: 16px; background: #e2e8f0; margin: 0 4px;"></div>
 
-                    <button id="fitWidthQuickBtn" class="docked-zoom-btn" title="Fit to Width (⌘9)">
+                    <button id="fitWidthQuickBtn" class="docked-zoom-btn" data-tooltip="Fit to Width" data-kbd="⌘9" data-tooltip-pos="top" aria-label="Fit to Width">
                         <i data-lucide="move-horizontal" style="width: 13px; height: 13px;"></i>
                     </button>
-                    <button id="fitPageQuickBtn" class="docked-zoom-btn" title="Fit to Page (⌘0)">
+                    <button id="fitPageQuickBtn" class="docked-zoom-btn" data-tooltip="Fit to Page" data-kbd="⌘0" data-tooltip-pos="top" aria-label="Fit to Page">
                         <i data-lucide="maximize" style="width: 13px; height: 13px;"></i>
                     </button>
                 </div>
