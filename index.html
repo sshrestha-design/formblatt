@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <!-- Primary SEO Meta Tags -->
-    <title>JustForms - Free Interactive PDF Form Creator & AcroForm Editor</title>
-    <meta name="title" content="JustForms - Free Interactive PDF Form Creator & AcroForm Editor">
+    <title>Formblatt - Free Interactive PDF Form Creator & AcroForm Editor</title>
+    <meta name="title" content="Formblatt - Free Interactive PDF Form Creator & AcroForm Editor">
     <meta name="description" content="Create fillable PDF forms online for free. Add text boxes, checkboxes, dropdown menus, radio buttons, and digital signatures. 100% private, client-side PDF form builder.">
     <meta name="author" content="Sagar Shrestha">
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
@@ -21,16 +21,16 @@
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://justforms.vercel.app/">
-    <meta property="og:title" content="JustForms - Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta property="og:title" content="Formblatt - Free Interactive PDF Form Creator & AcroForm Editor">
     <meta property="og:description" content="No sign-up, no upload. Turn a PDF into a fillable form entirely in your browser.">
     <meta property="og:image" content="https://justforms.vercel.app/favicon.svg">
-    <meta property="og:site_name" content="JustForms">
+    <meta property="og:site_name" content="Formblatt">
     <meta property="og:locale" content="en_US">
 
     <!-- Twitter / X Card -->
     <meta property="twitter:card" content="summary">
     <meta property="twitter:url" content="https://justforms.vercel.app/">
-    <meta property="twitter:title" content="JustForms - Free Interactive PDF Form Creator & AcroForm Editor">
+    <meta property="twitter:title" content="Formblatt - Free Interactive PDF Form Creator & AcroForm Editor">
     <meta property="twitter:description" content="Fillable PDFs, no upload required.">
     <meta property="twitter:image" content="https://justforms.vercel.app/favicon.svg">
 
@@ -39,7 +39,7 @@
     {
       "@context": "https://schema.org",
       "@type": "WebApplication",
-      "name": "JustForms",
+      "name": "Formblatt",
       "url": "https://justforms.vercel.app/",
       "description": "Free, browser-based PDF Form Creator and AcroForm Editor. Transform any static PDF into an interactive fillable form with text fields, checkboxes, dropdowns, and digital signatures.",
       "applicationCategory": "BusinessApplication",
@@ -76,10 +76,10 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "Is JustForms free to create fillable PDF forms?",
+          "name": "Is Formblatt free to create fillable PDF forms?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes, JustForms is 100% free with no subscriptions, watermarks, page limits, or account creation required."
+            "text": "Yes, Formblatt is 100% free with no subscriptions, watermarks, page limits, or account creation required."
           }
         },
         {
@@ -87,7 +87,7 @@
           "name": "Are my uploaded PDFs private and secure?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. JustForms runs entirely in your browser using client-side JavaScript. Your documents and sensitive data are never uploaded to any cloud server or third-party database."
+            "text": "Yes. Formblatt runs entirely in your browser using client-side JavaScript. Your documents and sensitive data are never uploaded to any cloud server or third-party database."
           }
         },
         {
@@ -103,7 +103,7 @@
           "name": "Will the exported PDF work in Adobe Acrobat and web browsers?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Yes. JustForms exports standard ISO 32000 compliant AcroForms that are fully fillable and signable in Adobe Acrobat, Apple Preview, Google Chrome, Microsoft Edge, Mozilla Firefox, and DocuSign."
+            "text": "Yes. Formblatt exports standard ISO 32000 compliant AcroForms that are fully fillable and signable in Adobe Acrobat, Apple Preview, Google Chrome, Microsoft Edge, Mozilla Firefox, and DocuSign."
           }
         }
       ]
@@ -131,8 +131,8 @@
             <div class="header-inner">
                 <nav class="landing-nav-bar">
                     <a href="#hero" class="brand" id="landingLogoBtn" onclick="document.getElementById('landingScreen')?.scrollTo({top:0,behavior:'smooth'}); window.scrollTo({top:0,behavior:'smooth'}); return false;" style="cursor: pointer; text-decoration: none;">
-                        <span class="brand-mark">J</span>
-                        <span>JUSTFORMS</span>
+                        <span class="brand-mark">F</span>
+                        <span>FORMBLATT</span>
                     </a>
                     <div class="nav-links">
                         <a href="#how-it-works" onclick="document.getElementById('how-it-works')?.scrollIntoView({behavior:'smooth'}); return false;">How it works</a>
@@ -144,7 +144,7 @@
                     <button type="button" class="nav-cta" id="navUploadBtn">
                         <span>Upload PDF</span>
                     </button>
-                    <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                    <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
                 </nav>
             </div>
         </header>
@@ -167,11 +167,11 @@
                             <button type="button" class="btn-primary" id="heroBrowseBtn">
                                 <span>Browse PDF File</span>
                             </button>
-                            <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
-                            <button type="button" class="btn-secondary" id="heroOpenProjectBtn" title="Open a previously saved editable JustForms project backup file">
-                                <span>Open Saved Project (.jform)</span>
+                            <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
+                            <button type="button" class="btn-secondary" id="heroOpenProjectBtn" title="Open a previously saved editable Formblatt project backup file">
+                                <span>Open Saved Project (.formblatt)</span>
                             </button>
-                            <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                            <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
                         </div>
 
                         <div class="trusted">
@@ -225,10 +225,10 @@
                         <div class="hero-video-card" id="heroDropzone" onclick="if(window.openHeroVideoModal) window.openHeroVideoModal();" title="Click to watch full video demo">
                             <!-- Clean Video Showcase Frame -->
                             <div class="video-card-inner">
-                                <video class="hero-showcase-video" autoplay loop muted playsinline preload="auto" poster="assets/hero-poster.jpg?v=6.6" aria-label="JustForms interactive visual editor demo">
+                                <video class="hero-showcase-video" autoplay loop muted playsinline preload="auto" poster="assets/hero-poster.jpg?v=6.6" aria-label="Formblatt interactive visual editor demo">
                                     <source src="assets/hero-demo.mp4?v=6.6" type="video/mp4">
                                     <source src="assets/hero-demo.webm?v=6.6" type="video/webm">
-                                    <img class="hero-showcase-fallback" src="assets/hero-poster.jpg?v=6.6" alt="JustForms editor preview">
+                                    <img class="hero-showcase-fallback" src="assets/hero-poster.jpg?v=6.6" alt="Formblatt editor preview">
                                 </video>
                                 <div class="video-card-glass"></div>
 
@@ -259,7 +259,7 @@
             <!-- WHY -->
             <section class="section" id="why">
                 <div class="section-head center reveal">
-                    <div class="eyebrow">WHY JUSTFORMS</div>
+                    <div class="eyebrow">WHY FORMBLATT</div>
                     <h2>For the paperwork you choose to safeguard<br>from someone else's server</h2>
                     <p class="section-sub" style="margin-left:auto;margin-right:auto;">
                         Contracts, medical intake sheets, and tax forms: documents people upload solely to fulfill a requirement.
@@ -410,7 +410,7 @@
                 <div class="section-head reveal">
                     <div class="eyebrow">OPEN SOURCE</div>
                     <h2>Free and open source</h2>
-                    <p class="section-sub">JustForms is MIT-licensed. Inspect the code, host it yourself, or explore the open GitHub repository.</p>
+                    <p class="section-sub">Formblatt is MIT-licensed. Inspect the code, host it yourself, or explore the open GitHub repository.</p>
                 </div>
                 <div class="os-wrap reveal">
                     <div class="tile">
@@ -438,7 +438,7 @@
                 <div class="section-head reveal">
                     <div class="eyebrow">SECURITY ARCHITECTURE</div>
                     <h2>Verify privacy yourself</h2>
-                    <p class="section-sub">Most PDF tools upload your file to an external server. JustForms processes everything locally in your browser, so no server ever sees your document.</p>
+                    <p class="section-sub">Most PDF tools upload your file to an external server. Formblatt processes everything locally in your browser, so no server ever sees your document.</p>
                 </div>
                 <div class="sec-wrap reveal">
                     <div class="sec-list">
@@ -465,7 +465,7 @@
                         </div>
                         <div style="margin-top: 14px; padding: 14px 18px; background: #ffffff; border: 1px solid var(--line); border-radius: 10px; font-size: 13px; color: var(--ink-soft); line-height: 1.55;">
                             <strong style="color: var(--ink); display: block; margin-bottom: 4px;">HIPAA &amp; Privacy Notice</strong>
-                            JustForms operates entirely as client-side software in your local browser sandbox. It never receives, transmits, or stores data on external servers, ensuring that no third-party servers process Protected Health Information (PHI). See our <button type="button" id="complianceNoticeBtn" style="background: none; border: none; padding: 0; color: var(--blue-deep); font-weight: 700; text-decoration: underline; cursor: pointer; font-family: inherit;">Compliance Notes</button>.
+                            Formblatt operates entirely as client-side software in your local browser sandbox. It never receives, transmits, or stores data on external servers, ensuring that no third-party servers process Protected Health Information (PHI). See our <button type="button" id="complianceNoticeBtn" style="background: none; border: none; padding: 0; color: var(--blue-deep); font-weight: 700; text-decoration: underline; cursor: pointer; font-family: inherit;">Compliance Notes</button>.
                         </div>
                     </div>
                     <div class="inspector">
@@ -567,7 +567,7 @@
                 <button type="button" class="btn-inverse" id="footerBrowseBtn">
                     <span>Browse PDF File</span>
                 </button>
-                <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
             </div>
         </main>
 
@@ -576,8 +576,8 @@
             <div class="foot-wrap">
                 <div>
                     <a href="#hero" class="foot-brand" id="footerBrandLogo" onclick="document.getElementById('landingScreen')?.scrollTo({top:0,behavior:'smooth'}); window.scrollTo({top:0,behavior:'smooth'}); return false;">
-                        <span class="brand-mark">J</span>
-                        <span>JustForms</span>
+                        <span class="brand-mark">F</span>
+                        <span>Formblatt</span>
                     </a>
                     <p class="desc">A PDF form editor that runs entirely in your browser. Free, open source, and built so your documents never have to leave your computer.</p>
                 </div>
@@ -601,7 +601,7 @@
                     <button type="button" id="footerPrivacyBtn">Privacy Policy</button>
                     <button type="button" id="footerTermsBtn">Terms of Service</button>
                     <button type="button" id="footerCookieBtn">Cookie Policy</button>
-                    <button type="button" id="footerAboutBtn">About JustForms</button>
+                    <button type="button" id="footerAboutBtn">About Formblatt</button>
                     <button type="button" id="footerFeedbackBtn">Feedback &amp; Review</button>
                 </div>
             </div>
@@ -618,11 +618,11 @@
     <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
         <header class="toolbar">
             <div class="toolbar-left">
-                <span class="editor-brand-logo" id="editorBrandLogo" title="JustForms Dashboard" aria-label="JustForms Dashboard" role="button" tabindex="0">
+                <span class="editor-brand-logo" id="editorBrandLogo" title="Formblatt Dashboard" aria-label="Formblatt Dashboard" role="button" tabindex="0">
                     <span class="editor-brand-icon">
                         <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="m9 15 2 2 4-4"></path></svg>
                     </span>
-                    <span class="editor-brand-name">JustForms</span>
+                    <span class="editor-brand-name">Formblatt</span>
                 </span>
                 <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
                 <button id="toggleSidebarBtn" class="toolbar-action-btn" title="Toggle Sidebar (Ctrl+\ / Cmd+\)" aria-label="Toggle Layers">
@@ -654,15 +654,15 @@
                         <div class="dropdown-divider"></div>
                         <label class="dropdown-item">
                             <i data-lucide="file-up" style="width:14px; height:14px;"></i> Upload PDF
-                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.jform,.justforms" style="display: none;">
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
                         </label>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="saveProjectMenuBtn">
-                            <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.jform)
+                            <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.formblatt)
                         </button>
                         <label class="dropdown-item">
-                            <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.jform)
-                            <input type="file" id="loadProjectMenuBtn" accept=".jform,.justforms,.json,application/json" style="display: none;">
+                            <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.formblatt)
+                            <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;">
                         </label>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="feedbackMenuBtn">
@@ -832,7 +832,7 @@
                         <button type="button" id="emptyStateUploadBtn" class="btn-secondary" onclick="document.getElementById('emptyStateUpload').click()" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; background: #ffffff; border: 1px solid #cbd5e1;">
                             <i data-lucide="upload" style="width: 15px; height: 15px;"></i> Upload PDF
                         </button>
-                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.justforms" style="display: none;">
+                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
                     </div>
                 </div>
                 
@@ -1407,7 +1407,7 @@
                     </div>
                     <div>
                         <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Keyboard Shortcuts & Help</h3>
-                        <p style="margin:0; font-size:12px; color:#64748b;">Master JustForms like a pro with instant hotkeys</p>
+                        <p style="margin:0; font-size:12px; color:#64748b;">Master Formblatt like a pro with instant hotkeys</p>
                     </div>
                 </div>
                 <button id="closeShortcutsBtn" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
@@ -1980,7 +1980,7 @@
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
-                <p style="margin: 0; font-weight: 600; color: #0f172a;">JustForms runs entirely in your browser. Here's exactly what that means:</p>
+                <p style="margin: 0; font-weight: 600; color: #0f172a;">Formblatt runs entirely in your browser. Here's exactly what that means:</p>
 
                 <p style="margin: 0;"><strong style="color: #0f172a;">Your documents.</strong> When you open or drop in a PDF, it's parsed and edited locally using pdf.js and pdf-lib. No file data is sent to a server - you can confirm this yourself in your browser's Network tab (see the Security section on the homepage).</p>
 
@@ -2019,10 +2019,10 @@
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
                 <h4 style="margin: 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. Open Source License (MIT)</h4>
-                <p style="margin: 0;">JustForms is open-source software distributed under the MIT License. You are free to use, modify, distribute, and compile forms for personal, educational, non-profit, or commercial purposes without royalty fees or restrictive licensing.</p>
+                <p style="margin: 0;">Formblatt is open-source software distributed under the MIT License. You are free to use, modify, distribute, and compile forms for personal, educational, non-profit, or commercial purposes without royalty fees or restrictive licensing.</p>
 
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">2. 100% User Ownership of Documents</h4>
-                <p style="margin: 0;">You retain 100% copyright, intellectual property, and ownership of every document uploaded, authored, and generated through JustForms. We assert zero ownership or rights over your files.</p>
+                <p style="margin: 0;">You retain 100% copyright, intellectual property, and ownership of every document uploaded, authored, and generated through Formblatt. We assert zero ownership or rights over your files.</p>
 
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">3. Disclaimer of Warranties</h4>
                 <p style="margin: 0;">The software is provided "AS IS", without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and non-infringement. In no event shall the authors or copyright holders be liable for any claim, damages, or other liability arising from the use of the software.</p>
@@ -2055,11 +2055,11 @@
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 10px; padding: 14px; color: #1e40af; font-weight: 500;">
-                    <strong>Zero Third-Party Advertising Cookies:</strong> JustForms does not set marketing cookies, tracking pixels, or cross-site profiling trackers. The application is delivered via Vercel with anonymous development performance analytics.
+                    <strong>Zero Third-Party Advertising Cookies:</strong> Formblatt does not set marketing cookies, tracking pixels, or cross-site profiling trackers. The application is delivered via Vercel with anonymous development performance analytics.
                 </div>
 
                 <h4 style="margin: 8px 0 0; font-size: 15px; color: #0f172a; font-weight: 700;">1. What Browser Storage Is Used?</h4>
-                <p style="margin: 0;">JustForms only uses essential client-side web storage mechanisms (localStorage and sessionStorage) on your device for core functional features:</p>
+                <p style="margin: 0;">Formblatt only uses essential client-side web storage mechanisms (localStorage and sessionStorage) on your device for core functional features:</p>
                 <ul style="margin: 4px 0 0; padding-left: 20px;">
                     <li><strong>Crash Guard and Session State:</strong> Preserving unsaved form layout in progress so accidental browser reloads do not discard your field placements.</li>
                     <li><strong>Onboarding and User Preferences:</strong> Remembering whether you have completed the visual onboarding tour and tool preference choices.</li>
@@ -2092,13 +2092,13 @@
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
-                <p style="margin: 0;"><strong style="color: #0f172a;">HIPAA.</strong> JustForms does not transmit or store any data on external servers. Because no Protected Health Information (PHI) ever leaves your browser, JustForms does not process or hold your records. We recommend checking with your compliance team before handling covered healthcare documents.</p>
+                <p style="margin: 0;"><strong style="color: #0f172a;">HIPAA.</strong> Formblatt does not transmit or store any data on external servers. Because no Protected Health Information (PHI) ever leaves your browser, Formblatt does not process or hold your records. We recommend checking with your compliance team before handling covered healthcare documents.</p>
 
-                <p style="margin: 0;"><strong style="color: #0f172a;">GDPR.</strong> Since JustForms does not collect, track, or transmit personal data, there is no server-side processing under GDPR. All operations stay strictly inside your local browser session.</p>
+                <p style="margin: 0;"><strong style="color: #0f172a;">GDPR.</strong> Since Formblatt does not collect, track, or transmit personal data, there is no server-side processing under GDPR. All operations stay strictly inside your local browser session.</p>
 
-                <p style="margin: 0;"><strong style="color: #0f172a;">PDF Standard.</strong> Forms exported by JustForms follow the universal ISO 32000-1 AcroForm standard. This ensures full compatibility with Adobe Acrobat, Apple Preview, and modern web browsers. <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Inspect our open-source code on GitHub</a>.</p>
+                <p style="margin: 0;"><strong style="color: #0f172a;">PDF Standard.</strong> Forms exported by Formblatt follow the universal ISO 32000-1 AcroForm standard. This ensures full compatibility with Adobe Acrobat, Apple Preview, and modern web browsers. <a href="https://github.com/sshrestha-design/justforms" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline; font-weight: 600;">Inspect our open-source code on GitHub</a>.</p>
 
-                <p style="margin: 0;"><strong style="color: #0f172a;">Your Responsibility.</strong> JustForms runs entirely in your local browser sandbox. Your own device security, storage, and organizational policies govern how you store and share completed documents.</p>
+                <p style="margin: 0;"><strong style="color: #0f172a;">Your Responsibility.</strong> Formblatt runs entirely in your local browser sandbox. Your own device security, storage, and organizational policies govern how you store and share completed documents.</p>
             </div>
 
             <div style="margin-top: 20px; padding-top: 14px; border-top: 1px solid #f1f5f9; display: flex; justify-content: flex-end;">
@@ -2107,16 +2107,16 @@
         </div>
     </div>
 
-    <!-- About JustForms & Maintainer Modal -->
+    <!-- About Formblatt & Maintainer Modal -->
     <div id="aboutModal" class="modal" style="display: none;">
         <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div style="width: 36px; height: 36px; border-radius: 10px; background: #0284c7; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 800;">
-                        J
+                        F
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">About JustForms</h3>
+                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">About Formblatt</h3>
                         <span style="font-size: 12px; color: #64748b;">Free • Open Source • Privacy-First</span>
                     </div>
                 </div>
@@ -2124,7 +2124,7 @@
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
-                <p style="margin: 0;"><strong>JustForms</strong> was created by <strong>Sagar Shrestha</strong> to solve a common frustration: making PDFs fillable shouldn't require expensive subscriptions, intrusive account sign-ups, or uploading sensitive legal and financial documents to unknown cloud servers.</p>
+                <p style="margin: 0;"><strong>Formblatt</strong> was created by <strong>Sagar Shrestha</strong> to solve a common frustration: making PDFs fillable shouldn't require expensive subscriptions, intrusive account sign-ups, or uploading sensitive legal and financial documents to unknown cloud servers.</p>
 
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 8px;">
                     <div style="font-size: 14.5px; font-weight: 700; color: #0f172a;">Maintainer & Project Information</div>

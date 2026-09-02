@@ -124,7 +124,7 @@ const DEFAULT_EXAMPLE_REVIEWS = [
         rating: 5,
         category: "Legal Counsel",
         sender: "Sarah Jenkins",
-        message: "JustForms made converting our corporate NDA into a fillable AcroForm effortless! Zero server uploads gives our legal team complete peace of mind.",
+        message: "Formblatt made converting our corporate NDA into a fillable AcroForm effortless! Zero server uploads gives our legal team complete peace of mind.",
         isVerified: false,
         isExample: true
     },
@@ -202,7 +202,7 @@ export function renderLandingReviews() {
     if (visibleReviews.length === 0) {
         grid.innerHTML = `
             <div class="reviews-empty-state">
-                <p>No user-submitted reviews yet. Used JustForms? Be the first to share your experience.</p>
+                <p>No user-submitted reviews yet. Used Formblatt? Be the first to share your experience.</p>
             </div>
         `;
     } else {
@@ -283,7 +283,7 @@ function renderExampleReviewsSection() {
     const escapeHtml = str => String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
     section.innerHTML = `
-        <h3 class="example-reviews-heading">Why people use JustForms</h3>
+        <h3 class="example-reviews-heading">Why people use Formblatt</h3>
         <div class="example-reviews-grid">
             ${DEFAULT_EXAMPLE_REVIEWS.map(r => {
                 const rating = Math.min(5, Math.max(1, parseInt(r.rating) || 5));
@@ -659,10 +659,10 @@ export function initLandingController(onLoaded) {
         });
         heroDropzone.addEventListener("drop", async e => {
             const file = e.dataTransfer?.files[0];
-            if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
+            if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".formblatt") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
                 await loadPdfFile(file, onLoaded);
             } else if (file) {
-                showToast("Supported formats: PDF documents (.pdf) or JustForms project files (.jform).", "warning");
+                showToast("Supported formats: PDF documents (.pdf) or Formblatt project files (.formblatt).", "warning");
             }
         });
     }
@@ -725,7 +725,7 @@ export function initLandingController(onLoaded) {
         if (e.target.closest("#layersList") || e.target.closest(".layer-item")) return;
         const file = e.dataTransfer?.files[0];
         if (!file) return;
-        const isValid = file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms");
+        const isValid = file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".formblatt") || file.name.endsWith(".jform") || file.name.endsWith(".justforms");
         // Always preventDefault on any dropped file — otherwise the browser's
         // default behavior for an unhandled drop is to navigate the whole
         // tab away to that file, silently destroying the user's session.
@@ -734,7 +734,7 @@ export function initLandingController(onLoaded) {
         if (isValid) {
             await loadPdfFile(file, onLoaded);
         } else {
-            showToast("Supported formats: PDF documents (.pdf) or JustForms project files (.jform).", "warning");
+            showToast("Supported formats: PDF documents (.pdf) or Formblatt project files (.formblatt).", "warning");
         }
     });
 
@@ -757,7 +757,7 @@ export function initLandingController(onLoaded) {
     // Mobile Device Handoff & Web Share API Handlers
     const handleDeviceShare = async () => {
         const shareData = {
-            title: "JustForms: Client-Side PDF Form Builder",
+            title: "Formblatt: Client-Side PDF Form Builder",
             text: "Create fillable PDF AcroForms on desktop without server uploads!",
             url: window.location.href
         };

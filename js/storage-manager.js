@@ -110,7 +110,7 @@ export function exportProjectJson(customFileName) {
     }
 
     const projectData = {
-        appName: "JustForms",
+        appName: "Formblatt",
         version: "2.5",
         date: new Date().toISOString(),
         fileName: state.fileName || "interactive_form.pdf",
@@ -129,9 +129,9 @@ export function exportProjectJson(customFileName) {
     if (!baseName) {
         baseName = (state.fileName || "interactive_form").replace(/\.pdf$/i, "");
     }
-    baseName = baseName.replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
+    baseName = baseName.replace(/\.formblatt$/i, "").replace(/\.fblatt$/i, "").replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
 
-    a.download = `${baseName}.jform`;
+    a.download = `${baseName}.formblatt`;
     a.click();
     URL.revokeObjectURL(url);
 }
@@ -154,7 +154,7 @@ export async function importProjectJson(file, onLoaded) {
                 state.originalPdfBytes = pdfBytes;
                 state.pdfDoc = loadedDoc;
                 state.totalPages = state.pdfDoc.numPages;
-                state.fileName = data.fileName || file.name.replace(/\.(justforms\.json|json)$/i, ".pdf");
+                state.fileName = data.fileName || file.name.replace(/\.(formblatt|justforms\.json|json)$/i, ".pdf");
 
                 const fileNameInput = document.getElementById("fileNameInput");
                 if (fileNameInput) fileNameInput.value = state.fileName;
