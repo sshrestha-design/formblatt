@@ -1,14 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0284c7" />
-      <stop offset="100%" stop-color="#0369a1" />
+    <linearGradient id="fbCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#083E8A" />
+      <stop offset="100%" stop-color="#0B63CE" />
+    </linearGradient>
+    <linearGradient id="fbBgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#f8fafc" />
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="128" fill="url(#grad)" />
-  <path d="M160 120h140l92 92v180a24 24 0 0 1-24 24H160a24 24 0 0 1-24-24V144a24 24 0 0 1 24-24z" fill="#ffffff" />
-  <path d="M300 120v76a16 16 0 0 0 16 16h76" fill="#e0f2fe" />
-  <rect x="180" y="260" width="152" height="24" rx="6" fill="#0284c7" />
-  <rect x="180" y="304" width="100" height="24" rx="6" fill="#94a3b8" />
-  <path d="M220 365l30 30 65-65" fill="none" stroke="#10b981" stroke-width="22" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Clean App Icon Rounded Card -->
+  <rect width="512" height="512" rx="112" fill="url(#fbBgGrad)" stroke="#e2e8f0" stroke-width="8" />
+
+  <!-- Formblatt Blueprint Grid 'F' -->
+  <g transform="skewX(-13) translate(65, 30)">
+    <!-- F Stem & Arms Outer Silhouette -->
+    <path d="M 120 90 L 330 90 L 330 155 L 205 155 L 205 210 L 305 210 L 305 270 L 205 270 L 205 420 L 120 420 Z" 
+          fill="#f1f5f9" stroke="#12161E" stroke-width="10" stroke-linejoin="round" />
+
+    <!-- Interior Blueprint Grid Lines -->
+    <line x1="120" y1="122" x2="330" y2="122" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="120" y1="182" x2="205" y2="182" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="120" y1="240" x2="305" y2="240" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="120" y1="310" x2="205" y2="310" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="120" y1="350" x2="205" y2="350" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="120" y1="385" x2="205" y2="385" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+
+    <line x1="150" y1="90" x2="150" y2="420" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="180" y1="90" x2="180" y2="420" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="240" y1="90" x2="240" y2="155" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="285" y1="90" x2="285" y2="155" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="240" y1="210" x2="240" y2="270" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+    <line x1="275" y1="210" x2="275" y2="270" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4" />
+  </g>
+
+  <!-- Aerodynamic Swift Check-Arrow in Brand Cobalt Gradient -->
+  <path d="M 125 280 
+           L 200 375 
+           L 375 140 
+           L 420 185 
+           L 435 95 
+           L 345 110 
+           L 385 150 
+           L 202 320 
+           L 165 260 Z" 
+        fill="url(#fbCheckGrad)" stroke="#083E8A" stroke-width="3" stroke-linejoin="round" />
 </svg>
