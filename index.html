@@ -117,8 +117,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
     
-    <!-- PDF-Lib for generating -->
+    <!-- PDF-Lib for generating & Fontkit for TrueType embedding -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js"></script>
 
     <!-- Vercel Web Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
@@ -1098,11 +1099,21 @@
                         <div class="prop-field">
                             <label class="prop-label" for="fieldFontFamily">Font family</label>
                             <select id="fieldFontFamily" class="prop-select">
-                                <option value="helvetica">Calibri / Helvetica (Sans)</option>
-                                <option value="times">Times New Roman (Serif)</option>
-                                <option value="courier">Courier (Mono)</option>
-                                <option value="helvetica-bold">Helvetica Bold</option>
-                                <option value="times-italic">Times Italic</option>
+                                <optgroup label="Standard PDF Core Fonts">
+                                    <option value="helvetica">Helvetica / Arial (Sans-Serif)</option>
+                                    <option value="times">Times New Roman (Serif)</option>
+                                    <option value="courier">Courier (Monospace)</option>
+                                    <option value="helvetica-bold">Helvetica Bold</option>
+                                    <option value="times-italic">Times Italic</option>
+                                </optgroup>
+                                <optgroup label="Modern Non-AcroForm Fonts">
+                                    <option value="inter">Inter (Clean Modern Sans)</option>
+                                    <option value="carlito">Carlito / Calibri (Sans)</option>
+                                    <option value="roboto-mono">Roboto Mono (Clean Mono)</option>
+                                    <option value="ibm-plex-mono">IBM Plex Mono (Tech Mono)</option>
+                                    <option value="caveat">Caveat (Handwritten Script)</option>
+                                    <option value="cedarville">Cedarville Cursive (Signature Script)</option>
+                                </optgroup>
                             </select>
                         </div>
 
@@ -1287,11 +1298,21 @@
                             <label class="prop-label" for="multiFontFamily">Font Family</label>
                             <select id="multiFontFamily" class="prop-select">
                                 <option value="" style="color: #64748b; font-style: italic;">Font (Mixed)</option>
-                                <option value="helvetica">Calibri / Helvetica (Sans)</option>
-                                <option value="times">Times New Roman (Serif)</option>
-                                <option value="courier">Courier (Mono)</option>
-                                <option value="helvetica-bold">Helvetica Bold</option>
-                                <option value="times-italic">Times Italic</option>
+                                <optgroup label="Standard PDF Core Fonts">
+                                    <option value="helvetica">Helvetica / Arial (Sans-Serif)</option>
+                                    <option value="times">Times New Roman (Serif)</option>
+                                    <option value="courier">Courier (Monospace)</option>
+                                    <option value="helvetica-bold">Helvetica Bold</option>
+                                    <option value="times-italic">Times Italic</option>
+                                </optgroup>
+                                <optgroup label="Modern Non-AcroForm Fonts">
+                                    <option value="inter">Inter (Clean Modern Sans)</option>
+                                    <option value="carlito">Carlito / Calibri (Sans)</option>
+                                    <option value="roboto-mono">Roboto Mono (Clean Mono)</option>
+                                    <option value="ibm-plex-mono">IBM Plex Mono (Tech Mono)</option>
+                                    <option value="caveat">Caveat (Handwritten Script)</option>
+                                    <option value="cedarville">Cedarville Cursive (Signature Script)</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="prop-grid-2">
