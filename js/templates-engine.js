@@ -409,7 +409,7 @@ export async function createTemplatePdf(key) {
 
         // Footer Notice
         page.drawLine({ start: { x: 45, y: 46 }, end: { x: 550, y: 46 }, thickness: 0.75, color: lineGray });
-        page.drawText("THANK YOU FOR YOUR BUSINESS • COMMERCIAL INVOICE GENERATED VIA JUSTFORMS • ZERO CLOUD STORAGE", { x: 45, y: 34, size: 6.8, font: fontBold, color: gray });
+        page.drawText("THANK YOU FOR YOUR BUSINESS • COMMERCIAL INVOICE GENERATED VIA FORMBLATT • ZERO CLOUD STORAGE", { x: 45, y: 34, size: 6.8, font: fontBold, color: gray });
     }
 
     return await doc.save();

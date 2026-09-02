@@ -1,5 +1,5 @@
 {
-  "name": "justforms",
+  "name": "formblatt",
   "version": "1.1.0",
   "description": "A 100% private, client-side visual PDF form builder and ISO 32000 AcroForm generator that runs entirely in your browser.",
   "type": "module",
