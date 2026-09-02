@@ -879,14 +879,11 @@
             <div class="left-panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: #ffffff;">
                 <h2 style="margin: 0; padding: 0; border: none; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Layers</h2>
                 <div style="display: flex; gap: 4px; align-items: center;">
-                    <button id="groupSelectedBtn" type="button" title="Group Selected Fields (Ctrl+G)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 7px; font-size: 11px; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
+                    <button id="groupSelectedBtn" type="button" data-tooltip="Group Selected (Ctrl+G)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 7px; font-size: 11px; color: #475569; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600;">
                         <i data-lucide="folder-plus" style="width: 12px; height: 12px; color: #0284c7;"></i> Group
                     </button>
-                    <button id="expandLeftPanelWidthBtn" type="button" class="panel-collapse-btn" title="Toggle Wider Panel (Click or drag right edge to resize)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="chevrons-left-right" style="width: 13px; height: 13px;"></i>
-                    </button>
-                    <button id="collapseLeftPanelBtn" type="button" class="panel-collapse-btn" title="Collapse Left Sidebar (Ctrl+\)" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                        <i data-lucide="chevron-left" style="width: 13px; height: 13px;"></i>
+                    <button id="collapseLeftPanelBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Layers (⌘\)" aria-label="Collapse Layers" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="panel-left-close" style="width: 13px; height: 13px;"></i>
                     </button>
                 </div>
             </div>
@@ -994,9 +991,17 @@
         </div>
         <div class="panel-resizer" id="rightPanelResizer" role="separator" aria-orientation="vertical" title="Drag to resize Properties panel (Double-click to reset width)"></div>
         <aside class="right-panel" id="rightPanel">
-            <div id="rightPanelEmpty" class="right-panel-empty">
-                <i data-lucide="mouse-pointer-click" style="width: 36px; height: 36px; margin-bottom: 12px; opacity: 0.35; color: #64748b;"></i>
-                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.4;">Select a field on the canvas to view and edit its properties.</p>
+            <div id="rightPanelEmpty" class="right-panel-empty" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="prop-panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; width: 100%; box-sizing: border-box;">
+                    <h3 class="prop-panel-title" style="margin: 0; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Properties</h3>
+                    <button id="collapseRightEmptyBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Properties (⌘/)" aria-label="Collapse Properties" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="panel-right-close" style="width: 13px; height: 13px;"></i>
+                    </button>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;">
+                    <i data-lucide="mouse-pointer-click" style="width: 36px; height: 36px; margin-bottom: 12px; opacity: 0.35; color: #64748b;"></i>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.4;">Select a field on the canvas to view and edit its properties.</p>
+                </div>
             </div>
 
             <div id="fieldProps" style="display: none;" class="field-props-wrapper">
@@ -1005,8 +1010,8 @@
                     <h3 class="prop-panel-title">Properties</h3>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span id="propFieldTypeBadge" class="prop-type-pill">Text Field</span>
-                        <button id="collapseRightPanelBtn" type="button" class="panel-collapse-btn" title="Collapse Properties Sidebar (Ctrl+])" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="chevron-right" style="width: 13px; height: 13px;"></i>
+                        <button id="collapseRightPanelBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Properties (⌘/)" aria-label="Collapse Properties" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="panel-right-close" style="width: 13px; height: 13px;"></i>
                         </button>
                     </div>
                 </div>
@@ -1228,9 +1233,14 @@
             
             <div id="multiSelectProps" style="display: none;" class="field-props-wrapper">
                 <!-- Header -->
-                <div class="prop-panel-header">
+                <div class="prop-panel-header" style="display: flex; align-items: center; justify-content: space-between;">
                     <h3 class="prop-panel-title">Batch Editing</h3>
-                    <span id="multiSelectedCountBadge" class="prop-type-pill">2 Selected</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span id="multiSelectedCountBadge" class="prop-type-pill">2 Selected</span>
+                        <button id="collapseMultiPropsBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Properties (⌘/)" aria-label="Collapse Properties" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="panel-right-close" style="width: 13px; height: 13px;"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Scrollable Body -->
