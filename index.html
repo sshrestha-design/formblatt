@@ -163,10 +163,10 @@
                         <a href="#compatibility" onclick="document.getElementById('compatibility')?.scrollIntoView({behavior:'smooth'}); return false;">Compatibility</a>
                         <a href="#faq" onclick="document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}); return false;">FAQ</a>
                     </div>
-                    <button type="button" class="nav-cta" id="navUploadBtn">
+                    <label for="landingPdfUpload" class="nav-cta" id="navUploadBtn" role="button" tabindex="0" style="cursor: pointer;">
                         <span>Upload PDF</span>
-                    </button>
-                    <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
+                    </label>
+                    <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                 </nav>
             </div>
         </header>
@@ -186,14 +186,14 @@
                         </p>
 
                         <div class="cta-row">
-                            <button type="button" class="btn-primary" id="heroBrowseBtn">
+                            <label for="heroPdfUpload" class="btn-primary" id="heroBrowseBtn" role="button" tabindex="0" style="cursor: pointer;">
                                 <span>Browse PDF File</span>
-                            </button>
-                            <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
-                            <button type="button" class="btn-secondary" id="heroOpenProjectBtn" title="Open a previously saved editable Formblatt project backup file">
+                            </label>
+                            <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                            <label for="heroOpenProjectUpload" class="btn-secondary" id="heroOpenProjectBtn" role="button" tabindex="0" title="Open a previously saved editable Formblatt project backup file" style="cursor: pointer;">
                                 <span>Open Saved Project (.formblatt)</span>
-                            </button>
-                            <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
+                            </label>
+                            <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                         </div>
 
                         <div class="trusted">
@@ -586,10 +586,10 @@
             <div class="cta-band reveal">
                 <h2>Have a PDF that needs form fields or a signature?</h2>
                 <p>Drop it in and export your completed fillable PDF in seconds.</p>
-                <button type="button" class="btn-inverse" id="footerBrowseBtn">
+                <label for="footerPdfUpload" class="btn-inverse" id="footerBrowseBtn" role="button" tabindex="0" style="cursor: pointer;">
                     <span>Browse PDF File</span>
-                </button>
-                <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
+                </label>
+                <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
             </div>
         </main>
 

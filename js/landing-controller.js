@@ -546,10 +546,17 @@ export function initLandingController(onLoaded) {
         e.target.value = "";
     };
 
-    document.getElementById("navUploadBtn")?.addEventListener("click", e => {
-        e.preventDefault();
-        document.getElementById("landingPdfUpload")?.click();
+    // Keyboard accessibility triggers for upload labels
+    ["navUploadBtn", "heroBrowseBtn", "heroOpenProjectBtn", "footerBrowseBtn"].forEach(id => {
+        const el = document.getElementById(id);
+        el?.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                el.click();
+            }
+        });
     });
+
     document.getElementById("navCreateBlankBtn")?.addEventListener("click", e => {
         e.preventDefault();
         loadTemplate("blank", () => {
@@ -567,19 +574,6 @@ export function initLandingController(onLoaded) {
         loadTemplate("blank", () => {
             if (onLoaded) onLoaded();
         });
-    });
-
-    document.getElementById("heroBrowseBtn")?.addEventListener("click", e => {
-        e.preventDefault();
-        document.getElementById("heroPdfUpload")?.click();
-    });
-    document.getElementById("heroOpenProjectBtn")?.addEventListener("click", e => {
-        e.preventDefault();
-        document.getElementById("heroOpenProjectUpload")?.click();
-    });
-    document.getElementById("footerBrowseBtn")?.addEventListener("click", e => {
-        e.preventDefault();
-        document.getElementById("footerPdfUpload")?.click();
     });
 
     document.getElementById("landingPdfUpload")?.addEventListener("change", handleUploadInput);
