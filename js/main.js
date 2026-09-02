@@ -935,8 +935,8 @@ const bootstrapApp = async () => {
             return;
         }
 
-        // Toggle Right Properties Sidebar (Ctrl+] / Cmd+] or Ctrl+Alt+\)
-        if ((e.ctrlKey || e.metaKey) && (e.key === "]" || e.code === "BracketRight")) {
+        // Toggle Right Properties Sidebar (Ctrl+/ / Cmd+/ or Ctrl+] / Cmd+])
+        if ((e.ctrlKey || e.metaKey) && (e.key === "/" || e.key === "]" || e.code === "Slash" || e.code === "BracketRight")) {
             e.preventDefault();
             toggleRightSidebar();
             return;
@@ -1052,13 +1052,27 @@ const bootstrapApp = async () => {
         }
     });
 
-    // Toggle Sidebar & Panels
+    // Toggle Sidebar & Panels (In-Panel Headers + Toolbar Controls)
     document.getElementById("toggleSidebarBtn")?.addEventListener("click", () => {
         triggerHaptic();
         toggleLeftSidebar();
     });
-    document.getElementById("collapseLeftPanelBtn")?.addEventListener("click", toggleLeftSidebar);
-    document.getElementById("collapseRightPanelBtn")?.addEventListener("click", toggleRightSidebar);
+    document.getElementById("collapseLeftPanelBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleLeftSidebar();
+    });
+    document.getElementById("collapseRightPanelBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleRightSidebar();
+    });
+    document.getElementById("collapseRightEmptyBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleRightSidebar();
+    });
+    document.getElementById("collapseMultiPropsBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleRightSidebar();
+    });
     document.getElementById("toggleRightSidebarBtn")?.addEventListener("click", () => {
         triggerHaptic();
         toggleRightSidebar();
@@ -1381,7 +1395,10 @@ function toggleLeftSidebar() {
     if (resizer) resizer.style.display = isCollapsed ? "none" : "flex";
 
     if (toggleBtn) {
-        toggleBtn.title = isCollapsed ? "Expand Sidebar (Ctrl+\\)" : "Collapse Sidebar (Ctrl+\\)";
+        toggleBtn.setAttribute("data-tooltip", isCollapsed ? "Expand Layers" : "Collapse Layers");
+        toggleBtn.setAttribute("data-kbd", "⌘\\");
+        toggleBtn.setAttribute("aria-label", isCollapsed ? "Expand Layers" : "Collapse Layers");
+        toggleBtn.title = isCollapsed ? "Expand Layers (⌘\\)" : "Collapse Layers (⌘\\)";
         toggleBtn.innerHTML = isCollapsed
             ? `<i data-lucide="panel-left-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
             : `<i data-lucide="panel-left-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
@@ -1400,7 +1417,10 @@ function toggleRightSidebar() {
     if (resizer) resizer.style.display = isCollapsed ? "none" : "flex";
 
     if (toggleBtn) {
-        toggleBtn.title = isCollapsed ? "Expand Properties (Ctrl+])" : "Collapse Properties (Ctrl+])";
+        toggleBtn.setAttribute("data-tooltip", isCollapsed ? "Expand Properties" : "Collapse Properties");
+        toggleBtn.setAttribute("data-kbd", "⌘/");
+        toggleBtn.setAttribute("aria-label", isCollapsed ? "Expand Properties" : "Collapse Properties");
+        toggleBtn.title = isCollapsed ? "Expand Properties (⌘/)" : "Collapse Properties (⌘/)";
         toggleBtn.innerHTML = isCollapsed
             ? `<i data-lucide="panel-right-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
             : `<i data-lucide="panel-right-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
