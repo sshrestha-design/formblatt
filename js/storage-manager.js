@@ -5,9 +5,17 @@ export function uint8ArrayToBase64(bytes) {
     if (!bytes) return null;
     let binary = "";
     const len = bytes.byteLength;
-    const chunkSize = 0x8000;
-    for (let i = 0; i < len; i += chunkSize) {
-        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+    const chunkSize = 1024;
+    try {
+        for (let i = 0; i < len; i += chunkSize) {
+            const sub = bytes.subarray(i, Math.min(i + chunkSize, len));
+            binary += String.fromCharCode.apply(null, sub);
+        }
+    } catch (e) {
+        binary = "";
+        for (let i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
     }
     return btoa(binary);
 }
