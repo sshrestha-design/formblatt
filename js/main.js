@@ -63,6 +63,8 @@ export function updateModeIndicator() {
             indicator.style.borderColor = "#bfdbfe";
         }
     }
+}
+
 export async function deleteSelectedFieldsWithPoof() {
     if (state.selectedFieldIds.size === 0) return;
     const deletedCount = state.selectedFieldIds.size;
