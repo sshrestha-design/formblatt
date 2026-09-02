@@ -55,6 +55,20 @@ export async function renderPage(forceRerender = false) {
     }
 }
 
+let zoomHudTimer = null;
+export function showZoomHud(text) {
+    if (typeof document === "undefined") return;
+    const hud = document.getElementById("canvasZoomHud");
+    const hudText = document.getElementById("canvasZoomHudText");
+    if (!hud) return;
+    if (hudText) hudText.textContent = text;
+    hud.classList.add("visible");
+    if (zoomHudTimer) clearTimeout(zoomHudTimer);
+    zoomHudTimer = setTimeout(() => {
+        hud.classList.remove("visible");
+    }, 1200);
+}
+
 export function setTransformScale(newScale, onRerender) {
     state.currentScale = Math.min(Math.max(newScale, 0.25), 4.0);
     const centerCanvas = document.getElementById("centerCanvas");
@@ -70,8 +84,10 @@ export function setTransformScale(newScale, onRerender) {
         container.style.marginBottom = `${Math.max(0, (state.currentScale - 1) * baseHeight)}px`;
     }
 
+    const pctText = Math.round(state.currentScale * 100) + "%";
     const zoomDisplay = document.getElementById("zoomLevelDisplay");
-    if (zoomDisplay) zoomDisplay.textContent = Math.round(state.currentScale * 100) + "%";
+    if (zoomDisplay) zoomDisplay.textContent = pctText;
+    showZoomHud(pctText);
 
     // Hide any active guides during zoom
     document.querySelectorAll(".align-line, .spacing-badge, .snap-point-dot").forEach(el => {

@@ -331,6 +331,16 @@ function createFieldLayerItem(f, onSelect, onRerender) {
         </div>
     `;
 
+    // Layer ↔ Canvas Hover Sync
+    item.addEventListener("mouseenter", () => {
+        const overlay = document.querySelector(`.field-overlay[data-id="${f.id}"]`);
+        if (overlay) overlay.classList.add("layer-hover-highlight");
+    });
+    item.addEventListener("mouseleave", () => {
+        const overlay = document.querySelector(`.field-overlay[data-id="${f.id}"]`);
+        if (overlay) overlay.classList.remove("layer-hover-highlight");
+    });
+
     item.querySelector(".layer-vis-btn")?.addEventListener("click", e => {
         e.stopPropagation();
         f.hidden = !f.hidden;

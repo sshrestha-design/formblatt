@@ -1470,8 +1470,10 @@ input.prop-input {
     border-left: 3.5px solid transparent;
 }
 
-.layer-item:hover {
-    background: #f8fafc;
+.layer-item:hover,
+.layer-item.canvas-hover-highlight {
+    background: #f1f5f9;
+    border-left: 3.5px solid #94a3b8;
 }
 
 .layer-item.selected {

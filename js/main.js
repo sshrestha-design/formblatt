@@ -63,6 +63,28 @@ export function updateModeIndicator() {
             indicator.style.borderColor = "#bfdbfe";
         }
     }
+export async function deleteSelectedFieldsWithPoof() {
+    if (state.selectedFieldIds.size === 0) return;
+    const deletedCount = state.selectedFieldIds.size;
+    const targetIds = Array.from(state.selectedFieldIds);
+
+    // Apply smooth poof animation class to selected field DOM elements
+    const overlayContainer = document.getElementById("overlayContainer");
+    if (overlayContainer) {
+        targetIds.forEach(id => {
+            const el = overlayContainer.querySelector(`.field-overlay[data-id="${id}"]`);
+            if (el) el.classList.add("field-deleting");
+        });
+    }
+
+    triggerHaptic(10);
+    await new Promise(res => setTimeout(res, 120));
+
+    state.fields = state.fields.filter(f => !targetIds.includes(f.id));
+    setSelectedField(null);
+    saveHistory();
+    refreshUI();
+    showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
 }
 
 export function switchEditorMode(mode = "design") {
@@ -246,13 +268,7 @@ const bootstrapApp = async () => {
         refreshUI();
     });
     document.getElementById("menuDeleteBtn")?.addEventListener("click", () => {
-        if (state.selectedFieldIds.size === 0) return;
-        const deletedCount = state.selectedFieldIds.size;
-        state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
-        setSelectedField(null);
-        saveHistory();
-        refreshUI();
-        showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
+        deleteSelectedFieldsWithPoof();
     });
     document.getElementById("quickUndoBtn")?.addEventListener("click", () => {
         document.getElementById("menuUndoBtn")?.click();
@@ -1043,12 +1059,7 @@ const bootstrapApp = async () => {
         if (e.key === "Backspace" || e.key === "Delete") {
             if (state.selectedFieldIds.size > 0) {
                 e.preventDefault();
-                const deletedCount = state.selectedFieldIds.size;
-                state.fields = state.fields.filter(f => !state.selectedFieldIds.has(f.id));
-                setSelectedField(null);
-                saveHistory();
-                refreshUI();
-                showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
+                deleteSelectedFieldsWithPoof();
             }
             return;
         }

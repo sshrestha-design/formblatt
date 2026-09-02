@@ -478,6 +478,16 @@ export function renderOverlays(handlers) {
             }
         });
 
+        // Canvas ↔ Layer Hover Sync
+        div.addEventListener("mouseenter", () => {
+            const layerItem = document.querySelector(`.layer-item[data-field-id="${f.id}"]`);
+            if (layerItem) layerItem.classList.add("canvas-hover-highlight");
+        });
+        div.addEventListener("mouseleave", () => {
+            const layerItem = document.querySelector(`.layer-item[data-field-id="${f.id}"]`);
+            if (layerItem) layerItem.classList.remove("canvas-hover-highlight");
+        });
+
         div.addEventListener("keydown", e => {
             if (e.key === "Enter" || e.key === " ") {
                 if (f.type === "checkBox") {

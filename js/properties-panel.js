@@ -248,10 +248,13 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         }
     });
 
-    // Delete single field
-    document.getElementById("deleteFieldBtn")?.addEventListener("click", () => {
+    // Delete single field with poof animation
+    document.getElementById("deleteFieldBtn")?.addEventListener("click", async () => {
         const field = getSelectedField();
         if (!field) return;
+        const overlay = document.querySelector(`.field-overlay[data-id="${field.id}"]`);
+        if (overlay) overlay.classList.add("field-deleting");
+        await new Promise(res => setTimeout(res, 120));
         state.fields = state.fields.filter(f => f.id !== field.id);
         setSelectedField(null);
         saveHistory();
