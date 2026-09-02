@@ -16,52 +16,28 @@ import { formatFieldDisplayName } from "./overlay-manager.js";
 
 const FIELD_TYPE_STYLES = {
     textField: {
-        label: "Text",
-        fullLabel: "Text Field",
-        bg: "#f1f5f9",
-        text: "#475569",
-        border: "#e2e8f0",
-        solidBg: "#475569"
+        symbol: "T",
+        label: "Text Field"
     },
     signature: {
-        label: "Sign",
-        fullLabel: "Signature",
-        bg: "#eff6ff",
-        text: "#2563eb",
-        border: "#bfdbfe",
-        solidBg: "#2563eb"
+        symbol: "S",
+        label: "Signature"
     },
     dropdown: {
-        label: "Select",
-        fullLabel: "Dropdown",
-        bg: "#f5f3ff",
-        text: "#7c3aed",
-        border: "#ddd6fe",
-        solidBg: "#7c3aed"
+        symbol: "▾",
+        label: "Dropdown"
     },
     checkBox: {
-        label: "Check",
-        fullLabel: "Checkbox",
-        bg: "#f0fdf4",
-        text: "#16a34a",
-        border: "#bbf7d0",
-        solidBg: "#16a34a"
+        symbol: "✓",
+        label: "Checkbox"
     },
     radioGroup: {
-        label: "Radio",
-        fullLabel: "Radio Group",
-        bg: "#fff7ed",
-        text: "#ea580c",
-        border: "#fed7aa",
-        solidBg: "#ea580c"
+        symbol: "○",
+        label: "Radio Group"
     },
     dateField: {
-        label: "Date",
-        fullLabel: "Date Field",
-        bg: "#fdf4ff",
-        text: "#c026d3",
-        border: "#f5d0fe",
-        solidBg: "#c026d3"
+        symbol: "D",
+        label: "Date Field"
     }
 };
 
@@ -333,15 +309,12 @@ function createFieldLayerItem(f, onSelect, onRerender) {
     item.draggable = true;
 
     const style = FIELD_TYPE_STYLES[f.type] || FIELD_TYPE_STYLES.textField;
-    const badgeBg = style.bg;
-    const badgeText = style.text;
-    const badgeBorder = isSelected ? "#cbd5e1" : style.border;
-
     const globalIdx = state.fields.findIndex(item => item.id === f.id) + 1;
 
     item.innerHTML = `
         <span class="layer-grip-handle" title="Drag to reorder"><i data-lucide="grip-vertical" style="width: 12px; height: 12px;"></i></span>
-        <span style="font-size: 11px; color: ${isSelected ? '#0284c7' : '#94a3b8'}; width: 16px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0;">${globalIdx}</span>
+        <span class="layer-index" style="font-size: 11px; color: ${isSelected ? '#0284c7' : '#94a3b8'}; width: 14px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0; text-align: right;">${globalIdx}</span>
+        <span class="layer-type-tag" title="${style.label}">${style.symbol}</span>
         <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
             <span class="layer-name" title="${f.name || style.label} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSelected ? '600' : '500'}; cursor: grab;">${formatFieldDisplayName(f)}</span>
             <button type="button" class="layer-rename-btn" title="Rename Field" style="flex-shrink: 0;">
@@ -356,7 +329,6 @@ function createFieldLayerItem(f, onSelect, onRerender) {
                 <i data-lucide="${f.locked ? 'lock' : 'unlock'}" style="width: 12px; height: 12px; color: ${f.locked ? '#d97706' : '#94a3b8'};"></i>
             </button>
         </div>
-        <span class="layer-type-badge" title="${style.fullLabel || style.label}" style="font-size: 10px; font-weight: 600; color: ${badgeText}; background: ${badgeBg}; border: 1px solid ${badgeBorder}; padding: 2px 6px; border-radius: 9999px; letter-spacing: 0.02em; transition: all 0.15s ease; flex-shrink: 0;">${style.label}</span>
     `;
 
     item.querySelector(".layer-vis-btn")?.addEventListener("click", e => {
@@ -576,12 +548,14 @@ export function updateLayerSelectionDOM() {
         
         const f = state.fields.find(fld => String(fld.id) === String(rawId));
         if (f) {
-            const style = FIELD_TYPE_STYLES[f.type] || FIELD_TYPE_STYLES.textField;
-            const badge = item.querySelector(".layer-type-badge");
-            if (badge) {
-                badge.style.background = style.bg;
-                badge.style.color = style.text;
-                badge.style.borderColor = isSelected ? "#cbd5e1" : style.border;
+            const tag = item.querySelector(".layer-type-tag");
+            if (tag) {
+                tag.style.color = isSelected ? "#0284c7" : "#94a3b8";
+            }
+            const idxEl = item.querySelector(".layer-index");
+            if (idxEl) {
+                idxEl.style.color = isSelected ? "#0284c7" : "#94a3b8";
+                idxEl.style.fontWeight = isSelected ? "600" : "400";
             }
             const nameEl = item.querySelector(".layer-name");
             if (nameEl) {
