@@ -54,7 +54,8 @@ async function runAllTests() {
         'toast.js',
         'templates-engine.js',
         'storage-manager.js',
-        'overlay-manager.js'
+        'overlay-manager.js',
+        'tooltip.js'
     ];
 
     for (const file of jsFiles) {

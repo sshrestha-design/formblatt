@@ -11,6 +11,7 @@ import { autoDetectFields } from "./auto-detector.js";
 import { saveHistory, undo, redo, exportProjectJson, importProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
 import { triggerHaptic } from "./haptics.js";
+import { initTooltips } from "./tooltip.js";
 
 // Initialize Vercel Analytics event queue
 window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -101,6 +102,7 @@ const bootstrapApp = async () => {
     initCanvasController(canvasHandlers);
     initLandingController(() => refreshUI());
     initUiZoomGuard();
+    initTooltips();
     if (typeof lucide !== "undefined") lucide.createIcons();
 
     // Toolbar Tool Selection Buttons
