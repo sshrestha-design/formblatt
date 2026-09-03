@@ -161,7 +161,11 @@ const bootstrapApp = async () => {
     initTooltips();
     if (typeof lucide !== "undefined") lucide.createIcons();
 
-    // Toolbar Tool Selection Buttons
+    let lastMousePos = { clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 };
+    window.addEventListener("mousemove", e => {
+        lastMousePos = { clientX: e.clientX, clientY: e.clientY };
+    }, { passive: true });
+
     document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
         btn.addEventListener("click", () => {
             triggerHaptic();
@@ -173,6 +177,10 @@ const bootstrapApp = async () => {
 
             if (state.activeTool !== "select" && state.activeTool !== "hand") {
                 document.body.classList.add("placing-mode");
+                window.dispatchEvent(new MouseEvent("mousemove", {
+                    clientX: lastMousePos.clientX,
+                    clientY: lastMousePos.clientY
+                }));
             } else {
                 document.body.classList.remove("placing-mode");
             }

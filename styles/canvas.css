@@ -596,18 +596,18 @@
 
 /* ── Interactive Field Placement Ghost Preview ───────────────── */
 .field-placement-ghost {
-    position: absolute;
+    position: absolute !important;
     border: 2px dashed #2563eb !important;
-    background: rgba(37, 99, 235, 0.16) !important;
-    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.22), inset 0 0 0 1px rgba(37, 99, 235, 0.2) !important;
-    border-radius: 4px;
+    background: rgba(37, 99, 235, 0.18) !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25), inset 0 0 0 1px rgba(37, 99, 235, 0.3) !important;
+    border-radius: 4px !important;
     pointer-events: none !important;
-    z-index: 10000 !important;
+    z-index: 100000 !important;
     display: none;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 0 6px;
-    box-sizing: border-box;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
     will-change: left, top, width, height;
 }
 
@@ -616,77 +616,74 @@
 }
 
 .field-placement-ghost.snapped {
-    border: 2px solid #059669;
-    background: rgba(16, 185, 129, 0.16);
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.30), inset 0 0 0 1px rgba(16, 185, 129, 0.25);
+    border: 2px solid #059669 !important;
+    background: rgba(16, 185, 129, 0.20) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.35), inset 0 0 0 1px rgba(16, 185, 129, 0.3) !important;
 }
 
 .field-placement-ghost.is-drawing {
     border: 2px solid #2563eb !important;
-    background: rgba(37, 99, 235, 0.14) !important;
-    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.25) !important;
+    background: rgba(37, 99, 235, 0.20) !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.35) !important;
 }
 
 .ghost-origin-dot {
-    position: absolute;
-    bottom: -3px;
-    left: -3px;
-    width: 6px;
-    height: 6px;
-    background: #2563eb;
-    border: 1.5px solid #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-    pointer-events: none;
-    z-index: 10;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: 6px !important;
+    height: 6px !important;
+    background: #2563eb !important;
+    border: 1.5px solid #ffffff !important;
+    border-radius: 50% !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+    pointer-events: none !important;
+    z-index: 10 !important;
 }
 
 .field-placement-ghost.snapped .ghost-origin-dot {
-    background: #059669;
-}
-
-.field-placement-ghost.is-drawing .ghost-origin-dot {
-    background: #2563eb;
+    background: #059669 !important;
 }
 
 .ghost-badge {
-    position: absolute;
-    top: -22px;
-    left: 0;
-    background: #0f172a;
-    color: #ffffff;
-    font-size: 10px;
-    font-weight: 600;
-    padding: 1px 7px;
-    border-radius: 4px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    pointer-events: none;
-    line-height: 1.4;
-    letter-spacing: 0.02em;
+    position: absolute !important;
+    top: -24px !important;
+    left: 0 !important;
+    background: #0f172a !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    pointer-events: none !important;
+    line-height: 1.4 !important;
+    letter-spacing: 0.02em !important;
+    z-index: 100001 !important;
 }
 
 .field-placement-ghost.snapped .ghost-badge {
-    background: #065f46;
+    background: #065f46 !important;
 }
 
 .ghost-center-label {
-    font-size: 11px;
-    font-weight: 500;
-    color: #1d4ed8;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    pointer-events: none;
-    user-select: none;
-    opacity: 0.85;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #1d4ed8 !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    pointer-events: none !important;
+    user-select: none !important;
 }
 
 .field-placement-ghost.snapped .ghost-center-label {
-    color: #047857;
+    color: #047857 !important;
 }
 
 @keyframes ghostPulse {
