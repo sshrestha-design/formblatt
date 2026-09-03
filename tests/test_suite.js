@@ -318,38 +318,72 @@ async function runAllTests() {
         assert.equal(base64ToUint8Array(null), null);
     });
 
-    // ── SUITE 6: Semantic Resolver & Regex Detection ──
+    // ── SUITE 6: Semantic Resolver & Multilingual Auto-Detection ──
     console.log("\n🔍 Suite 6: Semantic Field Heuristics & Auto-Detection");
-    const GENERIC_PATTERNS = [
-        { regex: /due\s*date|payment\s*due/i, id: "due_date", type: "dateField" },
-        { regex: /birth\s*date|\bdob\b|date\s*of\s*birth/i, id: "dob", type: "dateField" },
-        { regex: /signature|sign\s*here|signed\s*by|^sign\b/i, id: "signature", type: "signature" },
-        { regex: /invoice\s*(?:#|no|number|num)/i, id: "invoice_number", type: "textField", autofill: "invoice_num" },
-        { regex: /ssn|social\s*security|tax\s*id|ein/i, id: "ssn", type: "textField" },
-        { regex: /first\s*name|given\s*name/i, id: "first_name", type: "textField", autofill: "given-name" },
-        { regex: /last\s*name|surname|family\s*name/i, id: "last_name", type: "textField", autofill: "family-name" },
-        { regex: /full\s*name|^name\b/i, id: "full_name", type: "textField", autofill: "name" },
-        { regex: /e-?mail/i, id: "email", type: "textField", autofill: "email" },
-        { regex: /phone|telephone|mobile|tel\b/i, id: "phone", type: "textField", autofill: "tel" },
-        { regex: /street\s*address|address\s*line/i, id: "street_address", type: "textField", autofill: "address-line1" },
-        { regex: /comments|notes|remarks|feedback/i, id: "comments", type: "textField", multiline: true }
-    ];
+    const { resolveSemanticProps, GENERIC_PATTERNS } = await import(path.join(WEB_DIR, 'js', 'auto-detector.js'));
 
-    function resolveLabel(label) {
-        for (const item of GENERIC_PATTERNS) {
-            if (item.regex.test(label)) return item;
-        }
-        return { id: "generic", type: "textField" };
-    }
+    it("Correctly categorizes English form labels", () => {
+        assert.equal(resolveSemanticProps("First Name:").name, "first_name");
+        assert.equal(resolveSemanticProps("Family Name:").name, "last_name");
+        assert.equal(resolveSemanticProps("Email Address").type, "textField");
+        assert.equal(resolveSemanticProps("Telephone / Mobile Number").autofill, "tel");
+        assert.equal(resolveSemanticProps("Date of Birth (MM/DD/YYYY)").type, "dateField");
+        assert.equal(resolveSemanticProps("Authorized Signature").type, "signature");
+        assert.equal(resolveSemanticProps("Additional Comments / Feedback").multiline, true);
+        assert.equal(resolveSemanticProps("Invoice Number").name, "invoice_number");
+        assert.equal(resolveSemanticProps("Total Balance Due").dataFormat, "currency");
+    });
 
-    it("Correctly categorizes common form labels", () => {
-        assert.equal(resolveLabel("First Name:").id, "first_name");
-        assert.equal(resolveLabel("Family Name:").id, "last_name");
-        assert.equal(resolveLabel("Email Address").type, "textField");
-        assert.equal(resolveLabel("Telephone / Mobile Number").autofill, "tel");
-        assert.equal(resolveLabel("Date of Birth (MM/DD/YYYY)").type, "dateField");
-        assert.equal(resolveLabel("Authorized Signature").type, "signature");
-        assert.equal(resolveLabel("Additional Comments / Feedback").multiline, true);
+    it("Correctly categorizes German (DE) form labels", () => {
+        assert.equal(resolveSemanticProps("Vorname:").name, "first_name");
+        assert.equal(resolveSemanticProps("Nachname:").name, "last_name");
+        assert.equal(resolveSemanticProps("Geburtsdatum:").type, "dateField");
+        assert.equal(resolveSemanticProps("Unterschrift des Antragstellers").type, "signature");
+        assert.equal(resolveSemanticProps("Straße und Hausnummer").autofill, "address-line1");
+        assert.equal(resolveSemanticProps("Postleitzahl / PLZ").autofill, "postal-code");
+        assert.equal(resolveSemanticProps("Rechnungsnummer").name, "invoice_number");
+        assert.equal(resolveSemanticProps("Gesamtbetrag").dataFormat, "currency");
+        assert.equal(resolveSemanticProps("Bemerkungen").multiline, true);
+    });
+
+    it("Correctly categorizes French (FR) form labels", () => {
+        assert.equal(resolveSemanticProps("Prénom:").name, "first_name");
+        assert.equal(resolveSemanticProps("Nom de famille:").name, "last_name");
+        assert.equal(resolveSemanticProps("Date de naissance:").type, "dateField");
+        assert.equal(resolveSemanticProps("Signature du demandeur").type, "signature");
+        assert.equal(resolveSemanticProps("Code postal").autofill, "postal-code");
+        assert.equal(resolveSemanticProps("Numéro de facture").name, "invoice_number");
+        assert.equal(resolveSemanticProps("Montant total").dataFormat, "currency");
+        assert.equal(resolveSemanticProps("Observations / Remarques").multiline, true);
+    });
+
+    it("Correctly categorizes Spanish (ES) form labels", () => {
+        assert.equal(resolveSemanticProps("Primer Nombre:").name, "first_name");
+        assert.equal(resolveSemanticProps("Apellidos:").name, "last_name");
+        assert.equal(resolveSemanticProps("Fecha de nacimiento:").type, "dateField");
+        assert.equal(resolveSemanticProps("Firma autorizada").type, "signature");
+        assert.equal(resolveSemanticProps("Código Postal").autofill, "postal-code");
+        assert.equal(resolveSemanticProps("Número de factura").name, "invoice_number");
+        assert.equal(resolveSemanticProps("Importe total").dataFormat, "currency");
+    });
+
+    it("Correctly categorizes Italian (IT), Portuguese (PT), and Dutch (NL) form labels", () => {
+        assert.equal(resolveSemanticProps("Data di nascita:").type, "dateField");
+        assert.equal(resolveSemanticProps("Codice Fiscale").name, "ssn");
+        assert.equal(resolveSemanticProps("Data de nascimento:").type, "dateField");
+        assert.equal(resolveSemanticProps("Assinatura").type, "signature");
+        assert.equal(resolveSemanticProps("Geboortedatum:").type, "dateField");
+        assert.equal(resolveSemanticProps("Handtekening").type, "signature");
+        assert.equal(resolveSemanticProps("Factuurnummer").name, "invoice_number");
+    });
+
+    it("Correctly categorizes Devanagari / Nepali form labels", () => {
+        assert.equal(resolveSemanticProps("पहिलो नाम:").name, "first_name");
+        assert.equal(resolveSemanticProps("जन्म मिति:").type, "dateField");
+        assert.equal(resolveSemanticProps("दस्तखत").type, "signature");
+        assert.equal(resolveSemanticProps("ठेगाना:").autofill, "address-line1");
+        assert.equal(resolveSemanticProps("नागरिकता नं").name, "citizenship_number");
+        assert.equal(resolveSemanticProps("कुल जम्मा").dataFormat, "currency");
     });
 
     // ── SUITE 7: Autofill Tooltips & AcroForm Standards ──
