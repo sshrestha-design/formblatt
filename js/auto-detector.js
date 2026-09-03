@@ -8,72 +8,58 @@ import { saveHistory } from "./storage-manager.js";
 // ============================================================================
 // 1. GENERIC SEMANTIC RESOLVER
 // ============================================================================
-const GENERIC_PATTERNS = [
-    // Dates
-    { regex: /due\s*date|payment\s*due/i, id: "due_date", type: "dateField" },
-    { regex: /expiration\s*date|exp\s*date|expiry/i, id: "expiration_date", type: "dateField" },
-    { regex: /date\s*approved|approval\s*date/i, id: "date_approved", type: "dateField" },
-    { regex: /birth\s*date|\bdob\b|date\s*of\s*birth/i, id: "dob", type: "dateField" },
-    { regex: /\bdate\b|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|yyyy\s*-\s*mm\s*-\s*dd/i, id: "date", type: "dateField" },
+export const GENERIC_PATTERNS = [
+    // ── Dates (EN, DE, FR, ES, IT, PT, NL, NE/HI) ──
+    { regex: /due\s*date|payment\s*due|f[äa]lligkeitsdatum|date\s*d['’]?[eé]ch[eé]ance|fecha\s*de\s*vencimiento|data\s*di\s*scadenza|data\s*de\s*vencimento|vervaldatum/i, id: "due_date", type: "dateField" },
+    { regex: /expiration\s*date|exp\s*date|expiry|ablaufdatum|g[üu]ltig\s*bis|date\s*d['’]?expiration|fecha\s*de\s*(?:expiraci[óo]n|caducidad)|data\s*di\s*scadenza|data\s*de\s*validade|verloopdatum/i, id: "expiration_date", type: "dateField" },
+    { regex: /date\s*approved|approval\s*date|genehmigungsdatum|date\s*d['’]?approbation|fecha\s*de\s*aprobaci[óo]n|data\s*di\s*approvazione/i, id: "date_approved", type: "dateField" },
+    { regex: /birth\s*date|\bdob\b|date\s*of\s*birth|geburtsdatum|date\s*de\s*naissance|fecha\s*de\s*nacimiento|data\s*di\s*nascita|data\s*de\s*nascimento|geboortedatum|जन्म\s*मिति/i, id: "dob", type: "dateField" },
+    { regex: /\bdate\b|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)|yyyy\s*-\s*mm\s*-\s*dd|\(dd\/mm\/yyyy\)|datum\b|date\b|fecha\b|data\b|मिति|मितिः/i, id: "date", type: "dateField" },
     
-    // Signatures
-    { regex: /signature|sign\s*here|signed\s*by|^sign\b/i, id: "signature", type: "signature" },
+    // ── Signatures (EN, DE, FR, ES, IT, PT, NL, NE/HI) ──
+    { regex: /signature|sign\s*here|signed\s*by|^sign\b|unterschrift|unterschrieben|signatur|signé\s*par|firma\b|firmado\s*por|firmato\s*da|assinatura|assinado\s*por|handtekening|ondertekend|दस्तखत|हस्ताक्षर|सही\s*छाप/i, id: "signature", type: "signature" },
 
-    // Financial & Numbers
-    { regex: /invoice\s*(?:#|no|number|num)/i, id: "invoice_number", type: "textField", autofill: "invoice_num" },
-    { regex: /po\s*(?:#|no|number|num)|purchase\s*order/i, id: "po_number", type: "textField" },
-    { regex: /subtotal/i, id: "subtotal", type: "textField" },
-    { regex: /tax|vat|gst/i, id: "tax", type: "textField" },
-    { regex: /total|balance\s*due|amount\s*due/i, id: "total", type: "textField" },
-    { regex: /amount|price|rate|cost|fee|charge/i, id: "amount", type: "textField" },
-    { regex: /\bqty\b|quantity|units/i, id: "quantity", type: "textField" },
-    { regex: /routing|iban|swift|bsb/i, id: "routing_number", type: "textField" },
-    { regex: /account\s*(?:#|no|number|num)/i, id: "account_number", type: "textField" },
-    { regex: /ssn|social\s*security|tax\s*id|ein|national\s*id/i, id: "ssn", type: "textField" },
+    // ── Financial & Numbers (EN, DE, FR, ES, IT, PT, NL, NE/HI) ──
+    { regex: /invoice\s*(?:#|no|number|num)|rechnungs\s*(?:nr|nummer)|(?:n[°o]|num[eé]ro)\s*de\s*facture|n[úu]mero\s*de\s*factura|fattura\s*n\.?|fatura\s*n[°º]|factuurnummer|बिल\s*नं/i, id: "invoice_number", type: "textField", autofill: "invoice_num" },
+    { regex: /po\s*(?:#|no|number|num)|purchase\s*order|bestellnummer|bon\s*de\s*commande|orden\s*de\s*compra|ordine\s*d['’]?acquisto|ordem\s*de\s*compra|inkoopordernummer/i, id: "po_number", type: "textField" },
+    { regex: /subtotal|zwischensumme|sous-total|subtotale|sub-total|subtotaal/i, id: "subtotal", type: "textField" },
+    { regex: /\b(?:tax|vat|gst|mwst|ust|tva|iva|imposto|btw)\b|कर|भ्याट/i, id: "tax", type: "textField" },
+    { regex: /total|balance\s*due|amount\s*due|gesamtbetrag|endbetrag|solde\s*d[uû]|importe\s*total|totale\s*dovuto|valor\s*total|totaalbedrag|कुल\s*जम्मा|जम्मा/i, id: "total", type: "textField" },
+    { regex: /amount|price|rate|cost|\bfees?\b|charge|betrag|preis|kosten|geb[üu]hr|montant|prix|co[uû]t|tarif|importe|precio|tarifa|costo|valore|valor|pre[çc]o|prijs|bedrag|kosten|रकम|मूल्य|दर/i, id: "amount", type: "textField" },
+    { regex: /\bqty\b|quantity|units|menge|anzahl|st[üu]ckzahl|quantit[ée]|quantit[àa]|cantidad|unidades|quantidade|aantal|परिमाण|संख्या/i, id: "quantity", type: "textField" },
+    { regex: /routing|iban|swift|bic|bsb|bankleitzahl|blz|code\s*banque|c[óo]digo\s*bancario|खाता\s*नं/i, id: "routing_number", type: "textField" },
+    { regex: /account\s*(?:#|no|number|num)|kontonummer|konto-nr|n[°o]\s*de\s*compte|n[úu]mero\s*de\s*cuenta|numero\s*conto|n[úu]mero\s*da\s*conta|rekeningnummer/i, id: "account_number", type: "textField" },
+    { regex: /नागरिकता\s*(?:नं|नंबर|प्रमाण)/, id: "citizenship_number", type: "textField" },
+    { regex: /ssn|social\s*security|tax\s*id|ein|national\s*id|steuernummer|steuer-id|sozialversicherungsnummer|n[°o]\s*s[eé]curit[eé]\s*sociale|siret|siren|nif|cif|dni|nie|codice\s*fiscale|partita\s*iva|cpf|cnpj|rg|bsn|burgerkrachtnummer|प्यान\s*नं|राष्ट्रिय\s*परिचय/i, id: "ssn", type: "textField" },
 
-    // Contact Details
-    { regex: /first\s*name|given\s*name|forename/i, id: "first_name", type: "textField", autofill: "given-name" },
-    { regex: /last\s*name|surname|family\s*name/i, id: "last_name", type: "textField", autofill: "family-name" },
-    { regex: /full\s*name|^name\b/i, id: "full_name", type: "textField", autofill: "name" },
-    { regex: /e-?mail/i, id: "email", type: "textField", autofill: "email" },
-    { regex: /phone|telephone|mobile|cell|fax|tel\b/i, id: "phone", type: "textField", autofill: "tel" },
-    { regex: /street\s*address|address\s*line|home\s*address/i, id: "street_address", type: "textField", autofill: "address-line1" },
-    { regex: /city/i, id: "city", type: "textField", autofill: "address-level2" },
-    { regex: /state|province|region/i, id: "state", type: "textField", autofill: "address-level1" },
-    { regex: /zip|postal\s*code|postcode/i, id: "zip_code", type: "textField", autofill: "postal-code" },
-    { regex: /country/i, id: "country", type: "textField", autofill: "country-name" },
-    { regex: /company|organization|employer|institution/i, id: "organization", type: "textField", autofill: "organization" },
-    { regex: /title|role|position|designation/i, id: "job_title", type: "textField", autofill: "organization-title" },
-    { regex: /department|division|unit/i, id: "department", type: "textField" },
+    // ── Contact & Identity (EN, DE, FR, ES, IT, PT, NL, NE/HI) ──
+    { regex: /first\s*name|given\s*name|forename|vorname|pr[eé]nom|primer\s*nombre|nome\s*proprio|primeiro\s*nome|voornaam|पहिलो\s*नाम/i, id: "first_name", type: "textField", autofill: "given-name" },
+    { regex: /last\s*name|surname|family\s*name|nachname|familienname|nom\s*de\s*famille|apellidos?|primer\s*apellido|segundo\s*apellido|cognome|sobrenome|achternaam|थर/i, id: "last_name", type: "textField", autofill: "family-name" },
+    { regex: /full\s*name|complete\s*name|vollst[äa]ndiger\s*name|nom\s*complet|nombre\s*completo|nome\s*completo|volledige\s*naam|नाम\s*,?\s*थर|पूरा\s*नाम|आवेदकको\s*नाम|निवेदकको\s*नाम|^name\b|^nom\b|^nombre\b|^naam\b|^नाम\b/i, id: "full_name", type: "textField", autofill: "name" },
+    { regex: /e-?mail|courriel|correo\s*electr[óo]nico|e-post|इमेल|ईमेल/i, id: "email", type: "textField", autofill: "email" },
+    { regex: /phone|telephone|mobile|cell|fax|tel\b|telefon|handy|mobil|t[eé]l[eé]phone|portable|tel[eé]fono|m[oó]vil|cellulare|telefone|celular|telefoon|टेलिफोन|फोन|मोबाइल|सम्पर्क\s*नं/i, id: "phone", type: "textField", autofill: "tel" },
+    { regex: /street\s*address|address\s*line|home\s*address|stra[ßs]e(?:\s*und\s*hausnummer)?|adresse|rue|direcci[óo]n|calle|indirizzo|via|endere[çc]o|rua|straat\s*(?:en\s*huisnummer)?|ठेगाना|घर\s*ठेगाना|टोल/i, id: "street_address", type: "textField", autofill: "address-line1" },
+    { regex: /city|ort\b|stadt|ville|ciudad|municipio|citt[àa]|cidade|plaats|stad|नगरपालिका|गाउँपालिका/i, id: "city", type: "textField", autofill: "address-level2" },
+    { regex: /state|province|region|bundesland|kanton|r[eé]gion|provincia|estado|provincie|जिल्ला|प्रदेश/i, id: "state", type: "textField", autofill: "address-level1" },
+    { regex: /zip|postal\s*code|postcode|plz|postleitzahl|code\s*postal|c[óo]digo\s*postal|cap\b|cep\b|वडा\s*नं|पिन\s*कोड/i, id: "zip_code", type: "textField", autofill: "postal-code" },
+    { regex: /country|land\b|pays|pa[íi]s|nazione|paese|देश/i, id: "country", type: "textField", autofill: "country-name" },
+    { regex: /company|organization|employer|institution|firma|unternehmen|arbeitgeber|entreprise|soci[eé]t[eé]|employeur|empresa|instituci[óo]n|organiza[çc][ãa]o|bedrijf|werkgever|कार्यालय|कम्पनी|संस्था/i, id: "organization", type: "textField", autofill: "organization" },
+    { regex: /title|role|position|designation|berufsbezeichnung|funktion|poste|titre|cargo|puesto|ruolo|mansione|functie|पद|ओहोदा/i, id: "job_title", type: "textField", autofill: "organization-title" },
+    { regex: /department|division|unit|abteilung|bereich|d[eé]partement|service|departamento|secci[óo]n|dipartimento|afdeling|शाखा|विभाग/i, id: "department", type: "textField" },
     
-    // Table Line Items & Description
-    { regex: /item\s*description|item\s*details|^description\b/i, id: "item_description", type: "textField" },
+    // ── Table Line Items & Description ──
+    { regex: /item\s*description|item\s*details|beschreibung|d[eé]signation|descripci[óo]n|descrizione|descri[çc][ãa]o|omschrijving|विवरण|^description\b/i, id: "item_description", type: "textField" },
 
-    // Notes & Multiline Freeform
-    { regex: /comments|notes|remarks|explanation|justification|feedback|details/i, id: "comments", type: "textField", multiline: true },
+    // ── Notes & Multiline Freeform ──
+    { regex: /comments|notes|remarks|explanation|justification|feedback|details|bemerkungen|hinweise|anmerkungen|remarques|observations|commentaires|comentarios|observaciones|notas|note\b|commenti|observa[çc][õo]es|opmerkingen|notities|कैफियत|प्रतिक्रिया/i, id: "comments", type: "textField", multiline: true },
 
-    // ------------------------------------------------------------------
-    // Devanagari / Nepali equivalents. Same idea as the English table
-    // above: match on the semantic keyword, independent of script. Order
-    // matters (first match wins) so more specific phrases sit above the
-    // bare word they contain (e.g. "जन्म मिति" before plain "मिति").
-    // ------------------------------------------------------------------
-    { regex: /जन्म\s*मिति/, id: "dob", type: "dateField" },
-    { regex: /मिति|मितिः/, id: "date", type: "dateField" },
-    { regex: /दस्तखत|हस्ताक्षर/, id: "signature", type: "signature" },
-    { regex: /टेलिफोन|फोन|मोबाइल|सम्पर्क\s*नं/, id: "phone", type: "textField", autofill: "tel" },
-    { regex: /इमेल|ईमेल/, id: "email", type: "textField", autofill: "email" },
-    { regex: /ठेगाना|घर\s*ठेगाना/, id: "address", type: "textField", autofill: "address-line1" },
-    { regex: /जिल्ला/, id: "district", type: "textField", autofill: "address-level1" },
-    { regex: /गाउँपालिका|नगरपालिका|वडा/, id: "municipality", type: "textField" },
-    { regex: /नाम\s*,?\s*थर|पूरा\s*नाम|आवेदकको\s*नाम|निवेदकको\s*नाम/, id: "full_name", type: "textField", autofill: "name" },
-    { regex: /^नाम\b/, id: "full_name", type: "textField", autofill: "name" },
+    // ── South Asian Identity Details ──
     { regex: /नागरिकता\s*(?:नं|नंबर|प्रमाण)/, id: "citizenship_number", type: "textField" },
     { regex: /परिचय\s*पत्र|राहदानी\s*नं/, id: "id_number", type: "textField" },
     { regex: /संख्या|नं\.?\s*$|नम्बर/, id: "number", type: "textField" }
 ];
 
-function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = new Set()) {
+export function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = new Set()) {
     const clean = (rawLabel || "").trim().replace(/[:_.\s-]+$/, "");
     let baseId = "";
     let type = defaultType;
@@ -148,8 +134,11 @@ function isUniversalStaticText(text) {
     const clean = text.trim();
     if (clean.length < 2) return true;
 
-    // 1. Numbered section banners (e.g. "1. SECTION TITLE", "Section A: Requirements")
-    if (/^(?:section\s+[a-z0-9]|\d+[\.\)])\s+[A-Za-z\s\&\(\)\/\-]+$/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
+    // 1. Numbered section banners (e.g. "1. SECTION TITLE", "Section A: Requirements", "Abschnitt 1", "Chapitre A", "Sección B")
+    if (/^(?:section|abschnitt|teil|kapitel|partie|chapitre|secci[óo]n|sezione|parte|deel|hoofdstuk|खण्ड|भाग)\s+[a-z0-9]/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
+        return true;
+    }
+    if (/^\d+[.)]\s+[\p{L}\s&()/ -]+$/iu.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
         return true;
     }
 
@@ -432,26 +421,26 @@ export async function autoDetectFields(scope = "current") {
 // (ruling-line) table detector and the existing stream (text-position)
 // heuristic further down.
 const TABLE_COL_DEFS = [
-    { regex: /^item\s*(?:#|no|num)?$/i, id: "item_no", name: "item" },
-    { regex: /^(?:sku|part\s*#|code)$/i, id: "sku", name: "sku" },
-    { regex: /description|particulars|details|goods|services|purpose|attendees/i, id: "description", name: "description" },
-    { regex: /^(?:qty|quantity|units|hours|miles|count)$/i, id: "qty", name: "quantity" },
-    { regex: /unit\s*price|price|rate|unit\s*cost|fee|charge/i, id: "unit_price", name: "price" },
-    { regex: /^taxable$/i, id: "taxable", name: "taxable" },
-    { regex: /^(?:amount|total|line\s*total|ext\s*price)$/i, id: "amount", name: "amount" },
-    { regex: /category|expense\s*type/i, id: "category", name: "category" },
-    { regex: /merchant|vendor|payee|supplier/i, id: "merchant", name: "merchant" },
-    { regex: /receipt/i, id: "receipt", name: "receipt" },
-    { regex: /^date$/i, id: "date", name: "date" },
-    { regex: /school|institution|college/i, id: "school", name: "school" },
-    { regex: /degree|major|diploma/i, id: "degree", name: "degree" },
-    { regex: /graduated|graduation|year/i, id: "year", name: "year" },
-    { regex: /gpa|honors|grade/i, id: "gpa", name: "gpa" },
-    { regex: /employer|company/i, id: "employer", name: "employer" },
-    { regex: /position|job\s*title|role/i, id: "job_title", name: "job_title" },
-    { regex: /medication|drug|medicine/i, id: "medication", name: "medication" },
-    { regex: /dosage|frequency/i, id: "dosage", name: "dosage" },
-    { regex: /physician|doctor/i, id: "physician", name: "physician" }
+    { regex: /^(?:item\s*(?:#|no|num)?|pos\.?|position|art[íi]culo|artikel|art\.|क्र\.?\s*सं\.?)$/i, id: "item_no", name: "item" },
+    { regex: /^(?:sku|part\s*#|code|artikelnr|r[eé]f[eé]rence|c[óo]digo|codice|c[óo]d)$/i, id: "sku", name: "sku" },
+    { regex: /description|particulars|details|goods|services|purpose|attendees|beschreibung|bezeichnung|d[eé]signation|descripci[óo]n|descrizione|descri[çc][ãa]o|omschrijving|विवरण|सामानको\s*विवरण/i, id: "description", name: "description" },
+    { regex: /^(?:qty|quantity|units|hours|miles|count|menge|anzahl|quantit[ée]|cantidad|quantit[àa]|quantidade|aantal|परिमाण|संख्या)$/i, id: "qty", name: "quantity" },
+    { regex: /unit\s*price|price|rate|unit\s*cost|fee|charge|einzelpreis|preis|prix\s*unitaire|prix|precio\s*unitario|precio|prezzo\s*unitario|pre[çc]o\s*unit[áa]rio|eenheidsprijs|prijs|दर|प्रति\s*इकाई/i, id: "unit_price", name: "price" },
+    { regex: /^(?:taxable|steuerpflichtig|imposable|imponible|tribut[áa]vel|belastbaar)$/i, id: "taxable", name: "taxable" },
+    { regex: /^(?:amount|total|line\s*total|ext\s*price|gesamt|betrag|montant|total|importe|totale|valor|totaal|रकम|जम्मा)$/i, id: "amount", name: "amount" },
+    { regex: /category|expense\s*type|kategorie|cat[eé]gorie|categor[íi]a|categoria|वर्गीकरण/i, id: "category", name: "category" },
+    { regex: /merchant|vendor|payee|supplier|h[äa]ndler|liefrant|fournisseur|proveedor|fornitore|fornecedor|leverancier|विक्रेता/i, id: "merchant", name: "merchant" },
+    { regex: /receipt|quittung|re[çc]u|recibo|ricevuta|रसिद/i, id: "receipt", name: "receipt" },
+    { regex: /^(?:date|datum|fecha|data|मिति)$/i, id: "date", name: "date" },
+    { regex: /school|institution|college|schule|universit[äa]t|[eé]cole|universit[eé]|escuela|universidad|scuola|escola|school|विद्यालय|क्याम्पस/i, id: "school", name: "school" },
+    { regex: /degree|major|diploma|abschluss|dipl[oô]me|t[íi]tulo|laurea|diploma|डिग्री|उपाधि/i, id: "degree", name: "degree" },
+    { regex: /graduated|graduation|year|jahr|ann[eé]e|a[ñn]o|anno|ano|jaar|साल|वर्ष/i, id: "year", name: "year" },
+    { regex: /gpa|honors|grade|note|calificaci[óo]n|voto|nota|cijfier|श्रेणी|अंक/i, id: "gpa", name: "gpa" },
+    { regex: /employer|company|arbeitgeber|firma|employeur|soci[eé]t[eé]|empleador|datore|empregador|werkgever|रोजगारदाता/i, id: "employer", name: "employer" },
+    { regex: /position|job\s*title|role|position|funktion|poste|cargo|puesto|ruolo|functie|पद/i, id: "job_title", name: "job_title" },
+    { regex: /medication|drug|medicine|medikament|m[eé]dicament|medicamento|medicinale|geneesmiddel|औषधि/i, id: "medication", name: "medication" },
+    { regex: /dosage|frequency|dosierung|posologie|dosis|dosaggio|dosering|मात्रा/i, id: "dosage", name: "dosage" },
+    { regex: /physician|doctor|arzt|m[eé]decin|m[eé]dico|dottore|arts|डाक्टर|चिकित्सक/i, id: "physician", name: "physician" }
 ];
 
 function matchColumnKeyword(text) {
@@ -1036,7 +1025,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
         const text = line.str.trim();
         if (isUniversalStaticText(text)) continue;
 
-        const promptMatches = [...text.matchAll(/([a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?):/g)];
+        const promptMatches = [...text.matchAll(/([\p{L}\p{N}\s/().#$&-]+?)[:ः]/gu)];
         for (let i = 0; i < promptMatches.length; i++) {
             const m = promptMatches[i];
             const cleanLabel = m[1].trim();
@@ -1046,17 +1035,18 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
 
             // 1. Skip if choices (checkboxes/radios) immediately follow
             if (/^(?:\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/.test(textAfterColon)) continue;
-            if (/select\s*all|select\s*one/i.test(cleanLabel)) continue;
+            if (/select\s*all|select\s*one|bitte\s*ausw[äa]hlen|veuillez\s*s[eé]lectionner|seleccione/i.test(cleanLabel)) continue;
 
             // 2. Skip if this is already-filled static text (e.g. "REF: FRM-7745", "REVISION: 2.4", "STATUS: BLANK")
-            const nextPromptInLine = textAfterColon.search(/[a-zA-Z0-9\s\/\(\)\.\-\#\$\&]+?:/);
+            const nextPromptInLine = textAfterColon.search(/[\p{L}\p{N}\s/().#$&-]+?[:ः]/u);
             const valueChunk = nextPromptInLine !== -1 ? textAfterColon.slice(0, nextPromptInLine).trim() : textAfterColon;
             const isAlreadyFilledStatic = valueChunk.length > 0 && !valueChunk.startsWith("_") && !valueChunk.startsWith("-") && !valueChunk.startsWith(".");
             if (isAlreadyFilledStatic) continue;
 
-            const isSig = /signature|sign\s*here/i.test(cleanLabel);
-            const isDate = /date|dob|\(yyyy-mm-dd\)|\(mm\/dd\/yyyy\)/i.test(cleanLabel);
-            const isMulti = /comments|notes|remarks|responsibilities|description/i.test(cleanLabel);
+            const preSem = resolveSemanticProps(cleanLabel);
+            const isSig = preSem.type === "signature";
+            const isDate = preSem.type === "dateField";
+            const isMulti = preSem.multiline;
 
             // Find physical right edge of THIS specific prompt
             const matchEnd = m.index + m[0].length;
