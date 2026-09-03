@@ -69,6 +69,20 @@ async function runAllTests() {
         });
     }
 
+    const cssFiles = ['fonts.css', 'base.css', 'landing.css', 'editor.css', 'canvas.css', 'modals.css'];
+    for (const css of cssFiles) {
+        it(`Should have valid CSS brace balance in styles/${css}`, () => {
+            const content = fs.readFileSync(path.join(WEB_DIR, 'styles', css), 'utf8');
+            let open = 0;
+            for (let i = 0; i < content.length; i++) {
+                if (content[i] === '{') open++;
+                if (content[i] === '}') open--;
+                assert.ok(open >= 0, `Unmatched closing brace in styles/${css} at character ${i}`);
+            }
+            assert.equal(open, 0, `Unbalanced braces in styles/${css}: ${open} unclosed '{'`);
+        });
+    }
+
     // ── SUITE 2: State Management & Selection Logic ──
     console.log("\n📐 Suite 2: State Management & Selection Logic");
     const { 

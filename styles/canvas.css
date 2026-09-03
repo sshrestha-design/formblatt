@@ -458,6 +458,8 @@
         transform: scale(1);
         box-shadow: none;
     }
+}
+
 /* Auto-Detect Indigo Shimmer Scan Wave */
 .field-overlay.field-scan-wave {
     animation: fieldScanWave 0.65s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
