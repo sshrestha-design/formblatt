@@ -175,6 +175,11 @@ const bootstrapApp = async () => {
             state.activeTool = btn.dataset.tool;
             document.body.classList.toggle("tool-hand", state.activeTool === "hand");
 
+            state.isDragging = false;
+            state.isResizing = false;
+            state.isLassoing = false;
+            state.isPanning = false;
+
             if (state.activeTool !== "select" && state.activeTool !== "hand") {
                 document.body.classList.add("placing-mode");
                 window.dispatchEvent(new MouseEvent("mousemove", {

@@ -1,6 +1,6 @@
 // ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/canvas-controller.js) ─
 import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected } from "./state.js";
-import { DEFAULT_FIELD_SIZES, SNAP_THRESHOLD } from "./constants.js";
+import { DEFAULT_FIELD_SIZES, FIELD_TYPE_LABELS, SNAP_THRESHOLD } from "./constants.js";
 import { setTransformScale, getPageTextBlocks } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
 import { triggerHaptic } from "./haptics.js";
@@ -814,9 +814,16 @@ export function initCanvasController(handlers) {
 
     // Global Mouse Move & Up
     window.addEventListener("mousemove", e => {
-        if (isDrawingField && drawStart && state.activeTool !== "select") {
-            handleFieldDrawMove(e, container, handlers);
-        } else if (state.isPanning) {
+        if (state.activeTool !== "select" && state.activeTool !== "hand") {
+            if (isDrawingField && drawStart) {
+                handleFieldDrawMove(e, container, handlers);
+            } else {
+                updatePlacementGhost(e);
+            }
+            return;
+        }
+
+        if (state.isPanning) {
             handlePanning(e, centerCanvas);
         } else if (state.isDragging) {
             handleFieldDrag(e, container, handlers);
