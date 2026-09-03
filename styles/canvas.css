@@ -598,21 +598,16 @@
 .field-placement-ghost {
     position: absolute !important;
     border: 2px dashed #2563eb !important;
-    background: rgba(37, 99, 235, 0.18) !important;
-    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.25), inset 0 0 0 1px rgba(37, 99, 235, 0.3) !important;
+    background: rgba(37, 99, 235, 0.22) !important;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.30), inset 0 0 0 1.5px rgba(37, 99, 235, 0.4) !important;
     border-radius: 4px !important;
     pointer-events: none !important;
     z-index: 100000 !important;
-    display: none;
     align-items: center !important;
     justify-content: flex-start !important;
     padding: 0 8px !important;
     box-sizing: border-box !important;
     will-change: left, top, width, height;
-}
-
-.field-placement-ghost.is-active {
-    display: flex !important;
 }
 
 .field-placement-ghost.snapped {
