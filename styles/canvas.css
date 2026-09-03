@@ -597,18 +597,22 @@
 /* ── Interactive Field Placement Ghost Preview ───────────────── */
 .field-placement-ghost {
     position: absolute;
-    border: 2px dashed #2563eb;
-    background: rgba(37, 99, 235, 0.12);
-    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.20), inset 0 0 0 1px rgba(37, 99, 235, 0.15);
+    border: 2px dashed #2563eb !important;
+    background: rgba(37, 99, 235, 0.16) !important;
+    box-shadow: 0 4px 16px rgba(37, 99, 235, 0.22), inset 0 0 0 1px rgba(37, 99, 235, 0.2) !important;
     border-radius: 4px;
     pointer-events: none !important;
-    z-index: 1000 !important;
+    z-index: 10000 !important;
     display: none;
     align-items: center;
     justify-content: flex-start;
     padding: 0 6px;
     box-sizing: border-box;
     will-change: left, top, width, height;
+}
+
+.field-placement-ghost.is-active {
+    display: flex !important;
 }
 
 .field-placement-ghost.snapped {

@@ -252,8 +252,8 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
     const height = (customHeight && customHeight >= 10) ? Math.round(customHeight) : adaptive.height;
     const detectedFontSize = (type === "textField" || type === "dropdown" || type === "dateField") ? (adaptive.fontSize || (height < 22 ? 9.5 : 11)) : undefined;
 
-    let targetX = (customX !== undefined) ? Math.round(customX) : Math.max(0, Math.round(x));
-    let targetY = (customY !== undefined) ? Math.round(customY) : Math.max(0, Math.round(y - height));
+    let targetX = (customX !== undefined) ? Math.round(customX) : Math.max(0, Math.round(x - width / 2));
+    let targetY = (customY !== undefined) ? Math.round(customY) : Math.max(0, Math.round(y - height / 2));
 
     // Keep strictly within page boundaries
     const container = document.getElementById("canvasContainer");
@@ -564,8 +564,8 @@ export function initCanvasController(handlers) {
             fontSize: adaptive.fontSize
         };
 
-        let targetX = Math.round(mouseX);
-        let targetY = Math.round(mouseY - def.height);
+        let targetX = Math.round(mouseX - def.width / 2);
+        let targetY = Math.round(mouseY - def.height / 2);
 
         // Keep within page boundaries
         targetX = Math.max(0, Math.min(pageWidth - def.width, targetX));
@@ -583,6 +583,7 @@ export function initCanvasController(handlers) {
         }
 
         ghostElement.style.display = "flex";
+        ghostElement.classList.add("is-active");
         ghostElement.style.left = `${targetX}px`;
         ghostElement.style.top = `${targetY}px`;
         ghostElement.style.width = `${def.width}px`;
