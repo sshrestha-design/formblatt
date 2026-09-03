@@ -512,49 +512,62 @@ export function initCanvasController(handlers) {
 
     // Placement Ghost Real-Time Position & Alignment Updater
     function updatePlacementGhost(e) {
-        if (!ghostElement) ghostElement = document.getElementById("fieldPlacementGhost");
-        const stamp = document.getElementById("floatingToolStamp");
-
+        if (!e) return;
         const tool = state.activeTool;
+        let ghost = document.getElementById("fieldPlacementGhost") || ghostElement;
+        let stamp = document.getElementById("floatingToolStamp");
+
         if (!tool || tool === "select" || tool === "hand") {
             document.body.classList.remove("placing-mode");
-            if (ghostElement) ghostElement.style.display = "none";
+            if (ghost) {
+                ghost.style.display = "none";
+                ghost.classList.remove("is-active");
+            }
             if (stamp) stamp.style.display = "none";
             hideGuides();
             return;
         }
 
-        const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "", placeholder: "" };
+        const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "T", placeholder: "Field" };
         const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
 
         // 1. Update Global Floating Tool Stamp
         document.body.classList.add("placing-mode");
+        if (!stamp) {
+            stamp = document.createElement("div");
+            stamp.id = "floatingToolStamp";
+            stamp.className = "floating-tool-stamp";
+            document.body.appendChild(stamp);
+        }
         if (stamp) {
             stamp.style.display = "flex";
             stamp.style.left = `${e.clientX}px`;
             stamp.style.top = `${e.clientY}px`;
             if (stamp.dataset.currentTool !== tool) {
                 stamp.dataset.currentTool = tool;
-                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place (Press Esc or V when done)</span>`;
+                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place</span>`;
             }
         }
 
         // 2. Update In-Canvas Placement Silhouette Box
-        if (!ghostElement || !container || !state.pdfDoc) return;
+        const curContainer = document.getElementById("canvasContainer") || container;
+        if (!curContainer || !state.pdfDoc) return;
 
-        const rect = container.getBoundingClientRect();
-        const mouseX = (e.clientX - rect.left) / state.currentScale;
-        const mouseY = (e.clientY - rect.top) / state.currentScale;
-
-        const pageWidth = container.offsetWidth || (rect.width / state.currentScale) || 600;
-        const pageHeight = container.offsetHeight || (rect.height / state.currentScale) || 800;
-
-        // If cursor is near the document canvas, show the true-to-scale silhouette
-        if (mouseX < -60 || mouseX > pageWidth + 60 || mouseY < -60 || mouseY > pageHeight + 60) {
-            ghostElement.style.display = "none";
-            hideGuides();
-            return;
+        if (!ghost) {
+            ghost = document.createElement("div");
+            ghost.id = "fieldPlacementGhost";
+            ghost.className = "field-placement-ghost";
+            curContainer.appendChild(ghost);
+            ghostElement = ghost;
         }
+
+        const rect = curContainer.getBoundingClientRect();
+        const scale = state.currentScale || 1;
+        const mouseX = (e.clientX - rect.left) / scale;
+        const mouseY = (e.clientY - rect.top) / scale;
+
+        const pageWidth = curContainer.offsetWidth || (rect.width / scale) || 600;
+        const pageHeight = curContainer.offsetHeight || (rect.height / scale) || 800;
 
         // Adapt box dimensions and font size to the text under or adjacent to cursor
         const adaptive = getAdaptiveFieldDimensions(tool, mouseX, mouseY, pageTextBlocks);
@@ -582,21 +595,21 @@ export function initCanvasController(handlers) {
             hideGuides();
         }
 
-        ghostElement.style.display = "flex";
-        ghostElement.classList.add("is-active");
-        ghostElement.style.left = `${targetX}px`;
-        ghostElement.style.top = `${targetY}px`;
-        ghostElement.style.width = `${def.width}px`;
-        ghostElement.style.height = `${def.height}px`;
-        ghostElement.classList.toggle("snapped", snap.guidesX.length > 0 || snap.guidesY.length > 0);
-        ghostElement.classList.remove("is-drawing");
+        ghost.style.display = "flex";
+        ghost.classList.add("is-active");
+        ghost.style.left = `${targetX}px`;
+        ghost.style.top = `${targetY}px`;
+        ghost.style.width = `${def.width}px`;
+        ghost.style.height = `${def.height}px`;
+        ghost.classList.toggle("snapped", snap.guidesX.length > 0 || snap.guidesY.length > 0);
+        ghost.classList.remove("is-drawing");
 
         const sizeBadge = def.fontSize ? `${def.width}×${def.height} px · ${def.fontSize}pt` : `${def.width}×${def.height} px`;
         const lastSignatureKey = `${tool}_${def.width}_${def.height}`;
-        if (ghostElement.dataset.lastSignatureKey !== lastSignatureKey || !ghostElement.querySelector(".ghost-origin-dot")) {
-            ghostElement.dataset.lastSignatureKey = lastSignatureKey;
-            ghostElement.dataset.currentTool = tool;
-            ghostElement.innerHTML = `
+        if (ghost.dataset.lastSignatureKey !== lastSignatureKey || !ghost.querySelector(".ghost-origin-dot")) {
+            ghost.dataset.lastSignatureKey = lastSignatureKey;
+            ghost.dataset.currentTool = tool;
+            ghost.innerHTML = `
                 <div class="ghost-origin-dot"></div>
                 <div class="ghost-badge">${info.icon} ${info.name} · ${sizeBadge}</div>
                 <div class="ghost-center-label">${info.placeholder || info.name}</div>
