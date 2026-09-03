@@ -315,9 +315,6 @@ export function showEditorScreen(onReady, skipPush = false) {
         editor.style.display = "flex";
         document.body.classList.add("editor-active");
         updateDocumentTitle();
-        renderPage(true).then(() => {
-            if (onReady) onReady();
-        });
     }
 
     // Manage history state so browser Back button returns to landing or prompts to save
@@ -328,6 +325,7 @@ export function showEditorScreen(onReady, skipPush = false) {
     closeLeaveEditorModal();
 
     if (typeof lucide !== "undefined") lucide.createIcons();
+    if (onReady) onReady();
 }
 
 export async function loadPdfFile(file, onLoaded) {
@@ -363,9 +361,12 @@ export async function loadPdfFile(file, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        await goToPage(1);
-        saveHistory();
-        showEditorScreen(onLoaded);
+        showEditorScreen(() => {
+            goToPage(1).then(() => {
+                saveHistory();
+                if (onLoaded) onLoaded();
+            });
+        });
     } catch(err) {
         console.error("Failed to load PDF:", err);
         showToast("Failed to load PDF: " + (err.message || err), "error");
@@ -391,9 +392,12 @@ export async function loadTemplate(key, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        await goToPage(1);
-        saveHistory();
-        showEditorScreen(onLoaded);
+        showEditorScreen(() => {
+            goToPage(1).then(() => {
+                saveHistory();
+                if (onLoaded) onLoaded();
+            });
+        });
     } catch(err) {
         console.error("Failed to generate template PDF:", err);
     }
