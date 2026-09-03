@@ -2287,14 +2287,14 @@ body.mode-fill #toggleGuidesBtn {
 
     .toolbar {
         display: grid;
-        grid-template-columns: max-content minmax(0, 1fr) max-content max-content max-content;
+        grid-template-columns: 40px minmax(0, 1fr) 38px 38px 40px;
         grid-template-areas:
             "brand mode layers properties export"
             "tools tools tools tools tools";
         height: auto;
-        min-height: 126px;
-        padding: calc(8px + env(safe-area-inset-top)) 10px 8px;
-        gap: 8px;
+        min-height: 96px;
+        padding: calc(6px + env(safe-area-inset-top)) 8px 6px;
+        gap: 6px;
         align-items: center;
         overflow-x: hidden;
     }
@@ -2310,6 +2310,8 @@ body.mode-fill #toggleGuidesBtn {
     .editor-brand-name,
     .editor-brand-badge,
     .toolbar-left > .tool-divider,
+    .toolbar-right > .tool-divider,
+    .toolbar-assistants-group,
     .toolbar-quick-actions,
     #fileMenuDropdown,
     #editMenuDropdown,
@@ -2319,87 +2321,115 @@ body.mode-fill #toggleGuidesBtn {
 
     .editor-brand-logo {
         grid-area: brand;
-        width: 44px;
-        height: 44px;
+        width: 38px;
+        height: 38px;
         justify-content: center;
-        padding-right: 2px;
+        padding: 0;
     }
 
     .editor-brand-icon {
-        width: 32px;
-        height: 32px;
+        width: 30px;
+        height: 30px;
     }
 
     .editor-brand-icon svg {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
     }
 
     #toggleSidebarBtn {
         grid-area: layers;
+        width: 38px;
+        min-width: 38px;
+        height: 38px;
+        min-height: 38px;
     }
 
     #toggleRightSidebarBtn {
         grid-area: properties;
+        width: 38px;
+        min-width: 38px;
+        height: 38px;
+        min-height: 38px;
     }
 
     .toolbar-action-btn,
     .toolbar-export-btn {
-        min-width: 40px;
-        min-height: 40px;
-        height: 40px;
+        min-width: 38px;
+        min-height: 38px;
+        height: 38px;
     }
 
     .toolbar-export-btn {
         grid-area: export;
         width: 40px;
+        min-width: 40px;
         padding: 0;
         justify-content: center;
         font-size: 0;
     }
 
     .toolbar-export-btn span {
-        display: none;
+        display: none !important;
     }
 
     .mode-segmented-toggle {
         grid-area: mode;
-        height: 40px;
+        height: 36px;
         min-width: 0;
-        max-width: 172px;
+        max-width: none;
+        width: 100%;
         flex: 1 1 auto;
         justify-self: stretch;
+        padding: 3px;
+        display: flex;
+        align-items: center;
+        border-radius: 9999px;
     }
 
     .mode-toggle-btn {
+        flex: 1 1 50%;
         min-width: 0;
-        height: 34px;
-        padding: 0 10px;
-        gap: 5px;
+        height: 30px;
+        padding: 0 4px;
+        gap: 4px;
+        font-size: 11.5px;
+        font-weight: 600;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
     }
 
     .mode-toggle-btn span {
+        display: inline-block;
         overflow: hidden;
-        text-overflow: ellipsis;
+        text-overflow: clip;
+        white-space: nowrap;
     }
 
     .toolbar-export-btn svg,
     .toolbar-export-btn i {
-        width: 18px;
-        height: 18px;
+        width: 17px;
+        height: 17px;
     }
 
     .toolbar-center {
         grid-area: tools;
         order: 3;
         width: 100%;
-        min-height: 52px;
+        min-height: 46px;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
         justify-content: flex-start;
+        align-items: center;
         min-width: 0;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        padding-bottom: 1px;
+        padding: 2px 0;
     }
 
     .toolbar-right .mode-segmented-toggle {
@@ -2411,28 +2441,33 @@ body.mode-fill #toggleGuidesBtn {
     }
 
     .segmented-toolbar {
-        flex-shrink: 0;
-        height: 48px;
-        padding: 4px;
-        border-radius: 12px;
+        flex: 0 0 auto;
+        height: 42px;
+        padding: 3px;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
     }
 
     .segmented-toolbar .tool-btn {
-        width: 44px;
-        height: 40px;
-        border-radius: 9px;
+        width: 40px;
+        height: 36px;
+        border-radius: 8px;
+        flex-shrink: 0;
     }
 
     .toolbar-smart-btn {
-        height: 44px;
-        min-height: 44px;
-        padding: 0 12px;
+        height: 38px;
+        min-height: 38px;
+        padding: 0 10px;
         flex: 0 0 auto;
         white-space: nowrap;
-        border-radius: 9px;
+        border-radius: 8px;
     }
 
     .toolbar-center > * {
+        flex: 0 0 auto;
+    }
         flex: 0 0 auto;
     }
 
@@ -2646,7 +2681,6 @@ body.mode-fill #toggleGuidesBtn {
     .docked-zoom-controls > div[style*="width: 1px"] {
         display: none !important;
     }
-}
 
 /* ── Floating Fill & Test Mode Banner HUD ────────────────────── */
 .fill-mode-banner {
