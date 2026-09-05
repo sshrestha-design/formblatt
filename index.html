@@ -869,7 +869,7 @@
                 <button id="shortcutsHelpBtn" class="toolbar-action-btn" data-tooltip="Keyboard Shortcuts" data-kbd="?" aria-label="Keyboard Shortcuts &amp; Help">
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
-                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" data-tooltip="Toggle Properties Sidebar" data-kbd="⌘]" aria-label="Toggle Properties">
+                <button id="toggleRightSidebarBtn" class="toolbar-action-btn" data-tooltip="Toggle Inspector Sidebar" data-kbd="⌘]" aria-label="Toggle Inspector">
                     <i data-lucide="panel-right-close" style="width: 14px; height: 14px;"></i>
                 </button>
 
@@ -1000,28 +1000,28 @@
                 </div>
             </footer>
         </div>
-        <div class="panel-resizer" id="rightPanelResizer" role="separator" aria-orientation="vertical" title="Drag to resize Properties panel (Double-click to reset width)"></div>
+        <div class="panel-resizer" id="rightPanelResizer" role="separator" aria-orientation="vertical" title="Drag to resize Inspector panel (Double-click to reset width)"></div>
         <aside class="right-panel" id="rightPanel">
             <div id="rightPanelEmpty" class="right-panel-empty" style="display: flex; flex-direction: column; height: 100%;">
                 <div class="prop-panel-header" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; width: 100%; box-sizing: border-box;">
-                    <h3 class="prop-panel-title" style="margin: 0; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Properties</h3>
-                    <button id="collapseRightEmptyBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Properties (⌘/)" aria-label="Collapse Properties" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <h3 class="prop-panel-title" style="margin: 0; font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;">Inspector</h3>
+                    <button id="collapseRightEmptyBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Inspector (⌘/)" aria-label="Collapse Inspector" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                         <i data-lucide="panel-right-close" style="width: 13px; height: 13px;"></i>
                     </button>
                 </div>
                 <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center;">
                     <i data-lucide="mouse-pointer-click" style="width: 36px; height: 36px; margin-bottom: 12px; opacity: 0.35; color: #64748b;"></i>
-                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.4;">Select a field on the canvas to view and edit its properties.</p>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.4;">Select a field on the canvas to inspect and edit its properties.</p>
                 </div>
             </div>
 
             <div id="fieldProps" style="display: none;" class="field-props-wrapper">
                 <!-- Header -->
                 <div class="prop-panel-header" style="display: flex; align-items: center; justify-content: space-between;">
-                    <h3 class="prop-panel-title">Properties</h3>
-                    <div style="display: flex; align-items: center; gap: 6px;">
-                        <span id="propFieldTypeBadge" class="prop-type-pill">Text Field</span>
-                        <button id="collapseRightPanelBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Properties (⌘/)" aria-label="Collapse Properties" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                    <h3 class="prop-panel-title">Inspector</h3>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="propFieldTypeBadge" class="prop-field-header-name"></span>
+                        <button id="collapseRightPanelBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Inspector (⌘/)" aria-label="Collapse Inspector" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="panel-right-close" style="width: 13px; height: 13px;"></i>
                         </button>
                     </div>
@@ -1248,7 +1248,7 @@
                     <h3 class="prop-panel-title">Batch Editing</h3>
                     <div style="display: flex; align-items: center; gap: 6px;">
                         <span id="multiSelectedCountBadge" class="prop-type-pill">2 Selected</span>
-                        <button id="collapseMultiPropsBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Properties (⌘/)" aria-label="Collapse Properties" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+                        <button id="collapseMultiPropsBtn" type="button" class="panel-collapse-btn" data-tooltip="Collapse Inspector (⌘/)" aria-label="Collapse Inspector" style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 4px; padding: 3px 6px; color: #64748b; cursor: pointer; display: flex; align-items: center; justify-content: center;">
                             <i data-lucide="panel-right-close" style="width: 13px; height: 13px;"></i>
                         </button>
                     </div>
