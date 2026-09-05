@@ -628,6 +628,18 @@
     border: 1px solid #dbeafe;
 }
 
+.prop-field-header-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: middle;
+}
+
 .prop-panel-body {
     flex: 1 1 auto;
     min-height: 0;
