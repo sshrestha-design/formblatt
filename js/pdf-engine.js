@@ -94,50 +94,70 @@ export function setTransformScale(newScale, onRerender) {
         el.style.display = "none";
     });
 
+    if (onRerender) onRerender();
+
     clearTimeout(rasterDebounceTimer);
     rasterDebounceTimer = setTimeout(() => {
         if (Math.abs(lastRasterScale - (state.currentScale * (window.devicePixelRatio || 1))) > 0.05) {
-            renderPage(true);
+            renderPage(true).then(() => {
+                if (onRerender) onRerender();
+            });
         }
     }, 200);
 }
 
 export function fitToWidth(onRerender) {
-    const wrapper = document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
+    const wrapper = document.getElementById("centerCanvas") || document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
     if (!wrapper) return;
-    const availableWidth = Math.max(200, wrapper.clientWidth - 64);
-    const docWidth = state.pdfViewport ? state.pdfViewport.width : 595.28;
-    const newScale = Math.min(Math.max(availableWidth / docWidth, 0.25), 3.0);
+
+    const style = window.getComputedStyle(wrapper);
+    const padLeft = parseFloat(style.paddingLeft) || 0;
+    const padRight = parseFloat(style.paddingRight) || 0;
+
+    // Calculate exact available inner width inside padding minus safety margin
+    const innerWidth = wrapper.clientWidth - (padLeft + padRight);
+    const availableWidth = Math.max(160, innerWidth - 8);
+
+    const container = document.getElementById("canvasContainer");
+    const docWidth = (state.pdfViewport && state.pdfViewport.width)
+        ? state.pdfViewport.width
+        : (container && container.offsetWidth ? container.offsetWidth : 595.28);
+
+    const newScale = Math.min(Math.max(availableWidth / docWidth, 0.25), 4.0);
     setTransformScale(newScale, onRerender);
+
+    wrapper.scrollLeft = 0;
+    wrapper.scrollTop = 0;
 }
 
 export function fitToPage(onRerender) {
-    const wrapper = document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
+    const wrapper = document.getElementById("centerCanvas") || document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
     if (!wrapper) return;
-    const availableWidth = Math.max(200, wrapper.clientWidth - 64);
-    const availableHeight = Math.max(200, wrapper.clientHeight - 64);
-    const docWidth = state.pdfViewport ? state.pdfViewport.width : 595.28;
-    const docHeight = state.pdfViewport ? state.pdfViewport.height : 841.89;
+
+    const style = window.getComputedStyle(wrapper);
+    const padLeft = parseFloat(style.paddingLeft) || 0;
+    const padRight = parseFloat(style.paddingRight) || 0;
+    const padTop = parseFloat(style.paddingTop) || 0;
+    const padBottom = parseFloat(style.paddingBottom) || 0;
+
+    const availableWidth = Math.max(160, wrapper.clientWidth - (padLeft + padRight) - 8);
+    const availableHeight = Math.max(160, wrapper.clientHeight - (padTop + padBottom) - 8);
+
+    const container = document.getElementById("canvasContainer");
+    const docWidth = (state.pdfViewport && state.pdfViewport.width)
+        ? state.pdfViewport.width
+        : (container && container.offsetWidth ? container.offsetWidth : 595.28);
+    const docHeight = (state.pdfViewport && state.pdfViewport.height)
+        ? state.pdfViewport.height
+        : (container && container.offsetHeight ? container.offsetHeight : 841.89);
+
     const scaleX = availableWidth / docWidth;
     const scaleY = availableHeight / docHeight;
-    const newScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 3.0);
+    const newScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 4.0);
     setTransformScale(newScale, onRerender);
-    const centerCanvas = document.getElementById("centerCanvas");
-    const container = document.getElementById("canvasContainer");
-    if (centerCanvas && container && window.matchMedia("(max-width: 767px)").matches) {
-        const visualHeight = container.offsetHeight * state.currentScale;
-        const visualWidth = container.offsetWidth * state.currentScale;
-        const availableHeight = centerCanvas.clientHeight
-            - parseFloat(getComputedStyle(centerCanvas).paddingTop)
-            - parseFloat(getComputedStyle(centerCanvas).paddingBottom);
-        const availableWidth = centerCanvas.clientWidth
-            - parseFloat(getComputedStyle(centerCanvas).paddingLeft)
-            - parseFloat(getComputedStyle(centerCanvas).paddingRight);
-        centerCanvas.scrollLeft = 0;
-        container.style.marginLeft = `${Math.max(0, (availableWidth - visualWidth) / 2)}px`;
-        container.style.marginTop = `${Math.max(0, (availableHeight - visualHeight) / 2)}px`;
-        centerCanvas.classList.add("fit-page-view");
-    }
+
+    wrapper.scrollLeft = 0;
+    wrapper.scrollTop = 0;
 }
 
 export async function goToPage(pageNum, onPageChange) {
