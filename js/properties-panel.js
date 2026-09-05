@@ -123,8 +123,23 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const fieldAutofill = document.getElementById("fieldAutofill");
     fieldAutofill?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true));
 
-    fieldNameInput?.addEventListener("input", e => syncChange(f => f.name = e.target.value, false));
-    fieldNameInput?.addEventListener("change", e => syncChange(f => f.name = e.target.value, true));
+    const updateHeaderFieldName = (val) => {
+        const badge = document.getElementById("propFieldTypeBadge");
+        if (badge) {
+            const displayName = val.trim() || state.selectedField?.autofill || state.selectedField?.id || "Field";
+            badge.textContent = displayName;
+            badge.title = val.trim();
+        }
+    };
+
+    fieldNameInput?.addEventListener("input", e => {
+        syncChange(f => f.name = e.target.value, false);
+        updateHeaderFieldName(e.target.value);
+    });
+    fieldNameInput?.addEventListener("change", e => {
+        syncChange(f => f.name = e.target.value, true);
+        updateHeaderFieldName(e.target.value);
+    });
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => f.defaultValue = e.target.value, false));
     fieldDefaultVal?.addEventListener("change", e => syncChange(f => f.defaultValue = e.target.value, true));
     fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value, true));
@@ -446,15 +461,11 @@ export function populateProperties(field) {
 
     const badge = document.getElementById("propFieldTypeBadge");
     if (badge) {
-        const labels = {
-            textField: "Text Field",
-            dateField: "Date Field",
-            dropdown: "Dropdown",
-            checkBox: "Checkbox",
-            radioGroup: "Radio Group",
-            signature: "Signature"
-        };
-        badge.textContent = labels[fallbackField.type] || "Field";
+        const fieldDisplayName = (fallbackField.name && fallbackField.name.trim())
+            ? fallbackField.name.trim()
+            : (fallbackField.autofill || fallbackField.id || "Field");
+        badge.textContent = fieldDisplayName;
+        badge.title = fallbackField.name || fieldDisplayName;
     }
 
     const setVal = (id, val) => { 
