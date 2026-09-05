@@ -413,12 +413,12 @@ nav.landing-nav-bar {
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  border: 2px dashed #38bdf8;
+  border: 2px dashed #3b82f6;
   border-radius: 14px;
   padding: 28px 40px;
   color: #ffffff;
   text-align: center;
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(59, 130, 246, 0.12);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
 }
 .drop-prompt-box strong { font-size: 16px; color: #ffffff; font-weight: 700; }

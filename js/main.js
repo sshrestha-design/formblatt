@@ -516,7 +516,7 @@ const bootstrapApp = async () => {
                 <div class="scan-overlay"></div>
                 <div class="scan-line"></div>
                 <div class="scan-status-pill">
-                    <i data-lucide="scan" style="width: 14px; height: 14px; color: #38bdf8;"></i>
+                    <i data-lucide="scan" style="width: 14px; height: 14px; color: #60a5fa;"></i>
                     <span id="scanStatusText">Analyzing vector layout & grid...</span>
                 </div>
             `;

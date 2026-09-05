@@ -78,7 +78,7 @@ export function renderLayers(onSelect, onRerender) {
             <button type="button" class="group-toggle-btn" title="${isCollapsed ? 'Expand Group' : 'Collapse Group'}" style="flex-shrink: 0;">
                 <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" style="width: 13px; height: 13px;"></i>
             </button>
-            <i data-lucide="${isCollapsed ? 'folder' : 'folder-open'}" class="group-folder-icon" style="width: 14px; height: 14px; color: ${isGroupAllSelected ? '#0284c7' : '#64748b'}; flex-shrink: 0;"></i>
+            <i data-lucide="${isCollapsed ? 'folder' : 'folder-open'}" class="group-folder-icon" style="width: 14px; height: 14px; color: ${isGroupAllSelected ? '#2563eb' : '#64748b'}; flex-shrink: 0;"></i>
             <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
                 <span class="group-name" title="${g.name || 'Group'} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; cursor: pointer;">${g.name || 'Group'}</span>
                 <button type="button" class="layer-rename-btn" title="Rename Group" style="flex-shrink: 0;">
@@ -313,7 +313,7 @@ function createFieldLayerItem(f, onSelect, onRerender) {
 
     item.innerHTML = `
         <span class="layer-grip-handle" title="Drag to reorder"><i data-lucide="grip-vertical" style="width: 12px; height: 12px;"></i></span>
-        <span class="layer-index" style="font-size: 11px; color: ${isSelected ? '#0284c7' : '#94a3b8'}; width: 14px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0; text-align: right;">${globalIdx}</span>
+        <span class="layer-index" style="font-size: 11px; color: ${isSelected ? '#2563eb' : '#94a3b8'}; width: 14px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0; text-align: right;">${globalIdx}</span>
         <span class="layer-type-tag" title="${style.label}">${style.symbol}</span>
         <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
             <span class="layer-name" title="${f.name || style.label} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSelected ? '600' : '500'}; cursor: grab;">${formatFieldDisplayName(f)}</span>
@@ -560,11 +560,11 @@ export function updateLayerSelectionDOM() {
         if (f) {
             const tag = item.querySelector(".layer-type-tag");
             if (tag) {
-                tag.style.color = isSelected ? "#0284c7" : "#94a3b8";
+                tag.style.color = isSelected ? "#2563eb" : "#94a3b8";
             }
             const idxEl = item.querySelector(".layer-index");
             if (idxEl) {
-                idxEl.style.color = isSelected ? "#0284c7" : "#94a3b8";
+                idxEl.style.color = isSelected ? "#2563eb" : "#94a3b8";
                 idxEl.style.fontWeight = isSelected ? "600" : "400";
             }
             const nameEl = item.querySelector(".layer-name");
@@ -588,7 +588,7 @@ export function updateLayerSelectionDOM() {
         if (header) {
             header.classList.toggle("selected", isGroupAllSelected);
             const icon = header.querySelector(".group-folder-icon");
-            if (icon) icon.style.color = isGroupAllSelected ? "#0284c7" : "#64748b";
+            if (icon) icon.style.color = isGroupAllSelected ? "#2563eb" : "#64748b";
         }
     });
 }
