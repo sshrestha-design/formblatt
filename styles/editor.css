@@ -2468,8 +2468,6 @@ body.mode-fill #toggleGuidesBtn {
     .toolbar-center > * {
         flex: 0 0 auto;
     }
-        flex: 0 0 auto;
-    }
 
     .workspace {
         position: relative;
@@ -2486,7 +2484,7 @@ body.mode-fill #toggleGuidesBtn {
     .right-panel {
         position: absolute;
         top: 8px;
-        bottom: 8px;
+        bottom: calc(52px + env(safe-area-inset-bottom) + 8px);
         height: auto;
         max-height: none;
         width: min(88vw, 340px);
@@ -2494,6 +2492,7 @@ body.mode-fill #toggleGuidesBtn {
         max-width: none;
         margin: 0;
         border-radius: 12px;
+        z-index: 100;
         box-shadow: 0 12px 36px rgba(15, 23, 42, 0.22);
         transition: transform 0.25s var(--ease-spring), opacity 0.2s ease, visibility 0.2s ease;
     }
@@ -2545,6 +2544,7 @@ body.mode-fill #toggleGuidesBtn {
         opacity: 1 !important;
         visibility: visible;
         pointer-events: auto;
+        z-index: 100;
     }
 
     .left-panel:not(.collapsed) {
@@ -2566,6 +2566,7 @@ body.mode-fill #toggleGuidesBtn {
         visibility: hidden;
         pointer-events: none !important;
         border: 1px solid var(--border-color, #e2e8f0) !important;
+        z-index: 1;
     }
 
     .left-panel.collapsed {
@@ -2681,6 +2682,7 @@ body.mode-fill #toggleGuidesBtn {
     .docked-zoom-controls > div[style*="width: 1px"] {
         display: none !important;
     }
+}
 
 /* ── Floating Fill & Test Mode Banner HUD ────────────────────── */
 .fill-mode-banner {
