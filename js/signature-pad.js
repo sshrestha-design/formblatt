@@ -87,8 +87,8 @@ export function initSignaturePad() {
 
     sigDrawTab?.addEventListener("click", () => {
         sigMode = "draw";
-        sigDrawTab.style.background = "#e0f2fe";
-        sigDrawTab.style.color = "#0284c7";
+        sigDrawTab.style.background = "#eff6ff";
+        sigDrawTab.style.color = "#2563eb";
         sigDrawTab.style.fontWeight = "600";
         sigTypeTab.style.background = "transparent";
         sigTypeTab.style.color = "#64748b";
@@ -99,8 +99,8 @@ export function initSignaturePad() {
 
     sigTypeTab?.addEventListener("click", () => {
         sigMode = "type";
-        sigTypeTab.style.background = "#e0f2fe";
-        sigTypeTab.style.color = "#0284c7";
+        sigTypeTab.style.background = "#eff6ff";
+        sigTypeTab.style.color = "#2563eb";
         sigTypeTab.style.fontWeight = "600";
         sigDrawTab.style.background = "transparent";
         sigDrawTab.style.color = "#64748b";

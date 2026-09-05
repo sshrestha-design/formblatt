@@ -44,7 +44,7 @@
     width: 30px;
     height: 30px;
     border-radius: 6px;
-    background: linear-gradient(135deg, #0284c7, #2563eb);
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -265,12 +265,12 @@
 }
 
 .segmented-toolbar .tool-btn.active {
-    color: #0284c7;
+    color: #2563eb;
 }
 
 .segmented-toolbar .tool-btn.active svg,
 .segmented-toolbar .tool-btn.active [data-lucide] {
-    stroke: #0284c7;
+    stroke: #2563eb;
 }
 
 .tool-group {
@@ -314,10 +314,10 @@
 }
 
 .toolbar-assistants-group .tool-btn.active {
-    background: #f0f9ff;
-    border-color: #7dd3fc;
-    color: #0284c7;
-    box-shadow: 0 1px 2px rgba(2, 132, 199, 0.1);
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.1);
 }
 
 /* ── Auto-Detect Smart Action (Assistive Helper Secondary Button) ── */
@@ -357,14 +357,14 @@
 .toolbar-smart-btn [data-lucide] {
     width: 13.5px;
     height: 13.5px;
-    color: #6366f1;
+    color: #2563eb;
     flex-shrink: 0;
 }
 
 .toolbar-smart-btn:hover svg,
 .toolbar-smart-btn:hover i,
 .toolbar-smart-btn:hover [data-lucide] {
-    color: #4f46e5;
+    color: #1d4ed8;
 }
 
 .tool-btn {
@@ -388,9 +388,9 @@
 }
 
 .tool-btn.active {
-    background: #f0f9ff;
-    color: #0284c7;
-    border: 1px solid #7dd3fc;
+    background: #eff6ff;
+    color: #2563eb;
+    border: 1px solid #93c5fd;
 }
 
 /* ── Floating App Micro-Tooltips ─────────────────────────────── */
@@ -563,17 +563,17 @@
 
 .panel-resizer:hover::after,
 .panel-resizer.is-resizing::after {
-    background: #0284c7;
+    background: #2563eb;
     height: 52px;
 }
 
 .panel-resizer:hover {
-    background: rgba(2, 132, 199, 0.05);
+    background: rgba(37, 99, 235, 0.05);
     border-radius: 6px;
 }
 
 .panel-resizer.is-resizing {
-    background: rgba(2, 132, 199, 0.1);
+    background: rgba(37, 99, 235, 0.1);
     border-radius: 6px;
 }
 
@@ -758,8 +758,8 @@
 .prop-select.is-mixed:focus {
     background: #ffffff;
     border-style: solid;
-    border-color: var(--selection-color, #4f46e5);
-    box-shadow: 0 0 0 2px var(--selection-glow, rgba(79, 70, 229, 0.18));
+    border-color: var(--selection-color, #2563eb);
+    box-shadow: 0 0 0 2px var(--selection-glow, rgba(37, 99, 235, 0.18));
     color: var(--text-color, #0f172a);
     font-style: normal;
 }
@@ -1489,9 +1489,9 @@ input.prop-input {
 }
 
 .layer-item.selected {
-    background: #f0f9ff !important;
-    border-left: 3.5px solid #0284c7 !important;
-    color: #0369a1 !important;
+    background: #eff6ff !important;
+    border-left: 3.5px solid #2563eb !important;
+    color: #1d4ed8 !important;
     box-shadow: none !important;
 }
 
@@ -1535,11 +1535,11 @@ input.prop-input {
     font-family: inherit;
     color: #0f172a;
     background: #ffffff;
-    border: 1.5px solid #0284c7;
+    border: 1.5px solid #2563eb;
     border-radius: 5px;
     padding: 3px 8px;
     outline: none;
-    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.18), 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18), 0 1px 3px rgba(0, 0, 0, 0.08);
     box-sizing: border-box;
 }
 
@@ -1557,7 +1557,7 @@ input.prop-input {
 }
 
 .layer-item.selected .layer-type-tag {
-    color: #0284c7;
+    color: #2563eb;
 }
 
 .layer-item:hover .layer-type-tag {
@@ -1575,7 +1575,7 @@ input.prop-input {
 
 .layer-item.is-renaming,
 .layer-group-header.is-renaming {
-    background: #f0f9ff !important;
+    background: #eff6ff !important;
 }
 
 .layer-rename-btn {
@@ -1597,7 +1597,7 @@ input.prop-input {
 }
 
 .layer-rename-btn:hover {
-    color: #0284c7;
+    color: #2563eb;
     background: #e2e8f0;
 }
 
@@ -1764,9 +1764,9 @@ input.prop-input {
 }
 
 .layer-group-header.selected {
-    background: #e0f2fe !important;
-    border-left-color: #0284c7 !important;
-    color: #0369a1 !important;
+    background: #eff6ff !important;
+    border-left-color: #2563eb !important;
+    color: #1d4ed8 !important;
 }
 
 .layer-group-items {
@@ -1810,7 +1810,7 @@ input.prop-input {
 }
 
 .group-action-btn:hover {
-    color: #0284c7;
+    color: #2563eb;
     background: #e2e8f0;
 }
 
@@ -1831,18 +1831,18 @@ input.prop-input {
 .layer-item.is-dragging {
     opacity: 0.4;
     background: #f1f5f9;
-    border: 1.5px dashed #0284c7 !important;
+    border: 1.5px dashed #2563eb !important;
 }
 
 .layer-item.drag-over-item {
-    border-top: 2.5px solid #0284c7 !important;
-    background: #f0f9ff;
+    border-top: 2.5px solid #2563eb !important;
+    background: #eff6ff;
 }
 
 .layer-group-header.drag-over-group {
-    background: #dbeafe !important;
-    border-left-color: #0284c7 !important;
-    outline: 2px dashed #0284c7;
+    background: #eff6ff !important;
+    border-left-color: #2563eb !important;
+    outline: 2px dashed #2563eb;
     outline-offset: -2px;
 }
 
@@ -1865,8 +1865,8 @@ input.prop-input {
 
 .layer-ungroup-dropzone.drag-over-ungroup {
     background: #eff6ff !important;
-    border-color: #0284c7 !important;
-    color: #0284c7 !important;
+    border-color: #2563eb !important;
+    color: #2563eb !important;
     font-weight: 600;
     transform: scale(1.02);
 }
@@ -1988,10 +1988,10 @@ input.prop-input {
 
 .quick-size-btn.active, .multi-quick-size-btn.active {
     background: #eff6ff !important;
-    border-color: #0284c7 !important;
-    color: #0284c7 !important;
+    border-color: #2563eb !important;
+    color: #2563eb !important;
     font-weight: 700 !important;
-    box-shadow: 0 0 0 1.5px rgba(2, 132, 199, 0.4) !important;
+    box-shadow: 0 0 0 1.5px rgba(37, 99, 235, 0.4) !important;
     animation: quickSizeSpring 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -2016,9 +2016,9 @@ input.prop-input {
 }
 
 .preset-pill-btn:hover {
-    background: #e0f2fe;
-    border-color: #7dd3fc;
-    color: #0284c7;
+    background: #eff6ff;
+    border-color: #93c5fd;
+    color: #2563eb;
 }
 
 /* ── Dedicated Bottom Editor Status Bar ─────────────────────────── */
@@ -2250,24 +2250,24 @@ input.prop-input {
     font-weight: 700;
     letter-spacing: -0.01em;
     border-radius: 7px;
-    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    background: #2563eb;
     color: #ffffff;
-    border: 1px solid rgba(2, 132, 199, 0.4);
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.28), 0 1px 2px rgba(2, 132, 199, 0.18);
+    border: 1px solid #1d4ed8;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .toolbar-export-btn:hover {
-    background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
-    border-color: #0369a1;
-    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+    background: #1d4ed8;
+    border-color: #1e40af;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
     transform: translateY(-0.5px);
 }
 
 .toolbar-export-btn:active {
     transform: scale(0.97) translateY(0);
-    box-shadow: 0 1px 3px rgba(2, 132, 199, 0.2);
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
 }
 
 /* ── Workspace in Fill Mode ──────────────────────────────────── */

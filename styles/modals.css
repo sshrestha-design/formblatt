@@ -198,7 +198,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    color: #0284c7;
+    color: #2563eb;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -299,7 +299,7 @@
 
 .ctx-item:hover {
     background: #eff6ff;
-    color: #0284c7;
+    color: #2563eb;
 }
 
 .ctx-item.danger:hover {
