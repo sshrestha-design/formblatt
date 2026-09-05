@@ -70,7 +70,7 @@ function showStep(stepIndex) {
 
     tourOverlayElement.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between;">
-            <span style="font-size: 11px; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 9999px;">Step ${stepIndex + 1} of ${TOUR_STEPS.length}</span>
+            <span style="font-size: 11px; font-weight: 700; color: #2563eb; background: #eff6ff; padding: 2px 8px; border-radius: 9999px;">Step ${stepIndex + 1} of ${TOUR_STEPS.length}</span>
             <button type="button" class="tour-close-btn" style="background: none; border: none; cursor: pointer; color: #94a3b8; padding: 2px;">
                 <i data-lucide="x" style="width: 14px; height: 14px;"></i>
             </button>
