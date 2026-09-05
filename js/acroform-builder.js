@@ -144,15 +144,18 @@ export async function buildPdf(options = {}) {
         }
     };
 
-    // Populate AcroForm default resource font dictionary
+    // Populate AcroForm default resource font dictionary safely
     try {
-        const acroFormDict = doc.catalog.getOrCreateAcroForm().dict;
-        let drDict = acroFormDict.get(PDFLib.PDFName.of("DR"));
+        const acroForm = doc.catalog.getOrCreateAcroForm();
+        const acroFormDict = acroForm.dict;
+        let drRaw = acroFormDict.get(PDFLib.PDFName.of("DR"));
+        let drDict = drRaw ? doc.context.lookup(drRaw) : null;
         if (!drDict || !(drDict instanceof PDFLib.PDFDict)) {
             drDict = doc.context.obj({});
             acroFormDict.set(PDFLib.PDFName.of("DR"), drDict);
         }
-        let fontDict = drDict.get(PDFLib.PDFName.of("Font"));
+        let fontRaw = drDict.get(PDFLib.PDFName.of("Font"));
+        let fontDict = fontRaw ? doc.context.lookup(fontRaw) : null;
         if (!fontDict || !(fontDict instanceof PDFLib.PDFDict)) {
             fontDict = doc.context.obj({});
             drDict.set(PDFLib.PDFName.of("Font"), fontDict);
