@@ -73,13 +73,6 @@ export function updateModeIndicator() {
                 indicator.style.transform = `translateX(${left}px)`;
                 indicator.style.width = `${width}px`;
                 indicator.style.opacity = "1";
-                if (activeBtn.id === "modeFillBtn") {
-                    indicator.style.background = "#2563eb";
-                    indicator.style.borderColor = "#1d4ed8";
-                } else {
-                    indicator.style.background = "#ffffff";
-                    indicator.style.borderColor = "#bfdbfe";
-                }
             }
         };
         if (typeof requestAnimationFrame === "function") {
