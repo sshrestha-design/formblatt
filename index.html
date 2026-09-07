@@ -371,6 +371,200 @@
                 </div>
             </section>
 
+            <!-- INTERACTIVE COMPARISON SLIDER -->
+            <section class="section" id="comparison">
+                <div class="section-head center reveal">
+                    <div class="eyebrow">TRANSFORMATION</div>
+                    <h2>From flat scan to interactive AcroForm</h2>
+                    <p class="section-sub">Drag the split-slider to see how Formblatt instantly turns dead PDF scans into live, standard fillable documents.</p>
+                </div>
+                <div class="compare-slider-container reveal" id="compareSliderContainer">
+                    <!-- Before Pane: Flat Non-fillable Scan -->
+                    <div class="compare-pane compare-before">
+                        <div class="compare-doc-content">
+                            <div>
+                                <div class="compare-doc-header">
+                                    <div class="compare-doc-title">STANDARD NON-DISCLOSURE AGREEMENT (NDA)</div>
+                                    <span class="compare-doc-stamp">FLAT SCAN / UNEDITABLE</span>
+                                </div>
+                                <div class="compare-doc-body">
+                                    <div class="compare-scan-row">
+                                        <span class="compare-scan-label">1. Disclosing Party:</span>
+                                        <span class="compare-scan-line">Acme Global Corporation ___________________</span>
+                                    </div>
+                                    <div class="compare-scan-row">
+                                        <span class="compare-scan-label">2. Receiving Party:</span>
+                                        <span class="compare-scan-line">__________________________________________</span>
+                                    </div>
+                                    <div class="compare-scan-row">
+                                        <span class="compare-scan-label">3. Effective Date:</span>
+                                        <span class="compare-scan-line">___ / ___ / 2026</span>
+                                    </div>
+                                    <div class="compare-scan-row">
+                                        <span class="compare-scan-label">4. Jurisdiction:</span>
+                                        <span class="compare-scan-line">[ ] California&nbsp;&nbsp;&nbsp;[ ] Delaware&nbsp;&nbsp;&nbsp;[ ] New York</span>
+                                    </div>
+                                    <div class="compare-scan-row">
+                                        <span class="compare-scan-label">5. Authorized Sign:</span>
+                                        <span class="compare-scan-line">___________________________ (Sign on Line)</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="compare-badge before-badge">Static Flat PDF</span>
+                        </div>
+                    </div>
+
+                    <!-- After Pane: Interactive AcroForm -->
+                    <div class="compare-pane compare-after" id="compareAfterPane">
+                        <div class="compare-doc-content">
+                            <div>
+                                <div class="compare-doc-header">
+                                    <div class="compare-doc-title">STANDARD NON-DISCLOSURE AGREEMENT (NDA)</div>
+                                    <span class="compare-doc-stamp active">INTERACTIVE ACROFORM</span>
+                                </div>
+                                <div class="compare-doc-body">
+                                    <div class="compare-field-row">
+                                        <span class="compare-field-label">1. Disclosing Party:</span>
+                                        <div class="compare-field-input active-text">Acme Global Corporation</div>
+                                    </div>
+                                    <div class="compare-field-row">
+                                        <span class="compare-field-label">2. Receiving Party:</span>
+                                        <div class="compare-field-input active-text" style="color:#2563eb;">Sarah Jenkins</div>
+                                    </div>
+                                    <div class="compare-field-row">
+                                        <span class="compare-field-label">3. Effective Date:</span>
+                                        <div class="compare-field-input active-date">September 7, 2026</div>
+                                    </div>
+                                    <div class="compare-field-row">
+                                        <span class="compare-field-label">4. Jurisdiction:</span>
+                                        <div class="compare-field-input active-select"><span>Delaware (DE)</span><span style="font-size:10px;color:#64748b;">▼</span></div>
+                                    </div>
+                                    <div class="compare-field-row">
+                                        <span class="compare-field-label">5. Authorized Sign:</span>
+                                        <div class="compare-field-input active-signature">
+                                            <svg class="compare-sig-svg" viewBox="0 0 120 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M4 22C14 14 26 4 36 10C42 14 38 24 48 20C56 16 68 8 78 12C84 14 92 20 102 16C108 14 114 10 118 6" stroke="#15803d" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                            <span class="compare-sig-tag">DIGITAL SIGNATURE</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="compare-badge after-badge">Active AcroForm</span>
+                        </div>
+                    </div>
+
+                    <!-- Split Handle -->
+                    <div class="compare-slider-handle" id="compareSliderHandle" aria-label="Drag to compare before and after">
+                        <div class="handle-line"></div>
+                        <div class="handle-button">
+                            <i data-lucide="chevrons-left-right" style="width:18px;height:18px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 1-CLICK STARTER TEMPLATES -->
+            <section class="section tight" id="templates">
+                <div class="section-head reveal">
+                    <div class="eyebrow">STARTER TEMPLATES</div>
+                    <h2>Jump right in with pre-built documents</h2>
+                    <p class="section-sub">Don't have a PDF ready? Select any vector template to open Formblatt immediately with active fields.</p>
+                </div>
+                <div class="templates-grid reveal">
+                    <div class="template-card" data-template="nda">
+                        <div class="template-card-preview">
+                            <div class="template-mini-doc">
+                                <div class="mini-doc-bar w-70"></div>
+                                <div class="mini-doc-field field-tint"></div>
+                                <div class="mini-doc-field field-tint"></div>
+                                <div class="mini-doc-bar w-90"></div>
+                                <div class="mini-doc-bar w-60"></div>
+                                <div class="mini-doc-sig"></div>
+                            </div>
+                            <span class="template-badge">Legal</span>
+                        </div>
+                        <div class="template-card-info">
+                            <div>
+                                <h3>Mutual NDA</h3>
+                                <p>Standard non-disclosure agreement with parties, dates, and sign blocks.</p>
+                            </div>
+                            <button type="button" class="tile-link template-open-btn">Open in Studio →</button>
+                        </div>
+                    </div>
+
+                    <div class="template-card" data-template="w9">
+                        <div class="template-card-preview">
+                            <div class="template-mini-doc">
+                                <div class="mini-doc-bar w-60"></div>
+                                <div class="mini-doc-field field-yellow"></div>
+                                <div class="mini-doc-fields-row">
+                                    <div class="mini-doc-field w-48 field-tint"></div>
+                                    <div class="mini-doc-field w-48 field-tint"></div>
+                                </div>
+                                <div class="mini-doc-bar w-80"></div>
+                                <div class="mini-doc-sig"></div>
+                            </div>
+                            <span class="template-badge">Tax &amp; IRS</span>
+                        </div>
+                        <div class="template-card-info">
+                            <div>
+                                <h3>W-9 Taxpayer ID</h3>
+                                <p>IRS Form W-9 request with pre-calibrated SSN/EIN taxpayer boxes.</p>
+                            </div>
+                            <button type="button" class="tile-link template-open-btn">Open in Studio →</button>
+                        </div>
+                    </div>
+
+                    <div class="template-card" data-template="intake">
+                        <div class="template-card-preview">
+                            <div class="template-mini-doc">
+                                <div class="mini-doc-bar w-80"></div>
+                                <div class="mini-doc-field field-tint"></div>
+                                <div class="mini-doc-fields-row">
+                                    <div class="mini-doc-field w-48 field-tint"></div>
+                                    <div class="mini-doc-field w-48 field-tint"></div>
+                                </div>
+                                <div class="mini-doc-bar w-65"></div>
+                                <div class="mini-doc-sig"></div>
+                            </div>
+                            <span class="template-badge">Healthcare</span>
+                        </div>
+                        <div class="template-card-info">
+                            <div>
+                                <h3>Patient Intake</h3>
+                                <p>Medical intake questionnaire with emergency contacts and insurance.</p>
+                            </div>
+                            <button type="button" class="tile-link template-open-btn">Open in Studio →</button>
+                        </div>
+                    </div>
+
+                    <div class="template-card" data-template="job">
+                        <div class="template-card-preview">
+                            <div class="template-mini-doc">
+                                <div class="mini-doc-bar w-50"></div>
+                                <div class="mini-doc-field field-tint"></div>
+                                <div class="mini-doc-field field-tint"></div>
+                                <div class="mini-doc-bar w-90"></div>
+                                <div class="mini-doc-fields-row">
+                                    <div class="mini-doc-field w-48 field-tint"></div>
+                                    <div class="mini-doc-field w-48 field-tint"></div>
+                                </div>
+                                <div class="mini-doc-sig"></div>
+                            </div>
+                            <span class="template-badge">HR &amp; Hiring</span>
+                        </div>
+                        <div class="template-card-info">
+                            <div>
+                                <h3>Job Application</h3>
+                                <p>Employment application with education, employment history, and references.</p>
+                            </div>
+                            <button type="button" class="tile-link template-open-btn">Open in Studio →</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- SOLUTIONS -->
             <section class="section" id="professions">
                 <div class="section-head reveal">
@@ -408,6 +602,46 @@
                         <h3>Applications &amp; sign-ups</h3>
                         <p>Make any registration form fillable instead of printing, scanning, and emailing.</p>
                         <button type="button" class="tile-link template-use-btn" data-template="rental">Use template</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- WORKFLOW SPOTLIGHT -->
+            <section class="section" id="spotlight">
+                <div class="spotlight-wrap reveal">
+                    <div class="spotlight-image-col">
+                        <div class="spotlight-frame">
+                            <img src="assets/office-worker.webp" alt="Professional workspace managing digital PDF AcroForms locally" class="spotlight-img" loading="lazy" width="1376" height="768" />
+                            <div class="spotlight-floating-pill top-pill">
+                                <span class="pill-dot green"></span>
+                                <span>Zero Server Uploads</span>
+                            </div>
+                            <div class="spotlight-floating-pill bottom-pill">
+                                <i data-lucide="shield-check" style="width:16px;height:16px;color:#2563eb;"></i>
+                                <span>100% Client-Side Privacy</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="spotlight-text-col">
+                        <div class="eyebrow">ENTERPRISE PRIVACY BY DESIGN</div>
+                        <h2>Designed for sensitive corporate &amp; legal workflows</h2>
+                        <p class="spotlight-desc">
+                            When working with confidential contracts, healthcare intake records, and financial disclosures, your documents should never touch a third-party server. Formblatt executes the entire PDF rendering and AcroForm compilation pipeline directly in WebAssembly inside your browser.
+                        </p>
+                        <div class="spotlight-stats-row">
+                            <div class="spotlight-stat">
+                                <span class="stat-number">0 ms</span>
+                                <span class="stat-label">Server Latency</span>
+                            </div>
+                            <div class="spotlight-stat">
+                                <span class="stat-number">100%</span>
+                                <span class="stat-label">Local Memory</span>
+                            </div>
+                            <div class="spotlight-stat">
+                                <span class="stat-number">0 B</span>
+                                <span class="stat-label">Cloud Storage</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>
