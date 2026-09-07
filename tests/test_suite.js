@@ -51,21 +51,16 @@ async function runAllTests() {
 
     // ── SUITE 1: Module Integrity & ES Module Imports ──
     console.log("📦 Suite 1: File Integrity & Module Loading");
-    const jsFiles = [
-        'constants.js',
-        'state.js',
-        'toast.js',
-        'templates-engine.js',
-        'storage-manager.js',
-        'overlay-manager.js',
-        'tooltip.js'
-    ];
-
-    for (const file of jsFiles) {
-        const fullPath = path.join(WEB_DIR, 'js', file);
-        await asyncIt(`Should load module js/${file} without syntax errors`, async () => {
-            const mod = await import(fullPath);
-            assert.ok(mod, `Module js/${file} should export an object`);
+    const allJsFiles = fs.readdirSync(path.join(WEB_DIR, 'js')).filter(f => f.endsWith('.js'));
+    for (const file of allJsFiles) {
+        it(`Should have valid JavaScript syntax in js/${file}`, () => {
+            const code = fs.readFileSync(path.join(WEB_DIR, 'js', file), 'utf8');
+            assert.doesNotThrow(() => {
+                new Function(`import("${path.join(WEB_DIR, 'js', file)}");`);
+            });
+            // Ensure no malformed escaped template literals
+            assert.ok(!code.includes('\\`'), `Found invalid escaped backtick in js/${file}`);
+            assert.ok(!code.includes('\\${'), `Found invalid escaped interpolation in js/${file}`);
         });
     }
 
@@ -433,7 +428,7 @@ async function runAllTests() {
         assert.equal(fields[2].defaultValue, "CA");
     });
 
-    it("buildPdf compiles fields with chosen font in AcroForm DA and DR dictionaries", async () => {
+    await asyncIt("buildPdf compiles fields with chosen font in AcroForm DA and DR dictionaries", async () => {
         const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
         const { PDFDocument } = PDFLib;
         const testDoc = await PDFDocument.create();

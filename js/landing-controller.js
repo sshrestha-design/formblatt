@@ -343,8 +343,11 @@ export async function loadPdfFile(file, onLoaded) {
         const { saveHistory } = await import("./storage-manager.js");
 
         await loadPdfLibraries();
+        const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : (typeof pdfjsLib !== "undefined" ? pdfjsLib : null);
+        if (!pdfjs) throw new Error("PDF.js library could not be loaded");
+
         const bytes = new Uint8Array(await file.arrayBuffer());
-        const loadingTask = pdfjsLib.getDocument({ data: bytes.slice() });
+        const loadingTask = pdfjs.getDocument({ data: bytes.slice() });
         const loadedDoc = await loadingTask.promise;
         state.originalPdfBytes = bytes;
         state.pdfDoc = loadedDoc;
@@ -387,8 +390,11 @@ export async function loadTemplate(key, onLoaded) {
         if (!tpl) return;
 
         await loadPdfLibraries();
+        const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : (typeof pdfjsLib !== "undefined" ? pdfjsLib : null);
+        if (!pdfjs) throw new Error("PDF.js library could not be loaded");
+
         state.originalPdfBytes = await createTemplatePdf(key);
-        state.pdfDoc = await pdfjsLib.getDocument({ data: state.originalPdfBytes.slice() }).promise;
+        state.pdfDoc = await pdfjs.getDocument({ data: state.originalPdfBytes.slice() }).promise;
         state.totalPages = state.pdfDoc.numPages;
         state.fields = JSON.parse(JSON.stringify(tpl.fields));
         state.fields.forEach(f => { f.page = 1; });
@@ -410,6 +416,7 @@ export async function loadTemplate(key, onLoaded) {
         });
     } catch(err) {
         console.error("Failed to generate template PDF:", err);
+        showToast("Failed to load template: " + (err.message || err), "error");
     }
 }
 

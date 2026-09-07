@@ -101,7 +101,9 @@ export async function buildPdf(options = {}) {
     if (!state.originalPdfBytes) throw new Error("No PDF loaded.");
     await loadPdfLibraries();
 
-    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+    const pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : (typeof PDFLib !== "undefined" ? PDFLib : null);
+    if (!pdfLib) throw new Error("PDF-Lib not initialized.");
+    const { PDFDocument, StandardFonts, rgb } = pdfLib;
     // Load fresh slice of bytes
     const doc = await PDFDocument.load(state.originalPdfBytes.slice(), { ignoreEncryption: true });
     
