@@ -1976,11 +1976,34 @@
                 </div>
 
                 <!-- Also Download .jform Project Backup -->
-                <div style="margin-bottom: 22px;">
+                <div style="margin-bottom: 16px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: #334155; font-weight: 600;">
                         <input type="checkbox" id="exportIncludeProjectJson" style="width: 15px; height: 15px; accent-color: #2563eb;">
                         <span>Also download .jform project backup</span>
                     </label>
+                </div>
+
+                <!-- Cohesive Native Sponsor / Ad Slot -->
+                <div class="export-sponsor-container" id="exportSponsorContainer">
+                    <div class="export-sponsor-header">
+                        <span class="export-sponsor-tag">SPONSORED</span>
+                        <span class="export-sponsor-caption">Formblatt is free &amp; privacy-first</span>
+                    </div>
+                    <div class="export-sponsor-card" id="exportSponsorSlot">
+                        <a href="https://github.com/sponsors/sshrestha-design" target="_blank" rel="noopener noreferrer" class="export-sponsor-link" title="Support Formblatt on GitHub Sponsors">
+                            <div class="export-sponsor-icon">
+                                <i data-lucide="sparkles" style="width: 17px; height: 17px;"></i>
+                            </div>
+                            <div class="export-sponsor-details">
+                                <div class="export-sponsor-title">Support Open-Source &amp; Free Tools</div>
+                                <div class="export-sponsor-desc">Help keep Formblatt 100% private, client-side, and ad-free.</div>
+                            </div>
+                            <span class="export-sponsor-action">
+                                <span>Support</span>
+                                <i data-lucide="arrow-up-right" style="width: 12px; height: 12px;"></i>
+                            </span>
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Modal Actions -->
@@ -2098,6 +2121,10 @@
         <div class="toast-body">
             <h4 class="toast-title">Form Exported Successfully</h4>
             <p id="toastFilenameDesc" class="toast-desc">Saved to your Downloads folder.</p>
+            <div class="toast-sponsor-bar">
+                <span class="toast-sponsor-badge">SPONSOR</span>
+                <a href="https://github.com/sponsors/sshrestha-design" target="_blank" rel="noopener noreferrer" class="toast-sponsor-link">Support privacy-first open tools <i data-lucide="arrow-up-right" style="width: 11px; height: 11px; display: inline-block;"></i></a>
+            </div>
         </div>
         <button type="button" id="dismissToastBtn" class="toast-dismiss" title="Dismiss">
             <i data-lucide="x" style="width: 15px; height: 15px;"></i>

@@ -798,6 +798,13 @@ async function runAllTests() {
         assert.equal(global.document.title, "Formblatt: Free Interactive PDF Form Creator & AcroForm Editor");
     });
 
+    it("Cohesive post-export sponsor card & toast container exist in index.html", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="exportSponsorContainer"'), 'Must contain exportSponsorContainer in index.html');
+        assert.ok(indexHtml.includes('id="exportSponsorSlot"'), 'Must contain exportSponsorSlot in index.html');
+        assert.ok(indexHtml.includes('class="toast-sponsor-bar"'), 'Must contain toast-sponsor-bar in index.html');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
