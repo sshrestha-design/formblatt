@@ -1,6 +1,6 @@
 // ── Formblatt Command Palette Controller (js/command-palette.js) ─────────────
-// Fast keyboard-first search and action runner (⌘K / Ctrl+K)
-// Conforms to modern UX standards (Linear, Raycast, Figma).
+// Fast keyboard-first search and action runner (⌘K / Ctrl+K / ⌘⇧P)
+// Conforms to modern UX standards (Linear, Raycast, Figma, VS Code).
 
 import { state } from "./state.js";
 import { triggerHaptic } from "./haptics.js";
@@ -225,7 +225,7 @@ export const COMMANDS = [
         icon: "undo-2",
         kbd: "⌘Z",
         action: () => {
-            document.getElementById("menuUndoBtn")?.click();
+            document.getElementById("menuUndoBtn")?.click() || document.getElementById("quickUndoBtn")?.click();
         }
     },
     {
@@ -236,7 +236,7 @@ export const COMMANDS = [
         icon: "redo-2",
         kbd: "⌘⇧Z",
         action: () => {
-            document.getElementById("menuRedoBtn")?.click();
+            document.getElementById("menuRedoBtn")?.click() || document.getElementById("quickRedoBtn")?.click();
         }
     },
     {
@@ -313,7 +313,7 @@ export const COMMANDS = [
         icon: "trash-2",
         kbd: "Del",
         action: () => {
-            document.getElementById("menuDeleteBtn")?.click();
+            document.getElementById("menuDeleteBtn")?.click() || document.getElementById("quickDeleteBtn")?.click();
         }
     },
     {
@@ -449,7 +449,7 @@ export const COMMANDS = [
         keywords: ["open", "pdf", "upload", "file", "document", "import"],
         icon: "file-up",
         action: () => {
-            document.getElementById("openPdfDropdownBtn")?.click();
+            document.getElementById("openPdfDropdownBtn")?.click() || document.getElementById("landingPdfUpload")?.click();
         }
     },
     {
@@ -485,7 +485,7 @@ export const COMMANDS = [
             const modal = document.getElementById("shortcutsModal");
             if (modal) {
                 modal.style.display = "flex";
-                if (typeof lucide !== "undefined") lucide.createIcons();
+                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
             }
         }
     },
@@ -499,7 +499,7 @@ export const COMMANDS = [
             const modal = document.getElementById("feedbackModal");
             if (modal) {
                 modal.style.display = "flex";
-                if (typeof lucide !== "undefined") lucide.createIcons();
+                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
             }
         }
     },
@@ -513,7 +513,7 @@ export const COMMANDS = [
             const modal = document.getElementById("aboutModal");
             if (modal) {
                 modal.style.display = "flex";
-                if (typeof lucide !== "undefined") lucide.createIcons();
+                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
             }
         }
     }
@@ -523,6 +523,7 @@ export const COMMANDS = [
 let filteredList = [...COMMANDS];
 let selectedIndex = 0;
 let isPaletteOpen = false;
+let isInitialized = false;
 
 /**
  * Filter available commands based on query
@@ -569,7 +570,7 @@ export function renderCommandPaletteList(query = "") {
                 <div style="font-size: 12px; color: #64748b; margin-top: 2px;">No matching action for "${escapeHtml(query)}"</div>
             </div>
         `;
-        if (typeof lucide !== "undefined") lucide.createIcons();
+        if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
         return;
     }
 
@@ -606,7 +607,7 @@ export function renderCommandPaletteList(query = "") {
     });
 
     listEl.innerHTML = html;
-    if (typeof lucide !== "undefined") lucide.createIcons();
+    if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
 
     // Scroll active item into view smoothly
     const activeEl = listEl.querySelector(`.command-palette-item[data-index="${selectedIndex}"]`);
@@ -663,7 +664,7 @@ export function openCommandPalette() {
     setTimeout(() => {
         input?.focus();
         input?.select();
-    }, 40);
+    }, 30);
 
     triggerHaptic(8);
 }
@@ -695,15 +696,21 @@ export function toggleCommandPalette() {
  * Initialize Command Palette Controller & Event Bindings
  */
 export function initCommandPalette() {
+    if (isInitialized) return;
     const modal = document.getElementById("commandPaletteModal");
     const input = document.getElementById("commandPaletteInput");
     const listEl = document.getElementById("commandPaletteList");
 
     if (!modal) return;
+    isInitialized = true;
 
-    // 1. Global Keyboard Shortcut: ⌘K or Ctrl+K
-    window.addEventListener("keydown", e => {
-        if ((e.metaKey || e.ctrlKey) && (e.key === "k" || e.key === "K")) {
+    // 1. Global Keyboard Shortcut: ⌘K, Ctrl+K, or ⌘⇧P / Ctrl⇧P
+    const handleGlobalKeydown = e => {
+        const isK = (e.key && (e.key.toLowerCase() === "k" || e.code === "KeyK" || e.keyCode === 75));
+        const isP = (e.key && (e.key.toLowerCase() === "p" || e.code === "KeyP" || e.keyCode === 80)) && e.shiftKey;
+        const isCmdK = (e.metaKey || e.ctrlKey) && (isK || isP);
+
+        if (isCmdK) {
             e.preventDefault();
             e.stopPropagation();
             toggleCommandPalette();
@@ -711,29 +718,34 @@ export function initCommandPalette() {
         }
 
         if (isPaletteOpen) {
-            if (e.key === "Escape") {
+            if (e.key === "Escape" || e.code === "Escape" || e.keyCode === 27) {
                 e.preventDefault();
+                e.stopPropagation();
                 closeCommandPalette();
-            } else if (e.key === "ArrowDown") {
+                return;
+            } else if (e.key === "ArrowDown" || e.code === "ArrowDown" || e.keyCode === 40) {
                 e.preventDefault();
                 if (filteredList.length > 0) {
                     selectedIndex = (selectedIndex + 1) % filteredList.length;
                     renderCommandPaletteList(input?.value || "");
                 }
-            } else if (e.key === "ArrowUp") {
+            } else if (e.key === "ArrowUp" || e.code === "ArrowUp" || e.keyCode === 38) {
                 e.preventDefault();
                 if (filteredList.length > 0) {
                     selectedIndex = (selectedIndex - 1 + filteredList.length) % filteredList.length;
                     renderCommandPaletteList(input?.value || "");
                 }
-            } else if (e.key === "Enter") {
+            } else if (e.key === "Enter" || e.code === "Enter" || e.keyCode === 13) {
                 e.preventDefault();
                 if (filteredList.length > 0 && filteredList[selectedIndex]) {
                     executeCommand(filteredList[selectedIndex].id);
                 }
             }
         }
-    }, true);
+    };
+
+    window.addEventListener("keydown", handleGlobalKeydown, { capture: true });
+    document.addEventListener("keydown", handleGlobalKeydown, { capture: true });
 
     // 2. Input search filtering
     input?.addEventListener("input", e => {
@@ -770,7 +782,24 @@ export function initCommandPalette() {
         }
     });
 
-    // 6. Bind toolbar button if present
+    // 6. Bind toolbar & landing trigger buttons
     document.getElementById("commandPaletteToolbarBtn")?.addEventListener("click", openCommandPalette);
+    document.getElementById("landingPaletteBtn")?.addEventListener("click", openCommandPalette);
 }
 
+// Global window exposure for robust accessibility and direct HTML bindings
+if (typeof window !== "undefined") {
+    window.openCommandPalette = openCommandPalette;
+    window.closeCommandPalette = closeCommandPalette;
+    window.toggleCommandPalette = toggleCommandPalette;
+    window.initCommandPalette = initCommandPalette;
+}
+
+// Auto-initialize if DOM is ready
+if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initCommandPalette);
+    } else {
+        initCommandPalette();
+    }
+}

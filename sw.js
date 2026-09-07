@@ -1,7 +1,7 @@
 // ── JustForms Offline Service Worker (sw.js) ──────────────────────────
 // Enables 100% client-side offline execution (PWA) — works in Airplane Mode.
 
-const CACHE_NAME = "justforms-cache-v2.5";
+const CACHE_NAME = "justforms-cache-v2.6";
 const STATIC_ASSETS = [
     "/",
     "/index.html",
@@ -15,6 +15,7 @@ const STATIC_ASSETS = [
     "/styles/editor.css",
     "/styles/modals.css",
     "/js/main.js",
+    "/js/command-palette.js",
     "/js/state.js",
     "/js/constants.js",
     "/js/toast.js",
