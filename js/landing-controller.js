@@ -105,11 +105,8 @@ export function showLandingScreen(force = false, skipPush = false) {
     renderLandingReviews();
     updateDocumentTitle();
     if (typeof lucide !== "undefined") lucide.createIcons();
-    if (landing && landing.scrollTop > 0) {
+    if (!skipPush && landing) {
         landing.scrollTop = 0;
-    }
-    if (window.scrollY > 0) {
-        window.scrollTo(0, 0);
     }
 }
 
