@@ -139,6 +139,12 @@
     <link rel="preload" href="styles/fonts.css?v=12.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="styles/fonts.css?v=12.0"></noscript>
 
+    <!-- Module Preloads to eliminate JS waterfalls and Critical Request Chains -->
+    <link rel="modulepreload" href="js/main.js?v=14.0">
+    <link rel="modulepreload" href="js/landing-controller.js">
+    <link rel="modulepreload" href="js/state.js">
+    <link rel="modulepreload" href="js/gradient-waves.js">
+
     <!-- Vercel Web Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
@@ -2327,6 +2333,6 @@
     <script defer src="https://unpkg.com/lucide@latest"></script>
 
     <div id="floatingToolStamp" class="floating-tool-stamp"></div>
-    <script type="module" src="js/main.js?v=13.0"></script>
+    <script type="module" src="js/main.js?v=14.0"></script>
 </body>
 </html>
