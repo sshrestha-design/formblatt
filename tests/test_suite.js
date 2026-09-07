@@ -937,8 +937,8 @@ async function runAllTests() {
         assert.ok(landingCss.includes('.compare-slider-container'), 'landing.css must include .compare-slider-container');
         assert.ok(landingCss.includes('.compare-slider-handle'), 'landing.css must include .compare-slider-handle');
         assert.ok(landingCss.includes('.templates-grid'), 'landing.css must include .templates-grid');
-        assert.ok(landingCss.includes('.spotlight-wrap'), 'landing.css must include .spotlight-wrap');
-        assert.ok(landingCss.includes('.spotlight-frame'), 'landing.css must include .spotlight-frame');
+        assert.ok(landingCss.includes('.spotlight-grid'), 'landing.css must include .spotlight-grid');
+        assert.ok(landingCss.includes('.spotlight-img-frame'), 'landing.css must include .spotlight-img-frame');
     });
 
     // ── Summary ──
