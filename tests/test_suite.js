@@ -850,6 +850,55 @@ async function runAllTests() {
         assert.ok(landingJs.includes('screen-transition-editor-in'), 'landing-controller.js must apply screen-transition-editor-in');
     });
 
+    // ── SUITE 13: Command Palette (⌘K / Ctrl+K) & Quick Actions ──
+    console.log("\n⌨️ Suite 13: Command Palette (⌘K / Ctrl+K) & Quick Actions");
+    
+    it("COMMANDS catalog defines core productivity and navigation actions", async () => {
+        const { COMMANDS, filterCommands } = await import(path.join(WEB_DIR, 'js', 'command-palette.js'));
+        assert.ok(Array.isArray(COMMANDS), 'COMMANDS must be an array');
+        assert.ok(COMMANDS.length >= 25, `Expected at least 25 commands, found ${COMMANDS.length}`);
+
+        const titles = COMMANDS.map(c => c.title);
+        assert.ok(titles.some(t => t.includes("Text Field")), 'Must include Text Field command');
+        assert.ok(titles.some(t => t.includes("Signature")), 'Must include Signature command');
+        assert.ok(titles.some(t => t.includes("Auto-Detector")), 'Must include Auto-Detector command');
+        assert.ok(titles.some(t => t.includes("Export")), 'Must include Export command');
+        assert.ok(titles.some(t => t.includes("Fill & Test")), 'Must include Fill mode command');
+        assert.ok(titles.some(t => t.includes("100%")), 'Must include Zoom 100% command');
+        
+        // Every command must have id, title, category, icon, and action
+        COMMANDS.forEach(cmd => {
+            assert.ok(cmd.id, 'Command must have an id');
+            assert.ok(cmd.title, `Command ${cmd.id} must have a title`);
+            assert.ok(cmd.category, `Command ${cmd.id} must have a category`);
+            assert.ok(cmd.icon, `Command ${cmd.id} must have an icon`);
+            assert.equal(typeof cmd.action, 'function', `Command ${cmd.id} action must be a function`);
+        });
+
+        // Test filtering
+        const textResults = filterCommands("text");
+        assert.ok(textResults.some(c => c.id === "tool-text"), 'Filtering "text" should return Text Field');
+
+        const signResults = filterCommands("signature");
+        assert.ok(signResults.some(c => c.id === "tool-signature"), 'Filtering "signature" should return Signature');
+
+        const exportResults = filterCommands("export pdf");
+        assert.ok(exportResults.some(c => c.id === "project-export"), 'Filtering "export pdf" should return Export PDF');
+    });
+
+    it("Command Palette modal and toolbar triggers exist in index.html and modals.css", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="commandPaletteModal"'), 'index.html must include commandPaletteModal');
+        assert.ok(indexHtml.includes('id="commandPaletteInput"'), 'index.html must include commandPaletteInput');
+        assert.ok(indexHtml.includes('id="commandPaletteList"'), 'index.html must include commandPaletteList');
+        assert.ok(indexHtml.includes('id="commandPaletteToolbarBtn"'), 'index.html must include commandPaletteToolbarBtn');
+
+        const modalsCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'modals.css'), 'utf8');
+        assert.ok(modalsCss.includes('.command-palette-modal'), 'modals.css must include .command-palette-modal');
+        assert.ok(modalsCss.includes('.command-palette-container'), 'modals.css must include .command-palette-container');
+        assert.ok(modalsCss.includes('.command-palette-item'), 'modals.css must include .command-palette-item');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

@@ -903,6 +903,9 @@
                 <div class="tool-divider" style="height: 18px; margin: 0 1px;"></div>
 
                 <!-- Secondary Actions -->
+                <button id="commandPaletteToolbarBtn" class="toolbar-action-btn" data-tooltip="Command Palette" data-kbd="⌘K" aria-label="Open Command Palette (⌘K)">
+                    <i data-lucide="command" style="width: 15px; height: 15px;"></i>
+                </button>
                 <button id="shortcutsHelpBtn" class="toolbar-action-btn" data-tooltip="Keyboard Shortcuts" data-kbd="?" aria-label="Keyboard Shortcuts &amp; Help">
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
@@ -1665,6 +1668,7 @@
                         <span>General & Help</span>
                     </div>
                     <div class="shortcut-list">
+                        <div class="shortcut-row"><span class="shortcut-desc">Open Command Palette</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">K</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Toggle Smart Guides</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">;</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Open Shortcuts Cheat Sheet</span><div class="shortcut-keys"><span class="shortcut-kbd">?</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Cancel Action / Deselect</span><div class="shortcut-keys"><span class="shortcut-kbd">Esc</span></div></div>
@@ -1676,8 +1680,33 @@
             </div>
 
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:14px; border-top:1px solid #f1f5f9;">
-                <span style="font-size:11.5px; color:#94a3b8;">Tip: Press <kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:11px;">?</kbd> anywhere to quickly toggle this dialog</span>
+                <span style="font-size:11.5px; color:#94a3b8;">Tip: Press <kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:11px;">?</kbd> for help, or <kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:11px;">⌘K</kbd> for command palette</span>
                 <button id="shortcutsDoneBtn" class="btn-primary" style="padding:6px 16px; font-size:12px; border-radius:6px;">Got It</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette (⌘K / Ctrl+K) Modal -->
+    <div id="commandPaletteModal" class="modal command-palette-modal" role="dialog" aria-modal="true" aria-labelledby="commandPaletteInput" style="display: none;">
+        <div class="command-palette-container" role="document">
+            <div class="command-palette-header">
+                <i data-lucide="search" class="command-palette-search-icon"></i>
+                <input type="text" id="commandPaletteInput" class="command-palette-input" placeholder="Type a command or search actions (e.g. text, sign, auto-detect, export)..." autocomplete="off" autocorrect="off" spellcheck="false" aria-autocomplete="list" aria-controls="commandPaletteList">
+                <span class="command-palette-esc-badge"><kbd>ESC</kbd></span>
+            </div>
+            <div class="command-palette-body" id="commandPaletteList" role="listbox">
+                <!-- Grouped commands dynamically rendered here -->
+            </div>
+            <div class="command-palette-footer">
+                <div class="command-palette-shortcuts-hint">
+                    <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
+                    <span><kbd>↵</kbd> select</span>
+                    <span><kbd>esc</kbd> close</span>
+                </div>
+                <div class="command-palette-branding">
+                    <i data-lucide="sparkles" style="width: 12px; height: 12px; color: #2563eb;"></i>
+                    <span>Formblatt Palette</span>
+                </div>
             </div>
         </div>
     </div>
