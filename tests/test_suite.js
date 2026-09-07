@@ -78,6 +78,15 @@ async function runAllTests() {
         });
     }
 
+    const vttFiles = fs.readdirSync(path.join(WEB_DIR, 'assets')).filter(f => f.endsWith('.vtt'));
+    for (const vtt of vttFiles) {
+        it(`Should have valid WebVTT format in assets/${vtt}`, () => {
+            const content = fs.readFileSync(path.join(WEB_DIR, 'assets', vtt), 'utf8');
+            assert.ok(content.startsWith('WEBVTT'), `assets/${vtt} must start with WEBVTT header`);
+            assert.ok(content.includes('-->'), `assets/${vtt} must contain timestamp cue arrows`);
+        });
+    }
+
     // ── SUITE 2: State Management & Selection Logic ──
     console.log("\n📐 Suite 2: State Management & Selection Logic");
     const { 
