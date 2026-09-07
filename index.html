@@ -716,18 +716,18 @@
                             <i data-lucide="home" style="width:14px; height:14px;"></i> Home Dashboard
                         </button>
                         <div class="dropdown-divider"></div>
-                        <label class="dropdown-item" role="menuitem">
+                        <button type="button" class="dropdown-item" id="openPdfDropdownBtn" role="menuitem" onclick="document.getElementById('pdfUploadMenu').click()">
                             <i data-lucide="file-up" style="width:14px; height:14px;"></i> Open PDF
-                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file from menu">
-                        </label>
+                        </button>
+                        <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file from menu">
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="saveProjectMenuBtn" role="menuitem">
                             <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.formblatt)
                         </button>
-                        <label class="dropdown-item" role="menuitem">
+                        <button type="button" class="dropdown-item" id="loadProjectDropdownBtn" role="menuitem" onclick="document.getElementById('loadProjectMenuBtn').click()">
                             <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.formblatt)
-                            <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;" aria-label="Load project file from menu">
-                        </label>
+                        </button>
+                        <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;" aria-label="Load project file from menu">
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="feedbackMenuBtn" role="menuitem">
                             <i data-lucide="message-square-plus" style="width:14px; height:14px; color:#2563eb;"></i> Feedback & Review
