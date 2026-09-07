@@ -18,7 +18,7 @@ export function loadPdfLibraries() {
     }
 
     const loadScript = (src) => new Promise((resolve, reject) => {
-        if (typeof document === "undefined") return resolve();
+        if (typeof document === "undefined" || typeof document.querySelector !== "function" || !document.createElement || !document.head) return resolve();
         if (document.querySelector(`script[src="${src}"]`)) {
             return resolve();
         }
