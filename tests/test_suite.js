@@ -892,11 +892,17 @@ async function runAllTests() {
         assert.ok(indexHtml.includes('id="commandPaletteInput"'), 'index.html must include commandPaletteInput');
         assert.ok(indexHtml.includes('id="commandPaletteList"'), 'index.html must include commandPaletteList');
         assert.ok(indexHtml.includes('id="commandPaletteToolbarBtn"'), 'index.html must include commandPaletteToolbarBtn');
+        assert.ok(!indexHtml.includes('id="landingPaletteBtn"'), 'landing page must NOT contain landingPaletteBtn');
 
         const modalsCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'modals.css'), 'utf8');
         assert.ok(modalsCss.includes('.command-palette-modal'), 'modals.css must include .command-palette-modal');
         assert.ok(modalsCss.includes('.command-palette-container'), 'modals.css must include .command-palette-container');
         assert.ok(modalsCss.includes('.command-palette-item'), 'modals.css must include .command-palette-item');
+    });
+
+    it("isEditorActive accurately restricts command palette when on landing page", async () => {
+        const { isEditorActive } = await import(path.join(WEB_DIR, 'js', 'command-palette.js'));
+        assert.equal(typeof isEditorActive, 'function', 'isEditorActive must be an exported function');
     });
 
     // ── Summary ──

@@ -1,10 +1,29 @@
 // ── Formblatt Command Palette Controller (js/command-palette.js) ─────────────
 // Fast keyboard-first search and action runner (⌘K / Ctrl+K / ⌘⇧P)
-// Conforms to modern UX standards (Linear, Raycast, Figma, VS Code).
+// Active strictly inside the Editor Workbench (not on landing page).
 
 import { state } from "./state.js";
 import { triggerHaptic } from "./haptics.js";
 import { showToast } from "./toast.js";
+
+/**
+ * Check if the Editor Screen is currently active and visible
+ */
+export function isEditorActive() {
+    if (typeof document === "undefined") return false;
+    const editor = document.getElementById("appEditorScreen");
+    const landing = document.getElementById("landingScreen");
+    if (!editor) return false;
+
+    const isLandingHidden = Boolean(landing && (landing.style.display === "none" || landing.hidden));
+    const isEditorVisible = Boolean(
+        editor.style.display === "flex" || 
+        editor.style.display === "block" || 
+        document.body.classList.contains("editor-active")
+    );
+
+    return isEditorVisible || isLandingHidden;
+}
 
 /**
  * Global Command Palette catalog
@@ -449,7 +468,7 @@ export const COMMANDS = [
         keywords: ["open", "pdf", "upload", "file", "document", "import"],
         icon: "file-up",
         action: () => {
-            document.getElementById("openPdfDropdownBtn")?.click() || document.getElementById("landingPdfUpload")?.click();
+            document.getElementById("openPdfDropdownBtn")?.click();
         }
     },
     {
@@ -646,9 +665,13 @@ export function executeCommand(commandId) {
 }
 
 /**
- * Open Command Palette Modal
+ * Open Command Palette Modal (strictly within the Editor workbench)
  */
 export function openCommandPalette() {
+    if (!isEditorActive()) {
+        return;
+    }
+
     const modal = document.getElementById("commandPaletteModal");
     const input = document.getElementById("commandPaletteInput");
     if (!modal) return;
@@ -704,13 +727,16 @@ export function initCommandPalette() {
     if (!modal) return;
     isInitialized = true;
 
-    // 1. Global Keyboard Shortcut: ⌘K, Ctrl+K, or ⌘⇧P / Ctrl⇧P
+    // 1. Global Keyboard Shortcut: ⌘K, Ctrl+K, or ⌘⇧P / Ctrl⇧P (only in editor)
     const handleGlobalKeydown = e => {
         const isK = (e.key && (e.key.toLowerCase() === "k" || e.code === "KeyK" || e.keyCode === 75));
         const isP = (e.key && (e.key.toLowerCase() === "p" || e.code === "KeyP" || e.keyCode === 80)) && e.shiftKey;
         const isCmdK = (e.metaKey || e.ctrlKey) && (isK || isP);
 
         if (isCmdK) {
+            if (!isEditorActive()) {
+                return; // Guard: Do not open on landing page
+            }
             e.preventDefault();
             e.stopPropagation();
             toggleCommandPalette();
@@ -782,9 +808,8 @@ export function initCommandPalette() {
         }
     });
 
-    // 6. Bind toolbar & landing trigger buttons
+    // 6. Bind toolbar button in editor
     document.getElementById("commandPaletteToolbarBtn")?.addEventListener("click", openCommandPalette);
-    document.getElementById("landingPaletteBtn")?.addEventListener("click", openCommandPalette);
 }
 
 // Global window exposure for robust accessibility and direct HTML bindings
