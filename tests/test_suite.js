@@ -935,6 +935,31 @@ async function runAllTests() {
         assert.ok(landingCss.includes('.spotlight-frame'), 'landing.css must include .spotlight-frame');
     });
 
+    // ── SUITE 15: Keyboard Shortcuts & Help Modal Accessibility ──
+    console.log("\n⌨️ Suite 15: Keyboard Shortcuts & Help Modal Accessibility");
+    it("shortcutsModal structure and interactive close buttons exist in index.html", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="shortcutsModal"'), 'index.html must include #shortcutsModal');
+        assert.ok(indexHtml.includes('id="closeShortcutsBtn"'), 'index.html must include #closeShortcutsBtn');
+        assert.ok(indexHtml.includes('id="shortcutsDoneBtn"'), 'index.html must include #shortcutsDoneBtn');
+        assert.ok(indexHtml.includes('id="shortcutsHelpBtn"'), 'index.html must include #shortcutsHelpBtn');
+        assert.ok(indexHtml.includes('id="shortcutsMenuBtn"'), 'index.html must include #shortcutsMenuBtn');
+        assert.ok(indexHtml.includes('id="footerShortcutsBtn"'), 'index.html must include #footerShortcutsBtn');
+    });
+
+    it("main.js exports openShortcutsModal and closeShortcutsModal helpers", async () => {
+        const mainModule = await import(path.join(WEB_DIR, 'js', 'main.js'));
+        assert.equal(typeof mainModule.openShortcutsModal, 'function', 'main.js must export openShortcutsModal');
+        assert.equal(typeof mainModule.closeShortcutsModal, 'function', 'main.js must export closeShortcutsModal');
+    });
+
+    it("editor-app.js and main.js contain global keydown handlers for ? and F1 shortcuts", () => {
+        const editorJs = fs.readFileSync(path.join(WEB_DIR, 'js', 'editor-app.js'), 'utf8');
+        const mainJs = fs.readFileSync(path.join(WEB_DIR, 'js', 'main.js'), 'utf8');
+        assert.ok(editorJs.includes('e.key === "?"') || editorJs.includes('e.key === "F1"'), 'editor-app.js must handle ? / F1 hotkey');
+        assert.ok(mainJs.includes('e.key === "?"') || mainJs.includes('e.key === "F1"'), 'main.js must handle ? / F1 hotkey');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
