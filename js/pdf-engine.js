@@ -4,38 +4,62 @@ import { state, updateDocumentTitle } from "./state.js";
 let pdfLibsPromise = null;
 
 export function ensurePdfJsConfigured() {
-    if (typeof window !== "undefined" && window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
-        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : null;
+    if (pdfjs && pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
+        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     }
 }
 
 export function loadPdfLibraries() {
-    if (pdfLibsPromise) return pdfLibsPromise;
+    const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : null;
+    const pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : null;
 
-    if (typeof window !== "undefined" && window.pdfjsLib && window.PDFLib && window.fontkit) {
+    if (pdfjs && pdfLib) {
         ensurePdfJsConfigured();
         return Promise.resolve();
     }
 
+    if (pdfLibsPromise) return pdfLibsPromise;
+
     const loadScript = (src) => new Promise((resolve, reject) => {
         if (typeof document === "undefined" || typeof document.querySelector !== "function" || !document.createElement || !document.head) return resolve();
-        if (document.querySelector(`script[src="${src}"]`)) {
-            return resolve();
+        
+        const existing = document.querySelector(`script[src="${src}"]`);
+        if (existing) {
+            if (existing.dataset.loaded === "true") return resolve();
+            existing.addEventListener("load", () => resolve(), { once: true });
+            existing.addEventListener("error", (err) => reject(err), { once: true });
+            return;
         }
+
         const script = document.createElement("script");
         script.src = src;
         script.async = true;
-        script.onload = () => resolve();
-        script.onerror = (err) => reject(err);
+        script.onload = () => {
+            script.dataset.loaded = "true";
+            resolve();
+        };
+        script.onerror = (err) => {
+            script.remove();
+            reject(err);
+        };
         document.head.appendChild(script);
     });
 
     pdfLibsPromise = Promise.all([
         loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"),
-        loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"),
-        loadScript("https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js")
-    ]).then(() => {
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js")
+    ]).then(async () => {
         ensurePdfJsConfigured();
+        // Load fontkit opportunistically in the background without blocking core PDF engine
+        try {
+            await loadScript("https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js");
+        } catch (e) {
+            console.warn("Optional fontkit library could not be loaded:", e);
+        }
+    }).catch(err => {
+        pdfLibsPromise = null;
+        throw err;
     });
 
     return pdfLibsPromise;

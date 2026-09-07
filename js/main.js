@@ -112,6 +112,10 @@ function bootstrapApp() {
             loadTemplate(tplKey, () => {
                 import("./editor-app.js").then(editor => editor.refreshUI());
             });
+        } else if (hash === "#editor") {
+            loadTemplate("blank", () => {
+                import("./editor-app.js").then(editor => editor.refreshUI());
+            });
         }
     }
 }

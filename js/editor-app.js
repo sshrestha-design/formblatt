@@ -99,7 +99,7 @@ export async function deleteSelectedFieldsWithPoof() {
     const overlayContainer = document.getElementById("overlayContainer");
     if (overlayContainer) {
         targetIds.forEach(id => {
-            const el = overlayContainer.querySelector(\`.field-overlay[data-id="\${id}"]\`);
+            const el = overlayContainer.querySelector(`.field-overlay[data-id="${id}"]`);
             if (el) el.classList.add("field-deleting");
         });
     }
@@ -111,7 +111,7 @@ export async function deleteSelectedFieldsWithPoof() {
     setSelectedField(null);
     saveHistory();
     refreshUI();
-    showUndoToast(deletedCount > 1 ? \`\${deletedCount} fields removed\` : "Field removed");
+    showUndoToast(deletedCount > 1 ? `${deletedCount} fields removed` : "Field removed");
 }
 
 export function switchEditorMode(mode = "design") {
@@ -281,12 +281,12 @@ export function initEditorSubsystems() {
         setSelectedField(null);
         saveHistory();
         refreshUI();
-        showUndoToast(deletedCount > 1 ? \`\${deletedCount} fields cut\` : "Field cut");
+        showUndoToast(deletedCount > 1 ? `${deletedCount} fields cut` : "Field cut");
     });
     document.getElementById("menuCopyBtn")?.addEventListener("click", () => {
         if (state.selectedFieldIds.size === 0) return;
         copySelectedFields();
-        showToast(state.selectedFieldIds.size > 1 ? \`\${state.selectedFieldIds.size} fields copied\` : "Field copied");
+        showToast(state.selectedFieldIds.size > 1 ? `${state.selectedFieldIds.size} fields copied` : "Field copied");
     });
     document.getElementById("menuPasteBtn")?.addEventListener("click", () => {
         const pasted = pasteClipboardFields();
@@ -340,7 +340,7 @@ export function initEditorSubsystems() {
 
         const toast = document.createElement("div");
         toast.className = "notice-toast";
-        toast.innerHTML = \`<span>\${msg}</span>\`;
+        toast.innerHTML = `<span>${msg}</span>`;
         document.body.appendChild(toast);
 
         setTimeout(() => {
@@ -355,16 +355,16 @@ export function initEditorSubsystems() {
         const btn = document.getElementById("toggleGuidesBtn");
         if (btn) {
             btn.classList.toggle("active", enabled);
-            btn.title = \`Smart Alignment Guides: \${enabled ? "ON" : "OFF"} (Ctrl/Cmd+;)\`;
+            btn.title = `Smart Alignment Guides: ${enabled ? "ON" : "OFF"} (Ctrl/Cmd+;)`;
             btn.style.color = enabled ? "#2563eb" : "#94a3b8";
         }
         const menuText = document.getElementById("toggleGuidesMenuText");
         if (menuText) {
-            menuText.textContent = \`Smart Guides: \${enabled ? "ON" : "OFF"}\`;
+            menuText.textContent = `Smart Guides: ${enabled ? "ON" : "OFF"}`;
         }
         const ctxText = document.getElementById("ctxGuidesText");
         if (ctxText) {
-            ctxText.textContent = \`Snap Guides: \${enabled ? "ON" : "OFF"}\`;
+            ctxText.textContent = `Snap Guides: ${enabled ? "ON" : "OFF"}`;
         }
     }
 
@@ -397,7 +397,7 @@ export function initEditorSubsystems() {
 
         const originalHtml = autoDetectBtn.innerHTML;
         autoDetectBtn.disabled = true;
-        autoDetectBtn.innerHTML = \`<i data-lucide="loader-2" class="spin" style="width: 13px; height: 13px;"></i> Scanning...\`;
+        autoDetectBtn.innerHTML = `<i data-lucide="loader-2" class="spin" style="width: 13px; height: 13px;"></i> Scanning...`;
         if (typeof lucide !== "undefined") lucide.createIcons();
 
         const canvasContainer = document.getElementById("canvasContainer");
@@ -407,14 +407,14 @@ export function initEditorSubsystems() {
         if (canvasContainer) {
             scanHud = document.createElement("div");
             scanHud.className = "scan-hud";
-            scanHud.innerHTML = \`
+            scanHud.innerHTML = `
                 <div class="scan-overlay"></div>
                 <div class="scan-line"></div>
                 <div class="scan-status-pill">
                     <i data-lucide="scan" style="width: 14px; height: 14px; color: #60a5fa;"></i>
                     <span id="scanStatusText">Analyzing vector layout & grid...</span>
                 </div>
-            \`;
+            `;
             canvasContainer.appendChild(scanHud);
             if (typeof lucide !== "undefined") lucide.createIcons();
             statusPill = document.getElementById("scanStatusText");
@@ -444,7 +444,7 @@ export function initEditorSubsystems() {
                 if (overlayContainer) {
                     overlayContainer.querySelectorAll(".field-overlay").forEach((el, idx) => {
                         el.classList.add("field-scan-wave");
-                        el.style.animationDelay = \`\${idx * 40}ms\`;
+                        el.style.animationDelay = `${idx * 40}ms`;
                         setTimeout(() => {
                             el.classList.remove("field-scan-wave");
                             el.style.animationDelay = "";
@@ -452,7 +452,7 @@ export function initEditorSubsystems() {
                     });
                 }
 
-                showNoticeToast(\`Detected \${count} form field\${count > 1 ? "s" : ""}\`);
+                showNoticeToast(`Detected ${count} form field${count > 1 ? "s" : ""}`);
                 if (window.va) {
                     window.va("event", { name: "auto_detect_completed", data: { count } });
                 }
@@ -560,7 +560,7 @@ export function initEditorSubsystems() {
 
         if (confirmExportBtn) confirmExportBtn.disabled = true;
         if (confirmExportBtn) {
-            confirmExportBtn.innerHTML = \`<i data-lucide="loader-2" class="export-spinner" style="width: 14px; height: 14px;"></i> <span>Generating AcroForm...</span>\`;
+            confirmExportBtn.innerHTML = `<i data-lucide="loader-2" class="export-spinner" style="width: 14px; height: 14px;"></i> <span>Generating AcroForm...</span>`;
             if (typeof lucide !== "undefined") lucide.createIcons();
         }
 
@@ -570,7 +570,7 @@ export function initEditorSubsystems() {
             const url = URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = \`\${customName}.pdf\`;
+            a.download = `${customName}.pdf`;
             a.click();
             URL.revokeObjectURL(url);
 
@@ -580,7 +580,7 @@ export function initEditorSubsystems() {
 
             confirmExportBtn.style.background = "#16a34a";
             confirmExportBtn.style.borderColor = "#15803d";
-            confirmExportBtn.innerHTML = \`<i data-lucide="check" class="export-check-bounce" style="width: 15px; height: 15px; color: #ffffff;"></i> <span>Exported!</span>\`;
+            confirmExportBtn.innerHTML = `<i data-lucide="check" class="export-check-bounce" style="width: 15px; height: 15px; color: #ffffff;"></i> <span>Exported!</span>`;
             if (typeof lucide !== "undefined") lucide.createIcons();
             triggerHaptic(20);
 
@@ -592,7 +592,7 @@ export function initEditorSubsystems() {
                         confirmExportBtn.style.background = "";
                         confirmExportBtn.style.borderColor = "";
                         confirmExportBtn.disabled = false;
-                        confirmExportBtn.innerHTML = \`<i data-lucide="download" style="width: 14px; height: 14px;"></i> <span id="confirmExportBtnText">Download PDF</span>\`;
+                        confirmExportBtn.innerHTML = `<i data-lucide="download" style="width: 14px; height: 14px;"></i> <span id="confirmExportBtnText">Download PDF</span>`;
                         if (typeof lucide !== "undefined") lucide.createIcons();
                     }
                 }, 400);
@@ -604,7 +604,7 @@ export function initEditorSubsystems() {
                 confirmExportBtn.disabled = false;
                 confirmExportBtn.style.background = "";
                 confirmExportBtn.style.borderColor = "";
-                confirmExportBtn.innerHTML = \`<i data-lucide="download" style="width: 14px; height: 14px;"></i> <span id="confirmExportBtnText">Download PDF</span>\`;
+                confirmExportBtn.innerHTML = `<i data-lucide="download" style="width: 14px; height: 14px;"></i> <span id="confirmExportBtnText">Download PDF</span>`;
                 if (typeof lucide !== "undefined") lucide.createIcons();
             }
         }
@@ -613,7 +613,7 @@ export function initEditorSubsystems() {
     function showExportToast(filename) {
         if (!exportSuccessToast) return;
         if (toastFilenameDesc) {
-            toastFilenameDesc.textContent = \`Saved as \${filename}.pdf to your Downloads folder.\`;
+            toastFilenameDesc.textContent = `Saved as ${filename}.pdf to your Downloads folder.`;
         }
         exportSuccessToast.style.display = "flex";
         if (typeof lucide !== "undefined") lucide.createIcons();
@@ -646,10 +646,10 @@ export function initEditorSubsystems() {
         const currentBase = (state.fileName || "interactive_form").replace(/\.pdf$/i, "").replace(/\.formblatt$/i, "").replace(/\.fblatt$/i, "").replace(/\.jform$/i, "").replace(/\.justforms$/i, "");
         
         if (saveReplaceNameDisplay) {
-            saveReplaceNameDisplay.textContent = \`\${currentBase}.formblatt\`;
+            saveReplaceNameDisplay.textContent = `${currentBase}.formblatt`;
         }
         if (saveNewCopyFilenameInput) {
-            saveNewCopyFilenameInput.value = \`\${currentBase}_copy\`;
+            saveNewCopyFilenameInput.value = `${currentBase}_copy`;
         }
 
         if (saveReplaceRadio) saveReplaceRadio.checked = true;
@@ -698,7 +698,7 @@ export function initEditorSubsystems() {
 
         exportProjectJson(targetName);
         closeSaveProjectModal();
-        showExportToast(\`\${targetName}.jform\`);
+        showExportToast(`${targetName}.jform`);
     });
 
     // Close Modals on ESC Key or Save Shortcut ⌘S
@@ -1013,7 +1013,7 @@ export function initEditorSubsystems() {
         };
         const key = e.key.toLowerCase();
         if (toolKeys[key]) {
-            const btn = document.querySelector(\`.tool-btn[data-tool="\${toolKeys[key]}"]\`);
+            const btn = document.querySelector(`.tool-btn[data-tool="${toolKeys[key]}"]`);
             if (btn) btn.click();
         }
     });
@@ -1076,7 +1076,7 @@ function initPanelResizers() {
     const applyLeftWidth = (w) => {
         if (!leftPanel) return;
         const clamped = Math.max(200, Math.min(700, Math.round(w)));
-        const px = \`\${clamped}px\`;
+        const px = `${clamped}px`;
         leftPanel.style.width = px;
         leftPanel.style.minWidth = px;
         leftPanel.style.maxWidth = px;
@@ -1086,7 +1086,7 @@ function initPanelResizers() {
     const applyRightWidth = (w) => {
         if (!rightPanel) return;
         const clamped = Math.max(220, Math.min(700, Math.round(w)));
-        const px = \`\${clamped}px\`;
+        const px = `${clamped}px`;
         rightPanel.style.width = px;
         rightPanel.style.minWidth = px;
         rightPanel.style.maxWidth = px;
@@ -1330,8 +1330,8 @@ function toggleLeftSidebar() {
         toggleBtn.setAttribute("aria-label", isCollapsed ? "Expand Layers" : "Collapse Layers");
         toggleBtn.title = isCollapsed ? "Expand Layers (⌘\\)" : "Collapse Layers (⌘\\)";
         toggleBtn.innerHTML = isCollapsed
-            ? \`<i data-lucide="panel-left-open" style="width: 14px; height: 14px; color: #2563eb;"></i>\`
-            : \`<i data-lucide="panel-left-close" style="width: 14px; height: 14px; color: #475569;"></i>\`;
+            ? `<i data-lucide="panel-left-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
+            : `<i data-lucide="panel-left-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
         if (typeof lucide !== "undefined") lucide.createIcons();
     }
 }
@@ -1352,8 +1352,8 @@ function toggleRightSidebar() {
         toggleBtn.setAttribute("aria-label", isCollapsed ? "Expand Properties" : "Collapse Properties");
         toggleBtn.title = isCollapsed ? "Expand Properties (⌘/)" : "Collapse Properties (⌘/)";
         toggleBtn.innerHTML = isCollapsed
-            ? \`<i data-lucide="panel-right-open" style="width: 14px; height: 14px; color: #2563eb;"></i>\`
-            : \`<i data-lucide="panel-right-close" style="width: 14px; height: 14px; color: #475569;"></i>\`;
+            ? `<i data-lucide="panel-right-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
+            : `<i data-lucide="panel-right-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
         if (typeof lucide !== "undefined") lucide.createIcons();
     }
 }
@@ -1405,12 +1405,12 @@ function showUndoToast(msg) {
         toast.style.cssText = "position: fixed; bottom: 24px; right: 24px; z-index: 1100; background: #0f172a; color: #ffffff; padding: 10px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); transition: opacity 0.25s ease;";
         document.body.appendChild(toast);
     }
-    toast.innerHTML = \`
-        <span>\${msg}</span>
+    toast.innerHTML = `
+        <span>${msg}</span>
         <button id="toastUndoBtn" style="background: #2563eb; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 11.5px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;">
             Undo (Ctrl+Z)
         </button>
-    \`;
+    `;
     toast.style.display = "flex";
     toast.style.opacity = "1";
 
