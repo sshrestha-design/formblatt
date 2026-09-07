@@ -960,6 +960,27 @@ async function runAllTests() {
         assert.ok(mainJs.includes('e.key === "?"') || mainJs.includes('e.key === "F1"'), 'main.js must handle ? / F1 hotkey');
     });
 
+    // ── SUITE 16: OpenGraph & Social Sharing Image Metadata ──
+    console.log("\n🖼️ Suite 16: OpenGraph & Social Sharing Image Metadata");
+    it("index.html defines standard OpenGraph and Twitter card image metadata", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('property="og:image" content="https://justforms.vercel.app/assets/og-image.png"'), 'index.html must define og:image pointing to high-res PNG');
+        assert.ok(indexHtml.includes('name="twitter:card" content="summary_large_image"'), 'index.html must define summary_large_image twitter card');
+        assert.ok(indexHtml.includes('name="twitter:image" content="https://justforms.vercel.app/assets/og-image.png"'), 'index.html must define twitter:image');
+        assert.ok(indexHtml.includes('property="og:image:width" content="1200"'), 'index.html must define 1200 width');
+        assert.ok(indexHtml.includes('property="og:image:height" content="630"'), 'index.html must define 630 height');
+        assert.ok(!indexHtml.includes('property="og:image" content="https://justforms.vercel.app/favicon.svg"'), 'og:image must not point to favicon.svg');
+    });
+
+    it("assets/og-image.png exists and conforms to 1200x630 OpenGraph dimensions", () => {
+        const ogImgPath = path.join(WEB_DIR, 'assets', 'og-image.png');
+        assert.ok(fs.existsSync(ogImgPath), 'assets/og-image.png must exist on disk');
+        const stats = fs.statSync(ogImgPath);
+        assert.ok(stats.size > 50000 && stats.size < 1500000, `og-image.png size (${stats.size} bytes) should be optimized`);
+        const header = fs.readFileSync(ogImgPath).subarray(0, 8);
+        assert.equal(header[0], 0x89, 'og-image.png must be a valid PNG');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
