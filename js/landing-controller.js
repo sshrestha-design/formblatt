@@ -989,49 +989,6 @@ export function initLandingController(onLoaded) {
         });
     }
 
-    // Interactive Before & After Transformation Slider Drag Physics
-    const compareSliderContainer = document.getElementById("compareSliderContainer");
-    const compareSliderHandle = document.getElementById("compareSliderHandle");
-    const compareAfterPane = document.getElementById("compareAfterPane");
-
-    if (compareSliderContainer && compareSliderHandle && compareAfterPane) {
-        let isDragging = false;
-
-        const updateSliderPos = (clientX) => {
-            const rect = compareSliderContainer.getBoundingClientRect();
-            if (rect.width <= 0) return;
-            let pct = ((clientX - rect.left) / rect.width) * 100;
-            pct = Math.max(5, Math.min(95, pct));
-            compareAfterPane.style.width = `${pct}%`;
-            compareSliderHandle.style.left = `${pct}%`;
-        };
-
-        compareSliderContainer.addEventListener("pointerdown", (e) => {
-            isDragging = true;
-            try {
-                compareSliderContainer.setPointerCapture(e.pointerId);
-            } catch (err) {}
-            updateSliderPos(e.clientX);
-        });
-
-        compareSliderContainer.addEventListener("pointermove", (e) => {
-            if (!isDragging) return;
-            updateSliderPos(e.clientX);
-        });
-
-        const endSliderDrag = (e) => {
-            if (isDragging) {
-                isDragging = false;
-                try {
-                    compareSliderContainer.releasePointerCapture(e.pointerId);
-                } catch (err) {}
-            }
-        };
-
-        compareSliderContainer.addEventListener("pointerup", endSliderDrag);
-        compareSliderContainer.addEventListener("pointercancel", endSliderDrag);
-    }
-
     // Dismiss Floating Editor Shortcut Bar
     document.getElementById("closeShortcutBarBtn")?.addEventListener("click", () => {
         const bar = document.getElementById("editorShortcutBar");
