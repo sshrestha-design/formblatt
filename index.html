@@ -116,12 +116,22 @@
     <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
     <link rel="dns-prefetch" href="https://unpkg.com">
 
-    <link rel="stylesheet" href="styles/fonts.css?v=12.0">
+    <!-- Critical CSS for Instant First Contentful Paint -->
     <link rel="stylesheet" href="styles/base.css?v=12.0">
     <link rel="stylesheet" href="styles/landing.css?v=12.0">
-    <link rel="stylesheet" href="styles/editor.css?v=13.0">
-    <link rel="stylesheet" href="styles/canvas.css?v=12.0">
-    <link rel="stylesheet" href="styles/modals.css?v=12.0">
+
+    <!-- Asynchronously Loaded Styles to Eliminate Render-Blocking Resources (LCP / FCP) -->
+    <link rel="preload" href="styles/editor.css?v=13.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles/editor.css?v=13.0"></noscript>
+
+    <link rel="preload" href="styles/canvas.css?v=12.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles/canvas.css?v=12.0"></noscript>
+
+    <link rel="preload" href="styles/modals.css?v=12.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles/modals.css?v=12.0"></noscript>
+
+    <link rel="preload" href="styles/fonts.css?v=12.0" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="styles/fonts.css?v=12.0"></noscript>
 
     <!-- Vercel Web Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
