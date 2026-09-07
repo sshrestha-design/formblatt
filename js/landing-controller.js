@@ -790,13 +790,11 @@ export function initLandingController(onLoaded) {
         const sponsorTitle = document.getElementById("exportSponsorTitle");
         const sponsorDesc = document.getElementById("exportSponsorDesc");
         const sponsorAct = document.getElementById("exportSponsorActionText");
-        const heroEyebrow = document.querySelector(".hero-eyebrow");
 
         if (sponsorCap && dict.sponsorCaption) sponsorCap.textContent = dict.sponsorCaption;
         if (sponsorTitle && dict.sponsorTitle) sponsorTitle.textContent = dict.sponsorTitle;
         if (sponsorDesc && dict.sponsorDesc) sponsorDesc.textContent = dict.sponsorDesc;
         if (sponsorAct && dict.sponsorAction) sponsorAct.textContent = dict.sponsorAction;
-        if (heroEyebrow && dict.heroEyebrow) heroEyebrow.textContent = dict.heroEyebrow;
     }
 
     // Glassy Video Player Modal Controller
