@@ -6,7 +6,7 @@
 :root {
   --ink: #0E1116;
   --ink-soft: #5B6270;
-  --mist: #98A0AC;
+  --mist: #475569;
   --blue: #0B63CE;
   --blue-deep: #083E8A;
   --blue-tint: #EAF2FD;
@@ -619,11 +619,11 @@ footer.landing-footer { background: var(--ink); color: #B9C0CC; padding: 64px 40
   line-height: 1;
 }
 .foot-brand .brand-mark { background: #ffffff; border: 1px solid rgba(255,255,255,0.2); }
-footer.landing-footer p.desc { font-size: 14px; line-height: 1.6; color: #8A93A3; max-width: 280px; }
-.foot-col h5 { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7383; margin-bottom: 16px; }
+footer.landing-footer p.desc { font-size: 14px; line-height: 1.6; color: #CBD5E1; max-width: 280px; }
+.foot-col h5, .foot-col h3, .foot-col .foot-col-title { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #94A3B8; margin-bottom: 16px; font-weight: 700; }
 .foot-col a, .foot-col button { display: block; font-size: 14px; color: #B9C0CC; text-decoration: none; margin-bottom: 12px; transition: color .18s ease; background: none; border: none; font-family: inherit; cursor: pointer; text-align: left; padding: 0; }
 .foot-col a:hover, .foot-col button:hover { color: #fff; }
-.foot-bottom { max-width: 1180px; margin: 48px auto 0; padding-top: 24px; border-top: 1px solid #22262F; font-size: 13px; color: #6B7383; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+.foot-bottom { max-width: 1180px; margin: 48px auto 0; padding-top: 24px; border-top: 1px solid #22262F; font-size: 13px; color: #94A3B8; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
 @media (max-width: 900px) { .foot-wrap { grid-template-columns: 1fr 1fr; } }
 
 /* ============ MOBILE DEVICE HANDOFF BAR (STRICTLY HIDDEN ON PC/MAC) ============ */
