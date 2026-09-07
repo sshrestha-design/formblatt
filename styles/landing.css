@@ -61,17 +61,3 @@
 .spotlight-stat{display:flex;flex-direction:column;gap:3px}
 .stat-number{font-size:22px;font-weight:800;color:var(--blue);letter-spacing:-0.02em;font-family:'IBM Plex Mono',monospace}
 .stat-label{font-size:12px;font-weight:600;color:var(--mist)}
-.quote-card{background:#ffffff;border:1px solid var(--line);border-radius:18px;padding:32px 28px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 10px 30px -10px rgba(15,23,42,0.06);transition:transform .22s cubic-bezier(0.16,1,0.3,1),box-shadow .22s cubic-bezier(0.16,1,0.3,1),border-color .2s ease;position:relative}
-.quote-card:hover{transform:translateY(-3px);box-shadow:0 18px 40px -12px rgba(37,99,235,0.12),0 0 0 1px rgba(37,99,235,0.15);border-color:#93c5fd}
-.quote-stars{display:flex;align-items:center;gap:3px;font-size:14px;color:#f59e0b;margin-bottom:18px}
-.quote-pill{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:0.02em;color:var(--mist);background:#f1f5f9;padding:3px 9px;border-radius:100px}
-.quote-pill.highlight{color:#1d4ed8;background:#eff6ff;border:1px solid #bfdbfe}
-.quote-text{font-size:15px;line-height:1.65;color:var(--ink);margin:0 0 24px;flex:1}
-.quote-author{display:flex;align-items:center;gap:13px;border-top:1px solid var(--line);padding-top:18px}
-.author-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;letter-spacing:-0.02em;flex-shrink:0}
-.avatar-blue{background:#eff6ff;color:#2563eb;border:1px solid #bfdbfe}
-.avatar-purple{background:#faf5ff;color:#7c3aed;border:1px solid #e9d5ff}
-.avatar-green{background:#f0fdf4;color:#16a34a;border:1px solid #bbf7d0}
-.author-info{display:flex;flex-direction:column}
-.author-name{font-size:14px;font-weight:700;color:var(--ink);letter-spacing:-0.01em}
-.author-role{font-size:12px;color:var(--ink-soft);font-weight:500;margin-top:2px}
