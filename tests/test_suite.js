@@ -87,6 +87,26 @@ async function runAllTests() {
         });
     }
 
+    it("Should have valid standard-compliant robots.txt with no unknown directives", () => {
+        const content = fs.readFileSync(path.join(WEB_DIR, 'robots.txt'), 'utf8');
+        const lines = content.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#'));
+        const allowedDirectives = ['user-agent', 'allow', 'disallow', 'sitemap', 'crawl-delay', 'host'];
+        
+        for (const line of lines) {
+            const colonIndex = line.indexOf(':');
+            assert.ok(colonIndex > 0, `robots.txt line must be key: value format: "${line}"`);
+            const directive = line.substring(0, colonIndex).trim().toLowerCase();
+            assert.ok(allowedDirectives.includes(directive), `robots.txt directive "${directive}" is invalid or unknown in RFC 9309`);
+        }
+        assert.ok(content.includes('User-agent: *'), "robots.txt must define User-agent");
+        assert.ok(content.includes('Sitemap:'), "robots.txt must define Sitemap");
+    });
+
+    it("Should have valid llms.txt file starting with H1 header", () => {
+        const content = fs.readFileSync(path.join(WEB_DIR, 'llms.txt'), 'utf8');
+        assert.ok(content.startsWith('# '), "llms.txt must start with H1 title");
+    });
+
     // ── SUITE 2: State Management & Selection Logic ──
     console.log("\n📐 Suite 2: State Management & Selection Logic");
     const { 
