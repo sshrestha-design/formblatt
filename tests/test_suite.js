@@ -832,6 +832,24 @@ async function runAllTests() {
         assert.equal(mockTracks.find(t => t.language === "es").mode, "disabled");
     });
 
+    it("Shared-axis scale-fade transition recipe conforms to 180ms/220ms and scale specs", () => {
+        const baseCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'base.css'), 'utf8');
+        const landingJs = fs.readFileSync(path.join(WEB_DIR, 'js', 'landing-controller.js'), 'utf8');
+
+        // Check CSS keyframes & classes exist
+        const normalizedCss = baseCss.replace(/\s+/g, ' ');
+        assert.ok(normalizedCss.includes('sharedAxisHomeOut'), 'base.css must define sharedAxisHomeOut animation');
+        assert.ok(normalizedCss.includes('sharedAxisEditorIn'), 'base.css must define sharedAxisEditorIn animation');
+        assert.ok(/180ms\s+cubic-bezier\(0\.4,\s*0,\s*1,\s*1\)/.test(baseCss), 'base.css must have 180ms acceleration for home-out');
+        assert.ok(/220ms\s+cubic-bezier\(0,\s*0,\s*0\.2,\s*1\)\s+60ms/.test(baseCss), 'base.css must have 220ms deceleration + 60ms delay for editor-in');
+        assert.ok(/transform:\s*scale\(0\.98\)/.test(baseCss), 'base.css must scale home out to 0.98');
+        assert.ok(/transform:\s*scale\(1\.02\)/.test(baseCss), 'base.css must scale editor in from 1.02');
+
+        // Check JS transition coordination
+        assert.ok(landingJs.includes('screen-transition-home-out'), 'landing-controller.js must apply screen-transition-home-out');
+        assert.ok(landingJs.includes('screen-transition-editor-in'), 'landing-controller.js must apply screen-transition-editor-in');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

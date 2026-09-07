@@ -31,9 +31,30 @@ export function showLandingScreen(force = false, skipPush = false) {
     }
 
     const landing = document.getElementById("landingScreen");
+    const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     if (landing) landing.style.display = "block";
-    if (editor) editor.style.display = "none";
     document.body.classList.remove("editor-active");
+
+    if (isEditorActive && !prefersReducedMotion && landing && editor) {
+        landing.classList.remove("screen-transition-home-out");
+        editor.classList.remove("screen-transition-editor-in");
+
+        editor.classList.add("screen-transition-editor-out");
+        landing.classList.add("screen-transition-home-in");
+
+        setTimeout(() => {
+            if (editor) {
+                editor.style.display = "none";
+                editor.classList.remove("screen-transition-editor-out");
+            }
+            if (landing) {
+                landing.classList.remove("screen-transition-home-in");
+            }
+        }, 290);
+    } else {
+        if (editor) editor.style.display = "none";
+    }
 
     closeLeaveEditorModal();
 
@@ -306,11 +327,35 @@ function renderExampleReviewsSection() {
 export async function showEditorScreen(onReady, skipPush = false) {
     const landing = document.getElementById("landingScreen");
     const editor = document.getElementById("appEditorScreen");
-    if (landing) landing.style.display = "none";
+
+    const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const isLandingVisible = Boolean(landing && (landing.style.display !== "none" && !landing.hidden));
+
     if (editor) {
         editor.style.display = "flex";
         document.body.classList.add("editor-active");
         updateDocumentTitle();
+    }
+
+    if (isLandingVisible && !prefersReducedMotion && landing && editor) {
+        landing.classList.remove("screen-transition-home-in");
+        editor.classList.remove("screen-transition-editor-out");
+
+        landing.classList.add("screen-transition-home-out");
+        editor.classList.add("screen-transition-editor-in");
+
+        setTimeout(() => {
+            if (landing) {
+                landing.style.display = "none";
+                landing.classList.remove("screen-transition-home-out");
+            }
+            if (editor) {
+                editor.classList.remove("screen-transition-editor-in");
+            }
+            window.dispatchEvent(new Event("resize"));
+        }, 290);
+    } else {
+        if (landing) landing.style.display = "none";
     }
 
     // Ensure editor subsystems are initialized
