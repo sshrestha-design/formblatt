@@ -134,21 +134,50 @@ if ("serviceWorker" in navigator && !window.location.host.startsWith("localhost"
     });
 }
 
-// ── Idle Prefetch for Editor & PDF Engines ──────────────────────────
-const prefetchEditorAndLibraries = () => {
-    const prefetch = () => {
-        import("./editor-app.js");
-        import("./pdf-engine.js").then(pdf => pdf.loadPdfLibraries());
-    };
-    if ("requestIdleCallback" in window) {
-        window.requestIdleCallback(prefetch, { timeout: 3500 });
-    } else {
-        setTimeout(prefetch, 1500);
-    }
+// ── User-Intent & Idle Prefetch for Editor & PDF Engines ──────────────────
+let hasPrefetched = false;
+export const prefetchEditorAndLibraries = () => {
+    if (hasPrefetched) return;
+    hasPrefetched = true;
+    import("./editor-app.js");
+    import("./pdf-engine.js").then(pdf => pdf.loadPdfLibraries?.());
 };
 
+function attachIntentPrefetch() {
+    const triggerIds = ["navUploadBtn", "heroBrowseBtn", "heroOpenProjectBtn", "heroDropzone", "landingPdfUpload", "heroPdfUpload"];
+    const triggerElements = triggerIds.map(id => document.getElementById(id)).filter(Boolean);
+    const templateCards = document.querySelectorAll(".template-card, .sol-grid .tile, .sample-card");
+
+    const onIntent = () => {
+        prefetchEditorAndLibraries();
+        cleanup();
+    };
+
+    const cleanup = () => {
+        triggerElements.forEach(el => {
+            el.removeEventListener("pointerenter", onIntent);
+            el.removeEventListener("touchstart", onIntent);
+            el.removeEventListener("focus", onIntent);
+        });
+        templateCards.forEach(el => {
+            el.removeEventListener("pointerenter", onIntent);
+            el.removeEventListener("touchstart", onIntent);
+        });
+    };
+
+    triggerElements.forEach(el => {
+        el.addEventListener("pointerenter", onIntent, { passive: true, once: true });
+        el.addEventListener("touchstart", onIntent, { passive: true, once: true });
+        el.addEventListener("focus", onIntent, { passive: true, once: true });
+    });
+    templateCards.forEach(el => {
+        el.addEventListener("pointerenter", onIntent, { passive: true, once: true });
+        el.addEventListener("touchstart", onIntent, { passive: true, once: true });
+    });
+}
+
 if (document.readyState === "complete") {
-    prefetchEditorAndLibraries();
+    attachIntentPrefetch();
 } else {
-    window.addEventListener("load", prefetchEditorAndLibraries, { once: true });
+    window.addEventListener("load", attachIntentPrefetch, { once: true });
 }
