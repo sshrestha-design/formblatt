@@ -467,10 +467,12 @@ export async function loadTemplate(key, onLoaded) {
 
 export function initLandingController(onLoaded) {
     // Set initial baseline history state and purge stale #editor hashes if no doc is active
-    if (!history.state || (window.location.hash === "#editor" && !state.pdfDoc)) {
-        try {
-            history.replaceState({ screen: "landing" }, "", window.location.pathname);
-        } catch (e) {}
+    if (typeof history !== "undefined" && typeof window !== "undefined") {
+        if (!history.state || (window.location?.hash === "#editor" && !state.pdfDoc)) {
+            try {
+                history.replaceState({ screen: "landing" }, "", window.location.pathname);
+            } catch (e) {}
+        }
     }
 
     // Handle Browser Back / Forward Buttons (popstate)
@@ -589,8 +591,8 @@ export function initLandingController(onLoaded) {
     bindModal("footerCookieBtn", "cookieModal", ["closeCookieModalBtn", "dismissCookieModalBtn"]);
     bindModal(["footerComplianceBtn", "complianceNoticeBtn"], "complianceModal", ["closeComplianceModalBtn", "dismissComplianceModalBtn"]);
     bindModal("footerAboutBtn", "aboutModal", ["closeAboutModalBtn", "dismissAboutModalBtn"]);
-    bindModal(["landingShortcutsBtn", "footerShortcutsBtn", "shortcutsMenuBtn"], "shortcutsModal", ["closeShortcutsModalBtn"]);
-    bindModal(["landingFeedbackBtn", "footerFeedbackBtn", "feedbackMenuBtn"], "feedbackModal", ["closeFeedbackModalBtn"]);
+    bindModal(["landingShortcutsBtn", "footerShortcutsBtn", "shortcutsMenuBtn", "shortcutsHelpBtn", "shortcutsBtn"], "shortcutsModal", ["closeShortcutsBtn", "shortcutsDoneBtn", "closeShortcutsModalBtn"]);
+    bindModal(["landingFeedbackBtn", "footerFeedbackBtn", "feedbackMenuBtn", "feedbackBtn"], "feedbackModal", ["closeFeedbackModalBtn", "dismissFeedbackModalBtn", "closeFeedbackBtn"]);
 
     // Smooth Scroll for Landing Anchor Links with Sticky Header Offset
     // Smooth Scroll for Landing Anchor Links

@@ -8,7 +8,9 @@ import { triggerHaptic } from "./haptics.js";
 import { initCommandPalette } from "./command-palette.js";
 
 // Initialize Vercel Analytics event queue
-window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+if (typeof window !== "undefined") {
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+}
 
 // ── UI Zoom Guard ──────────────────────────────────────────────────
 function initUiZoomGuard() {
@@ -20,6 +22,27 @@ function initUiZoomGuard() {
         }
         lastTouchEnd = now;
     }, { passive: false });
+}
+
+// ── Modal Handlers & Helpers ─────────────────────────────────────────
+export function openShortcutsModal() {
+    const modal = document.getElementById("shortcutsModal");
+    if (!modal) return;
+    modal.style.display = "flex";
+    modal.classList.add("active");
+    if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+}
+
+export function closeShortcutsModal() {
+    const modal = document.getElementById("shortcutsModal");
+    if (!modal) return;
+    modal.style.display = "none";
+    modal.classList.remove("active");
+}
+
+if (typeof window !== "undefined") {
+    window.openShortcutsModal = openShortcutsModal;
+    window.closeShortcutsModal = closeShortcutsModal;
 }
 
 // ── Main App Initialization ─────────────────────────────────────────
@@ -41,22 +64,25 @@ function bootstrapApp() {
     // 5. Initialize Interactive Gradient Waves Canvas Background
     initGradientWaves();
 
-    // 5. Global Shortcuts Modal
+    // 6. Global Shortcuts & Feedback Modals
     const bindModal = (triggerIds, modalId, closeBtnIds = []) => {
         const modal = document.getElementById(modalId);
         if (!modal) return;
         const openModal = () => {
             modal.style.display = "flex";
-            if (typeof lucide !== "undefined") lucide.createIcons();
+            modal.classList.add("active");
+            if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
         };
         const closeModal = () => {
             modal.style.display = "none";
+            modal.classList.remove("active");
         };
         const triggers = Array.isArray(triggerIds) ? triggerIds : [triggerIds];
         triggers.forEach(id => {
             document.getElementById(id)?.addEventListener("click", openModal);
         });
-        closeBtnIds.forEach(id => {
+        const closeBtns = Array.isArray(closeBtnIds) ? closeBtnIds : [closeBtnIds];
+        closeBtns.forEach(id => {
             document.getElementById(id)?.addEventListener("click", closeModal);
         });
         modal.addEventListener("click", e => {
@@ -64,8 +90,45 @@ function bootstrapApp() {
         });
     };
 
-    bindModal(["shortcutsBtn", "menuShortcutsBtn"], "shortcutsModal", ["closeShortcutsModalBtn", "shortcutsModalCloseIcon"]);
-    bindModal(["feedbackBtn"], "feedbackModal", ["closeFeedbackModalBtn", "feedbackModalCloseIcon"]);
+    bindModal(
+        ["shortcutsHelpBtn", "shortcutsMenuBtn", "footerShortcutsBtn", "landingShortcutsBtn", "shortcutsBtn", "menuShortcutsBtn"],
+        "shortcutsModal",
+        ["closeShortcutsBtn", "shortcutsDoneBtn", "closeShortcutsModalBtn", "shortcutsModalCloseIcon"]
+    );
+    bindModal(
+        ["feedbackBtn", "landingFeedbackBtn", "footerFeedbackBtn", "feedbackMenuBtn"],
+        "feedbackModal",
+        ["closeFeedbackModalBtn", "feedbackModalCloseIcon", "closeFeedbackBtn", "dismissFeedbackModalBtn"]
+    );
+
+    // Global Hotkey for Keyboard Shortcuts Modal (? or Shift+/ or F1)
+    window.addEventListener("keydown", e => {
+        const active = document.activeElement;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT" || active.isContentEditable)) {
+            return;
+        }
+
+        // Open Shortcuts Modal on ?, Shift+/, F1, or Cmd+Shift+? / Ctrl+Shift+?
+        if (e.key === "?" || e.key === "F1" || (e.shiftKey && (e.key === "/" || e.code === "Slash"))) {
+            e.preventDefault();
+            const modal = document.getElementById("shortcutsModal");
+            if (modal && (modal.classList.contains("active") || modal.style.display === "flex")) {
+                closeShortcutsModal();
+            } else {
+                openShortcutsModal();
+            }
+            return;
+        }
+
+        // Escape closes shortcutsModal if open
+        if (e.key === "Escape") {
+            const modal = document.getElementById("shortcutsModal");
+            if (modal && (modal.classList.contains("active") || modal.style.display === "flex")) {
+                e.preventDefault();
+                closeShortcutsModal();
+            }
+        }
+    });
 
     // 6. Feedback Modal Form Submission
     const feedbackForm = document.getElementById("feedbackForm");
@@ -125,14 +188,16 @@ function bootstrapApp() {
 }
 
 // ── Bootstrap Execution ─────────────────────────────────────────────
-if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", bootstrapApp);
-} else {
-    bootstrapApp();
+if (typeof window !== "undefined" && typeof document !== "undefined" && typeof history !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", bootstrapApp);
+    } else {
+        bootstrapApp();
+    }
 }
 
 // ── Progressive Web App (PWA) Offline Engine ────────────────────────
-if ("serviceWorker" in navigator && !window.location.host.startsWith("localhost")) {
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator && typeof window !== "undefined" && !window.location.host.startsWith("localhost")) {
     window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").then(reg => {
             console.log("[PWA] Service Worker registered for offline execution:", reg.scope);
@@ -152,6 +217,7 @@ export const prefetchEditorAndLibraries = () => {
 };
 
 function attachIntentPrefetch() {
+    if (typeof document === "undefined") return;
     const triggerIds = ["navUploadBtn", "heroBrowseBtn", "heroOpenProjectBtn", "heroDropzone", "landingPdfUpload", "heroPdfUpload"];
     const triggerElements = triggerIds.map(id => document.getElementById(id)).filter(Boolean);
     const templateCards = document.querySelectorAll(".template-card, .sol-grid .tile, .sample-card");
@@ -184,8 +250,10 @@ function attachIntentPrefetch() {
     });
 }
 
-if (document.readyState === "complete") {
-    attachIntentPrefetch();
-} else {
-    window.addEventListener("load", attachIntentPrefetch, { once: true });
+if (typeof document !== "undefined" && typeof window !== "undefined") {
+    if (document.readyState === "complete") {
+        attachIntentPrefetch();
+    } else {
+        window.addEventListener("load", attachIntentPrefetch, { once: true });
+    }
 }
