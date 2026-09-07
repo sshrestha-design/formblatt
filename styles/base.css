@@ -342,3 +342,23 @@ button:focus-visible,
     color: var(--text-placeholder, #475569) !important;
     opacity: 1 !important;
 }
+
+/* ── Icon Stability & CLS Guards ─────────────────────────────── */
+i[data-lucide] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1em;
+    height: 1em;
+    min-width: 14px;
+    min-height: 14px;
+    vertical-align: middle;
+    box-sizing: border-box;
+}
+
+svg[data-lucide],
+.lucide {
+    display: inline-block;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
