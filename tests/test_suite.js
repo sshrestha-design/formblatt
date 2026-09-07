@@ -905,6 +905,11 @@ async function runAllTests() {
         assert.equal(typeof isEditorActive, 'function', 'isEditorActive must be an exported function');
     });
 
+    it("main.js does not auto-open blank canvas editor on stale #editor hash", () => {
+        const mainJs = fs.readFileSync(path.join(WEB_DIR, 'js', 'main.js'), 'utf8');
+        assert.ok(!mainJs.includes('loadTemplate("blank"'), 'main.js must not auto-load blank template on startup');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
