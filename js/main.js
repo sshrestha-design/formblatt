@@ -5,6 +5,7 @@ import { initGradientWaves } from "./gradient-waves.js";
 import { initTooltips } from "./tooltip.js";
 import { showToast } from "./toast.js";
 import { triggerHaptic } from "./haptics.js";
+import { initCommandPalette } from "./command-palette.js";
 
 // Initialize Vercel Analytics event queue
 window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -28,13 +29,16 @@ function bootstrapApp() {
         import("./editor-app.js").then(editor => editor.refreshUI());
     });
 
-    // 2. Prevent mobile browser double-tap pinch zoom
+    // 2. Initialize Command Palette (⌘K / Ctrl+K)
+    initCommandPalette();
+
+    // 3. Prevent mobile browser double-tap pinch zoom
     initUiZoomGuard();
 
-    // 3. Initialize dynamic tooltips & accessibility
+    // 4. Initialize dynamic tooltips & accessibility
     initTooltips();
 
-    // 4. Initialize Interactive Gradient Waves Canvas Background
+    // 5. Initialize Interactive Gradient Waves Canvas Background
     initGradientWaves();
 
     // 5. Global Shortcuts Modal
