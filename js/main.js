@@ -12,6 +12,7 @@ import { saveHistory, undo, redo, exportProjectJson, importProjectJson } from ".
 import { showToast } from "./toast.js";
 import { triggerHaptic } from "./haptics.js";
 import { initTooltips } from "./tooltip.js";
+import { initGradientWaves } from "./gradient-waves.js";
 
 // Initialize Vercel Analytics event queue
 window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
@@ -159,6 +160,32 @@ const bootstrapApp = async () => {
     initLandingController(() => refreshUI());
     initUiZoomGuard();
     initTooltips();
+    try {
+        initGradientWaves('heroGradientWaves', {
+            horizonColor: '#083E8A', // Deep Formblatt Brand Blue (Primary anchor)
+            waveColor: '#F59E0B',    // Warm Amber Gold (180° Complementary to brand blue)
+            crestColor: '#FFFFFF',   // Crisp white light reflection on wave crests
+            speed: 0.4,
+            amplitude: 2.5,
+            waveScale: 0.6,
+            waveRatio: 0.9,
+            swell: 35,
+            turbulence: 20,
+            tilt: 1.11,
+            zoom: 1.0,
+            height: 5.5,
+            fogDepth: 15,
+            detail: 'medium',
+            brightness: 1.0,
+            opacity: 1.0,
+            mouseInteraction: true,
+            parallaxStrength: 0.5,
+            grain: true,
+            grainIntensity: 0.05
+        });
+    } catch (e) {
+        console.warn('[GradientWaves] init error', e);
+    }
     if (typeof lucide !== "undefined") lucide.createIcons();
 
     let lastMousePos = { clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 };
