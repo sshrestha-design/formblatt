@@ -466,19 +466,21 @@ export async function loadTemplate(key, onLoaded) {
 }
 
 export function initLandingController(onLoaded) {
-    // Set initial baseline history state
-    if (!history.state) {
-        history.replaceState({ screen: "landing" }, "", window.location.pathname);
+    // Set initial baseline history state and purge stale #editor hashes if no doc is active
+    if (!history.state || (window.location.hash === "#editor" && !state.pdfDoc)) {
+        try {
+            history.replaceState({ screen: "landing" }, "", window.location.pathname);
+        } catch (e) {}
     }
 
     // Handle Browser Back / Forward Buttons (popstate)
     window.addEventListener("popstate", e => {
         const editor = document.getElementById("appEditorScreen");
         const isEditorActive = Boolean(editor && (document.body.classList.contains("editor-active") || editor.classList.contains("active") || editor.style.display === "flex" || editor.style.display === "block"));
-        const hasActiveSession = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0) || isEditorActive);
+        const hasUnsavedWork = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0));
 
-        if (hasActiveSession) {
-            // Keep editor visible
+        if (isEditorActive && hasUnsavedWork) {
+            // Keep editor visible and confirm leaving if unsaved work is at stake
             if (editor) editor.style.display = "flex";
             document.body.classList.add("editor-active");
             const landing = document.getElementById("landingScreen");

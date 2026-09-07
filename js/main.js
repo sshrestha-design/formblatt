@@ -108,19 +108,19 @@ function bootstrapApp() {
     // 7. Render dynamic customer reviews
     renderLandingReviews();
 
-    // 8. Handle direct deep link to editor
-    if (window.location.hash === "#editor" || window.location.hash.startsWith("#template=")) {
-        const hash = window.location.hash;
-        if (hash.startsWith("#template=")) {
-            const tplKey = hash.replace("#template=", "");
+    // 8. Handle direct deep link to specific starter templates (e.g. #template=w9)
+    if (window.location.hash.startsWith("#template=")) {
+        const tplKey = window.location.hash.replace("#template=", "");
+        if (tplKey && tplKey !== "blank") {
             loadTemplate(tplKey, () => {
                 import("./editor-app.js").then(editor => editor.refreshUI());
             });
-        } else if (hash === "#editor") {
-            loadTemplate("blank", () => {
-                import("./editor-app.js").then(editor => editor.refreshUI());
-            });
         }
+    } else if (window.location.hash === "#editor" && !state.pdfDoc) {
+        // Clean up any stale #editor hash from previous sessions without auto-opening blank canvas
+        try {
+            history.replaceState({ screen: "landing" }, "", window.location.pathname);
+        } catch (e) {}
     }
 }
 
