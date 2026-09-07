@@ -501,10 +501,15 @@ export const COMMANDS = [
         icon: "keyboard",
         kbd: "?",
         action: () => {
-            const modal = document.getElementById("shortcutsModal");
-            if (modal) {
-                modal.style.display = "flex";
-                if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+            if (typeof window.openShortcutsModal === "function") {
+                window.openShortcutsModal();
+            } else {
+                const modal = document.getElementById("shortcutsModal");
+                if (modal) {
+                    modal.style.display = "flex";
+                    modal.classList.add("active");
+                    if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+                }
             }
         }
     },

@@ -821,7 +821,28 @@ export function initEditorSubsystems() {
             return;
         }
 
-        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT") {
+        if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA" || e.target.tagName === "SELECT" || e.target.isContentEditable) {
+            return;
+        }
+
+        // Open Shortcuts Modal on ?, F1, or Cmd+Shift+? / Ctrl+Shift+?
+        if (e.key === "?" || e.key === "F1" || (e.shiftKey && (e.key === "/" || e.code === "Slash"))) {
+            e.preventDefault();
+            const modal = document.getElementById("shortcutsModal");
+            if (modal && (modal.classList.contains("active") || modal.style.display === "flex")) {
+                if (typeof window.closeShortcutsModal === "function") window.closeShortcutsModal();
+                else {
+                    modal.style.display = "none";
+                    modal.classList.remove("active");
+                }
+            } else {
+                if (typeof window.openShortcutsModal === "function") window.openShortcutsModal();
+                else {
+                    modal.style.display = "flex";
+                    modal.classList.add("active");
+                    if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+                }
+            }
             return;
         }
 
@@ -910,8 +931,8 @@ export function initEditorSubsystems() {
             return;
         }
 
-        // Toggle Right Properties Sidebar (Ctrl+/ / Cmd+/ or Ctrl+] / Cmd+])
-        if ((e.ctrlKey || e.metaKey) && (e.key === "/" || e.key === "]" || e.code === "Slash" || e.code === "BracketRight")) {
+        // Toggle Right Properties Sidebar (Ctrl+] / Cmd+] or Ctrl+/ without shift)
+        if ((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "/" || e.key === "]" || e.code === "BracketRight")) {
             e.preventDefault();
             toggleRightSidebar();
             return;
