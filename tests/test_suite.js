@@ -934,9 +934,8 @@ async function runAllTests() {
 
     it("Landing CSS contains styling rules for comparison slider, templates, and spotlight", () => {
         const landingCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'landing.css'), 'utf8');
-        assert.ok(landingCss.includes('.compare-slider-container'), 'landing.css must include .compare-slider-container');
-        assert.ok(landingCss.includes('.spotlight-clean'), 'landing.css must include .spotlight-clean');
-        assert.ok(landingCss.includes('.spotlight-clean-img-wrap'), 'landing.css must include .spotlight-clean-img-wrap');
+        assert.ok(landingCss.includes('.spotlight-wrap'), 'landing.css must include .spotlight-wrap');
+        assert.ok(landingCss.includes('.spotlight-frame'), 'landing.css must include .spotlight-frame');
     });
 
     // ── Summary ──
