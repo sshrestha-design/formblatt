@@ -166,9 +166,9 @@
                         <a href="#faq" onclick="document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}); return false;">FAQ</a>
                     </div>
                     <label for="landingPdfUpload" class="nav-cta" id="navUploadBtn" style="cursor: pointer;">
-                        <span>Upload PDF</span>
+                        <span>Open PDF</span>
                     </label>
-                    <input type="file" id="landingPdfUpload" aria-label="Upload PDF or Formblatt project" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                    <input type="file" id="landingPdfUpload" aria-label="Open PDF or Formblatt project" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                 </nav>
             </div>
         </header>
@@ -663,9 +663,9 @@
     <div id="appEditorScreen" style="display: none; height: 100vh; flex-direction: column; overflow: hidden;">
         <header class="toolbar">
             <div class="toolbar-left">
-                <span class="editor-brand-logo" id="editorBrandLogo" title="Formblatt Dashboard" aria-label="Formblatt Dashboard" role="button" tabindex="0">
+                <button type="button" class="editor-brand-logo" id="editorBrandLogo" title="Formblatt Dashboard" aria-label="Formblatt Dashboard">
                     <span class="editor-brand-icon">
-                        <svg viewBox="0 0 40 40" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 40 40" width="22" height="22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <defs>
                                 <linearGradient id="fbEdCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
                                     <stop offset="0%" stop-color="#ffffff" />
@@ -687,7 +687,7 @@
                         </svg>
                     </span>
                     <span class="editor-brand-name"><span class="brand-name-primary">Form</span><span class="brand-name-accent">blatt</span></span>
-                </span>
+                </button>
                 <div class="tool-divider" style="margin: 0 2px; height: 18px;"></div>
                 <button id="toggleSidebarBtn" class="toolbar-action-btn" data-tooltip="Toggle Layers Sidebar" data-kbd="⌘\" aria-label="Toggle Layers">
                     <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
@@ -717,8 +717,8 @@
                         </button>
                         <div class="dropdown-divider"></div>
                         <label class="dropdown-item" role="menuitem">
-                            <i data-lucide="file-up" style="width:14px; height:14px;"></i> Upload PDF
-                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Upload PDF from menu">
+                            <i data-lucide="file-up" style="width:14px; height:14px;"></i> Open PDF
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file from menu">
                         </label>
                         <div class="dropdown-divider"></div>
                         <button class="dropdown-item" id="saveProjectMenuBtn" role="menuitem">
@@ -904,20 +904,20 @@
             <main class="center-canvas" id="centerCanvas" style="flex: 1; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 36px 36px 36px 36px;">
                 <div id="emptyState" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: #64748b; display: flex; flex-direction: column; align-items: center; gap: 14px; z-index: 10; pointer-events: none; background: #ffffff; padding: 36px 48px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.06); border: 1px dashed #cbd5e1; max-width: 420px;">
                     <div style="width: 56px; height: 56px; border-radius: 12px; background: #eff6ff; display: flex; align-items: center; justify-content: center; color: #2563eb;">
-                        <i data-lucide="file-up" style="width: 28px; height: 28px;"></i>
+                        <i data-lucide="file-text" style="width: 28px; height: 28px;"></i>
                     </div>
                     <div>
                         <h3 style="margin: 0 0 6px; font-size: 16px; color: #1e293b; font-weight: 700;">No Document Loaded</h3>
-                        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Please upload a PDF document or pick a starter template to begin placing form fields.</p>
+                        <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">Please open a PDF document or pick a starter template to begin placing form fields.</p>
                     </div>
                     <div style="display: flex; gap: 10px; margin-top: 6px; flex-wrap: wrap; justify-content: center; pointer-events: auto;">
                         <button type="button" id="emptyStateCreateBlankBtn" class="btn-primary" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px;">
                             <i data-lucide="plus-circle" style="width: 15px; height: 15px;"></i> Create Blank Form
                         </button>
                         <button type="button" id="emptyStateUploadBtn" class="btn-secondary" onclick="document.getElementById('emptyStateUpload').click()" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; background: #ffffff; border: 1px solid #cbd5e1;">
-                            <i data-lucide="upload" style="width: 15px; height: 15px;"></i> Upload PDF
+                            <i data-lucide="folder-open" style="width: 15px; height: 15px;"></i> Open PDF
                         </button>
-                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
+                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF document">
                     </div>
                 </div>
                 
