@@ -1,12 +1,19 @@
 // ── PDF.js Rendering & Navigation Pipeline (js/pdf-engine.js) ─
 import { state, updateDocumentTitle } from "./state.js";
 
+export function ensurePdfJsConfigured() {
+    if (typeof window !== "undefined" && window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    }
+}
+
 let renderTask = null;
 let currentRenderPage = null;
 let lastRasterScale = 1.0;
 let rasterDebounceTimer = null;
 
 export async function renderPage(forceRerender = false) {
+    ensurePdfJsConfigured();
     if (!state.pdfDoc) return;
     const canvas = document.getElementById("pdfCanvas");
     const container = document.getElementById("canvasContainer");

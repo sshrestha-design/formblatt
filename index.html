@@ -110,21 +110,18 @@
     }
     </script>
 
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Preconnect & DNS-Prefetch for Fast CDN Asset Loading -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://unpkg.com">
+
     <link rel="stylesheet" href="styles/fonts.css?v=12.0">
     <link rel="stylesheet" href="styles/base.css?v=12.0">
     <link rel="stylesheet" href="styles/landing.css?v=12.0">
     <link rel="stylesheet" href="styles/editor.css?v=13.0">
     <link rel="stylesheet" href="styles/canvas.css?v=12.0">
     <link rel="stylesheet" href="styles/modals.css?v=12.0">
-    
-    <!-- PDF.js for rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script>pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';</script>
-    
-    <!-- PDF-Lib for generating & Fontkit for TrueType embedding -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-    <script src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js"></script>
 
     <!-- Vercel Web Analytics -->
     <script defer src="/_vercel/insights/script.js"></script>
@@ -168,14 +165,15 @@
                         <a href="#compatibility" onclick="document.getElementById('compatibility')?.scrollIntoView({behavior:'smooth'}); return false;">Compatibility</a>
                         <a href="#faq" onclick="document.getElementById('faq')?.scrollIntoView({behavior:'smooth'}); return false;">FAQ</a>
                     </div>
-                    <label for="landingPdfUpload" class="nav-cta" id="navUploadBtn" role="button" tabindex="0" style="cursor: pointer;">
+                    <label for="landingPdfUpload" class="nav-cta" id="navUploadBtn" style="cursor: pointer;">
                         <span>Upload PDF</span>
                     </label>
-                    <input type="file" id="landingPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                    <input type="file" id="landingPdfUpload" aria-label="Upload PDF or Formblatt project" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                 </nav>
             </div>
         </header>
 
+        <main id="landingMain">
         <!-- Hero Section -->
         <section class="hero-section" id="hero">
             <div class="hero-inner">
@@ -191,14 +189,14 @@
                         </p>
 
                         <div class="cta-row">
-                            <label for="heroPdfUpload" class="btn-primary" id="heroBrowseBtn" role="button" tabindex="0" style="cursor: pointer;">
+                            <label for="heroPdfUpload" class="btn-primary" id="heroBrowseBtn" style="cursor: pointer;">
                                 <span>Browse PDF File</span>
                             </label>
-                            <input type="file" id="heroPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
-                            <label for="heroOpenProjectUpload" class="btn-secondary" id="heroOpenProjectBtn" role="button" tabindex="0" title="Open a previously saved editable Formblatt project backup file" style="cursor: pointer;">
+                            <input type="file" id="heroPdfUpload" aria-label="Browse PDF file" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                            <label for="heroOpenProjectUpload" class="btn-secondary" id="heroOpenProjectBtn" title="Open a previously saved editable Formblatt project backup file" style="cursor: pointer;">
                                 <span>Open Saved Project (.formblatt)</span>
                             </label>
-                            <input type="file" id="heroOpenProjectUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                            <input type="file" id="heroOpenProjectUpload" aria-label="Open saved project file" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                         </div>
 
                         <div class="trusted">
@@ -282,8 +280,7 @@
             </div>
         </section>
 
-        <main>
-            <!-- WHY -->
+        <!-- WHY -->
             <section class="section" id="why">
                 <div class="section-head center reveal">
                     <div class="eyebrow">WHY FORMBLATT</div>
@@ -591,10 +588,10 @@
             <div class="cta-band reveal">
                 <h2>Have a PDF that needs form fields or a signature?</h2>
                 <p>Drop it in and export your completed fillable PDF in seconds.</p>
-                <label for="footerPdfUpload" class="btn-inverse" id="footerBrowseBtn" role="button" tabindex="0" style="cursor: pointer;">
+                <label for="footerPdfUpload" class="btn-inverse" id="footerBrowseBtn" style="cursor: pointer;">
                     <span>Browse PDF File</span>
                 </label>
-                <input type="file" id="footerPdfUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                <input type="file" id="footerPdfUpload" aria-label="Browse PDF file from footer" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
             </div>
         </main>
 
@@ -707,90 +704,90 @@
                     </button>
                 </div>
                 <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn" data-tooltip="File &amp; Project Menu" aria-label="File menu">
+                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn" data-tooltip="File &amp; Project Menu" aria-label="File menu" aria-haspopup="true" aria-expanded="false">
                         <i data-lucide="folder" style="width: 15px; height: 15px;"></i>
                     </button>
 
-                    <div class="dropdown-content">
-                        <button class="dropdown-item" id="newBlankDocMenuBtn">
+                    <div class="dropdown-content" role="menu" aria-label="File menu actions">
+                        <button class="dropdown-item" id="newBlankDocMenuBtn" role="menuitem">
                             <i data-lucide="file-plus" style="width:14px; height:14px; color:#2563eb;"></i> New Blank Document
                         </button>
-                        <button class="dropdown-item" id="menuHomeBtn">
+                        <button class="dropdown-item" id="menuHomeBtn" role="menuitem">
                             <i data-lucide="home" style="width:14px; height:14px;"></i> Home Dashboard
                         </button>
                         <div class="dropdown-divider"></div>
-                        <label class="dropdown-item">
+                        <label class="dropdown-item" role="menuitem">
                             <i data-lucide="file-up" style="width:14px; height:14px;"></i> Upload PDF
-                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;">
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Upload PDF from menu">
                         </label>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="saveProjectMenuBtn">
+                        <button class="dropdown-item" id="saveProjectMenuBtn" role="menuitem">
                             <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.formblatt)
                         </button>
-                        <label class="dropdown-item">
+                        <label class="dropdown-item" role="menuitem">
                             <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.formblatt)
-                            <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;">
+                            <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;" aria-label="Load project file from menu">
                         </label>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="feedbackMenuBtn">
+                        <button class="dropdown-item" id="feedbackMenuBtn" role="menuitem">
                             <i data-lucide="message-square-plus" style="width:14px; height:14px; color:#2563eb;"></i> Feedback & Review
                         </button>
-                        <button class="dropdown-item" id="toggleGuidesMenuBtn">
+                        <button class="dropdown-item" id="toggleGuidesMenuBtn" role="menuitem">
                             <i data-lucide="grid" style="width:14px; height:14px; color:#2563eb;"></i> <span id="toggleGuidesMenuText">Smart Guides: ON</span> <span style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘;</span>
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="shortcutsMenuBtn">
+                        <button class="dropdown-item" id="shortcutsMenuBtn" role="menuitem">
                             <i data-lucide="keyboard" style="width:14px; height:14px;"></i> Keyboard Shortcuts
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item danger" id="newProjectMenuBtn">
+                        <button class="dropdown-item danger" id="newProjectMenuBtn" role="menuitem">
                             <i data-lucide="trash-2" style="width:14px; height:14px;"></i> New Project (Clear All)
                         </button>
                     </div>
                 </div>
 
                 <div class="dropdown-menu" id="editMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn" data-tooltip="Edit &amp; Clipboard Menu" aria-label="Edit menu">
+                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn" data-tooltip="Edit &amp; Clipboard Menu" aria-label="Edit menu" aria-haspopup="true" aria-expanded="false">
                         <i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i>
                     </button>
 
-                    <div class="dropdown-content">
-                        <button class="dropdown-item" id="menuUndoBtn">
+                    <div class="dropdown-content" role="menu" aria-label="Edit menu actions">
+                        <button class="dropdown-item" id="menuUndoBtn" role="menuitem">
                             <i data-lucide="undo-2" style="width:14px; height:14px;"></i> Undo
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘Z</span>
                         </button>
-                        <button class="dropdown-item" id="menuRedoBtn">
+                        <button class="dropdown-item" id="menuRedoBtn" role="menuitem">
                             <i data-lucide="redo-2" style="width:14px; height:14px;"></i> Redo
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘⇧Z</span>
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="menuCutBtn">
+                        <button class="dropdown-item" id="menuCutBtn" role="menuitem">
                             <i data-lucide="scissors" style="width:14px; height:14px;"></i> Cut
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘X</span>
                         </button>
-                        <button class="dropdown-item" id="menuCopyBtn">
+                        <button class="dropdown-item" id="menuCopyBtn" role="menuitem">
                             <i data-lucide="copy" style="width:14px; height:14px;"></i> Copy
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘C</span>
                         </button>
-                        <button class="dropdown-item" id="menuPasteBtn">
+                        <button class="dropdown-item" id="menuPasteBtn" role="menuitem">
                             <i data-lucide="clipboard" style="width:14px; height:14px;"></i> Paste
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘V</span>
                         </button>
-                        <button class="dropdown-item" id="menuDuplicateBtn">
+                        <button class="dropdown-item" id="menuDuplicateBtn" role="menuitem">
                             <i data-lucide="copy-plus" style="width:14px; height:14px;"></i> Duplicate
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘D</span>
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="menuSelectAllBtn">
+                        <button class="dropdown-item" id="menuSelectAllBtn" role="menuitem">
                             <i data-lucide="check-square" style="width:14px; height:14px;"></i> Select All
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘A</span>
                         </button>
-                        <button class="dropdown-item" id="menuDeselectAllBtn">
+                        <button class="dropdown-item" id="menuDeselectAllBtn" role="menuitem">
                             <i data-lucide="square-dashed" style="width:14px; height:14px;"></i> Deselect All
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">Esc</span>
                         </button>
                         <div class="dropdown-divider"></div>
-                        <button class="dropdown-item danger" id="menuDeleteBtn">
+                        <button class="dropdown-item danger" id="menuDeleteBtn" role="menuitem">
                             <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete Selected
                             <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#ef4444; font-weight:600;">Del</span>
                         </button>
@@ -1449,7 +1446,7 @@
     </div> <!-- close appEditorScreen -->
 
     <!-- Preview Modal -->
-    <div id="previewModal" class="modal">
+    <div id="previewModal" class="modal" role="dialog" aria-modal="true" aria-label="Live Form Preview">
         <div class="modal-content" style="display: flex; flex-direction: column; height: 90vh; max-width: 900px; padding: 0; overflow: hidden; border-radius: 10px;">
             <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 8px;">
@@ -1463,11 +1460,11 @@
                     <button id="previewDownloadBtn" class="btn-success" style="padding: 6px 14px; font-size: 12px; height: 32px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="download" style="width:14px; height:14px;"></i> Download PDF
                     </button>
-                    <button id="closePreviewBtn" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; line-height: 1; padding: 0 4px;">&times;</button>
+                    <button id="closePreviewBtn" aria-label="Close live preview" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b; line-height: 1; padding: 0 4px;">&times;</button>
                 </div>
             </div>
             <div style="flex: 1; width: 100%; position: relative; background: #525659;">
-                <iframe id="previewIframe" src="" width="100%" height="100%" frameborder="0" style="border: none; width: 100%; height: 100%;"></iframe>
+                <iframe id="previewIframe" src="" width="100%" height="100%" frameborder="0" style="border: none; width: 100%; height: 100%;" title="Interactive Form Preview"></iframe>
             </div>
         </div>
     </div>
@@ -1485,14 +1482,14 @@
     </div>
 
     <!-- Interactive Signature Modal -->
-    <div id="signatureModal" class="modal">
+    <div id="signatureModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="sigModalHeading">
         <div class="modal-content" style="max-width: 500px; padding: 20px; border-radius: 12px; background: white;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                 <div style="display:flex; align-items:center; gap:8px;">
                     <i data-lucide="pen-tool" style="width:18px; height:18px; color:var(--primary-color);"></i>
-                    <h3 style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">Sign Document</h3>
+                    <h3 id="sigModalHeading" style="margin:0; font-size:16px; font-weight:700; color:#1e293b;">Sign Document</h3>
                 </div>
-                <button id="closeSignatureBtn" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+                <button id="closeSignatureBtn" aria-label="Close signature dialog" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
             </div>
             <div class="sig-tabs" style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
                 <button id="tabDrawBtn" class="sig-tab active" style="padding:6px 14px; font-size:13px; font-weight:600; border:none; background:#eff6ff; color:#2563eb; border-radius:6px; cursor:pointer;">Draw Signature</button>
@@ -1500,7 +1497,7 @@
             </div>
             <div id="sigDrawPanel">
                 <div style="border:1.5px dashed #cbd5e1; border-radius:8px; background:#fafafa; position:relative; overflow:hidden;">
-                    <canvas id="signatureCanvas" width="460" height="150" style="display:block; cursor:crosshair; width:100%; height:150px;"></canvas>
+                    <canvas id="signatureCanvas" width="460" height="150" aria-label="Signature drawing canvas" style="display:block; cursor:crosshair; width:100%; height:150px;"></canvas>
                     <div style="position:absolute; bottom:12px; left:16px; right:16px; border-bottom:1px solid #cbd5e1; pointer-events:none;"></div>
                     <div style="position:absolute; bottom:14px; left:16px; font-size:11px; color:#94a3b8; pointer-events:none;">Sign above the line</div>
                 </div>
@@ -1510,7 +1507,7 @@
                 </div>
             </div>
             <div id="sigTypePanel" style="display:none;">
-                <input type="text" id="sigTypeInput" placeholder="Type your full name..." style="width:100%; padding:10px; font-size:15px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px;">
+                <input type="text" id="sigTypeInput" aria-label="Type your full name for signature" placeholder="Type your full name..." style="width:100%; padding:10px; font-size:15px; border:1px solid #cbd5e1; border-radius:6px; margin-bottom:12px;">
                 <div id="sigTypePreview" style="height:110px; display:flex; align-items:center; justify-content:center; font-family:'Brush Script MT', 'Caveat', cursive, serif; font-size:38px; color:#1e293b; background:#fafafa; border:1.5px dashed #cbd5e1; border-radius:8px;">
                     Your Signature
                 </div>
@@ -1523,7 +1520,7 @@
     </div>
 
     <!-- Keyboard Shortcuts & Help Modal -->
-    <div id="shortcutsModal" class="modal">
+    <div id="shortcutsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalHeading">
         <div class="modal-content" style="max-width: 700px; padding: 24px; border-radius: 14px; background: white;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -1531,11 +1528,11 @@
                         <i data-lucide="keyboard" style="width:16px; height:16px; color:#2563eb;"></i>
                     </div>
                     <div>
-                        <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Keyboard Shortcuts & Help</h3>
+                        <h3 id="shortcutsModalHeading" style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Keyboard Shortcuts & Help</h3>
                         <p style="margin:0; font-size:12px; color:#64748b;">Master Formblatt like a pro with instant hotkeys</p>
                     </div>
                 </div>
-                <button id="closeShortcutsBtn" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+                <button id="closeShortcutsBtn" aria-label="Close keyboard shortcuts dialog" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
             </div>
 
             <div class="shortcuts-grid">
@@ -1744,7 +1741,7 @@
     </div>
     
     <!-- User Suggestions & Review Modal -->
-    <div id="feedbackModal" class="modal" style="display: none;">
+    <div id="feedbackModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="feedbackModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 520px; padding: 26px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 40px rgba(0,0,0,0.18);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid #f1f5f9; padding-bottom:12px;">
                 <div style="display:flex; align-items:center; gap:10px;">
@@ -1752,11 +1749,11 @@
                         <i data-lucide="message-square-plus" style="width:18px; height:18px; color:#2563eb;"></i>
                     </div>
                     <div>
-                        <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Suggestions & Review</h3>
+                        <h3 id="feedbackModalHeading" style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Suggestions & Review</h3>
                         <p style="margin:2px 0 0; font-size:12px; color:#64748b;">Share your opinion or feature request directly with Sagar Shrestha</p>
                     </div>
                 </div>
-                <button type="button" id="closeFeedbackBtn" style="background:none; border:none; cursor:pointer; padding:4px; color:#94a3b8;">
+                <button type="button" id="closeFeedbackBtn" aria-label="Close suggestions and review dialog" style="background:none; border:none; cursor:pointer; padding:4px; color:#94a3b8;">
                     <i data-lucide="x" style="width:18px; height:18px;"></i>
                 </button>
             </div>
@@ -1764,17 +1761,17 @@
             <form id="feedbackForm" style="display:flex; flex-direction:column; gap:14px;">
                 <div>
                     <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Rate your experience</label>
-                    <div id="starRatingBox" style="display:flex; gap:8px; font-size:24px; cursor:pointer; color:#cbd5e1;">
-                        <span data-rating="1" title="Poor">★</span>
-                        <span data-rating="2" title="Fair">★</span>
-                        <span data-rating="3" title="Good">★</span>
-                        <span data-rating="4" title="Very Good">★</span>
-                        <span data-rating="5" title="Excellent!">★</span>
+                    <div id="starRatingBox" style="display:flex; gap:8px; font-size:24px; cursor:pointer; color:#cbd5e1;" role="radiogroup" aria-label="Rating">
+                        <span data-rating="1" title="Poor" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span data-rating="2" title="Fair" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span data-rating="3" title="Good" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span data-rating="4" title="Very Good" role="radio" aria-checked="false" tabindex="0">★</span>
+                        <span data-rating="5" title="Excellent!" role="radio" aria-checked="false" tabindex="0">★</span>
                     </div>
                 </div>
 
                 <div>
-                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Category</label>
+                    <label for="feedbackCategory" style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Category</label>
                     <select id="feedbackCategory" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; background:#f8fafc; outline:none;">
                         <option value="Feature Suggestion">Feature Suggestion</option>
                         <option value="General Review">General Review / Opinion</option>
@@ -1785,12 +1782,12 @@
                 </div>
 
                 <div>
-                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Your Name or Email (Optional)</label>
+                    <label for="feedbackSender" style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Your Name or Email (Optional)</label>
                     <input type="text" id="feedbackSender" placeholder="name@example.com or Your Name" style="width:100%; padding:8px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; outline:none;">
                 </div>
 
                 <div>
-                    <label style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Your Opinion / Suggestion <span style="color:#ef4444;">*</span></label>
+                    <label for="feedbackMessage" style="display:block; font-size:12px; font-weight:600; color:#334155; margin-bottom:6px;">Your Opinion / Suggestion <span style="color:#ef4444;">*</span></label>
                     <textarea id="feedbackMessage" rows="4" required placeholder="Tell us what you love, what can be improved, or features you'd like to see..." style="width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; color:#1e293b; outline:none; resize:vertical; font-family:inherit;"></textarea>
                 </div>
 
@@ -1821,7 +1818,7 @@
     </div>
 
     <!-- Intermediary Sample PDF Preview Modal -->
-    <div id="samplePreviewModal" class="modal">
+    <div id="samplePreviewModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="sampleModalTitle">
         <div class="modal-content" style="max-width: 540px; height: auto; max-height: 90vh; padding: 0; border-radius: 16px; overflow: hidden; background: #ffffff; box-shadow: 0 24px 48px rgba(15,23,42,0.25);">
             <div style="display: flex; align-items: center; justify-content: space-between; padding: 18px 22px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -1833,7 +1830,7 @@
                         <span id="sampleModalBadge" style="font-size: 11px; color: #2563eb; background: #eff6ff; padding: 1px 6px; border-radius: 4px; font-weight: 600;">Interactive Form Template</span>
                     </div>
                 </div>
-                <button type="button" id="closeSampleModalBtn" style="background: none; border: none; cursor: pointer; padding: 6px; color: #94a3b8; border-radius: 6px;">
+                <button type="button" id="closeSampleModalBtn" aria-label="Close sample preview dialog" style="background: none; border: none; cursor: pointer; padding: 6px; color: #94a3b8; border-radius: 6px;">
                     <i data-lucide="x" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
@@ -1878,7 +1875,7 @@
     </div>
 
     <!-- Pre-Export Fillable PDF Modal -->
-    <div id="exportModal" class="modal" style="display: none;">
+    <div id="exportModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="exportModalHeading" style="display: none;">
         <div class="modal-content" style="width: 480px; max-width: 92vw; padding: 26px; border-radius: 16px; background: #ffffff; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px -10px rgba(15,23,42,0.18);">
             <!-- Modal Header -->
             <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; margin-bottom: 18px;">
@@ -1887,11 +1884,11 @@
                         <i data-lucide="file-up" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Export Fillable PDF</h3>
+                        <h3 id="exportModalHeading" style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Export Fillable PDF</h3>
                         <span style="font-size: 12px; color: #475569;">Configure output format & custom filename</span>
                     </div>
                 </div>
-                <button type="button" id="closeExportModalBtn" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; border-radius: 6px;" title="Close (Esc)">
+                <button type="button" id="closeExportModalBtn" aria-label="Close export dialog" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; border-radius: 6px;" title="Close (Esc)">
                     <i data-lucide="x" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
@@ -1949,7 +1946,7 @@
     </div>
 
     <!-- Save Project (.jform) Modal -->
-    <div id="saveProjectModal" class="modal" style="display: none;">
+    <div id="saveProjectModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="saveProjectModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 480px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 40px rgba(15,23,42,0.2);">
             <!-- Modal Header -->
             <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; margin-bottom: 18px;">
@@ -1958,11 +1955,11 @@
                         <i data-lucide="save" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Save Project (.jform)</h3>
+                        <h3 id="saveProjectModalHeading" style="margin: 0; font-size: 16.5px; font-weight: 800; color: #0f172a;">Save Project (.jform)</h3>
                         <span style="font-size: 12px; color: #475569;">Choose whether to update current or save a new copy</span>
                     </div>
                 </div>
-                <button type="button" id="closeSaveProjectModalBtn" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; border-radius: 6px;" title="Close (Esc)">
+                <button type="button" id="closeSaveProjectModalBtn" aria-label="Close save project dialog" style="background: none; border: none; cursor: pointer; padding: 4px; color: #64748b; border-radius: 6px;" title="Close (Esc)">
                     <i data-lucide="x" style="width: 18px; height: 18px;"></i>
                 </button>
             </div>
@@ -2011,7 +2008,7 @@
     </div>
 
     <!-- Leave Editor Unsaved Changes Confirmation Modal -->
-    <div id="leaveEditorModal" class="modal" style="display: none;">
+    <div id="leaveEditorModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="leaveEditorHeading" style="display: none;">
         <div class="modal-content" style="max-width: 440px; padding: 24px; border-radius: 16px; background: #ffffff; box-shadow: 0 20px 45px -10px rgba(15,23,42,0.25);">
             <!-- Modal Header -->
             <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 18px;">
@@ -2019,7 +2016,7 @@
                     <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
                 </div>
                 <div style="flex: 1; min-width: 0;">
-                    <h3 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 1.3; letter-spacing: -0.01em;">Leave Form Editor?</h3>
+                    <h3 id="leaveEditorHeading" style="margin: 0 0 6px 0; font-size: 16px; font-weight: 700; color: #0f172a; line-height: 1.3; letter-spacing: -0.01em;">Leave Form Editor?</h3>
                     <p style="margin: 0; font-size: 12.5px; color: #64748b; line-height: 1.55; text-align: left;">
                         You have an active document in progress. Returning to the home screen will reset your workspace unless you save your project.
                     </p>
@@ -2089,7 +2086,7 @@
     </div>
 
     <!-- Privacy Policy Modal -->
-    <div id="privacyModal" class="modal" style="display: none;">
+    <div id="privacyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="privacyModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 620px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2097,11 +2094,11 @@
                         <i data-lucide="shield" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy Policy</h3>
+                        <h3 id="privacyModalHeading" style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Privacy Policy</h3>
                         <span style="font-size: 12px; color: #64748b;">Last updated: August 27, 2026</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closePrivacyModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button type="button" class="modal-close-icon" id="closePrivacyModalBtn" aria-label="Close privacy policy dialog" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2127,7 +2124,7 @@
     </div>
 
     <!-- Terms of Service Modal -->
-    <div id="termsModal" class="modal" style="display: none;">
+    <div id="termsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="termsModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2135,11 +2132,11 @@
                         <i data-lucide="file-text" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Terms of Service</h3>
+                        <h3 id="termsModalHeading" style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Terms of Service</h3>
                         <span style="font-size: 12px; color: #64748b;">Open Source MIT License Terms</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeTermsModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button type="button" class="modal-close-icon" id="closeTermsModalBtn" aria-label="Close terms of service dialog" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2163,7 +2160,7 @@
     </div>
 
     <!-- Cookie & Local Storage Policy Modal -->
-    <div id="cookieModal" class="modal" style="display: none;">
+    <div id="cookieModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="cookieModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2171,11 +2168,11 @@
                         <i data-lucide="cookie" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Cookie and Storage Policy</h3>
+                        <h3 id="cookieModalHeading" style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Cookie and Storage Policy</h3>
                         <span style="font-size: 12px; color: #64748b;">Zero Advertising Cookies • Local Browser Storage Only</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeCookieModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button type="button" class="modal-close-icon" id="closeCookieModalBtn" aria-label="Close cookie policy dialog" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2201,7 +2198,7 @@
     </div>
 
     <!-- HIPAA & Compliance Architecture Modal -->
-    <div id="complianceModal" class="modal" style="display: none;">
+    <div id="complianceModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="complianceModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2209,11 +2206,11 @@
                         <i data-lucide="shield-check" style="width: 20px; height: 20px;"></i>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Compliance Notes</h3>
+                        <h3 id="complianceModalHeading" style="margin: 0; font-size: 18px; font-weight: 800; color: #0f172a;">Compliance Notes</h3>
                         <span style="font-size: 12px; color: #64748b;">Last updated: August 27, 2026</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeComplianceModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button type="button" class="modal-close-icon" id="closeComplianceModalBtn" aria-label="Close compliance notes dialog" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 14px; font-size: 14px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2233,12 +2230,12 @@
     </div>
 
     <!-- About Formblatt & Maintainer Modal -->
-    <div id="aboutModal" class="modal" style="display: none;">
+    <div id="aboutModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aboutModalHeading" style="display: none;">
         <div class="modal-content" style="max-width: 640px; padding: 28px; background: #ffffff; border-radius: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 20px;">
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <div class="brand-mark" style="width: 36px; height: 36px; border-radius: 10px;">
-                        <svg viewBox="0 0 40 40" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <svg viewBox="0 0 40 40" width="26" height="26" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                             <defs>
                                 <linearGradient id="fbAboutCheckGrad" x1="0%" y1="100%" x2="100%" y2="0%">
                                     <stop offset="0%" stop-color="#083E8A" />
@@ -2260,11 +2257,11 @@
                         </svg>
                     </div>
                     <div>
-                        <h3 style="margin: 0; font-size: 18px; color: #0f172a;"><span style="font-weight: 900;">About Form</span><span style="font-weight: 900; font-style: normal; color: #0B63CE; display: inline-block;">blatt</span></h3>
+                        <h3 id="aboutModalHeading" style="margin: 0; font-size: 18px; color: #0f172a;"><span style="font-weight: 900;">About Form</span><span style="font-weight: 900; font-style: normal; color: #0B63CE; display: inline-block;">blatt</span></h3>
                         <span style="font-size: 12px; color: #64748b;">Free • Open Source • Privacy-First</span>
                     </div>
                 </div>
-                <button type="button" class="modal-close-icon" id="closeAboutModalBtn" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
+                <button type="button" class="modal-close-icon" id="closeAboutModalBtn" aria-label="Close about dialog" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center;"><i data-lucide="x" style="width: 18px; height: 18px;"></i></button>
             </div>
             
             <div style="display: flex; flex-direction: column; gap: 16px; font-size: 13.5px; color: #475569; line-height: 1.65; max-height: 60vh; overflow-y: auto; padding-right: 6px;">
@@ -2310,6 +2307,12 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
+    <!-- Deferred core libraries to optimize FCP and LCP metrics -->
+    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script defer src="https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js"></script>
+
     <div id="floatingToolStamp" class="floating-tool-stamp"></div>
     <script type="module" src="js/main.js?v=12.0"></script>
 </body>

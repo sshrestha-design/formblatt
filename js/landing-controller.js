@@ -2,7 +2,7 @@
 import { state, updateDocumentTitle } from "./state.js";
 import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
 import { importExistingAcroFormFields } from "./auto-detector.js";
-import { renderPage, goToPage, analyzePdfDocument } from "./pdf-engine.js";
+import { renderPage, goToPage, analyzePdfDocument, ensurePdfJsConfigured } from "./pdf-engine.js";
 import { saveHistory, exportProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
 import { closeTour } from "./onboarding-tour.js";
@@ -339,6 +339,7 @@ export async function loadPdfFile(file, onLoaded) {
     }
 
     try {
+        ensurePdfJsConfigured();
         const bytes = new Uint8Array(await file.arrayBuffer());
         const loadingTask = pdfjsLib.getDocument({ data: bytes.slice() });
         const loadedDoc = await loadingTask.promise;
