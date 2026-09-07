@@ -1,11 +1,6 @@
 // ── Landing Page View Transitions & Actions (js/landing-controller.js) ─
 import { state, updateDocumentTitle } from "./state.js";
-import { STARTER_TEMPLATES, createTemplatePdf } from "./templates-engine.js";
-import { importExistingAcroFormFields } from "./auto-detector.js";
-import { renderPage, goToPage, analyzePdfDocument, ensurePdfJsConfigured, loadPdfLibraries } from "./pdf-engine.js";
-import { saveHistory, exportProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
-import { closeTour } from "./onboarding-tour.js";
 
 export function openLeaveEditorModal() {
     const leaveModal = document.getElementById("leaveEditorModal");
@@ -43,7 +38,9 @@ export function showLandingScreen(force = false, skipPush = false) {
     closeLeaveEditorModal();
 
     // Close any floating onboarding tours
-    try { closeTour(); } catch(e){}
+    try {
+        import("./onboarding-tour.js").then(tour => tour.closeTour?.()).catch(() => {});
+    } catch(e){}
     document.querySelectorAll(".onboarding-tour-popover").forEach(el => el.remove());
 
     // Restore standard scrolling
@@ -306,7 +303,7 @@ function renderExampleReviewsSection() {
     `;
 }
 
-export function showEditorScreen(onReady, skipPush = false) {
+export async function showEditorScreen(onReady, skipPush = false) {
     const landing = document.getElementById("landingScreen");
     const editor = document.getElementById("appEditorScreen");
     if (landing) landing.style.display = "none";
@@ -315,6 +312,10 @@ export function showEditorScreen(onReady, skipPush = false) {
         document.body.classList.add("editor-active");
         updateDocumentTitle();
     }
+
+    // Ensure editor subsystems are initialized
+    const { initEditorSubsystems } = await import("./editor-app.js");
+    initEditorSubsystems();
 
     // Manage history state so browser Back button returns to landing or prompts to save
     if (!skipPush) {
@@ -331,13 +332,16 @@ export async function loadPdfFile(file, onLoaded) {
     if (!file) return;
 
     if (file.name.endsWith(".json") || file.name.endsWith(".jform") || file.name.endsWith(".justforms") || file.name.endsWith(".formblatt") || file.name.endsWith(".fblatt")) {
-        import("./storage-manager.js").then(mod => {
-            mod.importProjectJson(file, onLoaded);
-        });
+        const { importProjectJson } = await import("./storage-manager.js");
+        importProjectJson(file, onLoaded);
         return;
     }
 
     try {
+        const { loadPdfLibraries, analyzePdfDocument, goToPage } = await import("./pdf-engine.js");
+        const { importExistingAcroFormFields } = await import("./auto-detector.js");
+        const { saveHistory } = await import("./storage-manager.js");
+
         await loadPdfLibraries();
         const bytes = new Uint8Array(await file.arrayBuffer());
         const loadingTask = pdfjsLib.getDocument({ data: bytes.slice() });
@@ -361,7 +365,7 @@ export async function loadPdfFile(file, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        showEditorScreen(() => {
+        await showEditorScreen(() => {
             goToPage(1).then(() => {
                 saveHistory();
                 if (onLoaded) onLoaded();
@@ -374,9 +378,14 @@ export async function loadPdfFile(file, onLoaded) {
 }
 
 export async function loadTemplate(key, onLoaded) {
-    const tpl = STARTER_TEMPLATES[key];
-    if (!tpl) return;
     try {
+        const { STARTER_TEMPLATES, createTemplatePdf } = await import("./templates-engine.js");
+        const { loadPdfLibraries, analyzePdfDocument, goToPage } = await import("./pdf-engine.js");
+        const { saveHistory } = await import("./storage-manager.js");
+
+        const tpl = STARTER_TEMPLATES[key];
+        if (!tpl) return;
+
         await loadPdfLibraries();
         state.originalPdfBytes = await createTemplatePdf(key);
         state.pdfDoc = await pdfjsLib.getDocument({ data: state.originalPdfBytes.slice() }).promise;
@@ -393,7 +402,7 @@ export async function loadTemplate(key, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        showEditorScreen(() => {
+        await showEditorScreen(() => {
             goToPage(1).then(() => {
                 saveHistory();
                 if (onLoaded) onLoaded();
@@ -479,9 +488,10 @@ export function initLandingController(onLoaded) {
         showLandingScreen(true);
     });
 
-    document.getElementById("saveAndLeaveEditorBtn")?.addEventListener("click", e => {
+    document.getElementById("saveAndLeaveEditorBtn")?.addEventListener("click", async e => {
         e.preventDefault();
         e.stopPropagation();
+        const { exportProjectJson } = await import("./storage-manager.js");
         const baseName = (state.fileName || "interactive_form").replace(/\.pdf$/i, "");
         exportProjectJson(baseName);
         closeLeaveEditorModal();
@@ -833,16 +843,18 @@ export function initLandingController(onLoaded) {
                 return;
             }
 
-            const tpl = STARTER_TEMPLATES[key];
-            pendingTemplateKey = key;
+            import("./templates-engine.js").then(({ STARTER_TEMPLATES }) => {
+                const tpl = STARTER_TEMPLATES[key];
+                pendingTemplateKey = key;
 
-            if (sampleTitle) sampleTitle.textContent = tpl ? tpl.title : "Sample Document Preview";
-            if (sampleDesc) sampleDesc.textContent = tpl ? `${tpl.description} Includes ${tpl.fields.length} pre-configured interactive fields.` : "Preview this pre-built sample document before editing.";
+                if (sampleTitle) sampleTitle.textContent = tpl ? tpl.title : "Sample Document Preview";
+                if (sampleDesc) sampleDesc.textContent = tpl ? `${tpl.description} Includes ${tpl.fields.length} pre-configured interactive fields.` : "Preview this pre-built sample document before editing.";
 
-            if (sampleModal) {
-                sampleModal.style.display = "flex";
-                if (typeof lucide !== "undefined") lucide.createIcons();
-            }
+                if (sampleModal) {
+                    sampleModal.style.display = "flex";
+                    if (typeof lucide !== "undefined") lucide.createIcons();
+                }
+            });
         });
     });
 
