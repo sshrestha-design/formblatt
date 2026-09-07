@@ -1,4 +1,6 @@
 // ── Starter Sample Templates & Vector Generator (js/templates-engine.js) ─
+import { loadPdfLibraries } from "./pdf-engine.js";
+
 export const STARTER_TEMPLATES = {
     blank: {
         title: "Blank Document (Letter)",
@@ -179,6 +181,7 @@ export const STARTER_TEMPLATES = {
 };
 
 export async function createTemplatePdf(key) {
+    await loadPdfLibraries();
     const { PDFDocument, StandardFonts, rgb } = PDFLib;
     const doc = await PDFDocument.create();
     const page = doc.addPage([595.28, 841.89]);
