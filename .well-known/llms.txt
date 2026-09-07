@@ -1,0 +1,37 @@
+# Formblatt
+
+> Formblatt (also known as JustForms) is a free, 100% client-side, private browser-based PDF Form Creator and ISO 32000-1 AcroForm Compiler. It allows users to convert static PDF documents into fully interactive, fillable forms with text fields, date pickers, dropdown choice menus, checkboxes, radio groups, and digital signature pads—entirely inside browser memory with zero server uploads and no account required.
+
+## Overview
+
+- **Production URL**: [https://justforms.vercel.app](https://justforms.vercel.app)
+- **Source Code Repository**: [https://github.com/sshrestha-design/justforms](https://github.com/sshrestha-design/justforms)
+- **Lead Architect & Author**: Sagar Shrestha ([https://sagarshrestha23.com.np](https://sagarshrestha23.com.np))
+- **License**: MIT
+- **Technology Stack**: Native ES Modules (ESM), Mozilla PDF.js, PDF-Lib, Vanilla HTML5 & CSS3
+
+## Core Capabilities
+
+- **100% Client-Side Privacy**: All PDF parsing (PDF.js) and AcroForm compilation (PDF-Lib) run entirely in browser memory. Documents, signatures, and form data never touch external cloud servers or databases.
+- **ISO 32000-1 Compliance**: Generates standard interactive AcroForm PDF files fully compatible with Adobe Acrobat Reader, Apple Preview, Google Chrome, Microsoft Edge, Mozilla Firefox, and DocuSign.
+- **Universal Auto-Detection**: 4-tiered automatic field detection engine analyzing native AcroForms, underlying vector graphics/underlines, semantic text label pairing, and grid bounding boxes for 1-click form creation.
+- **Comprehensive Form Field Library**:
+  - **Text Fields**: Single-line text, multiline text areas, email, telephone, number, and currency formats with customizable typography, colors, and borders.
+  - **Choice Controls**: Dropdown menus, combo boxes, single checkboxes, and grouped radio buttons.
+  - **Digital Signatures**: Dual-mode capture featuring smooth Bezier curve freehand drawing and automated cursive handwriting generation.
+- **Visual Canvas Authoring**: Drag-and-drop field placement, 8-point resize handles, magnetic snapping with smart alignment guides, marquee lasso multi-selection, and `Alt + Drag` field cloning.
+- **Layers & Hierarchy Inspector**: Full layer stack with drag reordering, field locking, inline renaming, batch alignment, and distributed spacing.
+- **Starter Templates**: Built-in template generator for IRS Form W-9, Mutual NDAs, Residential Lease Agreements, Commercial Invoices, Event Registrations, Medical Intakes, and Blank Canvases.
+- **Project Portability**: Export and import `.jform` / `.formblatt` JSON project files preserving document state, vector layers, and undo/redo history.
+
+## Documentation & Deep Context
+
+- [Full LLM Context & Technical Manual](https://justforms.vercel.app/llms-full.txt): Complete architectural manual, subsystem breakdown, data schemas, and mathematical coordinate transforms.
+- [GitHub Repository](https://github.com/sshrestha-design/justforms): Open-source codebase, issue tracker, and contribution guide.
+- [Live Web App](https://justforms.vercel.app): The interactive web editor and landing page.
+
+## Optional
+
+- [Robots.txt](https://justforms.vercel.app/robots.txt): Search engine and AI crawler permissions.
+- [Sitemap.xml](https://justforms.vercel.app/sitemap.xml): XML sitemap listing indexable web resources.
+- [Web App Manifest](https://justforms.vercel.app/site.webmanifest): Progressive Web App (PWA) configuration.
