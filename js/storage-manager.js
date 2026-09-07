@@ -159,7 +159,9 @@ export async function importProjectJson(file, onLoaded) {
             const pdfBytes = base64ToUint8Array(data.pdfBase64);
             if (pdfBytes && pdfBytes.length > 0) {
                 await loadPdfLibraries();
-                const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice() });
+                const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : (typeof pdfjsLib !== "undefined" ? pdfjsLib : null);
+                if (!pdfjs) throw new Error("PDF.js library could not be loaded");
+                const loadingTask = pdfjs.getDocument({ data: pdfBytes.slice() });
                 const loadedDoc = await loadingTask.promise;
                 state.originalPdfBytes = pdfBytes;
                 state.pdfDoc = loadedDoc;

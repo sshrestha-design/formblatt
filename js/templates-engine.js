@@ -182,7 +182,9 @@ export const STARTER_TEMPLATES = {
 
 export async function createTemplatePdf(key) {
     await loadPdfLibraries();
-    const { PDFDocument, StandardFonts, rgb } = PDFLib;
+    const pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : (typeof PDFLib !== "undefined" ? PDFLib : null);
+    if (!pdfLib) throw new Error("PDF-Lib not initialized.");
+    const { PDFDocument, StandardFonts, rgb } = pdfLib;
     const doc = await PDFDocument.create();
     const page = doc.addPage([595.28, 841.89]);
     const { width, height } = page.getSize();
