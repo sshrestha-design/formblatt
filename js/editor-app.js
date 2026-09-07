@@ -41,9 +41,21 @@ export function updateToolIndicator() {
     if (!indicator || !document.body.classList.contains("editor-active")) return;
     const activeBtn = document.querySelector(".segmented-toolbar .tool-btn.active");
     if (activeBtn) {
-        indicator.style.transform = \`translateX(\${activeBtn.offsetLeft}px)\`;
-        indicator.style.width = \`\${activeBtn.offsetWidth}px\`;
-        indicator.style.opacity = "1";
+        const applyIndicator = () => {
+            if (!activeBtn.isConnected) return;
+            const left = activeBtn.offsetLeft;
+            const width = activeBtn.offsetWidth;
+            if (width > 0) {
+                indicator.style.transform = `translateX(${left}px)`;
+                indicator.style.width = `${width}px`;
+                indicator.style.opacity = "1";
+            }
+        };
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(applyIndicator);
+        } else {
+            applyIndicator();
+        }
     }
 }
 
@@ -53,15 +65,27 @@ export function updateModeIndicator() {
     if (!indicator || !document.body.classList.contains("editor-active")) return;
     const activeBtn = document.querySelector(".mode-segmented-toggle .mode-toggle-btn.active");
     if (activeBtn) {
-        indicator.style.transform = \`translateX(\${activeBtn.offsetLeft}px)\`;
-        indicator.style.width = \`\${activeBtn.offsetWidth}px\`;
-        indicator.style.opacity = "1";
-        if (activeBtn.id === "modeFillBtn") {
-            indicator.style.background = "#2563eb";
-            indicator.style.borderColor = "#1d4ed8";
+        const applyIndicator = () => {
+            if (!activeBtn.isConnected) return;
+            const left = activeBtn.offsetLeft;
+            const width = activeBtn.offsetWidth;
+            if (width > 0) {
+                indicator.style.transform = `translateX(${left}px)`;
+                indicator.style.width = `${width}px`;
+                indicator.style.opacity = "1";
+                if (activeBtn.id === "modeFillBtn") {
+                    indicator.style.background = "#2563eb";
+                    indicator.style.borderColor = "#1d4ed8";
+                } else {
+                    indicator.style.background = "#ffffff";
+                    indicator.style.borderColor = "#bfdbfe";
+                }
+            }
+        };
+        if (typeof requestAnimationFrame === "function") {
+            requestAnimationFrame(applyIndicator);
         } else {
-            indicator.style.background = "#ffffff";
-            indicator.style.borderColor = "#bfdbfe";
+            applyIndicator();
         }
     }
 }
