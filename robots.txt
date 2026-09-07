@@ -3,3 +3,6 @@ User-agent: *
 Allow: /
 
 Sitemap: https://justforms.vercel.app/sitemap.xml
+# LLMs.txt definition for AI agents and LLM crawlers
+# https://llmstxt.org/
+LLMs-Txt: https://justforms.vercel.app/llms.txt

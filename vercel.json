@@ -21,6 +21,19 @@
       ]
     },
     {
+      "source": "/(llms.*\\.txt)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/markdown; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
+      ]
+    },
+    {
       "source": "/(.*)",
       "headers": [
         {
@@ -46,6 +59,18 @@
     {
       "src": "/sitemap.xml",
       "dest": "/sitemap.xml"
+    },
+    {
+      "src": "/llms.txt",
+      "dest": "/llms.txt"
+    },
+    {
+      "src": "/llms-full.txt",
+      "dest": "/llms-full.txt"
+    },
+    {
+      "src": "/.well-known/llms.txt",
+      "dest": "/llms.txt"
     },
     {
       "src": "/site.webmanifest",

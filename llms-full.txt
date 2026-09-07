@@ -1,0 +1,141 @@
+# Formblatt (JustForms) - Full Technical Documentation & Architecture Reference
+
+> Comprehensive architectural manual, module specifications, data formats, and math models for Formblatt / JustForms — a 100% client-side PDF AcroForm authoring application.
+
+- **Production URL**: [https://justforms.vercel.app](https://justforms.vercel.app)
+- **Repository**: [https://github.com/sshrestha-design/justforms](https://github.com/sshrestha-design/justforms)
+- **Author**: Sagar Shrestha ([https://sagarshrestha23.com.np](https://sagarshrestha23.com.np))
+- **License**: MIT
+
+---
+
+## 1. System Philosophy & Architecture
+
+Formblatt is built with a zero-cloud-dependency, pure-client-side execution model. All operations run directly within the user's browser environment using native ES Modules, Mozilla's `pdf.js` for rendering, and `pdf-lib` for AcroForm PDF byte compilation.
+
+### Core Architecture Principles:
+1. **100% In-Browser Execution**: Zero server uploads. Documents never leave the client's device.
+2. **Zero Framework Overhead**: Vanilla JavaScript (ESM) with lightweight DOM rendering and optimized CSS styles.
+3. **ISO 32000-1 Compliance**: Generates standard interactive PDF AcroForms compatible with Adobe Acrobat Reader, Apple Preview, Google Chrome, Microsoft Edge, and DocuSign.
+
+---
+
+## 2. Directory & Module Breakdown
+
+```
+pdf_form_builder_web/
+├── index.html                   # Semantic HTML shell, critical inlined CSS, UI modals
+├── llms.txt                     # Standard LLM discovery file
+├── llms-full.txt                # Extended architecture reference for LLMs
+├── robots.txt                   # Crawler directions and sitemap reference
+├── sitemap.xml                  # XML sitemap
+├── styles/                      # Modular CSS system
+│   ├── base.css                 # Design tokens, variables, resets, core button styles
+│   ├── landing.css              # Landing page hero, showcase video, reviews, and templates
+│   ├── editor.css               # Editor layout, toolbars, sidebar panels, controls
+│   ├── canvas.css               # PDF canvas viewport, field overlays, alignment guides
+│   ├── modals.css               # Signature pad, preview modal, keyboard shortcuts
+│   └── fonts.css                # Typography declarations
+└── js/                          # Native ES Module architecture
+    ├── state.js                 # Central reactive state manager & selection tracking
+    ├── main.js                  # Landing bootstrap, idle preloading, modal bindings
+    ├── landing-controller.js    # Landing page view manager, history router, file loaders
+    ├── editor-app.js            # Editor subsystems coordinator, panel resizers, menus
+    ├── pdf-engine.js            # PDF.js rendering, page navigation, scale transforms
+    ├── acroform-builder.js      # pdf-lib AcroForm compilation engine & PDF exporter
+    ├── canvas-controller.js     # Drag, resize, magnetic snapping, lasso selection
+    ├── overlay-manager.js       # Field overlay DOM rendering & resize handles
+    ├── layers-panel.js          # Layer hierarchy, ordering, visibility, and renaming
+    ├── properties-panel.js      # Field property inspector, dimensions, styling
+    ├── auto-detector.js         # 4-tier PDF field auto-detection algorithm
+    ├── signature-pad.js         # Freehand Bezier drawing & cursive generation engine
+    ├── templates-engine.js      # Built-in vector document generators (W-9, NDA, Lease, etc.)
+    ├── storage-manager.js       # History stack (Undo/Redo) and .jform JSON export/import
+    ├── gradient-waves.js        # Dynamic interactive canvas background
+    ├── tooltip.js               # Accessible tooltip positioning and keyboard hints
+    ├── toast.js                 # Non-intrusive notification manager
+    └── haptics.js               # Subtle vibration feedback for tactile interactions
+```
+
+---
+
+## 3. Data Schema & Project File Format (`.jform` / `.formblatt`)
+
+Formblatt saves and restores full project sessions as JSON structured data:
+
+```json
+{
+  "version": "1.1.0",
+  "appName": "Formblatt",
+  "timestamp": "2026-09-07T09:30:00.000Z",
+  "fileName": "interactive_form.pdf",
+  "originalPdfBytes": "<Base64 Encoded Original PDF Bytes>",
+  "fields": [
+    {
+      "id": "field_1788765432100_1",
+      "type": "text",
+      "name": "full_name",
+      "label": "Full Legal Name",
+      "page": 1,
+      "x": 72,
+      "y": 150,
+      "width": 240,
+      "height": 28,
+      "required": true,
+      "readOnly": false,
+      "multiline": false,
+      "fontSize": 12,
+      "fontFamily": "Helvetica",
+      "color": "#0f172a",
+      "backgroundColor": "#ffffff",
+      "borderColor": "#cbd5e1",
+      "borderWidth": 1,
+      "borderRadius": 4,
+      "alignment": "left",
+      "defaultValue": "",
+      "placeholder": "e.g. Jane Doe",
+      "options": []
+    }
+  ]
+}
+```
+
+---
+
+## 4. Supported Form Field Types & PDF Compilation
+
+When the user clicks "Download Interactive PDF", `js/acroform-builder.js` executes the following mapping using `pdf-lib`:
+
+1. **`text` / `textarea`**:
+   - `pdfDoc.getForm().createTextField(field.name)`
+   - Configures single-line or multi-line (`textField.enableMultiline()`), font size, font family (`StandardFonts.Helvetica`, `Courier`, `TimesRoman`), text alignment, and borders.
+2. **`dropdown`**:
+   - `pdfDoc.getForm().createDropdown(field.name)`
+   - Populates option list via `dropdown.setOptions(field.options)`.
+3. **`checkbox`**:
+   - `pdfDoc.getForm().createCheckBox(field.name)`
+   - Renders standard checked/unchecked states with checkmark glyphs.
+4. **`radio`**:
+   - `pdfDoc.getForm().createRadioGroup(field.group || field.name)`
+   - Adds option buttons linked to the single radio group.
+5. **`signature`**:
+   - Compiles vector path coordinates or cursive handwriting data directly onto the underlying PDF page dictionary or creates interactive signature widget annotations.
+
+---
+
+## 5. Universal Auto-Detection Pipeline
+
+Formblatt includes a 4-tier client-side auto-detector (`js/auto-detector.js`):
+1. **Tier 1 - Native AcroForm Ingestion**: Directly extracts existing interactive AcroForm widgets, positions, and field hierarchies.
+2. **Tier 2 - Vector Path Analysis**: Scans page operator streams for horizontal underlines, rectangular stroke bounding boxes, and fill contours.
+3. **Tier 3 - Semantic Text Label Pairing**: Evaluates proximity between text items (e.g., "Name:", "Date:", "Signature:", "Email:") and blank horizontal spaces.
+4. **Tier 4 - Grid Fallback**: Generates aligned bounding boxes based on document layout structure.
+
+---
+
+## 6. Accessibility (a11y) & SEO Standards
+
+- Fully accessible HTML5 elements with appropriate ARIA roles and labels.
+- Keyboard-navigable editor shortcuts (`V`, `H`, `T`, `D`, `C`, `R`, `S`, `Cmd+\`, `Cmd+Z`, `Cmd+Shift+Z`).
+- Structured JSON-LD metadata for `WebApplication` and `FAQPage`.
+- High contrast color ratios conforming to WCAG 2.1 AA standards.
