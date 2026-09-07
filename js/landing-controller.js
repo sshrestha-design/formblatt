@@ -26,7 +26,7 @@ export function closeLeaveEditorModal() {
 
 export function showLandingScreen(force = false, skipPush = false) {
     const editor = document.getElementById("appEditorScreen");
-    const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || getComputedStyle(editor).display !== "none");
+    const isEditorActive = Boolean(editor && (document.body.classList.contains("editor-active") || editor.classList.contains("active") || editor.style.display === "flex" || editor.style.display === "block"));
     const hasUnsavedWork = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0));
 
     // If leaving from active editor with fields or document in progress, warn the user first
@@ -105,10 +105,12 @@ export function showLandingScreen(force = false, skipPush = false) {
     renderLandingReviews();
     updateDocumentTitle();
     if (typeof lucide !== "undefined") lucide.createIcons();
-    if (landing) {
-        landing.scrollTo({ top: 0, behavior: "smooth" });
+    if (landing && landing.scrollTop > 0) {
+        landing.scrollTop = 0;
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (window.scrollY > 0) {
+        window.scrollTo(0, 0);
+    }
 }
 
 let currentReviewPageSize = 6;
@@ -414,7 +416,7 @@ export function initLandingController(onLoaded) {
     // Handle Browser Back / Forward Buttons (popstate)
     window.addEventListener("popstate", e => {
         const editor = document.getElementById("appEditorScreen");
-        const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || getComputedStyle(editor).display !== "none");
+        const isEditorActive = Boolean(editor && (document.body.classList.contains("editor-active") || editor.classList.contains("active") || editor.style.display === "flex" || editor.style.display === "block"));
         const hasActiveSession = Boolean(state.pdfDoc || (state.fields && state.fields.length > 0) || isEditorActive);
 
         if (hasActiveSession) {
