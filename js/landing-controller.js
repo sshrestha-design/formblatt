@@ -611,47 +611,117 @@ export function initLandingController(onLoaded) {
     document.getElementById("pdfUploadMenu")?.addEventListener("change", handleUploadInput);
     document.getElementById("emptyStateUpload")?.addEventListener("change", handleUploadInput);
 
-    // Automatically select video caption track based on user's browser language / locale
-    function autoSelectCaptionsByLocale(videoElement) {
-        if (!videoElement) return;
+    // Comprehensive UI & Video Caption Localization Dictionary
+    const UI_CAPTIONS = {
+        en: {
+            sponsorCaption: "Formblatt is free & privacy-first",
+            sponsorTitle: "Support Open-Source & Free Tools",
+            sponsorDesc: "Help keep Formblatt 100% private, client-side, and ad-free.",
+            sponsorAction: "Support",
+            heroEyebrow: "YOUR PDF NEVER LEAVES YOUR COMPUTER"
+        },
+        de: {
+            sponsorCaption: "Formblatt ist 100% kostenlos & privat",
+            sponsorTitle: "Open-Source & Datenschutz unterstützen",
+            sponsorDesc: "Formblatt bleibt privat, clientseitig und werbefrei.",
+            sponsorAction: "Unterstützen",
+            heroEyebrow: "IHRE PDF-DATEI VERLÄSST NIEMALS IHREN COMPUTER"
+        },
+        fr: {
+            sponsorCaption: "Formblatt est gratuit & confidentiel",
+            sponsorTitle: "Soutenir l'Open-Source & les Outils Libres",
+            sponsorDesc: "Gardez Formblatt 100% privé, local et sans publicité.",
+            sponsorAction: "Soutenir",
+            heroEyebrow: "VOTRE PDF NE QUITTE JAMAIS VOTRE ORDINATEUR"
+        },
+        es: {
+            sponsorCaption: "Formblatt es gratuito y privado",
+            sponsorTitle: "Apoyar el código abierto y herramientas libres",
+            sponsorDesc: "Mantenga Formblatt 100% privado, local y sin anuncios.",
+            sponsorAction: "Apoyar",
+            heroEyebrow: "SU PDF NUNCA SALE DE SU COMPUTADORA"
+        },
+        it: {
+            sponsorCaption: "Formblatt è gratuito e riservato",
+            sponsorTitle: "Sostieni l'Open Source & Strumenti Gratuiti",
+            sponsorDesc: "Formblatt rimane privato, eseguito in locale e senza pubblicità.",
+            sponsorAction: "Sostieni",
+            heroEyebrow: "IL TUO PDF NON LASCIA MAI IL TUO COMPUTER"
+        },
+        pt: {
+            sponsorCaption: "Formblatt é gratuito e seguro",
+            sponsorTitle: "Apoie o Código Aberto & Ferramentas Livres",
+            sponsorDesc: "Mantenha o Formblatt 100% privado, local e sem anúncios.",
+            sponsorAction: "Apoiar",
+            heroEyebrow: "O SEU PDF NUNCA SAI DO SEU COMPUTADOR"
+        },
+        nl: {
+            sponsorCaption: "Formblatt is gratis & privacy-vriendelijk",
+            sponsorTitle: "Steun Open-Source & Vrije Software",
+            sponsorDesc: "Houd Formblatt 100% lokaal, privé en advertentievrij.",
+            sponsorAction: "Steunen",
+            heroEyebrow: "UW PDF VERLAAT NOOIT UW COMPUTER"
+        },
+        ja: {
+            sponsorCaption: "Formblattは完全無料でプライバシー重視",
+            sponsorTitle: "オープンソースと無料ツールの支援",
+            sponsorDesc: "完全ブラウザ完結で安全なPDFフォーム作成を支援。",
+            sponsorAction: "支援する",
+            heroEyebrow: "PDFファイルはお使いの端末から送信されません"
+        },
+        zh: {
+            sponsorCaption: "Formblatt 完全免费且保护隐私",
+            sponsorTitle: "支持开源与免费工具",
+            sponsorDesc: "纯浏览器端运行，确保您的 PDF 数据完全私密安全。",
+            sponsorAction: "支持我们",
+            heroEyebrow: "您的 PDF 绝不会离开您的电脑"
+        },
+        ne: {
+            sponsorCaption: "Formblatt पूर्ण रूपमा निःशुल्क र गोप्य छ",
+            sponsorTitle: "खुला स्रोत र निःशुल्क सफ्टवेयरलाई समर्थन गर्नुहोस्",
+            sponsorDesc: "तपाईंको PDF कम्प्युटरमै प्रशोधन हुन्छ, कतै अपलोड हुँदैन।",
+            sponsorAction: "सहयोग",
+            heroEyebrow: "तपाईंको PDF फाइल तपाईंको कम्प्युटरबाट बाहिर जाँदैन"
+        }
+    };
+
+    function getUserPreferredLang() {
+        try {
+            const saved = localStorage.getItem("formblatt_caption_lang");
+            if (saved && (UI_CAPTIONS[saved] || saved === "off")) return saved;
+        } catch (e) {}
 
         const nav = typeof navigator !== "undefined" ? navigator : {};
         const navLangs = nav.languages && nav.languages.length 
             ? nav.languages 
             : [nav.language || nav.userLanguage || "en"];
-        const userLangCodes = navLangs.map(l => (l || "").slice(0, 2).toLowerCase()).filter(Boolean);
-        const primaryLang = userLangCodes[0] || "en";
+        for (const raw of navLangs) {
+            const code = (raw || "").slice(0, 2).toLowerCase();
+            if (UI_CAPTIONS[code]) return code;
+        }
+        return "en";
+    }
 
-        const applyTrackMode = () => {
-            const textTracks = videoElement.textTracks;
-            if (!textTracks || textTracks.length === 0) return;
+    function switchCaptionTrack(videoElement, targetLang) {
+        if (!videoElement) return;
 
-            let matched = false;
-            // Find first matching language from user preferred languages
-            for (const lang of userLangCodes) {
-                for (let i = 0; i < textTracks.length; i++) {
-                    const track = textTracks[i];
-                    const trackLang = (track.language || "").slice(0, 2).toLowerCase();
-                    if (trackLang === lang) {
-                        track.mode = "showing";
-                        matched = true;
-                        break;
-                    }
-                }
-                if (matched) break;
-            }
-
-            // Disable non-matching tracks
-            for (let i = 0; i < textTracks.length; i++) {
-                const track = textTracks[i];
-                const trackLang = (track.language || "").slice(0, 2).toLowerCase();
-                if (matched) {
-                    if (trackLang !== primaryLang && !userLangCodes.includes(trackLang)) {
-                        track.mode = "disabled";
-                    }
+        const apply = () => {
+            const trackElements = videoElement.querySelectorAll("track");
+            trackElements.forEach(el => {
+                const isMatch = targetLang !== "off" && el.srclang === targetLang;
+                if (isMatch) {
+                    el.default = true;
+                    if (el.track) el.track.mode = "showing";
                 } else {
-                    // Fallback to English
-                    if (trackLang === "en") {
+                    el.default = false;
+                    if (el.track) el.track.mode = "disabled";
+                }
+            });
+
+            if (videoElement.textTracks && videoElement.textTracks.length > 0) {
+                for (let i = 0; i < videoElement.textTracks.length; i++) {
+                    const track = videoElement.textTracks[i];
+                    if (targetLang !== "off" && track.language === targetLang) {
                         track.mode = "showing";
                     } else {
                         track.mode = "disabled";
@@ -661,40 +731,75 @@ export function initLandingController(onLoaded) {
         };
 
         if (videoElement.readyState >= 1) {
-            applyTrackMode();
+            apply();
         } else {
-            videoElement.addEventListener("loadedmetadata", applyTrackMode, { once: true });
+            videoElement.addEventListener("loadedmetadata", apply, { once: true });
         }
+    }
+
+    function localizeUiCaptions(langCode) {
+        const dict = UI_CAPTIONS[langCode] || UI_CAPTIONS["en"];
+        if (!dict) return;
+
+        const sponsorCap = document.getElementById("exportSponsorCaption");
+        const sponsorTitle = document.getElementById("exportSponsorTitle");
+        const sponsorDesc = document.getElementById("exportSponsorDesc");
+        const sponsorAct = document.getElementById("exportSponsorActionText");
+        const heroEyebrow = document.querySelector(".hero-eyebrow");
+
+        if (sponsorCap && dict.sponsorCaption) sponsorCap.textContent = dict.sponsorCaption;
+        if (sponsorTitle && dict.sponsorTitle) sponsorTitle.textContent = dict.sponsorTitle;
+        if (sponsorDesc && dict.sponsorDesc) sponsorDesc.textContent = dict.sponsorDesc;
+        if (sponsorAct && dict.sponsorAction) sponsorAct.textContent = dict.sponsorAction;
+        if (heroEyebrow && dict.heroEyebrow) heroEyebrow.textContent = dict.heroEyebrow;
     }
 
     // Glassy Video Player Modal Controller
     const heroBgVideo = document.querySelector(".hero-showcase-video");
     const expVideo = document.getElementById("expandedDemoVideo");
+    const captionSelect = document.getElementById("videoCaptionSelect");
+
+    const activeLang = getUserPreferredLang();
+    localizeUiCaptions(activeLang);
+
+    if (captionSelect) {
+        captionSelect.value = activeLang;
+        captionSelect.addEventListener("change", e => {
+            const chosen = e.target.value;
+            try { localStorage.setItem("formblatt_caption_lang", chosen); } catch(e){}
+            if (chosen !== "off") {
+                localizeUiCaptions(chosen);
+            }
+            if (expVideo) switchCaptionTrack(expVideo, chosen);
+            if (heroBgVideo) switchCaptionTrack(heroBgVideo, chosen);
+        });
+    }
 
     if (heroBgVideo) {
         try { heroBgVideo.playbackRate = 0.85; } catch(e){}
-        autoSelectCaptionsByLocale(heroBgVideo);
+        switchCaptionTrack(heroBgVideo, activeLang);
         heroBgVideo.addEventListener("loadedmetadata", () => {
             try { heroBgVideo.playbackRate = 0.85; } catch(e){}
-            autoSelectCaptionsByLocale(heroBgVideo);
+            switchCaptionTrack(heroBgVideo, activeLang);
         });
     }
 
     if (expVideo) {
-        autoSelectCaptionsByLocale(expVideo);
+        switchCaptionTrack(expVideo, activeLang);
     }
 
     window.openHeroVideoModal = function() {
         const modal = document.getElementById("videoPlayerModal");
         const expVideo = document.getElementById("expandedDemoVideo");
         const bgVideo = document.querySelector(".hero-showcase-video");
+        const captionSelect = document.getElementById("videoCaptionSelect");
         if (!modal || !expVideo) return;
         
         modal.classList.add("active");
         modal.style.display = "flex";
         
-        // Auto-select caption track based on user's location/locale
-        autoSelectCaptionsByLocale(expVideo);
+        const currentLang = captionSelect ? captionSelect.value : getUserPreferredLang();
+        switchCaptionTrack(expVideo, currentLang);
         
         // Always playback from the start (00:00)
         try {
