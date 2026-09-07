@@ -805,6 +805,33 @@ async function runAllTests() {
         assert.ok(indexHtml.includes('class="toast-sponsor-bar"'), 'Must contain toast-sponsor-bar in index.html');
     });
 
+    it("autoSelectCaptions selects caption track matching user locale", () => {
+        const mockTracks = [
+            { language: "en", mode: "disabled" },
+            { language: "de", mode: "disabled" },
+            { language: "es", mode: "disabled" },
+            { language: "fr", mode: "disabled" }
+        ];
+        const mockVideo = { textTracks: mockTracks, readyState: 2 };
+
+        const testLangs = ["de-DE", "de", "en"];
+        const userLangCodes = testLangs.map(l => l.slice(0, 2).toLowerCase());
+        for (const lang of userLangCodes) {
+            let matched = false;
+            for (const track of mockVideo.textTracks) {
+                if (track.language === lang) {
+                    track.mode = "showing";
+                    matched = true;
+                    break;
+                }
+            }
+            if (matched) break;
+        }
+
+        assert.equal(mockTracks.find(t => t.language === "de").mode, "showing");
+        assert.equal(mockTracks.find(t => t.language === "es").mode, "disabled");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

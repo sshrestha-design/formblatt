@@ -611,13 +611,77 @@ export function initLandingController(onLoaded) {
     document.getElementById("pdfUploadMenu")?.addEventListener("change", handleUploadInput);
     document.getElementById("emptyStateUpload")?.addEventListener("change", handleUploadInput);
 
+    // Automatically select video caption track based on user's browser language / locale
+    function autoSelectCaptionsByLocale(videoElement) {
+        if (!videoElement) return;
+
+        const nav = typeof navigator !== "undefined" ? navigator : {};
+        const navLangs = nav.languages && nav.languages.length 
+            ? nav.languages 
+            : [nav.language || nav.userLanguage || "en"];
+        const userLangCodes = navLangs.map(l => (l || "").slice(0, 2).toLowerCase()).filter(Boolean);
+        const primaryLang = userLangCodes[0] || "en";
+
+        const applyTrackMode = () => {
+            const textTracks = videoElement.textTracks;
+            if (!textTracks || textTracks.length === 0) return;
+
+            let matched = false;
+            // Find first matching language from user preferred languages
+            for (const lang of userLangCodes) {
+                for (let i = 0; i < textTracks.length; i++) {
+                    const track = textTracks[i];
+                    const trackLang = (track.language || "").slice(0, 2).toLowerCase();
+                    if (trackLang === lang) {
+                        track.mode = "showing";
+                        matched = true;
+                        break;
+                    }
+                }
+                if (matched) break;
+            }
+
+            // Disable non-matching tracks
+            for (let i = 0; i < textTracks.length; i++) {
+                const track = textTracks[i];
+                const trackLang = (track.language || "").slice(0, 2).toLowerCase();
+                if (matched) {
+                    if (trackLang !== primaryLang && !userLangCodes.includes(trackLang)) {
+                        track.mode = "disabled";
+                    }
+                } else {
+                    // Fallback to English
+                    if (trackLang === "en") {
+                        track.mode = "showing";
+                    } else {
+                        track.mode = "disabled";
+                    }
+                }
+            }
+        };
+
+        if (videoElement.readyState >= 1) {
+            applyTrackMode();
+        } else {
+            videoElement.addEventListener("loadedmetadata", applyTrackMode, { once: true });
+        }
+    }
+
     // Glassy Video Player Modal Controller
     const heroBgVideo = document.querySelector(".hero-showcase-video");
+    const expVideo = document.getElementById("expandedDemoVideo");
+
     if (heroBgVideo) {
         try { heroBgVideo.playbackRate = 0.85; } catch(e){}
+        autoSelectCaptionsByLocale(heroBgVideo);
         heroBgVideo.addEventListener("loadedmetadata", () => {
             try { heroBgVideo.playbackRate = 0.85; } catch(e){}
+            autoSelectCaptionsByLocale(heroBgVideo);
         });
+    }
+
+    if (expVideo) {
+        autoSelectCaptionsByLocale(expVideo);
     }
 
     window.openHeroVideoModal = function() {
@@ -628,6 +692,9 @@ export function initLandingController(onLoaded) {
         
         modal.classList.add("active");
         modal.style.display = "flex";
+        
+        // Auto-select caption track based on user's location/locale
+        autoSelectCaptionsByLocale(expVideo);
         
         // Always playback from the start (00:00)
         try {
