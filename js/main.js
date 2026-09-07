@@ -39,9 +39,10 @@ function refreshUI() {
 
 export function updateToolIndicator() {
     if (typeof document === "undefined") return;
-    const activeBtn = document.querySelector(".segmented-toolbar .tool-btn.active");
     const indicator = document.getElementById("toolIndicator");
-    if (activeBtn && indicator) {
+    if (!indicator || !document.body.classList.contains("editor-active")) return;
+    const activeBtn = document.querySelector(".segmented-toolbar .tool-btn.active");
+    if (activeBtn) {
         indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
         indicator.style.width = `${activeBtn.offsetWidth}px`;
         indicator.style.opacity = "1";
@@ -50,9 +51,10 @@ export function updateToolIndicator() {
 
 export function updateModeIndicator() {
     if (typeof document === "undefined") return;
-    const activeBtn = document.querySelector(".mode-segmented-toggle .mode-toggle-btn.active");
     const indicator = document.getElementById("modeIndicator");
-    if (activeBtn && indicator) {
+    if (!indicator || !document.body.classList.contains("editor-active")) return;
+    const activeBtn = document.querySelector(".mode-segmented-toggle .mode-toggle-btn.active");
+    if (activeBtn) {
         indicator.style.transform = `translateX(${activeBtn.offsetLeft}px)`;
         indicator.style.width = `${activeBtn.offsetWidth}px`;
         indicator.style.opacity = "1";
@@ -188,7 +190,7 @@ const bootstrapApp = async () => {
     }
     if (typeof lucide !== "undefined") lucide.createIcons();
 
-    let lastMousePos = { clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 };
+    let lastMousePos = { clientX: 500, clientY: 400 };
     window.addEventListener("mousemove", e => {
         lastMousePos = { clientX: e.clientX, clientY: e.clientY };
     }, { passive: true });

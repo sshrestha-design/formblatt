@@ -222,7 +222,7 @@ export function updateDocumentTitle(customName) {
     if (typeof document === "undefined") return;
     
     const editor = document.getElementById("appEditorScreen");
-    const isEditorActive = editor && (editor.style.display === "flex" || editor.style.display === "block" || (typeof getComputedStyle !== "undefined" && getComputedStyle(editor).display !== "none"));
+    const isEditorActive = Boolean(editor && (document.body.classList.contains("editor-active") || editor.classList.contains("active") || editor.style.display === "flex" || editor.style.display === "block"));
     
     if (!isEditorActive) {
         document.title = defaultTitle;

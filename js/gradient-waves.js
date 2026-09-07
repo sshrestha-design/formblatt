@@ -255,25 +255,42 @@ export function initGradientWaves(containerId, userOptions = {}) {
 
   const currentMouse = [0.5, 0.5];
   const targetMouse = [0.5, 0.5];
+  let cachedRect = null;
 
-  const setSize = () => {
-    const rect = container.getBoundingClientRect();
+  const setSize = (width, height) => {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const w = Math.max(1, Math.floor(rect.width * dpr));
-    const h = Math.max(1, Math.floor(rect.height * dpr));
+    let cw = width;
+    let ch = height;
+    if (cw === undefined || ch === undefined) {
+      cw = container.clientWidth || 300;
+      ch = container.clientHeight || 200;
+    }
+    const w = Math.max(1, Math.floor(cw * dpr));
+    const h = Math.max(1, Math.floor(ch * dpr));
     if (canvas.width !== w || canvas.height !== h) {
       canvas.width = w;
       canvas.height = h;
     }
   };
 
-  const ro = new ResizeObserver(setSize);
+  const invalidateRectCache = () => { cachedRect = null; };
+
+  const ro = new ResizeObserver(entries => {
+    for (const entry of entries) {
+      if (entry.contentRect) {
+        setSize(entry.contentRect.width, entry.contentRect.height);
+      }
+    }
+    cachedRect = null;
+  });
   ro.observe(container);
-  setSize();
 
   const onPointerMove = e => {
-    const rect = container.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
+    if (!cachedRect) {
+      cachedRect = container.getBoundingClientRect();
+    }
+    const rect = cachedRect;
+    if (!rect || rect.width <= 0 || rect.height <= 0) return;
     targetMouse[0] = (e.clientX - rect.left) / rect.width;
     targetMouse[1] = 1.0 - (e.clientY - rect.top) / rect.height;
   };
@@ -283,6 +300,8 @@ export function initGradientWaves(containerId, userOptions = {}) {
   };
 
   window.addEventListener('pointermove', onPointerMove, { passive: true });
+  window.addEventListener('scroll', invalidateRectCache, { passive: true });
+  window.addEventListener('resize', invalidateRectCache, { passive: true });
   document.addEventListener('pointerleave', onPointerLeave);
 
   let raf = 0;
@@ -374,6 +393,8 @@ export function initGradientWaves(containerId, userOptions = {}) {
       io.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('scroll', invalidateRectCache);
+      window.removeEventListener('resize', invalidateRectCache);
       document.removeEventListener('pointerleave', onPointerLeave);
       try {
         if (canvas.parentNode === container) {
