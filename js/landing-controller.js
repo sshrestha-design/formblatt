@@ -817,6 +817,7 @@ export function initLandingController(onLoaded) {
             }
             if (expVideo) switchCaptionTrack(expVideo, chosen);
             if (heroBgVideo) switchCaptionTrack(heroBgVideo, chosen);
+            try { captionSelect.blur(); } catch(e){}
         });
     }
 
