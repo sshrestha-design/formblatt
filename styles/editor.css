@@ -38,6 +38,10 @@
     user-select: none;
     text-decoration: none;
     padding-right: 4px;
+    background: none;
+    border: none;
+    font-family: inherit;
+    text-align: left;
 }
 
 .editor-brand-icon {
