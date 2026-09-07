@@ -1513,6 +1513,26 @@
     <div id="videoPlayerModal" class="modal video-player-modal" role="dialog" aria-modal="true" aria-label="Product Demo Video" style="display: none;">
         <div class="video-modal-backdrop" id="closeVideoModalBackdrop"></div>
         <div class="pure-video-card" id="pureVideoCard">
+            <!-- CC Subtitle Language Switcher HUD -->
+            <div class="video-caption-selector-wrapper" id="videoCaptionSelectorWrap">
+                <label for="videoCaptionSelect" class="video-caption-badge" title="Switch subtitle language">
+                    <i data-lucide="subtitles" style="width: 14px; height: 14px;"></i>
+                    <span>CC</span>
+                </label>
+                <select id="videoCaptionSelect" class="video-caption-select" aria-label="Select subtitle language">
+                    <option value="en">English</option>
+                    <option value="de">Deutsch</option>
+                    <option value="fr">Français</option>
+                    <option value="es">Español</option>
+                    <option value="it">Italiano</option>
+                    <option value="pt">Português</option>
+                    <option value="nl">Nederlands</option>
+                    <option value="ja">日本語</option>
+                    <option value="zh">简体中文</option>
+                    <option value="ne">नेपाली</option>
+                    <option value="off">Off</option>
+                </select>
+            </div>
             <button type="button" class="video-modal-close-btn" id="closeVideoModalBtn" aria-label="Close demo video" title="Close video">&times;</button>
             <video id="expandedDemoVideo" playsinline preload="none" poster="assets/hero-poster.webp?v=8.0" controls style="aspect-ratio: 2740 / 2160; width: 100%; height: 100%;">
                 <source src="assets/hero-demo.webm?v=7.0" type="video/webm">
@@ -1989,7 +2009,7 @@
                         <div class="export-sponsor-tag-wrap">
                             <span class="export-sponsor-tag"><span class="export-sponsor-pulse"></span>SPONSORED</span>
                         </div>
-                        <span class="export-sponsor-caption">Formblatt is free &amp; privacy-first</span>
+                        <span class="export-sponsor-caption" id="exportSponsorCaption">Formblatt is free &amp; privacy-first</span>
                     </div>
                     <div class="export-sponsor-card" id="exportSponsorSlot">
                         <a href="https://github.com/sponsors/sshrestha-design" target="_blank" rel="noopener noreferrer" class="export-sponsor-link" title="Support Formblatt on GitHub Sponsors">
@@ -1997,11 +2017,11 @@
                                 <i data-lucide="sparkles" style="width: 18px; height: 18px;"></i>
                             </div>
                             <div class="export-sponsor-details">
-                                <div class="export-sponsor-title">Support Open-Source &amp; Free Tools</div>
-                                <div class="export-sponsor-desc">Help keep Formblatt 100% private, client-side, and ad-free.</div>
+                                <div class="export-sponsor-title" id="exportSponsorTitle">Support Open-Source &amp; Free Tools</div>
+                                <div class="export-sponsor-desc" id="exportSponsorDesc">Help keep Formblatt 100% private, client-side, and ad-free.</div>
                             </div>
                             <span class="export-sponsor-action">
-                                <span>Support</span>
+                                <span id="exportSponsorActionText">Support</span>
                                 <i data-lucide="arrow-up-right" style="width: 12px; height: 12px;"></i>
                             </span>
                         </a>
