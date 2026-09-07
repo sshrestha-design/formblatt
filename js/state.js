@@ -219,10 +219,13 @@ export function toggleGuides() {
 
 export function updateDocumentTitle(customName) {
     const defaultTitle = "Formblatt: Free Interactive PDF Form Creator & AcroForm Editor";
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined" || !document) return;
     
-    const editor = document.getElementById("appEditorScreen");
-    const isEditorActive = Boolean(editor && (document.body.classList.contains("editor-active") || editor.classList.contains("active") || editor.style.display === "flex" || editor.style.display === "block"));
+    const editor = typeof document.getElementById === "function" ? document.getElementById("appEditorScreen") : null;
+    const bodyHasClass = document.body && document.body.classList && typeof document.body.classList.contains === "function" && document.body.classList.contains("editor-active");
+    const editorHasClass = editor && editor.classList && typeof editor.classList.contains === "function" && editor.classList.contains("active");
+    const editorIsVisible = editor && editor.style && (editor.style.display === "flex" || editor.style.display === "block");
+    const isEditorActive = Boolean(editor && (bodyHasClass || editorHasClass || editorIsVisible));
     
     if (!isEditorActive) {
         document.title = defaultTitle;
