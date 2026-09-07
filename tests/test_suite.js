@@ -910,6 +910,37 @@ async function runAllTests() {
         assert.ok(!mainJs.includes('loadTemplate("blank"'), 'main.js must not auto-load blank template on startup');
     });
 
+    // ── SUITE 14: Landing Page Visual Modules & Conversion Assets ──
+    console.log("\n🚀 Suite 14: Landing Visual Modules & Template Launcher");
+    it("Comparison slider, templates grid, and workflow spotlight exist in index.html", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="comparison"'), 'index.html must include #comparison section');
+        assert.ok(indexHtml.includes('id="compareSliderContainer"'), 'index.html must include compareSliderContainer');
+        assert.ok(indexHtml.includes('id="compareSliderHandle"'), 'index.html must include compareSliderHandle');
+        assert.ok(indexHtml.includes('id="compareAfterPane"'), 'index.html must include compareAfterPane');
+        assert.ok(indexHtml.includes('id="templates"'), 'index.html must include #templates section');
+        assert.ok(indexHtml.includes('id="spotlight"'), 'index.html must include #spotlight section');
+        assert.ok(indexHtml.includes('src="assets/office-worker.webp"'), 'spotlight section must reference assets/office-worker.webp');
+    });
+
+    it("Optimized office-worker.webp asset exists and is a valid image file", () => {
+        const webpPath = path.join(WEB_DIR, 'assets', 'office-worker.webp');
+        assert.ok(fs.existsSync(webpPath), 'assets/office-worker.webp must exist on disk');
+        const stats = fs.statSync(webpPath);
+        assert.ok(stats.size > 10000 && stats.size < 500000, `office-worker.webp size (${stats.size} bytes) should be optimized (<500KB)`);
+        const header = fs.readFileSync(webpPath).subarray(0, 12).toString('ascii');
+        assert.ok(header.includes('RIFF') && header.includes('WEBP'), 'office-worker.webp must have valid RIFF/WEBP header');
+    });
+
+    it("Landing CSS contains styling rules for comparison slider, templates, and spotlight", () => {
+        const landingCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'landing.css'), 'utf8');
+        assert.ok(landingCss.includes('.compare-slider-container'), 'landing.css must include .compare-slider-container');
+        assert.ok(landingCss.includes('.compare-slider-handle'), 'landing.css must include .compare-slider-handle');
+        assert.ok(landingCss.includes('.templates-grid'), 'landing.css must include .templates-grid');
+        assert.ok(landingCss.includes('.spotlight-wrap'), 'landing.css must include .spotlight-wrap');
+        assert.ok(landingCss.includes('.spotlight-frame'), 'landing.css must include .spotlight-frame');
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
