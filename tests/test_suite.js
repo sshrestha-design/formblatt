@@ -967,8 +967,8 @@ async function runAllTests() {
         assert.ok(indexHtml.includes('property="og:image" content="https://justforms.vercel.app/assets/og-image.png"'), 'index.html must define og:image pointing to high-res PNG');
         assert.ok(indexHtml.includes('name="twitter:card" content="summary_large_image"'), 'index.html must define summary_large_image twitter card');
         assert.ok(indexHtml.includes('name="twitter:image" content="https://justforms.vercel.app/assets/og-image.png"'), 'index.html must define twitter:image');
-        assert.ok(indexHtml.includes('property="og:image:width" content="1200"'), 'index.html must define 1200 width');
-        assert.ok(indexHtml.includes('property="og:image:height" content="630"'), 'index.html must define 630 height');
+        assert.ok(indexHtml.includes('property="og:image:width" content="1024"'), 'index.html must define 1024 width');
+        assert.ok(indexHtml.includes('property="og:image:height" content="742"'), 'index.html must define 742 height');
         assert.ok(!indexHtml.includes('property="og:image" content="https://justforms.vercel.app/favicon.svg"'), 'og:image must not point to favicon.svg');
     });
 
