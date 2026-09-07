@@ -1,5 +1,6 @@
 // ── History & Project Storage (js/storage-manager.js) ──────────
 import { state } from "./state.js";
+import { loadPdfLibraries } from "./pdf-engine.js";
 
 export function uint8ArrayToBase64(bytes) {
     if (!bytes) return null;
@@ -157,6 +158,7 @@ export async function importProjectJson(file, onLoaded) {
         if (data.pdfBase64) {
             const pdfBytes = base64ToUint8Array(data.pdfBase64);
             if (pdfBytes && pdfBytes.length > 0) {
+                await loadPdfLibraries();
                 const loadingTask = pdfjsLib.getDocument({ data: pdfBytes.slice() });
                 const loadedDoc = await loadingTask.promise;
                 state.originalPdfBytes = pdfBytes;

@@ -1,6 +1,7 @@
 // ── pdf-lib AcroForm Compiler & Exporter (js/acroform-builder.js) ─
 import { state } from "./state.js";
 import { showToast } from "./toast.js";
+import { loadPdfLibraries } from "./pdf-engine.js";
 
 function checkboxAppearanceProvider(mark) {
     return (checkBox, widget) => {
@@ -98,6 +99,7 @@ function applyTextFieldAppearance(fieldObj, font, fontSize) {
 
 export async function buildPdf(options = {}) {
     if (!state.originalPdfBytes) throw new Error("No PDF loaded.");
+    await loadPdfLibraries();
 
     const { PDFDocument, StandardFonts, rgb } = PDFLib;
     // Load fresh slice of bytes

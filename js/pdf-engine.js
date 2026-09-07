@@ -1,10 +1,44 @@
 // ── PDF.js Rendering & Navigation Pipeline (js/pdf-engine.js) ─
 import { state, updateDocumentTitle } from "./state.js";
 
+let pdfLibsPromise = null;
+
 export function ensurePdfJsConfigured() {
     if (typeof window !== "undefined" && window.pdfjsLib && window.pdfjsLib.GlobalWorkerOptions && !window.pdfjsLib.GlobalWorkerOptions.workerSrc) {
         window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     }
+}
+
+export function loadPdfLibraries() {
+    if (pdfLibsPromise) return pdfLibsPromise;
+
+    if (typeof window !== "undefined" && window.pdfjsLib && window.PDFLib && window.fontkit) {
+        ensurePdfJsConfigured();
+        return Promise.resolve();
+    }
+
+    const loadScript = (src) => new Promise((resolve, reject) => {
+        if (typeof document === "undefined") return resolve();
+        if (document.querySelector(`script[src="${src}"]`)) {
+            return resolve();
+        }
+        const script = document.createElement("script");
+        script.src = src;
+        script.async = true;
+        script.onload = () => resolve();
+        script.onerror = (err) => reject(err);
+        document.head.appendChild(script);
+    });
+
+    pdfLibsPromise = Promise.all([
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"),
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"),
+        loadScript("https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js")
+    ]).then(() => {
+        ensurePdfJsConfigured();
+    });
+
+    return pdfLibsPromise;
 }
 
 let renderTask = null;
@@ -13,7 +47,7 @@ let lastRasterScale = 1.0;
 let rasterDebounceTimer = null;
 
 export async function renderPage(forceRerender = false) {
-    ensurePdfJsConfigured();
+    await loadPdfLibraries();
     if (!state.pdfDoc) return;
     const canvas = document.getElementById("pdfCanvas");
     const container = document.getElementById("canvasContainer");

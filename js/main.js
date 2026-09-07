@@ -1,5 +1,5 @@
 import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
-import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo } from "./pdf-engine.js";
+import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo, loadPdfLibraries } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
 import { initPropertiesPanel, populateProperties, syncDimensionInputsLive } from "./properties-panel.js";
@@ -1624,4 +1624,18 @@ if ("serviceWorker" in navigator && !window.location.host.startsWith("localhost"
             console.warn("[PWA] Service Worker registration failed:", err);
         });
     });
+}
+
+// ── Idle Prefetch for Heavy PDF Engines ─────────────────────────────
+const prefetchPdfLibraries = () => {
+    if ("requestIdleCallback" in window) {
+        window.requestIdleCallback(() => loadPdfLibraries(), { timeout: 3500 });
+    } else {
+        setTimeout(() => loadPdfLibraries(), 1500);
+    }
+};
+if (document.readyState === "complete") {
+    prefetchPdfLibraries();
+} else {
+    window.addEventListener("load", prefetchPdfLibraries, { once: true });
 }
