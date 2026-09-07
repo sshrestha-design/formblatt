@@ -145,7 +145,21 @@ const canvasHandlers = {
     }
 };
 
+function ensureEditorStyles() {
+    if (typeof document === "undefined") return;
+    ["styles/editor.css?v=14.0", "styles/canvas.css?v=14.0"].forEach(href => {
+        const base = href.split("?")[0];
+        if (!document.querySelector(`link[href*="${base}"]`)) {
+            const link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = href;
+            document.head.appendChild(link);
+        }
+    });
+}
+
 export function initEditorSubsystems() {
+    ensureEditorStyles();
     if (isEditorInitialized) return;
     isEditorInitialized = true;
 
