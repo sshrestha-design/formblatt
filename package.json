@@ -6,6 +6,7 @@
   "main": "js/main.js",
   "scripts": {
     "test": "node tests/test_suite.js",
+    "bench": "node tests/benchmark_speed.js",
     "start": "node server.cjs"
   },
   "repository": {
