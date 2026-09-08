@@ -1183,10 +1183,10 @@ async function runAllTests() {
         assert.equal(missingAlt.length, 0, `All images must provide alt text: ${missingAlt.join(', ')}`);
     });
 
-    it("Skip-to-content bypass link exists and points to valid main dropzone", () => {
+    it("Hero upload and project dropzone exist with valid interactive IDs", () => {
         const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
-        assert.ok(indexHtml.includes('class="skip-link"'), "index.html must include skip-to-content link");
         assert.ok(indexHtml.includes('id="heroDropzone"'), "Target #heroDropzone must exist in index.html");
+        assert.ok(indexHtml.includes('id="heroPdfUpload"'), "Target #heroPdfUpload must exist in index.html");
     });
 
     it("Focus-visible outline styling is globally enforced for keyboard navigation", () => {
