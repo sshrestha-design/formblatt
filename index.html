@@ -165,6 +165,7 @@
     <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
+    <a href="#heroDropzone" class="skip-link">Skip to PDF upload area</a>
     
     <div id="landingScreen" class="landing-page">
         <!-- Top Navigation Header -->
@@ -1264,26 +1265,26 @@
                         <!-- Field Behavior Chips -->
                         <div class="prop-chips-grid">
                             <label class="prop-chip-toggle" id="defaultCheckedGroup" style="display: none;">
-                                <input type="checkbox" id="fieldDefaultChecked">
+                                <input type="checkbox" id="fieldDefaultChecked" aria-label="Default checked state">
                                 <span>Checked</span>
                             </label>
                             <label class="prop-inline-select" id="checkboxMarkGroup" style="display: none;">
                                 <span>Mark</span>
-                                <select id="fieldCheckboxMark" aria-label="Checkbox mark">
+                                <select id="fieldCheckboxMark" aria-label="Checkbox mark style">
                                     <option value="check">✓ Check</option>
                                     <option value="x">X</option>
                                 </select>
                             </label>
                             <label class="prop-chip-toggle">
-                                <input type="checkbox" id="fieldRequired">
+                                <input type="checkbox" id="fieldRequired" aria-label="Required field">
                                 <span>Required</span>
                             </label>
                             <label class="prop-chip-toggle" id="multilineGroup">
-                                <input type="checkbox" id="fieldMultiline">
+                                <input type="checkbox" id="fieldMultiline" aria-label="Multi-line text field">
                                 <span>Multi-line</span>
                             </label>
                             <label class="prop-chip-toggle">
-                                <input type="checkbox" id="fieldReadOnly">
+                                <input type="checkbox" id="fieldReadOnly" aria-label="Read-only field">
                                 <span>Read-Only</span>
                             </label>
                         </div>
@@ -1590,11 +1591,11 @@
                         </div>
                         <div class="prop-chips-grid">
                             <label class="prop-chip-toggle">
-                                <input type="checkbox" id="multiFieldRequired">
+                                <input type="checkbox" id="multiFieldRequired" aria-label="Required field for all selected">
                                 <span>Required</span>
                             </label>
                             <label class="prop-chip-toggle">
-                                <input type="checkbox" id="multiFieldReadOnly">
+                                <input type="checkbox" id="multiFieldReadOnly" aria-label="Read-only field for all selected">
                                 <span>Read-Only</span>
                             </label>
                         </div>
@@ -1832,7 +1833,7 @@
         <div class="command-palette-container" role="document">
             <div class="command-palette-header">
                 <i data-lucide="search" class="command-palette-search-icon"></i>
-                <input type="text" id="commandPaletteInput" class="command-palette-input" placeholder="Type a command or search actions (e.g. text, sign, auto-detect, export)..." autocomplete="off" autocorrect="off" spellcheck="false" aria-autocomplete="list" aria-controls="commandPaletteList">
+                <input type="text" id="commandPaletteInput" class="command-palette-input" aria-label="Search actions and commands" placeholder="Type a command or search actions (e.g. text, sign, auto-detect, export)..." autocomplete="off" autocorrect="off" spellcheck="false" aria-autocomplete="list" aria-controls="commandPaletteList">
                 <span class="command-palette-esc-badge"><kbd>ESC</kbd></span>
             </div>
             <div class="command-palette-body" id="commandPaletteList" role="listbox">
@@ -2149,14 +2150,14 @@
                     <label style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Export Mode</label>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid #2563eb; border-radius: 8px; cursor: pointer; background: #eff6ff; transition: all 0.15s ease;" id="labelAcroFormOption">
-                            <input type="radio" name="exportMode" value="acroform" checked style="margin-top: 3px; accent-color: #2563eb;">
+                            <input type="radio" name="exportMode" value="acroform" aria-label="Interactive AcroForm (Recommended)" checked style="margin-top: 3px; accent-color: #2563eb;">
                             <div>
                                 <strong style="font-size: 12.5px; color: #0f172a; display: block;">Interactive AcroForm (Recommended)</strong>
                                 <span style="font-size: 11.5px; color: #475569;">Fillable PDF compatible with Adobe Acrobat, Apple Preview & Chrome</span>
                             </div>
                         </label>
                         <label style="display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #ffffff; transition: all 0.15s ease;" id="labelFlattenOption">
-                            <input type="radio" name="exportMode" value="flatten" style="margin-top: 3px; accent-color: #2563eb;">
+                            <input type="radio" name="exportMode" value="flatten" aria-label="Flatten / Read-Only PDF" style="margin-top: 3px; accent-color: #2563eb;">
                             <div>
                                 <strong style="font-size: 12.5px; color: #0f172a; display: block;">Flatten / Read-Only</strong>
                                 <span style="font-size: 11.5px; color: #475569;">Lock form fields into static page content (non-editable)</span>
@@ -2168,7 +2169,7 @@
                 <!-- Also Download .jform Project Backup -->
                 <div style="margin-bottom: 16px;">
                     <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12.5px; color: #334155; font-weight: 600;">
-                        <input type="checkbox" id="exportIncludeProjectJson" style="width: 15px; height: 15px; accent-color: #2563eb;">
+                        <input type="checkbox" id="exportIncludeProjectJson" aria-label="Also download .jform project backup" style="width: 15px; height: 15px; accent-color: #2563eb;">
                         <span>Also download .jform project backup</span>
                     </label>
                 </div>
@@ -2235,14 +2236,14 @@
                     <label style="display: block; font-size: 12.5px; font-weight: 700; color: #0f172a; margin-bottom: 8px;">Save Action</label>
                     <div style="display: flex; flex-direction: column; gap: 8px;">
                         <label style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1.5px solid #2563eb; border-radius: 8px; cursor: pointer; background: #eff6ff; transition: all 0.15s ease;" id="labelSaveReplaceOption">
-                            <input type="radio" name="saveProjectAction" value="replace" checked style="margin-top: 3px; accent-color: #2563eb;">
+                            <input type="radio" name="saveProjectAction" value="replace" aria-label="Replace / Update Existing Project (Recommended)" checked style="margin-top: 3px; accent-color: #2563eb;">
                             <div>
                                 <strong style="font-size: 12.5px; color: #0f172a; display: block;">Replace / Update Existing Project (Recommended)</strong>
                                 <span style="font-size: 11.5px; color: #475569;">Overwrites current file: <code id="saveReplaceNameDisplay" style="font-weight:600; color:#2563eb;">interactive_form.jform</code></span>
                             </div>
                         </label>
                         <label style="display: flex; align-items: flex-start; gap: 10px; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; background: #ffffff; transition: all 0.15s ease;" id="labelSaveNewCopyOption">
-                            <input type="radio" name="saveProjectAction" value="new_copy" style="margin-top: 3px; accent-color: #2563eb;">
+                            <input type="radio" name="saveProjectAction" value="new_copy" aria-label="Save as New Project Copy" style="margin-top: 3px; accent-color: #2563eb;">
                             <div>
                                 <strong style="font-size: 12.5px; color: #0f172a; display: block;">Save as New Project Copy</strong>
                                 <span style="font-size: 11.5px; color: #475569;">Create a separate project file backup</span>
