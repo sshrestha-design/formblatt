@@ -14,6 +14,13 @@ import { goToPage } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
 import { formatFieldDisplayName } from "./overlay-manager.js";
 
+const escapeHtml = (str) => String(str || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
 const FIELD_TYPE_STYLES = {
     textField: {
         symbol: "T",
@@ -80,7 +87,7 @@ export function renderLayers(onSelect, onRerender) {
             </button>
             <i data-lucide="${isCollapsed ? 'folder' : 'folder-open'}" class="group-folder-icon" style="width: 14px; height: 14px; color: ${isGroupAllSelected ? '#2563eb' : '#64748b'}; flex-shrink: 0;"></i>
             <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
-                <span class="group-name" title="${g.name || 'Group'} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; cursor: pointer;">${g.name || 'Group'}</span>
+                <span class="group-name" title="${escapeHtml(g.name || 'Group')} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; cursor: pointer;">${escapeHtml(g.name || 'Group')}</span>
                 <button type="button" class="layer-rename-btn" title="Rename Group" style="flex-shrink: 0;">
                     <i data-lucide="pencil" style="width: 11px; height: 11px;"></i>
                 </button>
@@ -314,9 +321,9 @@ function createFieldLayerItem(f, onSelect, onRerender) {
     item.innerHTML = `
         <span class="layer-grip-handle" title="Drag to reorder"><i data-lucide="grip-vertical" style="width: 12px; height: 12px;"></i></span>
         <span class="layer-index" style="font-size: 11px; color: ${isSelected ? '#2563eb' : '#94a3b8'}; width: 14px; font-weight: ${isSelected ? '600' : '400'}; flex-shrink: 0; text-align: right;">${globalIdx}</span>
-        <span class="layer-type-tag" title="${style.label}">${style.symbol}</span>
+        <span class="layer-type-tag" title="${escapeHtml(style.label)}">${escapeHtml(style.symbol)}</span>
         <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
-            <span class="layer-name" title="${f.name || style.label} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSelected ? '600' : '500'}; cursor: grab;">${formatFieldDisplayName(f)}</span>
+            <span class="layer-name" title="${escapeHtml(f.name || style.label)} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: ${isSelected ? '600' : '500'}; cursor: grab;">${escapeHtml(formatFieldDisplayName(f))}</span>
             <button type="button" class="layer-rename-btn" title="Rename Field" style="flex-shrink: 0;">
                 <i data-lucide="pencil" style="width: 11px; height: 11px;"></i>
             </button>
