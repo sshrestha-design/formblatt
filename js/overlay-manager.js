@@ -50,6 +50,13 @@ function getFillInputFontSize(field, fallback = 12) {
     return fallback;
 }
 
+export function getSafeImageSrc(src) {
+    if (typeof src === "string" && /^data:image\/(png|jpeg|jpg|webp);base64,[A-Za-z0-9+/=\s]+$/.test(src.trim())) {
+        return src.trim();
+    }
+    return "";
+}
+
 export function formatFieldDisplayName(f) {
     if (!f) return "Field";
     const raw = f.name || FIELD_TYPE_LABELS[f.type] || "Text Field";
@@ -143,10 +150,11 @@ export function renderOverlays(handlers) {
                 });
                 div.appendChild(sel);
             } else if (f.type === "signature") {
-                if (f.signatureImage) {
+                const safeSig = getSafeImageSrc(f.signatureImage);
+                if (safeSig) {
                     div.innerHTML = `
                         <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                            <img src="${f.signatureImage}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
+                            <img src="${safeSig}" alt="Signature preview" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
                             <button class="fill-clear-sig-btn" title="Clear signature" style="position:absolute; top:2px; right:2px; width:16px; height:16px; border-radius:50%; background:#ef4444; color:#fff; border:none; font-size:9px; cursor:pointer; display:flex; align-items:center; justify-content:center; padding:0;">✕</button>
                         </div>
                     `;
@@ -311,10 +319,11 @@ export function renderOverlays(handlers) {
 
         // Special render for signature fields
         if (f.type === "signature") {
-            if (f.signatureImage) {
+            const safeSig = getSafeImageSrc(f.signatureImage);
+            if (safeSig) {
                 div.innerHTML = `
                     <div style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
-                        <img src="${f.signatureImage}" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
+                        <img src="${safeSig}" alt="Signature preview" style="width:100%; height:100%; object-fit:contain; pointer-events:none;">
                     </div>
                 `;
             } else {
