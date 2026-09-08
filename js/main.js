@@ -135,9 +135,9 @@ function bootstrapApp() {
     if (feedbackForm) {
         feedbackForm.addEventListener("submit", e => {
             e.preventDefault();
-            const emailInput = document.getElementById("feedbackEmail");
+            const senderInput = document.getElementById("feedbackSender") || document.getElementById("feedbackEmail");
             const msgInput = document.getElementById("feedbackMessage");
-            const email = emailInput?.value.trim() || "";
+            const sender = senderInput?.value.trim() || "";
             const msg = msgInput?.value.trim() || "";
 
             if (!msg) {
@@ -150,7 +150,7 @@ function bootstrapApp() {
                     window.va("event", {
                         name: "user_feedback",
                         data: {
-                            email: email || "anonymous",
+                            sender: sender || "anonymous",
                             feedback: msg,
                             timestamp: new Date().toISOString()
                         }
@@ -162,7 +162,7 @@ function bootstrapApp() {
 
             const feedbackModal = document.getElementById("feedbackModal");
             if (feedbackModal) feedbackModal.style.display = "none";
-            if (emailInput) emailInput.value = "";
+            if (senderInput) senderInput.value = "";
             if (msgInput) msgInput.value = "";
             showToast("Thank you for your feedback! We review every message.", "success");
         });
