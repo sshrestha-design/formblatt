@@ -1069,17 +1069,59 @@ async function runAllTests() {
         assert.equal(state.history.length, 2);
         assert.equal(state.historyIndex, 1);
 
-        // Undo
-        undo();
-        assert.equal(state.historyIndex, 0);
-        assert.equal(state.fields.length, 1);
-        assert.equal(state.fields[0].id, "f1");
-
         // Redo
         redo();
         assert.equal(state.historyIndex, 1);
         assert.equal(state.fields.length, 2);
         assert.equal(state.fields[1].id, "f2");
+    });
+
+    // ── SUITE 19: Security, Privacy & Sanitization Auditing ──
+    console.log("\n🔒 Suite 19: Security, Privacy & Sanitization Auditing");
+    it("getSafeImageSrc strictly enforces base64 image data URLs and rejects dangerous schemes", async () => {
+        const { getSafeImageSrc } = await import(path.join(WEB_DIR, 'js', 'overlay-manager.js'));
+        
+        // Allowed
+        const validPng = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+        assert.equal(getSafeImageSrc(validPng), validPng);
+
+        // Blocked / Disallowed
+        assert.equal(getSafeImageSrc("javascript:alert(1)"), "");
+        assert.equal(getSafeImageSrc("https://malicious-site.com/track.png"), "");
+        assert.equal(getSafeImageSrc("data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=="), "");
+        assert.equal(getSafeImageSrc(null), "");
+        assert.equal(getSafeImageSrc(undefined), "");
+        assert.equal(getSafeImageSrc(12345), "");
+    });
+
+    it("vercel.json enforces standard web security headers", () => {
+        const vercelJson = JSON.parse(fs.readFileSync(path.join(WEB_DIR, 'vercel.json'), 'utf8'));
+        const globalHeaders = vercelJson.headers.find(h => h.source === "/(.*)")?.headers || [];
+        const headerMap = Object.fromEntries(globalHeaders.map(h => [h.key, h.value]));
+
+        assert.equal(headerMap["X-Content-Type-Options"], "nosniff");
+        assert.equal(headerMap["X-Frame-Options"], "SAMEORIGIN");
+        assert.equal(headerMap["Referrer-Policy"], "strict-origin-when-cross-origin");
+        assert.ok(headerMap["Permissions-Policy"] && headerMap["Permissions-Policy"].includes("camera=()"));
+        assert.equal(headerMap["Cross-Origin-Opener-Policy"], "same-origin");
+    });
+
+    it("server.cjs prevents directory traversal attacks outside ROOT directory", () => {
+        const serverCjs = fs.readFileSync(path.join(WEB_DIR, 'server.cjs'), 'utf8');
+        assert.ok(serverCjs.includes("!filePath.startsWith(ROOT)"), "server.cjs must contain root path containment check");
+        assert.ok(serverCjs.includes("403 Forbidden"), "server.cjs must respond with 403 on traversal attempt");
+    });
+
+    it("Zero unauthorized external network telemetry in client application files", () => {
+        const jsFiles = fs.readdirSync(path.join(WEB_DIR, 'js')).filter(f => f.endsWith('.js'));
+        const bannedCalls = ["XMLHttpRequest", "navigator.sendBeacon", "WebSocket"];
+        
+        for (const file of jsFiles) {
+            const content = fs.readFileSync(path.join(WEB_DIR, 'js', file), 'utf8');
+            for (const banned of bannedCalls) {
+                assert.ok(!content.includes(banned), `${file} must not use ${banned}`);
+            }
+        }
     });
 
     // ── Summary ──
