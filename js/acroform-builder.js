@@ -13,11 +13,19 @@ function checkboxAppearanceProvider(mark) {
         const height = rectangle.height - borderWidth;
         const borderColor = PDFLib.rgb(0, 0, 0);
         const markColor = PDFLib.rgb(0, 0, 0);
-        const backgroundColor = ap?.getBackgroundColor?.();
+        const rawBg = ap?.getBackgroundColor?.();
+        let backgroundColor = undefined;
+        if (Array.isArray(rawBg)) {
+            if (rawBg.length === 3) backgroundColor = PDFLib.rgb(rawBg[0], rawBg[1], rawBg[2]);
+            else if (rawBg.length === 1) backgroundColor = PDFLib.grayscale(rawBg[0]);
+            else if (rawBg.length === 4) backgroundColor = PDFLib.cmyk(rawBg[0], rawBg[1], rawBg[2], rawBg[3]);
+        } else if (rawBg && typeof rawBg === "object" && "type" in rawBg) {
+            backgroundColor = rawBg;
+        }
         const outline = PDFLib.drawCheckBox({
             x: borderWidth / 2, y: borderWidth / 2, width, height,
             thickness: 1.5, borderWidth, borderColor, markColor,
-            color: backgroundColor, filled: false
+            color: backgroundColor, filled: backgroundColor !== undefined
         });
         const markOperators = mark === "x"
             ? [
@@ -97,15 +105,29 @@ function applyTextFieldAppearance(fieldObj, font, fontSize) {
     }
 }
 
-export async function buildPdf(options = {}) {
-    if (!state.originalPdfBytes) throw new Error("No PDF loaded.");
+export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybeOptions = {}) {
+    let sourceBytes = state.originalPdfBytes;
+    let targetFields = state.fields;
+    let opts = {};
+
+    if (pdfBytesOrOptions instanceof Uint8Array || ArrayBuffer.isView(pdfBytesOrOptions) || Array.isArray(pdfBytesOrOptions)) {
+        sourceBytes = pdfBytesOrOptions;
+        if (Array.isArray(maybeFields)) targetFields = maybeFields;
+        if (typeof maybeOptions === "object" && maybeOptions !== null) opts = maybeOptions;
+    } else if (typeof pdfBytesOrOptions === "object" && pdfBytesOrOptions !== null) {
+        opts = pdfBytesOrOptions;
+        if (opts.pdfBytes) sourceBytes = opts.pdfBytes;
+        if (Array.isArray(opts.fields)) targetFields = opts.fields;
+    }
+
+    if (!sourceBytes) throw new Error("No PDF loaded.");
     await loadPdfLibraries();
 
     const pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : (typeof PDFLib !== "undefined" ? PDFLib : null);
     if (!pdfLib) throw new Error("PDF-Lib not initialized.");
     const { PDFDocument, StandardFonts, rgb } = pdfLib;
     // Load fresh slice of bytes
-    const doc = await PDFDocument.load(state.originalPdfBytes.slice(), { ignoreEncryption: true });
+    const doc = await PDFDocument.load(sourceBytes.slice(), { ignoreEncryption: true });
     
     // Register fontkit if present in environment
     if (typeof window !== "undefined" && window.fontkit) {
@@ -174,7 +196,7 @@ export async function buildPdf(options = {}) {
         console.warn("Could not register fonts in AcroForm DR dictionary:", e);
     }
 
-    for (let f of state.fields) {
+    for (let f of targetFields) {
         const pageIdx = (f.page || 1) - 1;
         const page = pages[pageIdx] || pages[0];
         const pageHeight = page.getHeight();
@@ -183,14 +205,7 @@ export async function buildPdf(options = {}) {
         if (f.autofill && (!f.name || f.name.startsWith("field_") || f.name.startsWith("textField_") || f.name.startsWith("input_"))) {
             nm = f.autofill;
         }
-        // NOTE: radioGroup fields are exempt from the collision-rename below.
-        // Multiple option fields in the SAME group are *supposed* to share one
-        // name — that shared name is exactly how pdf-lib knows they belong to
-        // the same mutually-exclusive RadioGroup (see form.getRadioGroup(nm) /
-        // rg.addOptionToPage(...) further down). Force-renaming every option
-        // after the first would silently split each row into isolated,
-        // single-option radio groups instead of one real group.
-        if (f.type !== "radioGroup") {
+        if (f.type !== "radioGroup" && f.type !== "radio") {
             if (!nm || usedNames.has(nm)) {
                 nm = `${nm || "field"}_${f.id}`;
             }
@@ -229,7 +244,7 @@ export async function buildPdf(options = {}) {
         }
 
         try {
-            if (f.type === "textField" || f.type === "dateField") {
+            if (f.type === "textField" || f.type === "dateField" || f.type === "date" || f.type === "number") {
                 let tf;
                 try { tf = form.getTextField(nm); } catch { tf = form.createTextField(nm); }
 
@@ -274,7 +289,7 @@ export async function buildPdf(options = {}) {
                 try { if (f.required) cb.enableRequired(); } catch(e) {}
                 try { const cbTooltip = resolveAutofillTooltip(f); if (cbTooltip) cb.setToolTip(cbTooltip); } catch(e) {}
                 cb.addToPage(page, common);
-                if (f.defaultChecked) {
+                if (f.defaultChecked || f.checked) {
                     try { cb.check(); } catch(e) {}
                 }
                 try { cb.updateAppearances(checkboxAppearanceProvider(f.checkboxMark || "check")); } catch(e) {
@@ -312,29 +327,31 @@ export async function buildPdf(options = {}) {
                 try { dd.updateAppearances(font); } catch(e) {}
                 applyTextFieldAppearance(dd, font, fontSize);
 
-            } else if (f.type === "radioGroup") {
+            } else if (f.type === "radioGroup" || f.type === "radio") {
                 let rg;
-                try { rg = form.getRadioGroup(nm); } catch { rg = form.createRadioGroup(nm); }
-                const optionValue = f.radioValue || f.value || `option_${f.id}`;
+                const rgName = f.radioGroup || nm;
+                try { rg = form.getRadioGroup(rgName); } catch { rg = form.createRadioGroup(rgName); }
+                const optionValue = f.exportValue || f.radioValue || f.value || `option_${f.id}`;
                 rg.addOptionToPage(optionValue, page, common);
-                if (f.defaultChecked) {
+                if (f.defaultChecked || f.checked) {
                     try { rg.select(optionValue); } catch(e) {}
                 }
 
             } else if (f.type === "signature") {
-                if (f.signatureImage) {
+                const sigData = f.signatureImage || f.signatureData;
+                if (sigData) {
                     // Pre-signed by form creator: embed stamp
                     try {
                         let pngBytes;
-                        if (typeof f.signatureImage === "string" && f.signatureImage.startsWith("data:")) {
-                            const base64Data = f.signatureImage.split(",")[1];
+                        if (typeof sigData === "string" && sigData.startsWith("data:")) {
+                            const base64Data = sigData.split(",")[1];
                             const binaryString = atob(base64Data);
                             pngBytes = new Uint8Array(binaryString.length);
                             for (let i = 0; i < binaryString.length; i++) {
                                 pngBytes[i] = binaryString.charCodeAt(i);
                             }
                         } else {
-                            pngBytes = f.signatureImage;
+                            pngBytes = sigData;
                         }
                         const pngImage = await doc.embedPng(pngBytes);
                         page.drawImage(pngImage, {
@@ -379,7 +396,7 @@ export async function buildPdf(options = {}) {
         }
     }
 
-    if (options && options.flatten) {
+    if (opts && opts.flatten) {
         try {
             form.flatten();
         } catch(flattenErr) {
