@@ -981,6 +981,107 @@ async function runAllTests() {
         assert.equal(header[0], 0x89, 'og-image.png must be a valid PNG');
     });
 
+    // ── SUITE 17: DOM Elements & Template Integrity Verification ──
+    console.log("\n🔍 Suite 17: DOM Elements & Template Integrity Verification");
+    it("Core interactive DOM elements exist in index.html across Landing, Editor, and Modals", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        const requiredElements = [
+            // Landing page elements
+            "landingScreen", "appEditorScreen", "heroBrowseBtn", "heroPdfUpload", "heroOpenProjectUpload",
+            "heroDropzone", "spotlight", "templates", "why", "how-it-works", "features", "faq",
+            // Editor header & controls
+            "editorBrandLogo", "saveProjectMenuBtn", "generatePdfBtn", "modeDesignBtn", "modeFillBtn", "fillModeBanner",
+            // Canvas & Work area
+            "canvasContainer", "overlayContainer", "smartGuides", "snapPointDot",
+            // Modals
+            "signatureModal", "shortcutsModal", "feedbackModal", "complianceModal",
+            // Panels
+            "leftPanel", "rightPanel", "layersList"
+        ];
+
+        for (const id of requiredElements) {
+            assert.ok(indexHtml.includes(`id="${id}"`), `index.html must include element with id="${id}"`);
+        }
+
+        const requiredTools = ["select", "hand", "textField", "dropdown", "checkBox", "radioGroup", "signature"];
+        for (const tool of requiredTools) {
+            assert.ok(indexHtml.includes(`data-tool="${tool}"`), `index.html must include tool button with data-tool="${tool}"`);
+        }
+    });
+
+    await asyncIt("createTemplatePdf accurately builds vector PDFs for all starter templates", async () => {
+        const { STARTER_TEMPLATES, createTemplatePdf } = await import(path.join(WEB_DIR, 'js', 'templates-engine.js'));
+        for (const [key, template] of Object.entries(STARTER_TEMPLATES)) {
+            assert.ok(template.title, `Template '${key}' must have a title`);
+            assert.ok(Array.isArray(template.fields), `Template '${key}' must have fields array`);
+            const pdfBytes = await createTemplatePdf(key);
+            assert.ok(pdfBytes && pdfBytes.length > 0, `Template '${key}' must generate non-empty PDF bytes`);
+            const magic = Buffer.from(pdfBytes.subarray(0, 4)).toString('ascii');
+            assert.equal(magic, "%PDF", `Template '${key}' output must start with %PDF magic bytes`);
+        }
+    });
+
+    // ── SUITE 18: End-to-End AcroForm PDF Pipeline Verification ──
+    console.log("\n📄 Suite 18: End-to-End AcroForm PDF Pipeline Verification");
+    await asyncIt("buildPdf successfully compiles and embeds all interactive AcroForm field types", async () => {
+        const { PDFDocument } = await import('pdf-lib');
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+
+        const testDoc = await PDFDocument.create();
+        testDoc.addPage([612, 792]);
+        const pdfBytes = await testDoc.save();
+
+        const testFields = [
+            { id: "f1", type: "textField", page: 1, x: 50, y: 100, width: 200, height: 24, name: "FullName", value: "Jane Smith", fontSize: 11, font: "Helvetica", required: true, readOnly: false },
+            { id: "f2", type: "checkBox", page: 1, x: 50, y: 150, width: 16, height: 16, name: "AgreeTerms", checked: true, required: false },
+            { id: "f3", type: "dropdown", page: 1, x: 50, y: 200, width: 180, height: 24, name: "Country", options: ["US", "DE", "NP"], value: "DE" },
+            { id: "f4", type: "signature", page: 1, x: 50, y: 250, width: 220, height: 50, name: "SignatureBlock", signatureData: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" },
+            { id: "f5", type: "radio", page: 1, x: 50, y: 320, width: 16, height: 16, name: "PaymentMethod", exportValue: "Card", radioGroup: "PaymentMethod", checked: true },
+            { id: "f6", type: "date", page: 1, x: 50, y: 360, width: 140, height: 24, name: "Date", value: "2026-09-08" },
+            { id: "f7", type: "number", page: 1, x: 50, y: 400, width: 120, height: 24, name: "TotalAmount", value: "250.00" }
+        ];
+
+        const outputBytes = await buildPdf(pdfBytes, testFields, { fontPreference: 'Helvetica' });
+        assert.ok(outputBytes && outputBytes.length > 0, "buildPdf must return non-empty Uint8Array");
+
+        // Verify loaded AcroForm
+        const verifiedDoc = await PDFDocument.load(outputBytes);
+        const form = verifiedDoc.getForm();
+        const compiledFields = form.getFields();
+        assert.ok(compiledFields.length >= 6, `AcroForm must have compiled fields (found ${compiledFields.length})`);
+    });
+
+    it("Storage manager serializes snapshots and manages undo/redo stack accurately", async () => {
+        const { state } = await import(path.join(WEB_DIR, 'js', 'state.js'));
+        const { saveHistory, undo, redo } = await import(path.join(WEB_DIR, 'js', 'storage-manager.js'));
+
+        state.fields = [{ id: "f1", name: "PartyA", type: "textField", page: 1, x: 10, y: 10, width: 100, height: 20 }];
+        state.groups = [];
+        state.history = [];
+        state.historyIndex = -1;
+
+        saveHistory(true);
+        assert.equal(state.history.length, 1);
+        assert.equal(state.historyIndex, 0);
+
+        state.fields.push({ id: "f2", name: "PartyB", type: "textField", page: 1, x: 10, y: 40, width: 100, height: 20 });
+        saveHistory(true);
+        assert.equal(state.history.length, 2);
+        assert.equal(state.historyIndex, 1);
+
+        // Undo
+        undo();
+        assert.equal(state.historyIndex, 0);
+        assert.equal(state.fields.length, 1);
+        assert.equal(state.fields[0].id, "f1");
+
+        // Redo
+        redo();
+        assert.equal(state.historyIndex, 1);
+        assert.equal(state.fields.length, 2);
+        assert.equal(state.fields[1].id, "f2");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
