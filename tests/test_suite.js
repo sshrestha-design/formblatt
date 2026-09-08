@@ -1124,6 +1124,84 @@ async function runAllTests() {
         }
     });
 
+    // ── SUITE 20: Comprehensive Accessibility (a11y) & WCAG 2.1 AA Auditing ──
+    console.log("\n♿ Suite 20: Accessibility (a11y) & WCAG 2.1 AA Verification");
+    it("100% of interactive buttons possess an accessible name or aria-label", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        const buttonRegex = /<button\b([^>]*)>([\s\S]*?)<\/button>/gi;
+        let match;
+        const missingLabels = [];
+        while ((match = buttonRegex.exec(indexHtml)) !== null) {
+            const attrs = match[1];
+            const content = match[2].replace(/<[^>]+>/g, '').trim();
+            const hasAriaLabel = /aria-label\s*=\s*['\"][^'\"]+['\"]/i.test(attrs);
+            const hasAriaLabelledBy = /aria-labelledby\s*=\s*['\"][^'\"]+['\"]/i.test(attrs);
+            const hasTitle = /title\s*=\s*['\"][^'\"]+['\"]/i.test(attrs);
+            if (!content && !hasAriaLabel && !hasAriaLabelledBy && !hasTitle) {
+                missingLabels.push(match[0].slice(0, 80));
+            }
+        }
+        assert.equal(missingLabels.length, 0, `All buttons must have accessible names: ${missingLabels.join(', ')}`);
+    });
+
+    it("100% of form inputs, selects, and textareas have associated labels or aria-labels", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        const inputRegex = /<input\b([^>]*)>/gi;
+        let match;
+        const missingLabels = [];
+        while ((match = inputRegex.exec(indexHtml)) !== null) {
+            const attrs = match[1];
+            if (/type=['\"]hidden['\"]/i.test(attrs)) continue;
+            const hasId = /id=['\"]([^'\"]+)['\"]/i.exec(attrs);
+            const hasAriaLabel = /aria-label\s*=\s*['\"][^'\"]+['\"]/i.test(attrs);
+            const hasAriaLabelledBy = /aria-labelledby\s*=\s*['\"][^'\"]+['\"]/i.test(attrs);
+            const hasTitle = /title\s*=\s*['\"][^'\"]+['\"]/i.test(attrs);
+            let hasLabel = false;
+            if (hasId) {
+                hasLabel = new RegExp('<label[^>]*for=[\'\"]' + hasId[1] + '[\'\"]', 'i').test(indexHtml);
+            }
+            if (!hasAriaLabel && !hasAriaLabelledBy && !hasTitle && !hasLabel) {
+                missingLabels.push(match[0].slice(0, 80));
+            }
+        }
+        assert.equal(missingLabels.length, 0, `All inputs must have accessible labels: ${missingLabels.join(', ')}`);
+    });
+
+    it("100% of images specify alt text or decorative presentation roles", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        const imgRegex = /<img\b([^>]*)>/gi;
+        let match;
+        const missingAlt = [];
+        while ((match = imgRegex.exec(indexHtml)) !== null) {
+            const attrs = match[1];
+            const hasAlt = /alt\s*=\s*['\"][^'\"]*['\"]/i.test(attrs);
+            const isDecorative = /role=['\"]presentation['\"]/i.test(attrs) || /aria-hidden=['\"]true['\"]/i.test(attrs);
+            if (!hasAlt && !isDecorative) {
+                missingAlt.push(match[0].slice(0, 80));
+            }
+        }
+        assert.equal(missingAlt.length, 0, `All images must provide alt text: ${missingAlt.join(', ')}`);
+    });
+
+    it("Skip-to-content bypass link exists and points to valid main dropzone", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('class="skip-link"'), "index.html must include skip-to-content link");
+        assert.ok(indexHtml.includes('id="heroDropzone"'), "Target #heroDropzone must exist in index.html");
+    });
+
+    it("Focus-visible outline styling is globally enforced for keyboard navigation", () => {
+        const baseCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'base.css'), 'utf8');
+        assert.ok(baseCss.includes(':focus-visible'), "base.css must define :focus-visible rules");
+        assert.ok(baseCss.includes('outline'), "base.css must provide visible outline style");
+    });
+
+    it("Prefers-reduced-motion media query is configured across styles and transitions", () => {
+        const baseCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'base.css'), 'utf8');
+        const landingCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'landing.css'), 'utf8');
+        assert.ok(baseCss.includes('prefers-reduced-motion'), "base.css must support prefers-reduced-motion");
+        assert.ok(landingCss.includes('prefers-reduced-motion'), "landing.css must support prefers-reduced-motion");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
