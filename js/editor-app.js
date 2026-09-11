@@ -32,7 +32,39 @@ export function refreshUI() {
     populateProperties(getSelectedField());
     updateToolIndicator();
     updateModeIndicator();
+    updateHistoryAndActionButtons();
     if (typeof lucide !== "undefined") lucide.createIcons();
+}
+
+export function updateHistoryAndActionButtons() {
+    if (typeof document === "undefined") return;
+    const canUndo = state.historyIndex > 0;
+    const canRedo = state.historyIndex < state.history.length - 1;
+    const hasSelection = Boolean(state.selectedFieldIds && state.selectedFieldIds.size > 0);
+
+    const undoBtns = [document.getElementById("quickUndoBtn"), document.getElementById("menuUndoBtn")];
+    undoBtns.forEach(btn => {
+        if (btn) {
+            btn.classList.toggle("is-disabled", !canUndo);
+            btn.setAttribute("aria-disabled", !canUndo ? "true" : "false");
+        }
+    });
+
+    const redoBtns = [document.getElementById("quickRedoBtn"), document.getElementById("menuRedoBtn")];
+    redoBtns.forEach(btn => {
+        if (btn) {
+            btn.classList.toggle("is-disabled", !canRedo);
+            btn.setAttribute("aria-disabled", !canRedo ? "true" : "false");
+        }
+    });
+
+    const delBtns = [document.getElementById("quickDeleteBtn"), document.getElementById("menuDeleteBtn")];
+    delBtns.forEach(btn => {
+        if (btn) {
+            btn.classList.toggle("is-disabled", !hasSelection);
+            btn.setAttribute("aria-disabled", !hasSelection ? "true" : "false");
+        }
+    });
 }
 
 export function updateToolIndicator() {
@@ -84,7 +116,10 @@ export function updateModeIndicator() {
 }
 
 export async function deleteSelectedFieldsWithPoof() {
-    if (state.selectedFieldIds.size === 0) return;
+    if (state.selectedFieldIds.size === 0) {
+        showToast("Select a field on the canvas to delete", "info");
+        return;
+    }
     const deletedCount = state.selectedFieldIds.size;
     const targetIds = Array.from(state.selectedFieldIds);
 
