@@ -979,11 +979,8 @@
                     <div class="tool-divider"></div>
 
                     <!-- Form Field Insertion Tools -->
-                    <button class="tool-btn" data-tool="staticText" data-tooltip="Text / Heading" data-kbd="T" aria-label="Text or Heading tool">
+                    <button class="tool-btn" data-tool="textField" data-tooltip="Text Field" data-kbd="T" aria-label="Text Field tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
-                    </button>
-                    <button class="tool-btn" data-tool="textField" data-tooltip="Text Input Field" data-kbd="F" aria-label="Text Input Field tool">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="12" x2="11" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/></svg>
                     </button>
                     <button class="tool-btn" data-tool="dropdown" data-tooltip="Dropdown Select" data-kbd="D" aria-label="Dropdown Select tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 10l5 5 5-5"/></svg>
@@ -1225,7 +1222,6 @@
                         <div class="prop-field">
                             <label class="prop-label" for="fieldType">Field Type</label>
                             <select id="fieldType" class="prop-select">
-                                <option value="staticText">Text / Heading</option>
                                 <option value="textField">Text Field</option>
                                 <option value="dateField">Date Field</option>
                                 <option value="dropdown">Dropdown</option>
@@ -1764,8 +1760,7 @@
                     <div class="shortcut-list">
                         <div class="shortcut-row"><span class="shortcut-desc">Select Tool</span><div class="shortcut-keys"><span class="shortcut-kbd">V</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Hand Tool / Pan</span><div class="shortcut-keys"><span class="shortcut-kbd">H</span><span style="font-size:10px; color:#94a3b8;">or</span><span class="shortcut-kbd">Space</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Text / Heading</span><div class="shortcut-keys"><span class="shortcut-kbd">T</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Text Input Field</span><div class="shortcut-keys"><span class="shortcut-kbd">F</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Text Field</span><div class="shortcut-keys"><span class="shortcut-kbd">T</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Dropdown</span><div class="shortcut-keys"><span class="shortcut-kbd">D</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Checkbox</span><div class="shortcut-keys"><span class="shortcut-kbd">C</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Radio Group</span><div class="shortcut-keys"><span class="shortcut-kbd">R</span></div></div>
@@ -1798,60 +1793,153 @@
                         <span>Clipboard & History</span>
                     </div>
                     <div class="shortcut-list">
-                        <div class="shortcut-row"><span class="shortcut-desc">Undo</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Z</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Redo</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">Y</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Copy</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">C</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Paste</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">V</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Duplicate</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">D</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Select All Fields</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">A</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Group Selection</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">G</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Undo</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘Z</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Redo</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘⇧Z</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Copy</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘C</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Paste</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘V</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Duplicate</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘D</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Select All Fields</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘A</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Deselect All</span><div class="shortcut-keys"><span class="shortcut-kbd">Esc</span></div></div>
                     </div>
                 </div>
 
-                <!-- Group 4: General & Navigation -->
+                <!-- Group 4: Workflow & View -->
                 <div class="shortcut-group">
                     <div class="shortcut-group-title">
-                        <i data-lucide="help-circle" style="width:12px; height:12px;"></i>
-                        <span>General & Help</span>
+                        <i data-lucide="settings" style="width:12px; height:12px;"></i>
+                        <span>Workflow & Navigation</span>
                     </div>
                     <div class="shortcut-list">
-                        <div class="shortcut-row"><span class="shortcut-desc">Open Command Palette</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">K</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Toggle Smart Guides</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘ / Ctrl</span><span style="font-size:10px; color:#94a3b8;">+</span><span class="shortcut-kbd">;</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Open Shortcuts Cheat Sheet</span><div class="shortcut-keys"><span class="shortcut-kbd">?</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Cancel Action / Deselect</span><div class="shortcut-keys"><span class="shortcut-kbd">Esc</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Confirm In-Place HUD</span><div class="shortcut-keys"><span class="shortcut-kbd">Enter</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Scrub Numbers</span><div class="shortcut-keys"><span class="shortcut-kbd">Drag Label</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Scroll Numbers</span><div class="shortcut-keys"><span class="shortcut-kbd">Wheel on Input</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Command Palette</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘K</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Keyboard Shortcuts</span><div class="shortcut-keys"><span class="shortcut-kbd">?</span><span style="font-size:10px; color:#94a3b8;">or</span><span class="shortcut-kbd">F1</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Toggle Left Layers Panel</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘\</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Toggle Right Inspector</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘/</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Switch Mode (Design / Fill)</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘P</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Auto-Detect Form Fields</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘E</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Export Fillable PDF</span><div class="shortcut-keys"><span class="shortcut-kbd">⌘S</span></div></div>
                     </div>
                 </div>
             </div>
-
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; padding-top:14px; border-top:1px solid #f1f5f9;">
-                <span style="font-size:11.5px; color:#94a3b8;">Tip: Press <kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:11px;">?</kbd> for help, or <kbd style="background:#f1f5f9; padding:1px 5px; border-radius:3px; border:1px solid #cbd5e1; font-size:11px;">⌘K</kbd> for command palette</span>
-                <button id="shortcutsDoneBtn" class="btn-primary" style="padding:6px 16px; font-size:12px; border-radius:6px;">Got It</button>
+            <div style="display:flex; justify-content:flex-end; margin-top:20px; padding-top:14px; border-top:1px solid #e2e8f0;">
+                <button id="shortcutsDoneBtn" class="btn btn-primary" style="padding:7px 18px; font-size:13px; font-weight:600; border-radius:8px;">Got It</button>
             </div>
         </div>
     </div>
 
-    <!-- Command Palette (⌘K / Ctrl+K) Modal -->
-    <div id="commandPaletteModal" class="command-palette-modal" role="dialog" aria-modal="true" aria-labelledby="commandPaletteInput" style="display: none;">
-        <div class="command-palette-container" role="document">
+    <!-- Feedback Modal -->
+    <div id="feedbackModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="feedbackModalHeading" style="display: none;">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background:#eff6ff; color:#2563eb;">
+                    <i data-lucide="message-square" style="width: 18px; height: 18px;"></i>
+                </div>
+                <div style="flex:1;">
+                    <h3 id="feedbackModalHeading" style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Send Feedback</h3>
+                    <p style="margin:0; font-size:12px; color:#64748b;">Help us make Formblatt even better</p>
+                </div>
+                <button id="closeFeedbackModalBtn" aria-label="Close feedback modal" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="modal-label" for="feedbackCategory">Feedback Type</label>
+                    <select id="feedbackCategory" class="prop-select">
+                        <option value="feature">Feature Request</option>
+                        <option value="bug">Bug Report</option>
+                        <option value="usability">Usability / Design Suggestion</option>
+                        <option value="other">General Feedback</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label class="modal-label" for="feedbackText">Your Thoughts</label>
+                    <textarea id="feedbackText" class="prop-textarea" rows="4" placeholder="What's working well? What could be improved?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="modal-label" for="feedbackEmail">Email (optional)</label>
+                    <input type="email" id="feedbackEmail" class="prop-input" placeholder="you@example.com (if you'd like a response)">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelFeedbackBtn" class="btn-secondary">Cancel</button>
+                <button id="submitFeedbackBtn" class="btn-primary">
+                    <i data-lucide="send" style="width: 13px; height: 13px;"></i>
+                    <span>Submit Feedback</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Feature Showcase Modal -->
+    <div id="aiShowcaseModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="aiShowcaseHeading" style="display: none;">
+        <div class="modal-card" style="max-width: 520px;">
+            <div class="modal-header">
+                <div class="modal-header-icon" style="background: #eef2ff; color: #4f46e5;">
+                    <i data-lucide="wand-sparkles" style="width: 20px; height: 20px;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h3 id="aiShowcaseHeading" style="margin: 0; font-size: 16.5px; font-weight: 700; color: #0f172a;">Smart PDF Automation</h3>
+                    <p style="margin: 0; font-size: 12px; color: #64748b;">Instant local field detection with zero cloud uploads</p>
+                </div>
+                <button id="closeAiShowcaseBtn" aria-label="Close smart automation dialog" style="background:none; border:none; font-size:22px; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px 24px;">
+                <div style="display: flex; flex-direction: column; gap: 14px;">
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <div style="flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="scan-line" style="width: 15px; height: 15px;"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 2px;">Visual Line &amp; Box Snapping</strong>
+                            <span style="font-size: 12px; color: #64748b; line-height: 1.45; display: block;">Scans the PDF canvas vectors to automatically detect form lines, bounding boxes, and underlines with exact pixel alignment.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <div style="flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px; background: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="tags" style="width: 15px; height: 15px;"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 2px;">Context-Aware Semantic Autofill</strong>
+                            <span style="font-size: 12px; color: #64748b; line-height: 1.45; display: block;">Reads adjacent printed labels to assign standard browser autofill tokens (e.g. <code>given-name</code>, <code>email</code>, <code>tel</code>, <code>address-line1</code>).</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <div style="flex-shrink: 0; width: 28px; height: 28px; border-radius: 6px; background: #faf5ff; color: #9333ea; display: flex; align-items: center; justify-content: center;">
+                            <i data-lucide="shield-check" style="width: 15px; height: 15px;"></i>
+                        </div>
+                        <div>
+                            <strong style="font-size: 13px; color: #0f172a; display: block; margin-bottom: 2px;">100% Client-Side &amp; Private</strong>
+                            <span style="font-size: 12px; color: #64748b; line-height: 1.45; display: block;">No data, images, or tokens are sent to any server. Everything executes locally in WebAssembly directly inside your browser.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 14px 24px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end; gap: 10px;">
+                <button id="dismissAiShowcaseBtn" class="btn-secondary" style="font-size: 13px;">Got it</button>
+                <button id="runAiDetectFromModalBtn" class="btn-primary" style="font-size: 13px;">
+                    <i data-lucide="sparkles" style="width: 13px; height: 13px;"></i>
+                    <span>Run Auto-Detect Now</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette (⌘K / Ctrl+K) -->
+    <div id="commandPaletteModal" class="command-palette-modal modal" role="dialog" aria-modal="true" aria-labelledby="commandPaletteInput" style="display: none;">
+        <div class="command-palette-container">
             <div class="command-palette-header">
                 <i data-lucide="search" class="command-palette-search-icon"></i>
-                <input type="text" id="commandPaletteInput" class="command-palette-input" aria-label="Search actions and commands" placeholder="Type a command or search actions (e.g. text, sign, auto-detect, export)..." autocomplete="off" autocorrect="off" spellcheck="false" aria-autocomplete="list" aria-controls="commandPaletteList">
-                <span class="command-palette-esc-badge"><kbd>ESC</kbd></span>
+                <input type="text" id="commandPaletteInput" class="command-palette-input" placeholder="Type a command or search actions..." autocomplete="off" spellcheck="false" aria-label="Type a command or search actions">
+                <span class="command-palette-esc-badge"><kbd>ESC</kbd> to close</span>
             </div>
-            <div class="command-palette-body" id="commandPaletteList" role="listbox">
-                <!-- Grouped commands dynamically rendered here -->
+            <div id="commandPaletteList" class="command-palette-body" role="listbox">
+                <!-- Dynamically injected command items -->
             </div>
             <div class="command-palette-footer">
                 <div class="command-palette-shortcuts-hint">
-                    <span><kbd>↑</kbd><kbd>↓</kbd> navigate</span>
-                    <span><kbd>↵</kbd> select</span>
-                    <span><kbd>esc</kbd> close</span>
+                    <span><kbd>↑</kbd><kbd>↓</kbd> Navigate</span>
+                    <span><kbd>↵</kbd> Select</span>
+                    <span><kbd>ESC</kbd> Dismiss</span>
                 </div>
                 <div class="command-palette-branding">
-                    <i data-lucide="sparkles" style="width: 12px; height: 12px; color: #2563eb;"></i>
                     <span>Formblatt Palette</span>
                 </div>
             </div>
@@ -1862,15 +1950,10 @@
     <div id="canvasContextMenu" class="context-menu" style="display: none;">
         <div id="ctxEmptyGroup">
             <div class="ctx-header">Add New Element Here</div>
-            <button type="button" class="ctx-item" data-action="add-staticText">
-                <i data-lucide="heading" style="width:14px; height:14px; color:#2563eb;"></i>
-                <span class="ctx-label">Text / Heading</span>
-                <span class="ctx-kbd">T</span>
-            </button>
             <button type="button" class="ctx-item" data-action="add-textField">
-                <i data-lucide="text-cursor-input" style="width:14px; height:14px; color:#2563eb;"></i>
+                <i data-lucide="type" style="width:14px; height:14px; color:#2563eb;"></i>
                 <span class="ctx-label">Text Field</span>
-                <span class="ctx-kbd">F</span>
+                <span class="ctx-kbd">T</span>
             </button>
             <button type="button" class="ctx-item" data-action="add-dropdown">
                 <i data-lucide="chevron-down-square" style="width:14px; height:14px; color:#2563eb;"></i>

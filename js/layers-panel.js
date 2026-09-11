@@ -22,12 +22,8 @@ const escapeHtml = (str) => String(str || "")
     .replace(/'/g, "&#39;");
 
 const FIELD_TYPE_STYLES = {
-    staticText: {
-        symbol: "T",
-        label: "Text / Heading"
-    },
     textField: {
-        symbol: "F",
+        symbol: "T",
         label: "Text Field"
     },
     signature: {

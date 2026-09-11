@@ -55,24 +55,12 @@ export const COMMANDS = [
         }
     },
     {
-        id: "tool-static-text",
-        title: "Add Text / Heading",
-        category: "Tools & Placement",
-        keywords: ["text", "heading", "title", "label", "static", "note", "type", "header", "paragraph"],
-        icon: "type",
-        kbd: "T",
-        action: () => {
-            document.querySelector('.tool-btn[data-tool="staticText"]')?.click();
-            showToast("Text / Heading placement active");
-        }
-    },
-    {
         id: "tool-text",
         title: "Add Text Field",
         category: "Tools & Placement",
         keywords: ["text", "input", "string", "type", "field", "name", "email", "address", "form"],
-        icon: "text-cursor-input",
-        kbd: "F",
+        icon: "type",
+        kbd: "T",
         action: () => {
             document.querySelector('.tool-btn[data-tool="textField"]')?.click();
             showToast("Text Field placement active");
