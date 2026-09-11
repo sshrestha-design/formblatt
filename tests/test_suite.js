@@ -910,6 +910,23 @@ async function runAllTests() {
         assert.ok(!mainJs.includes('loadTemplate("blank"'), 'main.js must not auto-load blank template on startup');
     });
 
+    it("Quick undo, redo, and delete actions exist in toolbar and are responsive on mobile", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="quickUndoBtn"'), 'index.html must include #quickUndoBtn');
+        assert.ok(indexHtml.includes('id="quickRedoBtn"'), 'index.html must include #quickRedoBtn');
+        assert.ok(indexHtml.includes('id="quickDeleteBtn"'), 'index.html must include #quickDeleteBtn');
+
+        const editorCss = fs.readFileSync(path.join(WEB_DIR, 'styles', 'editor.css'), 'utf8');
+        assert.ok(editorCss.includes('.toolbar-quick-actions'), 'editor.css must style .toolbar-quick-actions');
+        // Ensure .toolbar-quick-actions is NOT hidden in the mobile media query
+        const mobileQueryMatch = editorCss.match(/@media\s*\(max-width:\s*767px\)\s*\{([\s\S]*?)\}\.fill-mode-banner/);
+        if (mobileQueryMatch) {
+            const mobileCss = mobileQueryMatch[1];
+            assert.ok(!mobileCss.includes('.toolbar-quick-actions,#fileMenuDropdown'), 'toolbar-quick-actions must not be hidden on mobile');
+            assert.ok(mobileCss.includes('.toolbar-quick-actions{display:inline-flex !important'), 'toolbar-quick-actions must have display:inline-flex on mobile');
+        }
+    });
+
     // ── SUITE 14: Landing Page Visual Modules & Conversion Assets ──
     console.log("\n🚀 Suite 14: Landing Visual Modules & Template Launcher");
     it("Starter templates grid and workflow spotlight exist in index.html", () => {
