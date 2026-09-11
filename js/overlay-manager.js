@@ -527,9 +527,19 @@ export function renderOverlays(handlers) {
             if (layerItem) layerItem.classList.remove("canvas-hover-highlight");
         });
 
+        if (f.type === "staticText") {
+            div.addEventListener("dblclick", e => {
+                e.stopPropagation();
+                startInlineTextEdit(f.id, handlers);
+            });
+        }
+
         div.addEventListener("keydown", e => {
             if (e.key === "Enter" || e.key === " ") {
-                if (f.type === "checkBox") {
+                if (f.type === "staticText" && e.key === "Enter") {
+                    e.preventDefault();
+                    startInlineTextEdit(f.id, handlers);
+                } else if (f.type === "checkBox") {
                     e.preventDefault();
                     f.defaultChecked = !f.defaultChecked;
                     renderOverlays(handlers);
@@ -626,4 +636,109 @@ export function updateOverlayPositionsDirectly() {
             frame.style.height = (maxY - minY + 6) + "px";
         }
     }
+}
+
+export function startInlineTextEdit(fieldId, handlers = {}) {
+    const field = state.fields.find(f => f.id === fieldId);
+    if (!field || field.type !== "staticText" || field.locked || field.hidden) return;
+
+    const overlay = document.querySelector(`.field-overlay[data-id="${fieldId}"]`);
+    if (!overlay) return;
+
+    const existing = overlay.querySelector(".inline-text-editor");
+    if (existing) {
+        existing.focus();
+        return;
+    }
+
+    overlay.classList.add("is-editing-text");
+    const label = overlay.querySelector(".overlay-label");
+    if (label) label.style.display = "none";
+
+    const { fam, weight, style: fontStyle } = getFieldCssFont(field);
+    const fontSize = Number(field.fontSize) || 16;
+
+    const textarea = document.createElement("textarea");
+    textarea.className = "inline-text-editor";
+    textarea.value = field.defaultValue || field.label || "";
+    textarea.style.fontFamily = fam;
+    textarea.style.fontWeight = weight || "600";
+    textarea.style.fontStyle = fontStyle === "italic" ? "italic" : "normal";
+    textarea.style.fontSize = `${fontSize}px`;
+    textarea.style.textAlign = field.textAlignment || "left";
+    textarea.style.color = field.color || "#0f172a";
+    textarea.style.lineHeight = "1.25";
+
+    const syncDimensions = () => {
+        textarea.style.height = "auto";
+        const newH = Math.max(field.height, textarea.scrollHeight + 4);
+        if (newH > field.height) {
+            field.height = newH;
+            overlay.style.height = `${newH}px`;
+        }
+    };
+
+    let committed = false;
+    const commitEdit = (shouldSave = true) => {
+        if (committed) return;
+        committed = true;
+        const finalVal = textarea.value;
+        field.defaultValue = finalVal;
+        field.label = finalVal;
+
+        overlay.classList.remove("is-editing-text");
+        textarea.remove();
+        if (label) {
+            label.style.display = "";
+            label.textContent = finalVal || "Heading Text";
+        }
+
+        const propDef = document.getElementById("fieldDefaultValue");
+        if (propDef && state.selectedFieldIds.has(field.id)) {
+            propDef.value = finalVal;
+        }
+
+        if (shouldSave) saveHistory(true);
+        if (handlers?.onUpdated) handlers.onUpdated(field);
+        renderOverlays(handlers);
+    };
+
+    textarea.addEventListener("input", () => {
+        field.defaultValue = textarea.value;
+        field.label = textarea.value;
+        const propDef = document.getElementById("fieldDefaultValue");
+        if (propDef && state.selectedFieldIds.has(field.id)) {
+            propDef.value = textarea.value;
+        }
+        syncDimensions();
+    });
+
+    textarea.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            commitEdit(true);
+            overlay.focus();
+        } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            e.stopPropagation();
+            commitEdit(true);
+            overlay.focus();
+        }
+        e.stopPropagation();
+    });
+
+    textarea.addEventListener("mousedown", e => e.stopPropagation());
+    textarea.addEventListener("pointerdown", e => e.stopPropagation());
+    textarea.addEventListener("click", e => e.stopPropagation());
+    textarea.addEventListener("dblclick", e => e.stopPropagation());
+
+    textarea.addEventListener("blur", () => {
+        commitEdit(true);
+    });
+
+    overlay.appendChild(textarea);
+    syncDimensions();
+    textarea.focus?.();
+    textarea.select?.();
 }

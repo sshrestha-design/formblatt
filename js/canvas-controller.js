@@ -10,7 +10,8 @@ let isDrawingField = false;
 let drawStart = null;
 
 const TOOL_DISPLAY_INFO = {
-    textField: { name: "Text Field", icon: "T", placeholder: "Text Field" },
+    staticText: { name: "Text / Heading", icon: "T", placeholder: "Heading Text" },
+    textField: { name: "Text Field", icon: "F", placeholder: "Text Field" },
     checkBox: { name: "Checkbox", icon: "☑", placeholder: "Checkbox" },
     radio: { name: "Radio", icon: "◉", placeholder: "Radio" },
     radioGroup: { name: "Radio Group", icon: "◉", placeholder: "Radio" },
@@ -311,6 +312,12 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
                 handlers.onFieldUpdated();
             });
         });
+    } else if (type === "staticText") {
+        setTimeout(() => {
+            import("./overlay-manager.js").then(mod => {
+                mod.startInlineTextEdit(field.id, handlers);
+            });
+        }, 40);
     }
 }
 

@@ -554,6 +554,45 @@ async function runAllTests() {
         assert.equal(appendedChildren[3].className, "multi-selection-bounding-frame");
     });
 
+    it("startInlineTextEdit creates inline textarea editor on staticText overlay", async () => {
+        const { startInlineTextEdit } = await import(path.join(WEB_DIR, 'js', 'overlay-manager.js'));
+        
+        const overlayChildren = [];
+        const mockOverlay = {
+            classList: {
+                classes: [],
+                add(c) { this.classes.push(c); },
+                remove(c) { this.classes = this.classes.filter(x => x !== c); },
+                contains(c) { return this.classes.includes(c); }
+            },
+            style: {},
+            querySelector(sel) {
+                if (sel === ".overlay-label") return { style: {} };
+                return null;
+            },
+            appendChild(child) { overlayChildren.push(child); },
+            focus() {}
+        };
+
+        const prevQuerySelector = global.document.querySelector;
+        global.document.querySelector = (sel) => {
+            if (sel === '.field-overlay[data-id="txt1"]') return mockOverlay;
+            return prevQuerySelector ? prevQuerySelector(sel) : null;
+        };
+
+        state.fields = [
+            { id: "txt1", type: "staticText", defaultValue: "Invoice Summary", fontSize: 20, fontFamily: "helvetica-bold", page: 1, x: 10, y: 10, width: 200, height: 30 }
+        ];
+
+        startInlineTextEdit("txt1");
+        assert.ok(mockOverlay.classList.contains("is-editing-text"));
+        assert.equal(overlayChildren.length, 1);
+        assert.equal(overlayChildren[0].className, "inline-text-editor");
+        assert.equal(overlayChildren[0].value, "Invoice Summary");
+
+        global.document.querySelector = prevQuerySelector;
+    });
+
     // ── SUITE 9: Text-Aware Dynamic Adaptive Sizing ──
     console.log("\n📏 Suite 9: Text-Aware Dynamic Adaptive Sizing");
     const { getAdaptiveFieldDimensions } = await import(path.join(WEB_DIR, 'js', 'canvas-controller.js'));
