@@ -277,7 +277,7 @@ async function runAllTests() {
     const { DEFAULT_FIELD_SIZES, AUTOFILL_TYPES } = await import(path.join(WEB_DIR, 'js', 'constants.js'));
 
     it("DEFAULT_FIELD_SIZES has required dimensions for all tool types", () => {
-        const requiredTools = ['textField', 'checkBox', 'radioGroup', 'dropdown', 'signature', 'dateField'];
+        const requiredTools = ['staticText', 'textField', 'checkBox', 'radioGroup', 'dropdown', 'signature', 'dateField'];
         for (const tool of requiredTools) {
             assert.ok(DEFAULT_FIELD_SIZES[tool], `Size definition for ${tool} should exist`);
             assert.ok(DEFAULT_FIELD_SIZES[tool].width > 0, `Width for ${tool} must be > 0`);
@@ -1020,7 +1020,7 @@ async function runAllTests() {
             assert.ok(indexHtml.includes(`id="${id}"`), `index.html must include element with id="${id}"`);
         }
 
-        const requiredTools = ["select", "hand", "textField", "dropdown", "checkBox", "radioGroup", "signature"];
+        const requiredTools = ["select", "hand", "staticText", "textField", "dropdown", "checkBox", "radioGroup", "signature"];
         for (const tool of requiredTools) {
             assert.ok(indexHtml.includes(`data-tool="${tool}"`), `index.html must include tool button with data-tool="${tool}"`);
         }
@@ -1066,6 +1066,30 @@ async function runAllTests() {
         const form = verifiedDoc.getForm();
         const compiledFields = form.getFields();
         assert.ok(compiledFields.length >= 6, `AcroForm must have compiled fields (found ${compiledFields.length})`);
+    });
+
+    await asyncIt("buildPdf renders staticText directly into the PDF content stream without creating AcroForm widgets", async () => {
+        const { PDFDocument } = await import('pdf-lib');
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+
+        const testDoc = await PDFDocument.create();
+        testDoc.addPage([612, 792]);
+        const pdfBytes = await testDoc.save();
+
+        const testFields = [
+            { id: "h1", type: "staticText", page: 1, x: 50, y: 50, width: 300, height: 40, defaultValue: "Patient Intake Header", fontSize: 24, fontFamily: "helvetica-bold", textAlignment: "left", color: "#1e293b" },
+            { id: "f1", type: "textField", page: 1, x: 50, y: 120, width: 200, height: 24, name: "PatientName", defaultValue: "John Doe" }
+        ];
+
+        const outputBytes = await buildPdf(pdfBytes, testFields);
+        assert.ok(outputBytes && outputBytes.length > 0, "buildPdf must return valid Uint8Array");
+
+        const verifiedDoc = await PDFDocument.load(outputBytes);
+        const form = verifiedDoc.getForm();
+        const compiledFields = form.getFields();
+        // Should only have 1 interactive AcroForm field (PatientName), not 2
+        assert.equal(compiledFields.length, 1, "staticText must NOT create an AcroForm widget field");
+        assert.equal(compiledFields[0].getName(), "PatientName");
     });
 
     it("Storage manager serializes snapshots and manages undo/redo stack accurately", async () => {
