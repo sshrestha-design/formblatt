@@ -1,6 +1,7 @@
 // ── Field Configurations & Constants (js/constants.js) ─────────
 
 export const DEFAULT_FIELD_SIZES = {
+    staticText: { width: 220, height: 32 },
     textField:  { width: 200, height: 28 },
     dropdown:   { width: 180, height: 28 },
     checkBox:   { width: 20,  height: 20 },
@@ -11,6 +12,7 @@ export const DEFAULT_FIELD_SIZES = {
 };
 
 export const FIELD_TYPE_LABELS = {
+    staticText: "Text / Heading",
     textField:  "Text Field",
     dropdown:   "Drop Down",
     checkBox:   "Check Box",

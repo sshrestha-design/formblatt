@@ -180,7 +180,7 @@ export function getAdaptiveFieldDimensions(type, x, y, rawBlocks) {
         return {
             width: defaultDef.width,
             height: defaultDef.height,
-            fontSize: (type === "textField" || type === "dropdown" || type === "dateField") ? 11 : undefined
+            fontSize: (type === "textField" || type === "dropdown" || type === "dateField" || type === "staticText") ? (type === "staticText" ? 14 : 11) : undefined
         };
     }
 
@@ -212,7 +212,7 @@ export function getAdaptiveFieldDimensions(type, x, y, rawBlocks) {
         return {
             width: defaultDef.width,
             height: defaultDef.height,
-            fontSize: (type === "textField" || type === "dropdown" || type === "dateField") ? 11 : undefined
+            fontSize: (type === "textField" || type === "dropdown" || type === "dateField" || type === "staticText") ? (type === "staticText" ? 14 : 11) : undefined
         };
     }
 
@@ -229,9 +229,9 @@ export function getAdaptiveFieldDimensions(type, x, y, rawBlocks) {
         return { width: sigWidth, height: sigHeight, fontSize: undefined };
     }
 
-    // Text Field, Date Field, Dropdown
-    const fieldHeight = Math.round(Math.max(18, Math.min(50, fontPt * 1.55 + 5)));
-    const fieldFontSize = Math.round(Math.max(8, Math.min(24, fontPt)));
+    // Text Field, Date Field, Dropdown, Static Text
+    const fieldHeight = type === "staticText" ? Math.round(Math.max(24, Math.min(60, fontPt * 1.6 + 6))) : Math.round(Math.max(18, Math.min(50, fontPt * 1.55 + 5)));
+    const fieldFontSize = Math.round(Math.max(8, Math.min(36, fontPt)));
     
     let fieldWidth = defaultDef.width;
     if (fontPt >= 14) fieldWidth = Math.round(defaultDef.width * 1.25);
@@ -250,7 +250,7 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
 
     const width = (customWidth && customWidth >= 10) ? Math.round(customWidth) : adaptive.width;
     const height = (customHeight && customHeight >= 10) ? Math.round(customHeight) : adaptive.height;
-    const detectedFontSize = (type === "textField" || type === "dropdown" || type === "dateField") ? (adaptive.fontSize || (height < 22 ? 9.5 : 11)) : undefined;
+    const detectedFontSize = (type === "textField" || type === "dropdown" || type === "dateField" || type === "staticText") ? (adaptive.fontSize || (type === "staticText" ? 14 : (height < 22 ? 9.5 : 11))) : undefined;
 
     let targetX = (customX !== undefined) ? Math.round(customX) : Math.max(0, Math.round(x - width / 2));
     let targetY = (customY !== undefined) ? Math.round(customY) : Math.max(0, Math.round(y - height / 2));
@@ -273,10 +273,11 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
         width: width,
         height: height,
         page: state.currentPageNum,
-        borderStyle: "solid",
-        fillStyle: "white",
+        borderStyle: type === "staticText" ? "none" : "solid",
+        fillStyle: type === "staticText" ? "transparent" : "white",
         fontSize: detectedFontSize,
         textAlignment: "left",
+        ...(type === "staticText" ? { defaultValue: "Heading Text", label: "Heading Text", fontFamily: "helvetica", color: "#0f172a" } : {}),
         ...(type === "dateField" ? { dateFormat: "MM/DD/YYYY", defaultValue: "MM/DD/YYYY" } : {}),
         ...(type === "dropdown" ? { options: ["Select...", "Option 1", "Option 2", "Option 3"], defaultValue: "Select..." } : {})
     };
