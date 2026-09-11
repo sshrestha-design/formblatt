@@ -113,13 +113,6 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
             }
         } else if (newType === "dropdown" && (!field.options || field.options.length === 0)) {
             field.options = ["Option 1", "Option 2", "Option 3"];
-        } else if (newType === "staticText") {
-            if (!field.defaultValue && !field.label) {
-                field.defaultValue = "Heading Text";
-            }
-            if (field.borderStyle === "solid") field.borderStyle = "none";
-            if (field.fillStyle === "white") field.fillStyle = "transparent";
-            if (!field.fontSize) field.fontSize = 16;
         }
 
         saveHistory(true);
@@ -149,11 +142,9 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     });
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => {
         f.defaultValue = e.target.value;
-        if (f.type === "staticText") f.label = e.target.value;
     }, false));
     fieldDefaultVal?.addEventListener("change", e => syncChange(f => {
         f.defaultValue = e.target.value;
-        if (f.type === "staticText") f.label = e.target.value;
     }, true));
     fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value, true));
     
@@ -527,12 +518,12 @@ export function populateProperties(field) {
     // Typography accordion visibility
     const accTypography = document.getElementById("accTypography");
     if (accTypography) {
-        accTypography.style.display = (fallbackField.type === "textField" || fallbackField.type === "dropdown" || fallbackField.type === "dateField" || fallbackField.type === "staticText") ? "block" : "none";
+        accTypography.style.display = (fallbackField.type === "textField" || fallbackField.type === "dropdown" || fallbackField.type === "dateField") ? "block" : "none";
     }
 
     const defValLabel = document.querySelector('label[for="fieldDefaultValue"]');
     if (defValLabel) {
-        defValLabel.textContent = fallbackField.type === "staticText" ? "Text / Content" : "Default Value";
+        defValLabel.textContent = "Default Value";
     }
 
     const multilineGroup = document.getElementById("multilineGroup");
@@ -597,11 +588,6 @@ function initMultiSelectTools(onUpdated) {
                 if (!f.options || f.options.length === 0) {
                     f.options = ["Option 1", "Option 2", "Option 3"];
                 }
-            } else if (newType === "staticText") {
-                if (!f.defaultValue && !f.label) f.defaultValue = "Heading Text";
-                f.borderStyle = "none";
-                f.fillStyle = "transparent";
-                if (!f.fontSize) f.fontSize = 16;
             }
         });
 
@@ -748,9 +734,8 @@ function initMultiSelectTools(onUpdated) {
         e.target.classList.remove("is-mixed");
         const val = e.target.value;
         batchUpdate(f => {
-            if (f.type === "textField" || f.type === "staticText") {
+            if (f.type === "textField") {
                 f.defaultValue = val;
-                if (f.type === "staticText") f.label = val;
             }
         });
     });
@@ -760,7 +745,7 @@ function initMultiSelectTools(onUpdated) {
         const val = e.target.value;
         if (val) {
             batchUpdate(f => {
-                if (f.type === "textField" || f.type === "dropdown" || f.type === "staticText") {
+                if (f.type === "textField" || f.type === "dropdown") {
                     f.fontFamily = val;
                 }
             });
@@ -774,7 +759,7 @@ function initMultiSelectTools(onUpdated) {
         updateQuickSizeButtons(val, "multi-quick-size-btn");
         if (val === null || (val >= 6 && val <= 120)) {
             batchUpdate(f => {
-                if (f.type === "textField" || f.type === "dropdown" || f.type === "staticText") {
+                if (f.type === "textField" || f.type === "dropdown") {
                     f.fontSize = val;
                 }
             });
@@ -796,7 +781,7 @@ function initMultiSelectTools(onUpdated) {
             }
             updateQuickSizeButtons(size, "multi-quick-size-btn");
             batchUpdate(f => {
-                if (f.type === "textField" || f.type === "dropdown" || f.type === "staticText") {
+                if (f.type === "textField" || f.type === "dropdown") {
                     f.fontSize = size;
                 }
             });
@@ -808,7 +793,7 @@ function initMultiSelectTools(onUpdated) {
         const val = e.target.value;
         if (val) {
             batchUpdate(f => {
-                if (f.type === "textField" || f.type === "dropdown" || f.type === "staticText") {
+                if (f.type === "textField" || f.type === "dropdown") {
                     f.textAlignment = val;
                 }
             });

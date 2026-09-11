@@ -244,59 +244,6 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         }
 
         try {
-            if (f.type === "staticText" || f.type === "label") {
-                const textContent = (f.defaultValue !== undefined && f.defaultValue !== "") 
-                    ? f.defaultValue 
-                    : ((f.label !== undefined && f.label !== "") ? f.label : (f.value || ""));
-                if (textContent) {
-                    const font = resolveFont(f.fontFamily);
-                    const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 16;
-                    
-                    let textColor = rgb(0.06, 0.09, 0.16); // #0f172a
-                    if (f.color) {
-                        const hex = f.color.replace("#", "");
-                        if (hex.length === 6) {
-                            const r = parseInt(hex.substring(0, 2), 16) / 255;
-                            const g = parseInt(hex.substring(2, 4), 16) / 255;
-                            const b = parseInt(hex.substring(4, 6), 16) / 255;
-                            textColor = rgb(r, g, b);
-                        }
-                    }
-
-                    const lines = String(textContent).split("\n");
-                    const lineHeight = fontSize * 1.25;
-                    let currentY = pageHeight - f.y - fontSize;
-
-                    for (let line of lines) {
-                        let textX = f.x;
-                        let textWidth = 0;
-                        try {
-                            textWidth = font.widthOfTextAtSize(line, fontSize);
-                        } catch(e) {
-                            textWidth = line.length * (fontSize * 0.55);
-                        }
-
-                        if (f.textAlignment === "center") {
-                            textX = f.x + Math.max(0, (f.width - textWidth) / 2);
-                        } else if (f.textAlignment === "right") {
-                            textX = f.x + Math.max(0, f.width - textWidth);
-                        }
-
-                        page.drawText(line, {
-                            x: textX,
-                            y: currentY,
-                            size: fontSize,
-                            font: font,
-                            color: textColor,
-                            maxWidth: f.width > 0 ? f.width : undefined,
-                            lineHeight: lineHeight
-                        });
-                        currentY -= lineHeight;
-                    }
-                }
-                continue;
-            }
-
             if (f.type === "textField" || f.type === "dateField" || f.type === "date" || f.type === "number") {
                 let tf;
                 try { tf = form.getTextField(nm); } catch { tf = form.createTextField(nm); }

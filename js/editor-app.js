@@ -1054,8 +1054,7 @@ export function initEditorSubsystems() {
         const toolKeys = {
             v: "select",
             h: "hand",
-            t: "staticText",
-            f: "textField",
+            t: "textField",
             d: "dropdown",
             c: "checkBox",
             r: "radioGroup",

@@ -88,24 +88,6 @@ export function renderOverlays(handlers) {
         if (state.editorMode === "fill") {
             div.classList.add("fill-mode");
 
-            if (f.type === "staticText") {
-                div.style.border = "none";
-                div.style.background = "transparent";
-                div.style.boxShadow = "none";
-                div.style.display = "flex";
-                div.style.alignItems = "center";
-                div.style.justifyContent = f.textAlignment === "center" ? "center" : (f.textAlignment === "right" ? "flex-end" : "flex-start");
-                
-                const span = document.createElement("span");
-                const { fam, weight, style: fontStyle } = getFieldCssFont(f);
-                const fontSize = Number(f.fontSize) || 14;
-                span.style.cssText = `font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; font-size: ${fontSize}px; color: ${f.color || "#0f172a"}; width: 100%; text-align: ${f.textAlignment || 'left'}; line-height: 1.25; word-break: break-word;`;
-                span.textContent = f.defaultValue || f.label || f.value || "Sample Text";
-                div.appendChild(span);
-                container.appendChild(div);
-                return;
-            }
-
             const isChoice = (f.type === "checkBox" || f.type === "radioGroup");
             if (isChoice) {
                 div.style.border = "none";
@@ -397,19 +379,7 @@ export function renderOverlays(handlers) {
             label.style.overflow = "hidden";
             label.style.textOverflow = "ellipsis";
 
-            if (f.type === "staticText") {
-                const textContent = f.defaultValue || f.label || f.value || "Heading Text";
-                label.textContent = textContent;
-                label.style.color = f.color || "#0f172a";
-                label.style.fontStyle = (style === "italic") ? "italic" : "normal";
-                label.style.fontWeight = weight || "600";
-                label.style.opacity = "1.0";
-                label.style.fontSize = `${Number(f.fontSize) || 14}px`;
-                label.style.whiteSpace = "normal";
-                label.style.wordBreak = "break-word";
-                label.style.lineHeight = "1.25";
-                div.appendChild(label);
-            } else if (f.type === "dropdown") {
+            if (f.type === "dropdown") {
                 const displayText = f.value || f.defaultValue || (f.options && f.options.length ? f.options[0] : "Select...");
                 label.textContent = displayText;
                 label.style.color = (f.value || f.defaultValue) ? "#0f172a" : "rgba(100, 116, 139, 0.7)";
@@ -527,19 +497,9 @@ export function renderOverlays(handlers) {
             if (layerItem) layerItem.classList.remove("canvas-hover-highlight");
         });
 
-        if (f.type === "staticText") {
-            div.addEventListener("dblclick", e => {
-                e.stopPropagation();
-                startInlineTextEdit(f.id, handlers);
-            });
-        }
-
         div.addEventListener("keydown", e => {
             if (e.key === "Enter" || e.key === " ") {
-                if (f.type === "staticText" && e.key === "Enter") {
-                    e.preventDefault();
-                    startInlineTextEdit(f.id, handlers);
-                } else if (f.type === "checkBox") {
+                if (f.type === "checkBox") {
                     e.preventDefault();
                     f.defaultChecked = !f.defaultChecked;
                     renderOverlays(handlers);
@@ -636,109 +596,4 @@ export function updateOverlayPositionsDirectly() {
             frame.style.height = (maxY - minY + 6) + "px";
         }
     }
-}
-
-export function startInlineTextEdit(fieldId, handlers = {}) {
-    const field = state.fields.find(f => f.id === fieldId);
-    if (!field || field.type !== "staticText" || field.locked || field.hidden) return;
-
-    const overlay = document.querySelector(`.field-overlay[data-id="${fieldId}"]`);
-    if (!overlay) return;
-
-    const existing = overlay.querySelector(".inline-text-editor");
-    if (existing) {
-        existing.focus();
-        return;
-    }
-
-    overlay.classList.add("is-editing-text");
-    const label = overlay.querySelector(".overlay-label");
-    if (label) label.style.display = "none";
-
-    const { fam, weight, style: fontStyle } = getFieldCssFont(field);
-    const fontSize = Number(field.fontSize) || 16;
-
-    const textarea = document.createElement("textarea");
-    textarea.className = "inline-text-editor";
-    textarea.value = field.defaultValue || field.label || "";
-    textarea.style.fontFamily = fam;
-    textarea.style.fontWeight = weight || "600";
-    textarea.style.fontStyle = fontStyle === "italic" ? "italic" : "normal";
-    textarea.style.fontSize = `${fontSize}px`;
-    textarea.style.textAlign = field.textAlignment || "left";
-    textarea.style.color = field.color || "#0f172a";
-    textarea.style.lineHeight = "1.25";
-
-    const syncDimensions = () => {
-        textarea.style.height = "auto";
-        const newH = Math.max(field.height, textarea.scrollHeight + 4);
-        if (newH > field.height) {
-            field.height = newH;
-            overlay.style.height = `${newH}px`;
-        }
-    };
-
-    let committed = false;
-    const commitEdit = (shouldSave = true) => {
-        if (committed) return;
-        committed = true;
-        const finalVal = textarea.value;
-        field.defaultValue = finalVal;
-        field.label = finalVal;
-
-        overlay.classList.remove("is-editing-text");
-        textarea.remove();
-        if (label) {
-            label.style.display = "";
-            label.textContent = finalVal || "Heading Text";
-        }
-
-        const propDef = document.getElementById("fieldDefaultValue");
-        if (propDef && state.selectedFieldIds.has(field.id)) {
-            propDef.value = finalVal;
-        }
-
-        if (shouldSave) saveHistory(true);
-        if (handlers?.onUpdated) handlers.onUpdated(field);
-        renderOverlays(handlers);
-    };
-
-    textarea.addEventListener("input", () => {
-        field.defaultValue = textarea.value;
-        field.label = textarea.value;
-        const propDef = document.getElementById("fieldDefaultValue");
-        if (propDef && state.selectedFieldIds.has(field.id)) {
-            propDef.value = textarea.value;
-        }
-        syncDimensions();
-    });
-
-    textarea.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            e.preventDefault();
-            e.stopPropagation();
-            commitEdit(true);
-            overlay.focus();
-        } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-            e.preventDefault();
-            e.stopPropagation();
-            commitEdit(true);
-            overlay.focus();
-        }
-        e.stopPropagation();
-    });
-
-    textarea.addEventListener("mousedown", e => e.stopPropagation());
-    textarea.addEventListener("pointerdown", e => e.stopPropagation());
-    textarea.addEventListener("click", e => e.stopPropagation());
-    textarea.addEventListener("dblclick", e => e.stopPropagation());
-
-    textarea.addEventListener("blur", () => {
-        commitEdit(true);
-    });
-
-    overlay.appendChild(textarea);
-    syncDimensions();
-    textarea.focus?.();
-    textarea.select?.();
 }

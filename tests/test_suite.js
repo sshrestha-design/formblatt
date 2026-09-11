@@ -277,7 +277,7 @@ async function runAllTests() {
     const { DEFAULT_FIELD_SIZES, AUTOFILL_TYPES } = await import(path.join(WEB_DIR, 'js', 'constants.js'));
 
     it("DEFAULT_FIELD_SIZES has required dimensions for all tool types", () => {
-        const requiredTools = ['staticText', 'textField', 'checkBox', 'radioGroup', 'dropdown', 'signature', 'dateField'];
+        const requiredTools = ['textField', 'checkBox', 'radioGroup', 'dropdown', 'signature', 'dateField'];
         for (const tool of requiredTools) {
             assert.ok(DEFAULT_FIELD_SIZES[tool], `Size definition for ${tool} should exist`);
             assert.ok(DEFAULT_FIELD_SIZES[tool].width > 0, `Width for ${tool} must be > 0`);
@@ -552,45 +552,6 @@ async function runAllTests() {
         assert.equal(appendedChildren[1].className, "field-overlay selected multi-selected");
         assert.equal(appendedChildren[2].className, "field-overlay");
         assert.equal(appendedChildren[3].className, "multi-selection-bounding-frame");
-    });
-
-    it("startInlineTextEdit creates inline textarea editor on staticText overlay", async () => {
-        const { startInlineTextEdit } = await import(path.join(WEB_DIR, 'js', 'overlay-manager.js'));
-        
-        const overlayChildren = [];
-        const mockOverlay = {
-            classList: {
-                classes: [],
-                add(c) { this.classes.push(c); },
-                remove(c) { this.classes = this.classes.filter(x => x !== c); },
-                contains(c) { return this.classes.includes(c); }
-            },
-            style: {},
-            querySelector(sel) {
-                if (sel === ".overlay-label") return { style: {} };
-                return null;
-            },
-            appendChild(child) { overlayChildren.push(child); },
-            focus() {}
-        };
-
-        const prevQuerySelector = global.document.querySelector;
-        global.document.querySelector = (sel) => {
-            if (sel === '.field-overlay[data-id="txt1"]') return mockOverlay;
-            return prevQuerySelector ? prevQuerySelector(sel) : null;
-        };
-
-        state.fields = [
-            { id: "txt1", type: "staticText", defaultValue: "Invoice Summary", fontSize: 20, fontFamily: "helvetica-bold", page: 1, x: 10, y: 10, width: 200, height: 30 }
-        ];
-
-        startInlineTextEdit("txt1");
-        assert.ok(mockOverlay.classList.contains("is-editing-text"));
-        assert.equal(overlayChildren.length, 1);
-        assert.equal(overlayChildren[0].className, "inline-text-editor");
-        assert.equal(overlayChildren[0].value, "Invoice Summary");
-
-        global.document.querySelector = prevQuerySelector;
     });
 
     // ── SUITE 9: Text-Aware Dynamic Adaptive Sizing ──
@@ -1059,7 +1020,7 @@ async function runAllTests() {
             assert.ok(indexHtml.includes(`id="${id}"`), `index.html must include element with id="${id}"`);
         }
 
-        const requiredTools = ["select", "hand", "staticText", "textField", "dropdown", "checkBox", "radioGroup", "signature"];
+        const requiredTools = ["select", "hand", "textField", "dropdown", "checkBox", "radioGroup", "signature"];
         for (const tool of requiredTools) {
             assert.ok(indexHtml.includes(`data-tool="${tool}"`), `index.html must include tool button with data-tool="${tool}"`);
         }
@@ -1105,30 +1066,6 @@ async function runAllTests() {
         const form = verifiedDoc.getForm();
         const compiledFields = form.getFields();
         assert.ok(compiledFields.length >= 6, `AcroForm must have compiled fields (found ${compiledFields.length})`);
-    });
-
-    await asyncIt("buildPdf renders staticText directly into the PDF content stream without creating AcroForm widgets", async () => {
-        const { PDFDocument } = await import('pdf-lib');
-        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
-
-        const testDoc = await PDFDocument.create();
-        testDoc.addPage([612, 792]);
-        const pdfBytes = await testDoc.save();
-
-        const testFields = [
-            { id: "h1", type: "staticText", page: 1, x: 50, y: 50, width: 300, height: 40, defaultValue: "Patient Intake Header", fontSize: 24, fontFamily: "helvetica-bold", textAlignment: "left", color: "#1e293b" },
-            { id: "f1", type: "textField", page: 1, x: 50, y: 120, width: 200, height: 24, name: "PatientName", defaultValue: "John Doe" }
-        ];
-
-        const outputBytes = await buildPdf(pdfBytes, testFields);
-        assert.ok(outputBytes && outputBytes.length > 0, "buildPdf must return valid Uint8Array");
-
-        const verifiedDoc = await PDFDocument.load(outputBytes);
-        const form = verifiedDoc.getForm();
-        const compiledFields = form.getFields();
-        // Should only have 1 interactive AcroForm field (PatientName), not 2
-        assert.equal(compiledFields.length, 1, "staticText must NOT create an AcroForm widget field");
-        assert.equal(compiledFields[0].getName(), "PatientName");
     });
 
     it("Storage manager serializes snapshots and manages undo/redo stack accurately", async () => {
