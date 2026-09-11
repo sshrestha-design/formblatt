@@ -979,8 +979,11 @@
                     <div class="tool-divider"></div>
 
                     <!-- Form Field Insertion Tools -->
-                    <button class="tool-btn" data-tool="textField" data-tooltip="Text Field" data-kbd="T" aria-label="Text Field tool">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V4h16v3M9 20h6M12 4v16"/></svg>
+                    <button class="tool-btn" data-tool="staticText" data-tooltip="Text / Heading" data-kbd="T" aria-label="Text or Heading tool">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 7 4 4 20 4 20 7"></polyline><line x1="9" y1="20" x2="15" y2="20"></line><line x1="12" y1="4" x2="12" y2="20"></line></svg>
+                    </button>
+                    <button class="tool-btn" data-tool="textField" data-tooltip="Text Input Field" data-kbd="F" aria-label="Text Input Field tool">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="7" y1="12" x2="11" y2="12"/><line x1="7" y1="8" x2="7" y2="16"/></svg>
                     </button>
                     <button class="tool-btn" data-tool="dropdown" data-tooltip="Dropdown Select" data-kbd="D" aria-label="Dropdown Select tool">
                         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><path d="M7 10l5 5 5-5"/></svg>
@@ -1222,6 +1225,7 @@
                         <div class="prop-field">
                             <label class="prop-label" for="fieldType">Field Type</label>
                             <select id="fieldType" class="prop-select">
+                                <option value="staticText">Text / Heading</option>
                                 <option value="textField">Text Field</option>
                                 <option value="dateField">Date Field</option>
                                 <option value="dropdown">Dropdown</option>
@@ -1760,7 +1764,8 @@
                     <div class="shortcut-list">
                         <div class="shortcut-row"><span class="shortcut-desc">Select Tool</span><div class="shortcut-keys"><span class="shortcut-kbd">V</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Hand Tool / Pan</span><div class="shortcut-keys"><span class="shortcut-kbd">H</span><span style="font-size:10px; color:#94a3b8;">or</span><span class="shortcut-kbd">Space</span></div></div>
-                        <div class="shortcut-row"><span class="shortcut-desc">Text Field</span><div class="shortcut-keys"><span class="shortcut-kbd">T</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Text / Heading</span><div class="shortcut-keys"><span class="shortcut-kbd">T</span></div></div>
+                        <div class="shortcut-row"><span class="shortcut-desc">Text Input Field</span><div class="shortcut-keys"><span class="shortcut-kbd">F</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Dropdown</span><div class="shortcut-keys"><span class="shortcut-kbd">D</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Checkbox</span><div class="shortcut-keys"><span class="shortcut-kbd">C</span></div></div>
                         <div class="shortcut-row"><span class="shortcut-desc">Radio Group</span><div class="shortcut-keys"><span class="shortcut-kbd">R</span></div></div>
@@ -1856,11 +1861,16 @@
     <!-- Canvas Context Menu -->
     <div id="canvasContextMenu" class="context-menu" style="display: none;">
         <div id="ctxEmptyGroup">
-            <div class="ctx-header">Add New Field Here</div>
-            <button type="button" class="ctx-item" data-action="add-textField">
-                <i data-lucide="type" style="width:14px; height:14px; color:#2563eb;"></i>
-                <span class="ctx-label">Text Field</span>
+            <div class="ctx-header">Add New Element Here</div>
+            <button type="button" class="ctx-item" data-action="add-staticText">
+                <i data-lucide="heading" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Text / Heading</span>
                 <span class="ctx-kbd">T</span>
+            </button>
+            <button type="button" class="ctx-item" data-action="add-textField">
+                <i data-lucide="text-cursor-input" style="width:14px; height:14px; color:#2563eb;"></i>
+                <span class="ctx-label">Text Field</span>
+                <span class="ctx-kbd">F</span>
             </button>
             <button type="button" class="ctx-item" data-action="add-dropdown">
                 <i data-lucide="chevron-down-square" style="width:14px; height:14px; color:#2563eb;"></i>

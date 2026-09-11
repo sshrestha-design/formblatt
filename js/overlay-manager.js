@@ -88,6 +88,24 @@ export function renderOverlays(handlers) {
         if (state.editorMode === "fill") {
             div.classList.add("fill-mode");
 
+            if (f.type === "staticText") {
+                div.style.border = "none";
+                div.style.background = "transparent";
+                div.style.boxShadow = "none";
+                div.style.display = "flex";
+                div.style.alignItems = "center";
+                div.style.justifyContent = f.textAlignment === "center" ? "center" : (f.textAlignment === "right" ? "flex-end" : "flex-start");
+                
+                const span = document.createElement("span");
+                const { fam, weight, style: fontStyle } = getFieldCssFont(f);
+                const fontSize = Number(f.fontSize) || 14;
+                span.style.cssText = `font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; font-size: ${fontSize}px; color: ${f.color || "#0f172a"}; width: 100%; text-align: ${f.textAlignment || 'left'}; line-height: 1.25; word-break: break-word;`;
+                span.textContent = f.defaultValue || f.label || f.value || "Sample Text";
+                div.appendChild(span);
+                container.appendChild(div);
+                return;
+            }
+
             const isChoice = (f.type === "checkBox" || f.type === "radioGroup");
             if (isChoice) {
                 div.style.border = "none";
@@ -379,7 +397,19 @@ export function renderOverlays(handlers) {
             label.style.overflow = "hidden";
             label.style.textOverflow = "ellipsis";
 
-            if (f.type === "dropdown") {
+            if (f.type === "staticText") {
+                const textContent = f.defaultValue || f.label || f.value || "Heading Text";
+                label.textContent = textContent;
+                label.style.color = f.color || "#0f172a";
+                label.style.fontStyle = (style === "italic") ? "italic" : "normal";
+                label.style.fontWeight = weight || "600";
+                label.style.opacity = "1.0";
+                label.style.fontSize = `${Number(f.fontSize) || 14}px`;
+                label.style.whiteSpace = "normal";
+                label.style.wordBreak = "break-word";
+                label.style.lineHeight = "1.25";
+                div.appendChild(label);
+            } else if (f.type === "dropdown") {
                 const displayText = f.value || f.defaultValue || (f.options && f.options.length ? f.options[0] : "Select...");
                 label.textContent = displayText;
                 label.style.color = (f.value || f.defaultValue) ? "#0f172a" : "rgba(100, 116, 139, 0.7)";
