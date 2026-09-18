@@ -28,13 +28,16 @@
 
 ### Core Architectural Guarantees
 
-1. **100% In-Browser Execution (Zero Cloud Storage)**:
-   - All PDF parsing (via Mozilla PDF.js) and AcroForm compilation (via PDF-Lib) run entirely in the browser memory thread.
-   - Documents, field metadata, and signatures are never sent to external servers or cloud databases.
-2. **Zero Framework Bloat**:
+1. **100% In-Browser Execution (Zero Cloud Storage & Zero Data Leakage)**:
+   - All PDF parsing (via Mozilla PDF.js), vector/geometric field auto-detection, and AcroForm compilation (via PDF-Lib) run entirely inside the client browser thread.
+   - Documents, field metadata, and signatures are **never sent to external servers, telemetry collectors, or cloud databases**.
+2. **Privacy-Preserving Neural Extension Policy**:
+   - The primary auto-detection pipeline remains the built-in, zero-dependency geometric & vector heuristic engine (ultra-fast, 0 MB overhead, 100% offline).
+   - Any future deep-learning vision models (e.g., FFDNet / FFDetr) must strictly run **client-side via ONNX WebAssembly / WebGPU (`onnxruntime-web`)** on the user's local hardware without any network transmission.
+3. **Zero Framework Bloat**:
    - Built on native **ES Modules (ESM)** and modern Web APIs (`requestAnimationFrame`, `ResizeObserver`, `Path2D`, `OffscreenCanvas`).
    - Clean DOM rendering with zero virtual-DOM overhead.
-3. **ISO 32000-1 Compliance**:
+4. **ISO 32000-1 Compliance**:
    - Exported interactive documents are standard AcroForms compatible with Adobe Acrobat Reader, Apple Preview, Google Chrome, Microsoft Edge, Mozilla Firefox, and DocuSign.
 
 ---
@@ -257,6 +260,10 @@ JustForms employs a dual-strategy auto-detector:
 - **Affordance 2**: Key-value colon prompts (`Label: _____`), bounded against column limits.
 - **Affordance 3**: Open question feedback prompts ending in `?`.
 - **Affordance 4**: Tabular text streams with keyword matching (`TABLE_COL_DEFS`).
+
+### 3. Neural Model In-Browser Extension (Roadmap: ONNX WebAssembly)
+- **Zero-Cloud Vision Pipeline**: When visual AI models (e.g. FFDNet / FFDetr) are introduced, they run entirely client-side via `onnxruntime-web` over WebAssembly/WebGPU.
+- **Local Fusion**: Neural bounding boxes are fused client-side with Formblatt's local multilingual semantic engine (`resolveSemanticProps`) to generate rich field labels, autofill attributes, and format types without sending any document data over the network.
 
 ---
 
