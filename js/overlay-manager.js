@@ -1,8 +1,8 @@
 // ── Canvas Overlay Rendering & Visual Elements (js/overlay-manager.js) ─
-import { state, getFieldsForCurrentPage } from "./state.js";
+import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "./state.js";
 import { FIELD_TYPE_LABELS } from "./constants.js";
 import { openSignatureModal } from "./signature-pad.js";
-import { makeScrubbableAndScrollable } from "./properties-panel.js";
+import { makeScrubbableAndScrollable, distributeSelectedFields } from "./properties-panel.js";
 import { saveHistory } from "./storage-manager.js";
 
 export function getFieldCssFont(field) {
@@ -611,6 +611,155 @@ export function renderOverlays(handlers) {
 
         container.appendChild(groupFrame);
     }
+
+    // Contextual Floating Quick-Actions Bar (Chapter 11 - Sovereign Posture & Modeless Action)
+    if (state.editorMode !== "fill" && selectedFieldsOnPage.length > 0) {
+        renderContextualQuickBar(container, selectedFieldsOnPage, handlers);
+    }
+}
+
+export function renderContextualQuickBar(container, selectedFieldsOnPage, handlers) {
+    if (!container || !selectedFieldsOnPage || selectedFieldsOnPage.length === 0) return;
+
+    const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
+    const minY = Math.min(...selectedFieldsOnPage.map(f => f.y));
+    const maxX = Math.max(...selectedFieldsOnPage.map(f => f.x + f.width));
+    const maxY = Math.max(...selectedFieldsOnPage.map(f => f.y + f.height));
+
+    const centerX = Math.round((minX + maxX) / 2);
+    let topY = minY - 38;
+    if (topY < 6) {
+        topY = maxY + 10;
+    }
+
+    const bar = document.createElement("div");
+    bar.className = "contextual-quick-bar";
+    bar.id = "contextualQuickBar";
+    bar.style.left = centerX + "px";
+    bar.style.top = topY + "px";
+
+    bar.addEventListener("mousedown", e => e.stopPropagation());
+    bar.addEventListener("click", e => e.stopPropagation());
+
+    const isMulti = selectedFieldsOnPage.length > 1;
+    const primaryField = selectedFieldsOnPage[0];
+
+    // 1. Duplicate Button [⌘D]
+    const dupBtn = document.createElement("button");
+    dupBtn.className = "quick-bar-btn";
+    dupBtn.title = isMulti ? "Duplicate Selection (⌘D)" : "Duplicate (⌘D)";
+    dupBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span>Duplicate</span>`;
+    dupBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        duplicateSelectedFields();
+        saveHistory(true, "Duplicate Field");
+        if (handlers?.onUpdated) handlers.onUpdated();
+        else renderOverlays(handlers);
+    });
+    bar.appendChild(dupBtn);
+
+    // 2. Delete Button [⌫]
+    const delBtn = document.createElement("button");
+    delBtn.className = "quick-bar-btn quick-bar-btn-danger";
+    delBtn.title = "Delete (⌫)";
+    delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`;
+    delBtn.addEventListener("click", e => {
+        e.stopPropagation();
+        if (handlers?.onDelete) {
+            handlers.onDelete();
+        } else {
+            const idsToDelete = new Set(selectedFieldsOnPage.map(f => f.id));
+            state.fields = state.fields.filter(f => !idsToDelete.has(f.id));
+            state.selectedFieldIds.clear();
+            state.selectedField = null;
+            saveHistory(true, "Delete Field");
+            if (handlers?.onUpdated) handlers.onUpdated();
+            else renderOverlays(handlers);
+        }
+    });
+    bar.appendChild(delBtn);
+
+    // Divider
+    const div1 = document.createElement("div");
+    div1.className = "quick-bar-divider";
+    bar.appendChild(div1);
+
+    if (!isMulti) {
+        // Single Field Specifics: Required Toggle & Lock Toggle
+        if (primaryField.type !== "staticText") {
+            const reqBtn = document.createElement("button");
+            reqBtn.className = "quick-bar-btn" + (primaryField.required ? " active" : "");
+            reqBtn.title = "Toggle Required (*)";
+            reqBtn.innerHTML = `<span class="req-star">*</span><span>Required</span>`;
+            reqBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                primaryField.required = !primaryField.required;
+                saveHistory(true, primaryField.required ? "Make Required" : "Make Optional");
+                if (handlers?.onUpdated) handlers.onUpdated(primaryField);
+                else renderOverlays(handlers);
+            });
+            bar.appendChild(reqBtn);
+        }
+
+        const lockBtn = document.createElement("button");
+        lockBtn.className = "quick-bar-btn" + (primaryField.locked ? " active" : "");
+        lockBtn.title = primaryField.locked ? "Unlock Field" : "Lock Field";
+        lockBtn.innerHTML = primaryField.locked
+            ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`
+            : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>`;
+        lockBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            primaryField.locked = !primaryField.locked;
+            saveHistory(true, primaryField.locked ? "Lock Field" : "Unlock Field");
+            if (handlers?.onUpdated) handlers.onUpdated(primaryField);
+            else renderOverlays(handlers);
+        });
+        bar.appendChild(lockBtn);
+    } else {
+        // Multi-Select Specifics: Group/Ungroup & Distribute Spacing (for >= 3)
+        const allSameGroup = selectedFieldsOnPage.every(f => f.groupId && f.groupId === selectedFieldsOnPage[0].groupId);
+        const grpBtn = document.createElement("button");
+        grpBtn.className = "quick-bar-btn" + (allSameGroup ? " active" : "");
+        grpBtn.title = allSameGroup ? "Ungroup (⌘G)" : "Group (⌘G)";
+        grpBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M14 14h7v7h-7z"/><path d="M3 14h7v7H3z"/></svg><span>${allSameGroup ? "Ungroup" : "Group"}</span>`;
+        grpBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            if (allSameGroup) ungroupSelected();
+            else createGroupForSelected();
+            saveHistory(true, allSameGroup ? "Ungroup Fields" : "Group Fields");
+            if (handlers?.onUpdated) handlers.onUpdated();
+            else renderOverlays(handlers);
+        });
+        bar.appendChild(grpBtn);
+
+        if (selectedFieldsOnPage.length >= 3) {
+            const div2 = document.createElement("div");
+            div2.className = "quick-bar-divider";
+            bar.appendChild(div2);
+
+            const distVBtn = document.createElement("button");
+            distVBtn.className = "quick-bar-btn";
+            distVBtn.title = "Distribute Vertical Gaps";
+            distVBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="4" x="4" y="2" rx="1"/><rect width="16" height="4" x="4" y="10" rx="1"/><rect width="16" height="4" x="4" y="18" rx="1"/></svg><span>Distribute V</span>`;
+            distVBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                distributeSelectedFields("vertical", handlers?.onUpdated);
+            });
+            bar.appendChild(distVBtn);
+
+            const distHBtn = document.createElement("button");
+            distHBtn.className = "quick-bar-btn";
+            distHBtn.title = "Distribute Horizontal Gaps";
+            distHBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="4" height="16" x="2" y="4" rx="1"/><rect width="4" height="16" x="10" y="4" rx="1"/><rect width="4" height="16" x="18" y="4" rx="1"/></svg><span>Distribute H</span>`;
+            distHBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                distributeSelectedFields("horizontal", handlers?.onUpdated);
+            });
+            bar.appendChild(distHBtn);
+        }
+    }
+
+    container.appendChild(bar);
 }
 
 export function updateOverlayPositionsDirectly() {
@@ -630,17 +779,29 @@ export function updateOverlayPositionsDirectly() {
     });
 
     const selectedFieldsOnPage = pageFields.filter(f => state.selectedFieldIds.has(f.id));
-    if (selectedFieldsOnPage.length > 1) {
-        const frame = document.querySelector(".multi-selection-bounding-frame");
-        if (frame) {
-            const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
-            const minY = Math.min(...selectedFieldsOnPage.map(f => f.y));
-            const maxX = Math.max(...selectedFieldsOnPage.map(f => f.x + f.width));
-            const maxY = Math.max(...selectedFieldsOnPage.map(f => f.y + f.height));
-            frame.style.left = (minX - 3) + "px";
-            frame.style.top = (minY - 3) + "px";
-            frame.style.width = (maxX - minX + 6) + "px";
-            frame.style.height = (maxY - minY + 6) + "px";
+    if (selectedFieldsOnPage.length > 0) {
+        const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
+        const minY = Math.min(...selectedFieldsOnPage.map(f => f.y));
+        const maxX = Math.max(...selectedFieldsOnPage.map(f => f.x + f.width));
+        const maxY = Math.max(...selectedFieldsOnPage.map(f => f.y + f.height));
+
+        if (selectedFieldsOnPage.length > 1) {
+            const frame = document.querySelector(".multi-selection-bounding-frame");
+            if (frame) {
+                frame.style.left = (minX - 3) + "px";
+                frame.style.top = (minY - 3) + "px";
+                frame.style.width = (maxX - minX + 6) + "px";
+                frame.style.height = (maxY - minY + 6) + "px";
+            }
+        }
+
+        const quickBar = document.getElementById("contextualQuickBar");
+        if (quickBar) {
+            const centerX = Math.round((minX + maxX) / 2);
+            let topY = minY - 38;
+            if (topY < 6) topY = maxY + 10;
+            quickBar.style.left = centerX + "px";
+            quickBar.style.top = topY + "px";
         }
     }
 }

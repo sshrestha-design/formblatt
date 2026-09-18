@@ -536,22 +536,26 @@ async function runAllTests() {
         appendedChildren.length = 0;
         state.selectedFieldIds = new Set(["f1"]);
         renderOverlays({});
+        // 3 overlays + 1 contextual quick bar = 4
+        assert.equal(appendedChildren.length, 4);
         assert.equal(appendedChildren[0].className, "field-overlay selected");
         assert.equal(appendedChildren[0].style.border, "2px solid #1D4ED8");
         assert.equal(appendedChildren[1].className, "field-overlay");
         assert.equal(appendedChildren[1].style.border, "1.5px solid #94A3B8");
+        assert.equal(appendedChildren[3].className, "contextual-quick-bar");
 
         // 3. Multi-selected test
         appendedChildren.length = 0;
         state.selectedFieldIds = new Set(["f1", "f2"]);
         renderOverlays({});
-        // Should have 2 multi-selected overlays + 1 unselected overlay + 1 bounding frame = 4
-        assert.equal(appendedChildren.length, 4);
+        // Should have 2 multi-selected overlays + 1 unselected overlay + 1 bounding frame + 1 contextual quick bar = 5
+        assert.equal(appendedChildren.length, 5);
         assert.equal(appendedChildren[0].className, "field-overlay selected multi-selected");
         assert.equal(appendedChildren[0].style.border, "1px solid #93C5FD");
         assert.equal(appendedChildren[1].className, "field-overlay selected multi-selected");
         assert.equal(appendedChildren[2].className, "field-overlay");
         assert.equal(appendedChildren[3].className, "multi-selection-bounding-frame");
+        assert.equal(appendedChildren[4].className, "contextual-quick-bar");
     });
 
     // ── SUITE 9: Text-Aware Dynamic Adaptive Sizing ──
@@ -1306,6 +1310,84 @@ async function runAllTests() {
         assert.ok(indexHtml.includes('id="posY"'), "index.html must include #posY input");
         assert.ok(/<label[^>]*class="[^"]*scrubbable[^"]*"[^>]*for="posX"|<label[^>]*for="posX"[^>]*class="[^"]*scrubbable/.test(indexHtml), "#posX label must have scrubbable class");
         assert.ok(/<label[^>]*class="[^"]*scrubbable[^"]*"[^>]*for="posY"|<label[^>]*for="posY"[^>]*class="[^"]*scrubbable/.test(indexHtml), "#posY label must have scrubbable class");
+    });
+
+    // ── SUITE 23: Smart Inference, Forgiving Sanitization & Contextual Quick Actions ──
+    console.log("\n⚡ Suite 23: Smart Inference, Forgiving Sanitization & Contextual Quick Actions");
+
+    it("sanitizePdfFieldName safely auto-normalizes field names without alerts", async () => {
+        const { sanitizePdfFieldName } = await import(path.join(WEB_DIR, 'js', 'properties-panel.js'));
+        assert.equal(sanitizePdfFieldName("First Name (#1)"), "first_name_1");
+        assert.equal(sanitizePdfFieldName("Company - Address (Line 2)"), "company_address_line_2");
+        assert.equal(sanitizePdfFieldName("123 Tax ID"), "f_123_tax_id");
+        assert.equal(sanitizePdfFieldName(""), "field_1");
+        assert.equal(sanitizePdfFieldName(null), "field_1");
+        assert.equal(sanitizePdfFieldName("   ___Email Address___   "), "email_address");
+    });
+
+    it("distributeSelectedFields uniformly spaces 3+ fields horizontally and vertically", async () => {
+        const { state } = await import(path.join(WEB_DIR, 'js', 'state.js'));
+        const { distributeSelectedFields } = await import(path.join(WEB_DIR, 'js', 'properties-panel.js'));
+
+        state.fields = [
+            { id: "f1", x: 10, y: 0, width: 100, height: 20 },
+            { id: "f2", x: 10, y: 30, width: 100, height: 20 },
+            { id: "f3", x: 10, y: 100, width: 100, height: 20 }
+        ];
+        state.selectedFieldIds = new Set(["f1", "f2", "f3"]);
+
+        distributeSelectedFields("vertical");
+        assert.equal(state.fields[0].y, 0);
+        assert.equal(state.fields[1].y, 50);
+        assert.equal(state.fields[2].y, 100);
+
+        state.fields = [
+            { id: "h1", x: 0, y: 10, width: 40, height: 20 },
+            { id: "h2", x: 45, y: 10, width: 40, height: 20 },
+            { id: "h3", x: 140, y: 10, width: 40, height: 20 }
+        ];
+        state.selectedFieldIds = new Set(["h1", "h2", "h3"]);
+
+        distributeSelectedFields("horizontal");
+        assert.equal(state.fields[0].x, 0);
+        assert.equal(state.fields[1].x, 70);
+        assert.equal(state.fields[2].x, 140);
+    });
+
+    it("renderContextualQuickBar creates floating action buttons for selection", async () => {
+        const { renderContextualQuickBar } = await import(path.join(WEB_DIR, 'js', 'overlay-manager.js'));
+        assert.equal(typeof renderContextualQuickBar, "function");
+
+        const mockContainer = {
+            children: [],
+            appendChild(el) { this.children.push(el); }
+        };
+        const selectedFields = [
+            { id: "f1", type: "textField", x: 50, y: 80, width: 120, height: 30, required: false }
+        ];
+
+        const prevDoc = global.document;
+        global.document = {
+            createElement(tag) {
+                return {
+                    tagName: tag,
+                    className: "",
+                    style: {},
+                    dataset: {},
+                    children: [],
+                    appendChild(child) { this.children.push(child); },
+                    addEventListener() {}
+                };
+            }
+        };
+
+        renderContextualQuickBar(mockContainer, selectedFields);
+        assert.equal(mockContainer.children.length, 1);
+        assert.equal(mockContainer.children[0].className, "contextual-quick-bar");
+        assert.equal(mockContainer.children[0].style.left, "110px");
+        assert.equal(mockContainer.children[0].style.top, "42px");
+
+        global.document = prevDoc;
     });
 
     // ── Summary ──

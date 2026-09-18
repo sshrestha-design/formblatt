@@ -115,7 +115,7 @@ const SEMANTIC_DICTIONARY = [
     { regex: /notice\s*period/i, id: "notice_period_input", title: "Notice Period" }
 ];
 
-async function inferSmartFieldName(type, x, y, width, height) {
+export async function inferSmartFieldName(type, x, y, width, height) {
     const rawBlocks = await getPageTextBlocks(state.currentPageNum);
     let bestMatch = null;
     let minDistance = Infinity;
@@ -190,6 +190,49 @@ async function inferSmartFieldName(type, x, y, width, height) {
         baseName = `${type}`;
     }
 
+    let autofill = undefined;
+    let tooltip = undefined;
+
+    if (baseName.includes("email")) {
+        autofill = "email";
+        tooltip = "Enter your email address";
+    } else if (baseName.includes("phone") || baseName.includes("tel") || baseName.includes("mobile")) {
+        autofill = "tel";
+        tooltip = "Enter your phone number";
+    } else if (baseName.includes("first_name") || baseName.includes("given_name")) {
+        autofill = "given-name";
+        tooltip = "Enter your first name";
+    } else if (baseName.includes("last_name") || baseName.includes("family_name") || baseName.includes("surname")) {
+        autofill = "family-name";
+        tooltip = "Enter your last name";
+    } else if (baseName.includes("name")) {
+        autofill = "name";
+        tooltip = "Enter your full name";
+    } else if (baseName.includes("address") || baseName.includes("street")) {
+        autofill = "street-address";
+        tooltip = "Enter your street address";
+    } else if (baseName.includes("city")) {
+        autofill = "address-level2";
+        tooltip = "Enter your city";
+    } else if (baseName.includes("state") || baseName.includes("province")) {
+        autofill = "address-level1";
+        tooltip = "Enter your state or province";
+    } else if (baseName.includes("zip") || baseName.includes("postal")) {
+        autofill = "postal-code";
+        tooltip = "Enter your postal code";
+    } else if (baseName.includes("country")) {
+        autofill = "country";
+        tooltip = "Enter your country";
+    } else if (baseName.includes("dob") || baseName.includes("birth")) {
+        autofill = "bday";
+        tooltip = "Enter your date of birth";
+    } else if (baseName.includes("company") || baseName.includes("organization")) {
+        autofill = "organization";
+        tooltip = "Enter your organization";
+    } else if (bestMatch) {
+        tooltip = `Enter ${bestMatch}`;
+    }
+
     // Ensure unique ID
     let finalName = baseName;
     let count = 1;
@@ -198,7 +241,13 @@ async function inferSmartFieldName(type, x, y, width, height) {
         count++;
         finalName = `${baseName}_${count}`;
     }
-    return finalName;
+
+    return {
+        name: finalName,
+        autofill,
+        tooltip,
+        label: bestMatch || undefined
+    };
 }
 
 function handleFieldDrag(e, container, handlers) {
@@ -337,12 +386,12 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
     targetX = Math.max(0, Math.min(pageWidth - width, targetX));
     targetY = Math.max(0, Math.min(pageHeight - height, targetY));
 
-    const smartName = await inferSmartFieldName(type, targetX, targetY, width, height);
+    const smartMeta = await inferSmartFieldName(type, targetX, targetY, width, height);
 
     const field = {
         id: generateFieldId(),
         type: type,
-        name: smartName,
+        name: typeof smartMeta === "object" ? smartMeta.name : smartMeta,
         x: targetX,
         y: targetY,
         width: width,
@@ -352,7 +401,9 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
         fillStyle: type === "staticText" ? "transparent" : "white",
         fontSize: detectedFontSize,
         textAlignment: "left",
-        ...(type === "staticText" ? { defaultValue: "Heading Text", label: "Heading Text", fontFamily: "helvetica", color: "#0f172a" } : {}),
+        ...(smartMeta?.autofill ? { autofill: smartMeta.autofill } : {}),
+        ...(smartMeta?.tooltip ? { tooltip: smartMeta.tooltip } : {}),
+        ...(type === "staticText" ? { defaultValue: smartMeta?.label || "Heading Text", label: smartMeta?.label || "Heading Text", fontFamily: "helvetica", color: "#0f172a" } : {}),
         ...(type === "dateField" ? { dateFormat: "MM/DD/YYYY", defaultValue: "MM/DD/YYYY" } : {}),
         ...(type === "dropdown" ? { options: ["Select...", "Option 1", "Option 2", "Option 3"], defaultValue: "Select..." } : {})
     };
