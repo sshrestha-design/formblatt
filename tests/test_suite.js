@@ -1081,6 +1081,30 @@ async function runAllTests() {
             { id: "f1", name: "FullName", type: "textField", page: 1, x: 50, y: 100, width: 200, height: 24, value: "Jane Doe" }
         ], { flatten: true });
         assert.ok(flattened && flattened.length > 0, "Flattened PDF must succeed without stack overflow");
+
+        // Test multi-page pre-designed forms (like Schengen Visa application)
+        const multiPageDoc = await PDFDocument.create();
+        for (let p = 0; p < 4; p++) multiPageDoc.addPage([595, 842]);
+        const mpForm = multiPageDoc.getForm();
+        const tf1 = mpForm.createTextField("form1.page1.Nom");
+        tf1.addToPage(multiPageDoc.getPages()[0], { x: 50, y: 700, width: 200, height: 20 });
+        const cb1 = mpForm.createCheckBox("form1.page1.SexeHomme");
+        cb1.addToPage(multiPageDoc.getPages()[0], { x: 50, y: 650, width: 15, height: 15 });
+        const multiPageBytes = await multiPageDoc.save();
+
+        const multiPageExport = await buildPdf(multiPageBytes, [
+            { id: "s1", name: "Nom", type: "textField", page: 1, x: 50, y: 100, width: 250, height: 22, value: "DUPONT" },
+            { id: "s2", name: "Prenom", type: "textField", page: 1, x: 50, y: 130, width: 250, height: 22, value: "Jean" },
+            { id: "s3", name: "Homme", type: "checkBox", page: 1, x: 50, y: 160, width: 14, height: 14, checked: true },
+            { id: "s4", name: "Destination", type: "textField", page: 2, x: 50, y: 200, width: 200, height: 22, value: "France" },
+            { id: "s5", name: "Signature", type: "signature", page: 4, x: 50, y: 500, width: 200, height: 40 }
+        ]);
+        assert.ok(multiPageExport && multiPageExport.length > 0, "Multi-page complex pre-designed form must export cleanly");
+
+        const multiPageFlattened = await buildPdf(multiPageExport, [
+            { id: "s1", name: "Nom", type: "textField", page: 1, x: 50, y: 100, width: 250, height: 22, value: "DUPONT" }
+        ], { flatten: true });
+        assert.ok(multiPageFlattened && multiPageFlattened.length > 0, "Multi-page form must flatten with zero stack overflow");
     });
 
     it("Storage manager serializes snapshots and manages undo/redo stack accurately", async () => {
