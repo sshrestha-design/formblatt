@@ -1462,7 +1462,7 @@ function initPanelResizers() {
     }
 }
 
-function toggleLeftSidebar() {
+export function toggleLeftSidebar() {
     const leftPanel = document.querySelector(".left-panel");
     const toggleBtn = document.getElementById("toggleSidebarBtn");
     const resizer = document.getElementById("leftPanelResizer");
@@ -1483,8 +1483,11 @@ function toggleLeftSidebar() {
         if (typeof lucide !== "undefined") lucide.createIcons();
     }
 }
+if (typeof window !== "undefined") {
+    window.toggleLeftSidebar = toggleLeftSidebar;
+}
 
-function toggleRightSidebar() {
+export function toggleRightSidebar() {
     const rightPanel = document.querySelector(".right-panel");
     const toggleBtn = document.getElementById("toggleRightSidebarBtn");
     const resizer = document.getElementById("rightPanelResizer");
@@ -1505,6 +1508,9 @@ function toggleRightSidebar() {
         if (typeof lucide !== "undefined") lucide.createIcons();
     }
 }
+if (typeof window !== "undefined") {
+    window.toggleRightSidebar = toggleRightSidebar;
+}
 
 function initMobileEditorLayout() {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -1514,7 +1520,7 @@ function initMobileEditorLayout() {
 
     document.addEventListener("pointerdown", e => {
         if (!mediaQuery.matches) return;
-        if (e.target.closest(".left-panel, .right-panel, #toggleSidebarBtn, #toggleRightSidebarBtn")) return;
+        if (e.target.closest(".left-panel, .right-panel, #toggleSidebarBtn, #toggleRightSidebarBtn, #leftEdgePeekTab, #rightEdgePeekTab")) return;
 
         if (!leftPanel.classList.contains("collapsed")) toggleLeftSidebar();
         if (!rightPanel.classList.contains("collapsed")) toggleRightSidebar();
