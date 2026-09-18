@@ -5,7 +5,7 @@ import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
 import { initPropertiesPanel, populateProperties, syncDimensionInputsLive, alignSelectedFields, distributeSelectedFields } from "./properties-panel.js";
 import { renderOverlays, updateOverlayPositionsDirectly } from "./overlay-manager.js";
-import { initCanvasController, handleFieldMouseDown, handleResizeStart } from "./canvas-controller.js";
+import { initCanvasController, handleFieldMouseDown, handleResizeStart, showVernierHud } from "./canvas-controller.js";
 import { loadTemplate } from "./landing-controller.js";
 import { initSignaturePad } from "./signature-pad.js";
 import { autoDetectFields } from "./auto-detector.js";
@@ -199,7 +199,7 @@ const canvasHandlers = {
 
 function ensureEditorStyles() {
     if (typeof document === "undefined") return;
-    ["styles/editor.css?v=17.0", "styles/canvas.css?v=17.0"].forEach(href => {
+    ["styles/editor.css?v=18.0", "styles/canvas.css?v=18.0"].forEach(href => {
         const base = href.split("?")[0];
         if (!document.querySelector(`link[href*="${base}"]`)) {
             const link = document.createElement("link");
@@ -1127,15 +1127,24 @@ export function initEditorSubsystems() {
                 const dx = e.key === "ArrowLeft" ? -step : (e.key === "ArrowRight" ? step : 0);
                 const dy = e.key === "ArrowUp" ? -step : (e.key === "ArrowDown" ? step : 0);
 
+                let primaryField = null;
                 state.selectedFieldIds.forEach(id => {
                     const f = state.fields.find(item => item.id === id);
                     if (f && (f.page || 1) === state.currentPageNum) {
                         f.x = Math.max(0, Math.round(f.x + dx));
                         f.y = Math.max(0, Math.round(f.y + dy));
+                        if (!primaryField || id === state.lastSelectedFieldId) primaryField = f;
                     }
                 });
                 saveHistory();
                 refreshUI();
+
+                if (primaryField) {
+                    const overlayEl = document.getElementById(`overlay_${primaryField.id}`);
+                    const deltaStr = dx !== 0 ? (dx > 0 ? `+${dx}` : `${dx}`) : (dy > 0 ? `+${dy}` : `${dy}`);
+                    const countInfo = state.selectedFieldIds.size > 1 ? `<span class="vernier-count">(${state.selectedFieldIds.size} items)</span>` : "";
+                    showVernierHud(overlayEl || { x: window.innerWidth / 2, y: window.innerHeight - 80 }, `<span class="vernier-axis">X</span> <span class="vernier-val">${primaryField.x}</span> <span class="vernier-axis">Y</span> <span class="vernier-val">${primaryField.y}</span> <span class="vernier-delta">Δ${deltaStr}px</span> ${countInfo}`, 900);
+                }
                 return;
             }
         }

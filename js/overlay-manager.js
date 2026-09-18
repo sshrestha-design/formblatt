@@ -527,29 +527,36 @@ export function renderOverlays(handlers) {
             if (layerItem) layerItem.classList.remove("canvas-hover-highlight");
         });
 
-        if (f.type === "staticText") {
-            div.addEventListener("dblclick", e => {
-                e.stopPropagation();
-                startInlineTextEdit(f.id, handlers);
-            });
-        }
-
-        div.addEventListener("keydown", e => {
-            if (e.key === "Enter" || e.key === " ") {
-                if (f.type === "staticText" && e.key === "Enter") {
-                    e.preventDefault();
-                    startInlineTextEdit(f.id, handlers);
-                } else if (f.type === "checkBox") {
-                    e.preventDefault();
-                    f.defaultChecked = !f.defaultChecked;
+        div.addEventListener("dblclick", e => {
+            e.stopPropagation();
+            if (f.locked || f.hidden) return;
+            if (f.type === "signature" && !f.signatureImage) {
+                openSignatureModal(f, () => {
                     renderOverlays(handlers);
                     if (handlers.onUpdated) handlers.onUpdated(f);
-                } else if (f.type === "signature" && !f.signatureImage) {
-                    e.preventDefault();
+                });
+            } else {
+                startInlineTextEdit(f.id, handlers);
+            }
+        });
+
+        div.addEventListener("keydown", e => {
+            if (e.key === "Enter" && !f.locked && !f.hidden) {
+                e.preventDefault();
+                if (f.type === "signature" && !f.signatureImage) {
                     openSignatureModal(f, () => {
                         renderOverlays(handlers);
                         if (handlers.onUpdated) handlers.onUpdated(f);
                     });
+                } else {
+                    startInlineTextEdit(f.id, handlers);
+                }
+            } else if (e.key === " ") {
+                if (f.type === "checkBox") {
+                    e.preventDefault();
+                    f.defaultChecked = !f.defaultChecked;
+                    renderOverlays(handlers);
+                    if (handlers.onUpdated) handlers.onUpdated(f);
                 }
             }
         });
@@ -640,12 +647,12 @@ export function updateOverlayPositionsDirectly() {
 
 export function startInlineTextEdit(fieldId, handlers = {}) {
     const field = state.fields.find(f => f.id === fieldId);
-    if (!field || field.type !== "staticText" || field.locked || field.hidden) return;
+    if (!field || field.locked || field.hidden) return;
 
     const overlay = document.querySelector(`.field-overlay[data-id="${fieldId}"]`) || document.getElementById(`overlay_${fieldId}`);
     if (!overlay) return;
 
-    const existing = overlay.querySelector(".inline-text-editor");
+    const existing = overlay.querySelector(".inline-text-editor, .inline-field-input");
     if (existing) {
         existing.focus();
         return;
@@ -655,90 +662,164 @@ export function startInlineTextEdit(fieldId, handlers = {}) {
     const label = overlay.querySelector(".overlay-label");
     if (label) label.style.display = "none";
 
-    const { fam, weight, style: fontStyle } = getFieldCssFont(field);
-    const fontSize = Number(field.fontSize) || 16;
+    const isStatic = field.type === "staticText";
 
-    const textarea = document.createElement("textarea");
-    textarea.className = "inline-text-editor";
-    textarea.value = field.defaultValue || field.label || "";
-    textarea.style.fontFamily = fam;
-    textarea.style.fontWeight = weight || "600";
-    textarea.style.fontStyle = fontStyle === "italic" ? "italic" : "normal";
-    textarea.style.fontSize = `${fontSize}px`;
-    textarea.style.textAlign = field.textAlignment || "left";
-    textarea.style.color = field.color || "#0f172a";
-    textarea.style.lineHeight = "1.25";
+    if (isStatic) {
+        const { fam, weight, style: fontStyle } = getFieldCssFont(field);
+        const fontSize = Number(field.fontSize) || 16;
 
-    const syncDimensions = () => {
-        textarea.style.height = "auto";
-        const newH = Math.max(field.height, textarea.scrollHeight + 4);
-        if (newH > field.height) {
-            field.height = newH;
-            overlay.style.height = `${newH}px`;
-        }
-    };
+        const textarea = document.createElement("textarea");
+        textarea.className = "inline-text-editor";
+        textarea.value = field.defaultValue || field.label || "";
+        textarea.style.fontFamily = fam;
+        textarea.style.fontWeight = weight || "600";
+        textarea.style.fontStyle = fontStyle === "italic" ? "italic" : "normal";
+        textarea.style.fontSize = `${fontSize}px`;
+        textarea.style.textAlign = field.textAlignment || "left";
+        textarea.style.color = field.color || "#0f172a";
+        textarea.style.lineHeight = "1.25";
 
-    let committed = false;
-    const commitEdit = (shouldSave = true) => {
-        if (committed) return;
-        committed = true;
-        const finalVal = textarea.value;
-        field.defaultValue = finalVal;
-        field.label = finalVal;
+        const syncDimensions = () => {
+            textarea.style.height = "auto";
+            const newH = Math.max(field.height, textarea.scrollHeight + 4);
+            if (newH > field.height) {
+                field.height = newH;
+                overlay.style.height = `${newH}px`;
+            }
+        };
 
-        overlay.classList.remove("is-editing-text");
-        textarea.remove();
-        if (label) {
-            label.style.display = "";
-            label.textContent = finalVal || "Heading Text";
-        }
+        let committed = false;
+        const commitEdit = (shouldSave = true) => {
+            if (committed) return;
+            committed = true;
+            const finalVal = textarea.value;
+            field.defaultValue = finalVal;
+            field.label = finalVal;
 
-        const propDef = document.getElementById("fieldDefaultValue");
-        if (propDef && state.selectedFieldIds.has(field.id)) {
-            propDef.value = finalVal;
-        }
+            overlay.classList.remove("is-editing-text");
+            textarea.remove();
+            if (label) {
+                label.style.display = "";
+                label.textContent = finalVal || "Heading Text";
+            }
 
-        if (shouldSave) saveHistory(true);
-        if (handlers?.onUpdated) handlers.onUpdated(field);
-        renderOverlays(handlers);
-    };
+            const propDef = document.getElementById("fieldDefaultValue");
+            if (propDef && state.selectedFieldIds.has(field.id)) {
+                propDef.value = finalVal;
+            }
 
-    textarea.addEventListener("input", () => {
-        field.defaultValue = textarea.value;
-        field.label = textarea.value;
-        const propDef = document.getElementById("fieldDefaultValue");
-        if (propDef && state.selectedFieldIds.has(field.id)) {
-            propDef.value = textarea.value;
-        }
+            if (shouldSave) saveHistory(true);
+            if (handlers?.onUpdated) handlers.onUpdated(field);
+            renderOverlays(handlers);
+        };
+
+        textarea.addEventListener("input", () => {
+            field.defaultValue = textarea.value;
+            field.label = textarea.value;
+            const propDef = document.getElementById("fieldDefaultValue");
+            if (propDef && state.selectedFieldIds.has(field.id)) {
+                propDef.value = textarea.value;
+            }
+            syncDimensions();
+        });
+
+        textarea.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(true);
+                overlay.focus();
+            } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(true);
+                overlay.focus();
+            }
+            e.stopPropagation();
+        });
+
+        textarea.addEventListener("mousedown", e => e.stopPropagation());
+        textarea.addEventListener("pointerdown", e => e.stopPropagation());
+        textarea.addEventListener("click", e => e.stopPropagation());
+        textarea.addEventListener("dblclick", e => e.stopPropagation());
+
+        textarea.addEventListener("blur", () => {
+            commitEdit(true);
+        });
+
+        overlay.appendChild(textarea);
         syncDimensions();
-    });
+        textarea.focus?.();
+        textarea.select?.();
+    } else {
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "inline-field-input";
+        input.value = field.label || field.name || "";
+        input.placeholder = "Field label...";
 
-    textarea.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-            e.preventDefault();
+        let committed = false;
+        const commitEdit = (shouldSave = true) => {
+            if (committed) return;
+            committed = true;
+            const finalVal = input.value.trim();
+            if (finalVal) {
+                field.label = finalVal;
+                if (!field.name || field.name.startsWith("field_") || field.name.startsWith("textField_") || field.name.startsWith("input_")) {
+                    field.name = finalVal.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
+                }
+            }
+
+            overlay.classList.remove("is-editing-text");
+            input.remove();
+            if (label) {
+                label.style.display = "";
+                label.textContent = field.label || field.name || "";
+            }
+
+            const propLabel = document.getElementById("fieldLabel");
+            if (propLabel && state.selectedFieldIds.has(field.id)) {
+                propLabel.value = field.label || "";
+            }
+            const propName = document.getElementById("fieldName");
+            if (propName && state.selectedFieldIds.has(field.id)) {
+                propName.value = field.name || "";
+            }
+
+            if (shouldSave) saveHistory(true);
+            if (handlers?.onUpdated) handlers.onUpdated(field);
+            renderOverlays(handlers);
+        };
+
+        input.addEventListener("input", () => {
+            field.label = input.value;
+            const propLabel = document.getElementById("fieldLabel");
+            if (propLabel && state.selectedFieldIds.has(field.id)) {
+                propLabel.value = input.value;
+            }
+        });
+
+        input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(true);
+                overlay.focus();
+            }
             e.stopPropagation();
+        });
+
+        input.addEventListener("mousedown", e => e.stopPropagation());
+        input.addEventListener("pointerdown", e => e.stopPropagation());
+        input.addEventListener("click", e => e.stopPropagation());
+        input.addEventListener("dblclick", e => e.stopPropagation());
+
+        input.addEventListener("blur", () => {
             commitEdit(true);
-            overlay.focus();
-        } else if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-            e.preventDefault();
-            e.stopPropagation();
-            commitEdit(true);
-            overlay.focus();
-        }
-        e.stopPropagation();
-    });
+        });
 
-    textarea.addEventListener("mousedown", e => e.stopPropagation());
-    textarea.addEventListener("pointerdown", e => e.stopPropagation());
-    textarea.addEventListener("click", e => e.stopPropagation());
-    textarea.addEventListener("dblclick", e => e.stopPropagation());
-
-    textarea.addEventListener("blur", () => {
-        commitEdit(true);
-    });
-
-    overlay.appendChild(textarea);
-    syncDimensions();
-    textarea.focus?.();
-    textarea.select?.();
+        overlay.appendChild(input);
+        input.focus?.();
+        input.select?.();
+    }
 }
