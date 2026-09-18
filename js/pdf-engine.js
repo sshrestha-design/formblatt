@@ -141,20 +141,33 @@ export function showZoomHud(text) {
     }, 1200);
 }
 
-export function setTransformScale(newScale, onRerender) {
+export function updateCanvasTransform() {
+    if (typeof document === "undefined") return;
+    const container = document.getElementById("canvasContainer");
+    const centerCanvas = document.getElementById("centerCanvas");
+    if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+    if (container) {
+        container.style.transform = `translate3d(${state.panOffset.x}px, ${state.panOffset.y}px, 0) scale(${state.currentScale})`;
+    }
+    if (centerCanvas) {
+        centerCanvas.style.backgroundPosition = `${state.panOffset.x}px ${state.panOffset.y}px`;
+    }
+}
+
+export function setTransformScale(newScale, onRerender, zoomCenter) {
+    const oldScale = state.currentScale;
     state.currentScale = Math.min(Math.max(newScale, 0.25), 4.0);
     const centerCanvas = document.getElementById("centerCanvas");
     centerCanvas?.classList.remove("fit-page-view");
-    const container = document.getElementById("canvasContainer");
-    if (container) {
-        container.style.marginTop = "";
-        container.style.marginLeft = "";
-        container.style.transform = `scale(${state.currentScale})`;
-        const baseWidth = container.offsetWidth;
-        const baseHeight = container.offsetHeight;
-        container.style.marginRight = `${Math.max(0, (state.currentScale - 1) * baseWidth)}px`;
-        container.style.marginBottom = `${Math.max(0, (state.currentScale - 1) * baseHeight)}px`;
+    
+    if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+    if (zoomCenter && oldScale !== state.currentScale) {
+        const ratio = state.currentScale / oldScale;
+        state.panOffset.x = zoomCenter.x - (zoomCenter.x - state.panOffset.x) * ratio;
+        state.panOffset.y = zoomCenter.y - (zoomCenter.y - state.panOffset.y) * ratio;
     }
+    
+    updateCanvasTransform();
 
     const pctText = Math.round(state.currentScale * 100) + "%";
     const zoomDisplay = document.getElementById("zoomLevelDisplay");
@@ -182,13 +195,13 @@ export function fitToWidth(onRerender) {
     const wrapper = document.getElementById("centerCanvas") || document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
     if (!wrapper) return;
 
+    state.panOffset = { x: 0, y: 0 };
     const style = window.getComputedStyle(wrapper);
     const padLeft = parseFloat(style.paddingLeft) || 0;
     const padRight = parseFloat(style.paddingRight) || 0;
 
-    // Calculate exact available inner width inside padding minus safety margin
     const innerWidth = wrapper.clientWidth - (padLeft + padRight);
-    const availableWidth = Math.max(160, innerWidth - 8);
+    const availableWidth = Math.max(160, innerWidth - 32);
 
     const container = document.getElementById("canvasContainer");
     const docWidth = (state.pdfViewport && state.pdfViewport.width)
@@ -197,23 +210,21 @@ export function fitToWidth(onRerender) {
 
     const newScale = Math.min(Math.max(availableWidth / docWidth, 0.25), 4.0);
     setTransformScale(newScale, onRerender);
-
-    wrapper.scrollLeft = 0;
-    wrapper.scrollTop = 0;
 }
 
 export function fitToPage(onRerender) {
     const wrapper = document.getElementById("centerCanvas") || document.querySelector(".canvas-workbench") || document.getElementById("canvasContainer")?.parentElement;
     if (!wrapper) return;
 
+    state.panOffset = { x: 0, y: 0 };
     const style = window.getComputedStyle(wrapper);
     const padLeft = parseFloat(style.paddingLeft) || 0;
     const padRight = parseFloat(style.paddingRight) || 0;
     const padTop = parseFloat(style.paddingTop) || 0;
     const padBottom = parseFloat(style.paddingBottom) || 0;
 
-    const availableWidth = Math.max(160, wrapper.clientWidth - (padLeft + padRight) - 8);
-    const availableHeight = Math.max(160, wrapper.clientHeight - (padTop + padBottom) - 8);
+    const availableWidth = Math.max(160, wrapper.clientWidth - (padLeft + padRight) - 32);
+    const availableHeight = Math.max(160, wrapper.clientHeight - (padTop + padBottom) - 32);
 
     const container = document.getElementById("canvasContainer");
     const docWidth = (state.pdfViewport && state.pdfViewport.width)
@@ -227,9 +238,6 @@ export function fitToPage(onRerender) {
     const scaleY = availableHeight / docHeight;
     const newScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.25), 4.0);
     setTransformScale(newScale, onRerender);
-
-    wrapper.scrollLeft = 0;
-    wrapper.scrollTop = 0;
 }
 
 export async function goToPage(pageNum, onPageChange) {
