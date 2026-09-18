@@ -220,7 +220,11 @@ export const COMMANDS = [
         icon: "panel-left-close",
         kbd: "⌘\\",
         action: () => {
-            document.getElementById("toggleSidebarBtn")?.click();
+            if (typeof window.toggleLeftSidebar === "function") {
+                window.toggleLeftSidebar();
+            } else {
+                document.getElementById("leftEdgePeekTab")?.click() || document.getElementById("collapseLeftPanelBtn")?.click();
+            }
         }
     },
     {
@@ -231,7 +235,11 @@ export const COMMANDS = [
         icon: "panel-right-close",
         kbd: "⌘]",
         action: () => {
-            document.getElementById("toggleRightSidebarBtn")?.click();
+            if (typeof window.toggleRightSidebar === "function") {
+                window.toggleRightSidebar();
+            } else {
+                document.getElementById("rightEdgePeekTab")?.click() || document.getElementById("collapseRightPanelBtn")?.click();
+            }
         }
     },
 
