@@ -577,11 +577,11 @@ export function initEditorSubsystems() {
 
         try {
             await new Promise(r => setTimeout(r, 240));
-            if (statusPill) statusPill.textContent = "Scanning static text baselines & labels...";
+            if (statusPill) statusPill.textContent = "Scanning vector grids & text labels...";
 
-            const countPromise = autoDetectFields("current");
+            const countPromise = autoDetectFields("current", { mode: "hybrid", useNeural: true });
             await new Promise(r => setTimeout(r, 260));
-            if (statusPill) statusPill.textContent = "Synthesizing interactive AcroForm fields...";
+            if (statusPill) statusPill.textContent = "Synthesizing hybrid AcroForm fields...";
             
             const count = await countPromise;
             await new Promise(r => setTimeout(r, 220));
