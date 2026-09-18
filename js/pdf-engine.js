@@ -6,7 +6,7 @@ let pdfLibsPromise = null;
 export function ensurePdfJsConfigured() {
     const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : null;
     if (pdfjs && pdfjs.GlobalWorkerOptions && !pdfjs.GlobalWorkerOptions.workerSrc) {
-        pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        pdfjs.GlobalWorkerOptions.workerSrc = typeof window !== "undefined" && window.location ? `${window.location.origin}/vendor/pdf.worker.min.js` : '/vendor/pdf.worker.min.js';
     }
 }
 
@@ -26,7 +26,7 @@ export function loadPdfLibraries() {
         
         const existing = document.querySelector(`script[src="${src}"]`);
         if (existing) {
-            if (existing.dataset.loaded === "true") return resolve();
+            if (existing.dataset.loaded === "true" || (typeof window !== "undefined" && window.pdfjsLib && window.PDFLib)) return resolve();
             existing.addEventListener("load", () => resolve(), { once: true });
             existing.addEventListener("error", (err) => reject(err), { once: true });
             return;
@@ -47,19 +47,26 @@ export function loadPdfLibraries() {
     });
 
     pdfLibsPromise = Promise.all([
-        loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"),
-        loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js")
+        loadScript("/vendor/pdf.min.js"),
+        loadScript("/vendor/pdf-lib.min.js")
     ]).then(async () => {
         ensurePdfJsConfigured();
-        // Load fontkit opportunistically in the background without blocking core PDF engine
         try {
-            await loadScript("https://unpkg.com/@pdf-lib/fontkit/dist/fontkit.umd.min.js");
+            await loadScript("/vendor/fontkit.umd.min.js");
         } catch (e) {
             console.warn("Optional fontkit library could not be loaded:", e);
         }
     }).catch(err => {
-        pdfLibsPromise = null;
-        throw err;
+        console.warn("Local vendor loading failed, falling back to CDN:", err);
+        return Promise.all([
+            loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"),
+            loadScript("https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js")
+        ]).then(async () => {
+            const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : null;
+            if (pdfjs && pdfjs.GlobalWorkerOptions) {
+                pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+            }
+        });
     });
 
     return pdfLibsPromise;

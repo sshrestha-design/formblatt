@@ -1207,7 +1207,19 @@ export function initEditorSubsystems() {
         });
     });
 
-    setupMenuDropdown("zoomLevelDisplay", "zoomDropdownMenu");
+    const zoomLevelDisplay = document.getElementById("zoomLevelDisplay");
+    const zoomDropdownMenu = document.getElementById("zoomDropdownMenu");
+    if (zoomLevelDisplay && zoomDropdownMenu) {
+        zoomLevelDisplay.addEventListener("click", (e) => {
+            e.stopPropagation();
+            zoomDropdownMenu.classList.toggle("active");
+        });
+        document.addEventListener("click", (e) => {
+            if (!zoomDropdownMenu.contains(e.target)) {
+                zoomDropdownMenu.classList.remove("active");
+            }
+        });
+    }
 
     // Initialize Draggable Panel Resizers
     initPanelResizers();
