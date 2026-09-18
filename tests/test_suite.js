@@ -410,6 +410,16 @@ async function runAllTests() {
         assert.equal(resolveSemanticProps("कुल जम्मा").dataFormat, "currency");
     });
 
+    it("Correctly categorizes complex government form prompts with brackets, asterisks, and apostrophes", () => {
+        assert.equal(resolveSemanticProps("1. Nom [nom de famille] :").name, "last_name");
+        assert.equal(resolveSemanticProps("3. Prénom(s) [nom(s) usuel(s)] :").name, "first_name");
+        assert.equal(resolveSemanticProps("4. Date de naissance (jour-mois-année) :").type, "dateField");
+        assert.equal(resolveSemanticProps("15. Date d'expiration :").type, "dateField");
+        assert.equal(resolveSemanticProps("19. Adresse du domicile et adresse électronique du demandeur :").autofill, "address-line1");
+        assert.equal(resolveSemanticProps("* 21. Profession actuelle :").name, "job_title");
+        assert.equal(resolveSemanticProps("Signature du demandeur :").type, "signature");
+    });
+
     // ── SUITE 7: Autofill Tooltips & AcroForm Standards ──
     console.log("\n🏷️ Suite 7: Autofill Tooltips & AcroForm Standards");
     const AUTOFILL_ROLE_TITLES = {
