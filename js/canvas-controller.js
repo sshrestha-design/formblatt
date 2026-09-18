@@ -397,12 +397,11 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
 // neighbors on either side of the dragged field, and reports it as an
 // "equal spacing" match when the two gaps are (almost) equal — this is the
 // signature Photoshop/Figma "distribution" guide: a small gap-size label
-// shown when you're evenly spaced between two neighbors. Visual-only: it
-// does not itself move the field, so it can never destabilize the tested
-// edge/center magnetic-snap math above.
-function findSpacingMatch(mainStart, mainEnd, crossStart, crossEnd, others, axis) {
+// shown when you're evenly spaced between two neighbors.
+function findSpacingMatch(mainStart, mainEnd, crossStart, crossEnd, others, axis, snapThreshold = 4) {
     let prev = null, prevGap = Infinity;
     let next = null, nextGap = Infinity;
+    const width = mainEnd - mainStart;
 
     for (const o of others) {
         const oMainStart = axis === "x" ? o.x : o.y;
@@ -413,22 +412,31 @@ function findSpacingMatch(mainStart, mainEnd, crossStart, crossEnd, others, axis
         const crossOverlap = Math.min(crossEnd, oCrossEnd) - Math.max(crossStart, oCrossStart);
         if (crossOverlap <= 2) continue; // not in the same row/column
 
-        if (oMainEnd <= mainStart) {
+        if (oMainEnd <= mainStart + snapThreshold) {
             const gap = mainStart - oMainEnd;
             if (gap < prevGap) { prevGap = gap; prev = { start: oMainStart, end: oMainEnd }; }
-        } else if (oMainStart >= mainEnd) {
+        } else if (oMainStart >= mainEnd - snapThreshold) {
             const gap = oMainStart - mainEnd;
             if (gap < nextGap) { nextGap = gap; next = { start: oMainStart, end: oMainEnd }; }
         }
     }
 
-    if (prev && next && Math.abs(prevGap - nextGap) <= 3) {
-        return {
-            gap: Math.round((prevGap + nextGap) / 2),
-            seg1: { from: prev.end, to: mainStart },
-            seg2: { from: mainEnd, to: next.start },
-            crossMid: (crossStart + crossEnd) / 2
-        };
+    if (prev && next && prev.end < next.start) {
+        const totalGapSpace = next.start - prev.end - width;
+        if (totalGapSpace > 0) {
+            const idealGap = totalGapSpace / 2;
+            const idealStart = prev.end + idealGap;
+            const diff = idealStart - mainStart;
+            if (Math.abs(diff) <= snapThreshold) {
+                return {
+                    gap: Math.round(idealGap),
+                    seg1: { from: prev.end, to: idealStart },
+                    seg2: { from: idealStart + width, to: next.start },
+                    crossMid: (crossStart + crossEnd) / 2,
+                    snapOffset: diff
+                };
+            }
+        }
     }
     return null;
 }
@@ -530,7 +538,18 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
         snapY = bestY.otherPos - myPos;
     }
 
-    // Re-derive final resting edges after edge snapping
+    // 4. Equal-spacing / distribution guides & magnetic gap snapping
+    let spacingX = findSpacingMatch(left + snapX, right + snapX, top + snapY, bottom + snapY, others, "x", effectiveSnapThreshold);
+    let spacingY = findSpacingMatch(top + snapY, bottom + snapY, left + snapX, right + snapX, others, "y", effectiveSnapThreshold);
+
+    if (!bestX && spacingX && Math.abs(spacingX.snapOffset) > 0.1) {
+        snapX += spacingX.snapOffset;
+    }
+    if (!bestY && spacingY && Math.abs(spacingY.snapOffset) > 0.1) {
+        snapY += spacingY.snapOffset;
+    }
+
+    // Re-derive final resting edges after edge and gap snapping
     const finalLeft = left + snapX, finalRight = right + snapX, finalCenterX = centerX + snapX;
     const finalTop = top + snapY, finalBottom = bottom + snapY, finalCenterY = centerY + snapY;
 
@@ -553,10 +572,6 @@ function checkSnapping(x, y, width, height, others, textBlocks = [], pageWidth =
             if (!seenY.has(key)) { seenY.add(key); guidesY.push(c.otherPos); }
         }
     }
-
-    // 4. Equal-spacing / distribution guides (visual hint only).
-    const spacingX = findSpacingMatch(finalLeft, finalRight, finalTop, finalBottom, others, "x");
-    const spacingY = findSpacingMatch(finalTop, finalBottom, finalLeft, finalRight, others, "y");
 
     return {
         snapX, snapY,
@@ -1464,31 +1479,46 @@ function showGuides(guidesXInput, guidesYInput, activeX = null, activeY = null, 
 
     // Equal-spacing (distribution) badges — Photoshop/Figma-style pixel-gap
     // labels shown when evenly spaced between two neighbors.
-    const spacings = [spacingX, spacingY].filter(Boolean);
-    spacings.forEach((sp, i) => {
-        const isX = sp === spacingX;
-        let badge = spacingBadgeEls[i];
+    let badgeIdx = 0;
+    const renderBadge = (midX, midY, gap) => {
+        let badge = spacingBadgeEls[badgeIdx];
         if (!badge) {
             badge = document.createElement("div");
             badge.className = "spacing-badge";
             const parent = getGuideContainer();
             if (parent) parent.appendChild(badge);
-            spacingBadgeEls[i] = badge;
+            spacingBadgeEls[badgeIdx] = badge;
         }
-        badge.textContent = sp.gap + "px";
-        if (isX) {
-            const midGapX = (sp.seg1.to + sp.seg2.from) / 2;
-            badge.style.left = Math.round(midGapX) + "px";
-            badge.style.top = Math.round(sp.crossMid) + "px";
-        } else {
-            const midGapY = (sp.seg1.to + sp.seg2.from) / 2;
-            badge.style.left = Math.round(sp.crossMid) + "px";
-            badge.style.top = Math.round(midGapY) + "px";
-        }
+        badge.textContent = gap + "px";
+        badge.style.left = Math.round(midX) + "px";
+        badge.style.top = Math.round(midY) + "px";
         badge.style.transform = `translate(-50%, -50%) scale(${invScale})`;
         badge.style.display = "block";
-    });
-    for (let i = spacings.length; i < spacingBadgeEls.length; i++) {
+        badgeIdx++;
+    };
+
+    if (spacingX) {
+        if (spacingX.seg1) {
+            const mid1X = (spacingX.seg1.from + spacingX.seg1.to) / 2;
+            renderBadge(mid1X, spacingX.crossMid, spacingX.gap);
+        }
+        if (spacingX.seg2) {
+            const mid2X = (spacingX.seg2.from + spacingX.seg2.to) / 2;
+            renderBadge(mid2X, spacingX.crossMid, spacingX.gap);
+        }
+    }
+    if (spacingY) {
+        if (spacingY.seg1) {
+            const mid1Y = (spacingY.seg1.from + spacingY.seg1.to) / 2;
+            renderBadge(spacingY.crossMid, mid1Y, spacingY.gap);
+        }
+        if (spacingY.seg2) {
+            const mid2Y = (spacingY.seg2.from + spacingY.seg2.to) / 2;
+            renderBadge(spacingY.crossMid, mid2Y, spacingY.gap);
+        }
+    }
+
+    for (let i = badgeIdx; i < spacingBadgeEls.length; i++) {
         if (spacingBadgeEls[i]) spacingBadgeEls[i].style.display = "none";
     }
 }

@@ -5,6 +5,7 @@
 import { state } from "./state.js";
 import { triggerHaptic } from "./haptics.js";
 import { showToast } from "./toast.js";
+import { getUndoActionName, getRedoActionName } from "./storage-manager.js";
 
 /**
  * Check if the Editor Screen is currently active and visible
@@ -620,6 +621,15 @@ export function renderCommandPaletteList(query = "") {
         html += `<div class="command-group-heading">${escapeHtml(category)}</div>`;
         items.forEach(({ cmd, flatIndex }) => {
             const isSelected = flatIndex === selectedIndex;
+            let displayTitle = cmd.title;
+            if (cmd.id === "edit-undo") {
+                const u = getUndoActionName();
+                displayTitle = u ? `Undo ${u}` : "Undo";
+            } else if (cmd.id === "edit-redo") {
+                const r = getRedoActionName();
+                displayTitle = r ? `Redo ${r}` : "Redo";
+            }
+
             html += `
                 <div class="command-palette-item ${isSelected ? 'active' : ''}" 
                      data-index="${flatIndex}" 
@@ -630,7 +640,7 @@ export function renderCommandPaletteList(query = "") {
                         <i data-lucide="${cmd.icon}" style="width: 14px; height: 14px;"></i>
                     </div>
                     <div class="command-item-content">
-                        <div class="command-item-title">${escapeHtml(cmd.title)}</div>
+                        <div class="command-item-title">${escapeHtml(displayTitle)}</div>
                     </div>
                     ${cmd.kbd ? `<div class="command-item-kbd"><kbd>${escapeHtml(cmd.kbd)}</kbd></div>` : ''}
                 </div>
@@ -732,12 +742,13 @@ export function toggleCommandPalette() {
  * Initialize Command Palette Controller & Event Bindings
  */
 export function initCommandPalette() {
+    if (typeof window === "undefined" || typeof document === "undefined" || typeof document.getElementById !== "function") return;
     if (isInitialized) return;
     const modal = document.getElementById("commandPaletteModal");
     const input = document.getElementById("commandPaletteInput");
     const listEl = document.getElementById("commandPaletteList");
 
-    if (!modal) return;
+    if (!modal || typeof modal.addEventListener !== "function" || typeof input?.addEventListener !== "function") return;
     isInitialized = true;
 
     // 1. Global Keyboard Shortcut: ⌘K, Ctrl+K, or ⌘⇧P / Ctrl⇧P (only in editor)
@@ -783,8 +794,12 @@ export function initCommandPalette() {
         }
     };
 
-    window.addEventListener("keydown", handleGlobalKeydown, { capture: true });
-    document.addEventListener("keydown", handleGlobalKeydown, { capture: true });
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+        window.addEventListener("keydown", handleGlobalKeydown, { capture: true });
+    }
+    if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+        document.addEventListener("keydown", handleGlobalKeydown, { capture: true });
+    }
 
     // 2. Input search filtering
     input?.addEventListener("input", e => {
@@ -815,7 +830,7 @@ export function initCommandPalette() {
     });
 
     // 5. Click outside container to dismiss
-    modal.addEventListener("click", e => {
+    modal?.addEventListener("click", e => {
         if (e.target === modal) {
             closeCommandPalette();
         }

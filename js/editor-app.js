@@ -9,7 +9,7 @@ import { initCanvasController, handleFieldMouseDown, handleResizeStart, showVern
 import { loadTemplate } from "./landing-controller.js";
 import { initSignaturePad } from "./signature-pad.js";
 import { autoDetectFields } from "./auto-detector.js";
-import { saveHistory, undo, redo, exportProjectJson, importProjectJson } from "./storage-manager.js";
+import { saveHistory, undo, redo, getUndoActionName, getRedoActionName, exportProjectJson, importProjectJson } from "./storage-manager.js";
 import { showToast } from "./toast.js";
 import { triggerHaptic } from "./haptics.js";
 
@@ -41,22 +41,46 @@ export function updateHistoryAndActionButtons() {
     const canUndo = state.historyIndex > 0;
     const canRedo = state.historyIndex < state.history.length - 1;
     const hasSelection = Boolean(state.selectedFieldIds && state.selectedFieldIds.size > 0);
+    const undoName = getUndoActionName();
+    const redoName = getRedoActionName();
 
-    const undoBtns = [document.getElementById("quickUndoBtn"), document.getElementById("menuUndoBtn")];
-    undoBtns.forEach(btn => {
-        if (btn) {
-            btn.classList.toggle("is-disabled", !canUndo);
-            btn.setAttribute("aria-disabled", !canUndo ? "true" : "false");
-        }
-    });
+    const quickUndo = document.getElementById("quickUndoBtn");
+    if (quickUndo) {
+        quickUndo.classList.toggle("is-disabled", !canUndo);
+        quickUndo.setAttribute("aria-disabled", !canUndo ? "true" : "false");
+        const tooltip = undoName ? `Undo ${undoName}` : "Undo";
+        quickUndo.setAttribute("data-tooltip", tooltip);
+        quickUndo.title = `${tooltip} (⌘Z)`;
+    }
 
-    const redoBtns = [document.getElementById("quickRedoBtn"), document.getElementById("menuRedoBtn")];
-    redoBtns.forEach(btn => {
-        if (btn) {
-            btn.classList.toggle("is-disabled", !canRedo);
-            btn.setAttribute("aria-disabled", !canRedo ? "true" : "false");
+    const menuUndo = document.getElementById("menuUndoBtn");
+    if (menuUndo) {
+        menuUndo.classList.toggle("is-disabled", !canUndo);
+        menuUndo.setAttribute("aria-disabled", !canUndo ? "true" : "false");
+        const label = menuUndo.querySelector(".menu-item-left");
+        if (label) {
+            label.innerHTML = `<i data-lucide="undo-2" class="menu-item-icon"></i> Undo ${undoName ? undoName : ""}`.trim();
         }
-    });
+    }
+
+    const quickRedo = document.getElementById("quickRedoBtn");
+    if (quickRedo) {
+        quickRedo.classList.toggle("is-disabled", !canRedo);
+        quickRedo.setAttribute("aria-disabled", !canRedo ? "true" : "false");
+        const tooltip = redoName ? `Redo ${redoName}` : "Redo";
+        quickRedo.setAttribute("data-tooltip", tooltip);
+        quickRedo.title = `${tooltip} (⌘⇧Z)`;
+    }
+
+    const menuRedo = document.getElementById("menuRedoBtn");
+    if (menuRedo) {
+        menuRedo.classList.toggle("is-disabled", !canRedo);
+        menuRedo.setAttribute("aria-disabled", !canRedo ? "true" : "false");
+        const label = menuRedo.querySelector(".menu-item-left");
+        if (label) {
+            label.innerHTML = `<i data-lucide="redo-2" class="menu-item-icon"></i> Redo ${redoName ? redoName : ""}`.trim();
+        }
+    }
 
     const delBtns = [document.getElementById("quickDeleteBtn"), document.getElementById("menuDeleteBtn")];
     delBtns.forEach(btn => {
@@ -330,8 +354,21 @@ export function initEditorSubsystems() {
     });
 
     // ── Edit Menu Actions ──────────────────────────────────────────
-    document.getElementById("menuUndoBtn")?.addEventListener("click", () => undo(refreshUI));
-    document.getElementById("menuRedoBtn")?.addEventListener("click", () => redo(refreshUI));
+    const handleUndo = () => {
+        const action = undo(refreshUI);
+        if (action) {
+            showNoticeToast(`↶ Undone: ${action}`);
+        }
+    };
+    const handleRedo = () => {
+        const action = redo(refreshUI);
+        if (action) {
+            showNoticeToast(`↷ Redone: ${action}`);
+        }
+    };
+
+    document.getElementById("menuUndoBtn")?.addEventListener("click", handleUndo);
+    document.getElementById("menuRedoBtn")?.addEventListener("click", handleRedo);
     document.getElementById("menuCutBtn")?.addEventListener("click", () => {
         if (state.selectedFieldIds.size === 0) return;
         copySelectedFields();
@@ -1032,13 +1069,13 @@ export function initEditorSubsystems() {
         // Undo / Redo
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z") {
             e.preventDefault();
-            if (e.shiftKey) redo(refreshUI);
-            else undo(refreshUI);
+            if (e.shiftKey) handleRedo();
+            else handleUndo();
             return;
         }
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") {
             e.preventDefault();
-            redo(refreshUI);
+            handleRedo();
             return;
         }
 
