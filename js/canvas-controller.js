@@ -371,8 +371,6 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
             b.classList.toggle("active", b.dataset.tool === "select");
         });
         if (ghostElement) ghostElement.style.display = "none";
-        const stamp = document.getElementById("floatingToolStamp");
-        if (stamp) stamp.style.display = "none";
     }
 
     // Auto-open signature modal for instant sign
@@ -611,7 +609,6 @@ export function initCanvasController(handlers) {
         if (!e) return;
         const tool = state.activeTool;
         let ghost = document.getElementById("fieldPlacementGhost") || ghostElement;
-        let stamp = document.getElementById("floatingToolStamp");
 
         if (!tool || tool === "select" || tool === "hand") {
             document.body.classList.remove("placing-mode");
@@ -619,7 +616,6 @@ export function initCanvasController(handlers) {
                 ghost.style.display = "none";
                 ghost.classList.remove("is-active");
             }
-            if (stamp) stamp.style.display = "none";
             hideGuides();
             return;
         }
@@ -627,25 +623,9 @@ export function initCanvasController(handlers) {
         const info = TOOL_DISPLAY_INFO[tool] || { name: FIELD_TYPE_LABELS[tool] || "Field", icon: "T", placeholder: "Field" };
         const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
 
-        // 1. Update Global Floating Tool Stamp
         document.body.classList.add("placing-mode");
-        if (!stamp) {
-            stamp = document.createElement("div");
-            stamp.id = "floatingToolStamp";
-            stamp.className = "floating-tool-stamp";
-            document.body.appendChild(stamp);
-        }
-        if (stamp) {
-            stamp.style.display = "flex";
-            stamp.style.left = `${e.clientX}px`;
-            stamp.style.top = `${e.clientY}px`;
-            if (stamp.dataset.currentTool !== tool) {
-                stamp.dataset.currentTool = tool;
-                stamp.innerHTML = `<span class="stamp-icon">${info.icon}</span> <span>${info.name}</span> <span class="stamp-hint">· Click to place</span>`;
-            }
-        }
 
-        // 2. Update In-Canvas Placement Silhouette Box
+        // Update In-Canvas Placement Silhouette Box
         const curContainer = document.getElementById("canvasContainer") || container;
         if (!curContainer || !state.pdfDoc) return;
 
@@ -804,8 +784,6 @@ export function initCanvasController(handlers) {
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
                 b.classList.toggle("active", b.dataset.tool === "select");
             });
-            const stamp = document.getElementById("floatingToolStamp");
-            if (stamp) stamp.style.display = "none";
             if (ghostElement) {
                 ghostElement.style.display = "none";
                 ghostElement.classList.remove("is-drawing");
@@ -827,8 +805,6 @@ export function initCanvasController(handlers) {
                 document.querySelectorAll(".tool-btn[data-tool]").forEach(b => {
                     b.classList.toggle("active", b.dataset.tool === "select");
                 });
-                const stamp = document.getElementById("floatingToolStamp");
-                if (stamp) stamp.style.display = "none";
                 if (ghostElement) {
                     ghostElement.style.display = "none";
                     ghostElement.classList.remove("is-drawing");
@@ -895,8 +871,6 @@ export function initCanvasController(handlers) {
                 ghostElement.style.width = "4px";
                 ghostElement.style.height = "4px";
             }
-            const stamp = document.getElementById("floatingToolStamp");
-            if (stamp) stamp.style.display = "none";
             return;
         }
 
@@ -1162,8 +1136,6 @@ export function handleFieldMouseDown(e, field, handlers) {
                 ghostElement.style.width = "4px";
                 ghostElement.style.height = "4px";
             }
-            const stamp = document.getElementById("floatingToolStamp");
-            if (stamp) stamp.style.display = "none";
         }
         return;
     }
