@@ -1219,6 +1219,51 @@ async function runAllTests() {
         assert.ok(landingCss.includes('prefers-reduced-motion'), "landing.css must support prefers-reduced-motion");
     });
 
+    // ── SUITE 21: Desktop Menu Bar & Document Text Label Tool ──
+    console.log("\n🖥️ Suite 21: Desktop Application Menu Bar & Static Text Tool");
+    it("Desktop Application Menu Bar defines all 6 standard menus in index.html", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('class="app-menu-bar"'), "app-menu-bar container must exist");
+        assert.ok(indexHtml.includes('id="fileMenuDropdown"'), "File menu must exist");
+        assert.ok(indexHtml.includes('id="editMenuDropdown"'), "Edit menu must exist");
+        assert.ok(indexHtml.includes('id="insertMenuDropdown"'), "Insert menu must exist");
+        assert.ok(indexHtml.includes('id="viewMenuDropdown"'), "View menu must exist");
+        assert.ok(indexHtml.includes('id="arrangeMenuDropdown"'), "Arrange menu must exist");
+        assert.ok(indexHtml.includes('id="helpMenuDropdown"'), "Help menu must exist");
+    });
+
+    it("Toolbar includes Text / Heading Label tool button (A)", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('data-tool="staticText"'), "staticText tool button must exist in toolbar");
+    });
+
+    it("Constants define staticText defaults and labels", async () => {
+        const { DEFAULT_FIELD_SIZES, FIELD_TYPE_LABELS } = await import(path.join(WEB_DIR, 'js', 'constants.js'));
+        assert.ok(DEFAULT_FIELD_SIZES.staticText, "DEFAULT_FIELD_SIZES.staticText must exist");
+        assert.equal(DEFAULT_FIELD_SIZES.staticText.width, 220);
+        assert.equal(DEFAULT_FIELD_SIZES.staticText.height, 32);
+        assert.ok(FIELD_TYPE_LABELS.staticText, "FIELD_TYPE_LABELS.staticText must exist");
+    });
+
+    await asyncIt("buildPdf draws vector text for staticText labels onto PDF pages", async () => {
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+        const { PDFDocument } = PDFLib;
+        const testDoc = await PDFDocument.create();
+        testDoc.addPage([600, 800]);
+        const origBytes = await testDoc.save();
+
+        const fields = [
+            { id: "heading_1", name: "main_heading", type: "staticText", x: 50, y: 50, width: 300, height: 36, page: 1, label: "Employee Onboarding Form", fontSize: 18, fontFamily: "helvetica" }
+        ];
+
+        const outputBytes = await buildPdf(origBytes, fields);
+        assert.ok(outputBytes instanceof Uint8Array);
+        assert.ok(outputBytes.length > 500);
+
+        const loaded = await PDFDocument.load(outputBytes);
+        assert.equal(loaded.getPageCount(), 1);
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

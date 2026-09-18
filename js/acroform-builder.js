@@ -244,6 +244,44 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         }
 
         try {
+            if (f.type === "staticText" || f.type === "label") {
+                const font = resolveFont(f.fontFamily || (f.fontWeight === "bold" ? "helvetica-bold" : "helvetica"));
+                const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 14;
+                const textContent = f.label || f.value || f.name || "Text / Heading";
+
+                if (common.backgroundColor) {
+                    page.drawRectangle({
+                        x: f.x,
+                        y: pdfY,
+                        width: f.width,
+                        height: f.height,
+                        color: common.backgroundColor,
+                        borderColor: common.borderColor,
+                        borderWidth: common.borderWidth || 0
+                    });
+                }
+
+                let textX = f.x + 4;
+                let textY = pdfY + (f.height - fontSize) / 2 + 1;
+                try {
+                    const textWidth = font.widthOfTextAtSize(textContent, fontSize);
+                    if (f.textAlignment === "center") {
+                        textX = f.x + (f.width - textWidth) / 2;
+                    } else if (f.textAlignment === "right") {
+                        textX = f.x + f.width - textWidth - 4;
+                    }
+                } catch (e) {}
+
+                page.drawText(textContent, {
+                    x: Math.max(f.x, textX),
+                    y: Math.max(pdfY, textY),
+                    size: fontSize,
+                    font: font,
+                    color: rgb(0.06, 0.09, 0.16)
+                });
+                continue;
+            }
+
             if (f.type === "textField" || f.type === "dateField" || f.type === "date" || f.type === "number") {
                 let tf;
                 try { tf = form.getTextField(nm); } catch { tf = form.createTextField(nm); }

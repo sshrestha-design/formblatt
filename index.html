@@ -873,96 +873,283 @@
                 <button id="toggleSidebarBtn" class="toolbar-action-btn" data-tooltip="Toggle Layers Sidebar" data-kbd="⌘\" aria-label="Toggle Layers">
                     <i data-lucide="panel-left-close" style="width: 14px; height: 14px;"></i>
                 </button>
-                <div class="dropdown-menu" id="fileMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="fileMenuBtn" data-tooltip="File &amp; Project Menu" aria-label="File menu" aria-haspopup="true" aria-expanded="false">
-                        <i data-lucide="folder" style="width: 15px; height: 15px;"></i>
-                    </button>
-
-                    <div class="dropdown-content" role="menu" aria-label="File menu actions">
-                        <button class="dropdown-item" id="newBlankDocMenuBtn" role="menuitem">
-                            <i data-lucide="file-plus" style="width:14px; height:14px; color:#2563eb;"></i> New Blank Document
-                        </button>
-                        <button class="dropdown-item" id="menuHomeBtn" role="menuitem">
-                            <i data-lucide="home" style="width:14px; height:14px;"></i> Home Dashboard
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button type="button" class="dropdown-item" id="openPdfDropdownBtn" role="menuitem" onclick="document.getElementById('pdfUploadMenu').click()">
-                            <i data-lucide="file-up" style="width:14px; height:14px;"></i> Open PDF
-                        </button>
-                        <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file from menu">
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="saveProjectMenuBtn" role="menuitem">
-                            <i data-lucide="save" style="width:14px; height:14px;"></i> Save Project (.formblatt)
-                        </button>
-                        <button type="button" class="dropdown-item" id="loadProjectDropdownBtn" role="menuitem" onclick="document.getElementById('loadProjectMenuBtn').click()">
-                            <i data-lucide="folder-open" style="width:14px; height:14px;"></i> Load Project (.formblatt)
-                        </button>
-                        <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;" aria-label="Load project file from menu">
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="feedbackMenuBtn" role="menuitem">
-                            <i data-lucide="message-square-plus" style="width:14px; height:14px; color:#2563eb;"></i> Feedback & Review
-                        </button>
-                        <button class="dropdown-item" id="toggleGuidesMenuBtn" role="menuitem">
-                            <i data-lucide="grid" style="width:14px; height:14px; color:#2563eb;"></i> <span id="toggleGuidesMenuText">Smart Guides: ON</span> <span style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘;</span>
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="shortcutsMenuBtn" role="menuitem">
-                            <i data-lucide="keyboard" style="width:14px; height:14px;"></i> Keyboard Shortcuts <span style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">?</span>
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item danger" id="newProjectMenuBtn" role="menuitem">
-                            <i data-lucide="trash-2" style="width:14px; height:14px;"></i> New Project (Clear All)
-                        </button>
+                
+                <!-- Desktop Application Menu Bar -->
+                <nav class="app-menu-bar" role="menubar" aria-label="Application menu">
+                    <!-- File Menu -->
+                    <div class="menu-bar-item" id="fileMenuDropdown">
+                        <button type="button" class="menu-bar-btn" id="fileMenuBtn" aria-haspopup="true" aria-expanded="false">File</button>
+                        <div class="menu-bar-dropdown" role="menu" aria-label="File menu">
+                            <button type="button" class="menu-bar-dropdown-item" id="newBlankDocMenuBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="file-plus" class="menu-item-icon"></i> New Blank Document</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="openPdfDropdownBtn" role="menuitem" onclick="document.getElementById('pdfUploadMenu').click()">
+                                <span class="menu-item-left"><i data-lucide="file-up" class="menu-item-icon"></i> Open PDF...</span>
+                            </button>
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file from menu">
+                            
+                            <div class="menu-submenu">
+                                <button type="button" class="menu-bar-dropdown-item menu-submenu-trigger" role="menuitem" aria-haspopup="true">
+                                    <span class="menu-item-left"><i data-lucide="layout-template" class="menu-item-icon"></i> Starter Templates</span>
+                                </button>
+                                <div class="menu-submenu-content" role="menu">
+                                    <button type="button" class="menu-bar-dropdown-item menu-template-item" data-template="w9" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="file-text" class="menu-item-icon"></i> IRS W-9 Form</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item menu-template-item" data-template="rental" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="home" class="menu-item-icon"></i> Rental Application</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item menu-template-item" data-template="nda" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="shield-check" class="menu-item-icon"></i> Non-Disclosure (NDA)</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item menu-template-item" data-template="intake" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="clipboard-list" class="menu-item-icon"></i> General Intake Form</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item menu-template-item" data-template="job" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="briefcase" class="menu-item-icon"></i> Job Application</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item menu-template-item" data-template="invoice" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="receipt" class="menu-item-icon"></i> Commercial Invoice</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="saveProjectMenuBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="save" class="menu-item-icon"></i> Save Project (.formblatt)</span>
+                                <span class="menu-item-kbd">⌘S</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="loadProjectDropdownBtn" role="menuitem" onclick="document.getElementById('loadProjectMenuBtn').click()">
+                                <span class="menu-item-left"><i data-lucide="folder-open" class="menu-item-icon"></i> Load Project (.formblatt)</span>
+                                <span class="menu-item-kbd">⌘O</span>
+                            </button>
+                            <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;" aria-label="Load project file from menu">
+                            
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuExportPdfBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="download" class="menu-item-icon"></i> Export PDF...</span>
+                                <span class="menu-item-kbd">⌘E</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuHomeBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="layout-grid" class="menu-item-icon"></i> Home Dashboard</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item danger" id="newProjectMenuBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="trash-2" class="menu-item-icon"></i> Clear Form (New)</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
 
-                <div class="dropdown-menu" id="editMenuDropdown" style="position: relative; display: flex; align-items: center;">
-                    <button class="menu-btn toolbar-action-btn" id="editMenuBtn" data-tooltip="Edit &amp; Clipboard Menu" aria-label="Edit menu" aria-haspopup="true" aria-expanded="false">
-                        <i data-lucide="sliders-horizontal" style="width: 15px; height: 15px;"></i>
-                    </button>
-
-                    <div class="dropdown-content" role="menu" aria-label="Edit menu actions">
-                        <button class="dropdown-item" id="menuUndoBtn" role="menuitem">
-                            <i data-lucide="undo-2" style="width:14px; height:14px;"></i> Undo
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘Z</span>
-                        </button>
-                        <button class="dropdown-item" id="menuRedoBtn" role="menuitem">
-                            <i data-lucide="redo-2" style="width:14px; height:14px;"></i> Redo
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘⇧Z</span>
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="menuCutBtn" role="menuitem">
-                            <i data-lucide="scissors" style="width:14px; height:14px;"></i> Cut
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘X</span>
-                        </button>
-                        <button class="dropdown-item" id="menuCopyBtn" role="menuitem">
-                            <i data-lucide="copy" style="width:14px; height:14px;"></i> Copy
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘C</span>
-                        </button>
-                        <button class="dropdown-item" id="menuPasteBtn" role="menuitem">
-                            <i data-lucide="clipboard" style="width:14px; height:14px;"></i> Paste
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘V</span>
-                        </button>
-                        <button class="dropdown-item" id="menuDuplicateBtn" role="menuitem">
-                            <i data-lucide="copy-plus" style="width:14px; height:14px;"></i> Duplicate
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘D</span>
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item" id="menuSelectAllBtn" role="menuitem">
-                            <i data-lucide="check-square" style="width:14px; height:14px;"></i> Select All
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">⌘A</span>
-                        </button>
-                        <button class="dropdown-item" id="menuDeselectAllBtn" role="menuitem">
-                            <i data-lucide="square-dashed" style="width:14px; height:14px;"></i> Deselect All
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#94a3b8; font-weight:600;">Esc</span>
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <button class="dropdown-item danger" id="menuDeleteBtn" role="menuitem">
-                            <i data-lucide="trash-2" style="width:14px; height:14px;"></i> Delete Selected
-                            <span class="dropdown-kbd" style="margin-left:auto; font-size:10px; color:#ef4444; font-weight:600;">Del</span>
-                        </button>
+                    <!-- Edit Menu -->
+                    <div class="menu-bar-item" id="editMenuDropdown">
+                        <button type="button" class="menu-bar-btn" id="editMenuBtn" aria-haspopup="true" aria-expanded="false">Edit</button>
+                        <div class="menu-bar-dropdown" role="menu" aria-label="Edit menu">
+                            <button type="button" class="menu-bar-dropdown-item" id="menuUndoBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="undo-2" class="menu-item-icon"></i> Undo</span>
+                                <span class="menu-item-kbd">⌘Z</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuRedoBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="redo-2" class="menu-item-icon"></i> Redo</span>
+                                <span class="menu-item-kbd">⌘⇧Z</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuCutBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="scissors" class="menu-item-icon"></i> Cut</span>
+                                <span class="menu-item-kbd">⌘X</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuCopyBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="copy" class="menu-item-icon"></i> Copy</span>
+                                <span class="menu-item-kbd">⌘C</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuPasteBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="clipboard" class="menu-item-icon"></i> Paste</span>
+                                <span class="menu-item-kbd">⌘V</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuDuplicateBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="copy-plus" class="menu-item-icon"></i> Duplicate</span>
+                                <span class="menu-item-kbd">⌘D</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuSelectAllBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="check-square" class="menu-item-icon"></i> Select All</span>
+                                <span class="menu-item-kbd">⌘A</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuDeselectAllBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="square-dashed" class="menu-item-icon"></i> Deselect All</span>
+                                <span class="menu-item-kbd">Esc</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item danger" id="menuDeleteBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="trash-2" class="menu-item-icon"></i> Delete Selected</span>
+                                <span class="menu-item-kbd">Del</span>
+                            </button>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- Insert Menu -->
+                    <div class="menu-bar-item" id="insertMenuDropdown">
+                        <button type="button" class="menu-bar-btn" id="insertMenuBtn" aria-haspopup="true" aria-expanded="false">Insert</button>
+                        <div class="menu-bar-dropdown" role="menu" aria-label="Insert menu">
+                            <div class="menu-section-header">Document Elements</div>
+                            <button type="button" class="menu-bar-dropdown-item" data-menu-insert="staticText" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="type" class="menu-item-icon"></i> Add Text / Heading</span>
+                                <span class="menu-item-kbd">A</span>
+                            </button>
+                            <div class="menu-section-header">Form Fields</div>
+                            <button type="button" class="menu-bar-dropdown-item" data-menu-insert="textField" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="form-input" class="menu-item-icon"></i> Text Field</span>
+                                <span class="menu-item-kbd">T</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" data-menu-insert="dropdown" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="chevron-down-square" class="menu-item-icon"></i> Dropdown Select</span>
+                                <span class="menu-item-kbd">D</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" data-menu-insert="checkBox" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="check-square" class="menu-item-icon"></i> Checkbox</span>
+                                <span class="menu-item-kbd">C</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" data-menu-insert="radioGroup" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="circle-dot" class="menu-item-icon"></i> Radio Group</span>
+                                <span class="menu-item-kbd">R</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" data-menu-insert="signature" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="pen-tool" class="menu-item-icon"></i> Signature Field</span>
+                                <span class="menu-item-kbd">S</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuAutoDetectBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="sparkles" class="menu-item-icon" style="color:#2563eb;"></i> Auto-Detect Fields</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- View Menu -->
+                    <div class="menu-bar-item" id="viewMenuDropdown">
+                        <button type="button" class="menu-bar-btn" id="viewMenuBtn" aria-haspopup="true" aria-expanded="false">View</button>
+                        <div class="menu-bar-dropdown" role="menu" aria-label="View menu">
+                            <button type="button" class="menu-bar-dropdown-item" id="menuModeDesignBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="edit-3" class="menu-item-icon"></i> Design Mode</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuModeFillBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="play" class="menu-item-icon"></i> Fill &amp; Test Mode</span>
+                                <span class="menu-item-kbd">⌘P</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuZoomInBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="zoom-in" class="menu-item-icon"></i> Zoom In</span>
+                                <span class="menu-item-kbd">⌘+</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuZoomOutBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="zoom-out" class="menu-item-icon"></i> Zoom Out</span>
+                                <span class="menu-item-kbd">⌘-</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuZoomResetBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="maximize-2" class="menu-item-icon"></i> Reset Zoom (100%)</span>
+                                <span class="menu-item-kbd">⌘0</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuZoomFitBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="minimize-2" class="menu-item-icon"></i> Fit to Page</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="toggleGuidesMenuBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="grid" class="menu-item-icon"></i> <span id="toggleGuidesMenuText">Smart Guides: ON</span></span>
+                                <span class="menu-item-kbd">⌘;</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuToggleLayersBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="panel-left-close" class="menu-item-icon"></i> Toggle Layers Panel</span>
+                                <span class="menu-item-kbd">⌘\</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuTogglePropsBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="panel-right-close" class="menu-item-icon"></i> Toggle Properties Panel</span>
+                                <span class="menu-item-kbd">⌘]</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Arrange Menu -->
+                    <div class="menu-bar-item" id="arrangeMenuDropdown">
+                        <button type="button" class="menu-bar-btn" id="arrangeMenuBtn" aria-haspopup="true" aria-expanded="false">Arrange</button>
+                        <div class="menu-bar-dropdown" role="menu" aria-label="Arrange menu">
+                            <div class="menu-submenu">
+                                <button type="button" class="menu-bar-dropdown-item menu-submenu-trigger" role="menuitem" aria-haspopup="true">
+                                    <span class="menu-item-left"><i data-lucide="align-start-vertical" class="menu-item-icon"></i> Align</span>
+                                </button>
+                                <div class="menu-submenu-content" role="menu">
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuAlignLeftBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="align-horizontal-distribute-start" class="menu-item-icon"></i> Align Left</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuAlignCenterBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="align-horizontal-distribute-center" class="menu-item-icon"></i> Align Center</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuAlignRightBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="align-horizontal-distribute-end" class="menu-item-icon"></i> Align Right</span>
+                                    </button>
+                                    <div class="menu-divider"></div>
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuAlignTopBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="align-vertical-distribute-start" class="menu-item-icon"></i> Align Top</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuAlignMiddleBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="align-vertical-distribute-center" class="menu-item-icon"></i> Align Middle</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuAlignBottomBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="align-vertical-distribute-end" class="menu-item-icon"></i> Align Bottom</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="menu-submenu">
+                                <button type="button" class="menu-bar-dropdown-item menu-submenu-trigger" role="menuitem" aria-haspopup="true">
+                                    <span class="menu-item-left"><i data-lucide="distribute-vertical" class="menu-item-icon"></i> Distribute</span>
+                                </button>
+                                <div class="menu-submenu-content" role="menu">
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuDistributeVerticalBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="distribute-vertical" class="menu-item-icon"></i> Distribute Vertically</span>
+                                    </button>
+                                    <button type="button" class="menu-bar-dropdown-item" id="menuDistributeHorizontalBtn" role="menuitem">
+                                        <span class="menu-item-left"><i data-lucide="distribute-horizontal" class="menu-item-icon"></i> Distribute Horizontally</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuGroupBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="folder-plus" class="menu-item-icon"></i> Group Selected</span>
+                                <span class="menu-item-kbd">⌘G</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuUngroupBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="folder-minus" class="menu-item-icon"></i> Ungroup Selected</span>
+                                <span class="menu-item-kbd">⌘⇧G</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuMatchWidthBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="scaling" class="menu-item-icon"></i> Match Width</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuMatchHeightBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="scaling" class="menu-item-icon"></i> Match Height</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Help Menu -->
+                    <div class="menu-bar-item" id="helpMenuDropdown">
+                        <button type="button" class="menu-bar-btn" id="helpMenuBtn" aria-haspopup="true" aria-expanded="false">Help</button>
+                        <div class="menu-bar-dropdown" role="menu" aria-label="Help menu">
+                            <button type="button" class="menu-bar-dropdown-item" id="menuCommandPaletteBtn" role="menuitem" onclick="window.openCommandPalette?.()">
+                                <span class="menu-item-left"><i data-lucide="command" class="menu-item-icon"></i> Command Palette</span>
+                                <span class="menu-item-kbd">⌘K</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="shortcutsMenuBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="keyboard" class="menu-item-icon"></i> Keyboard Shortcuts</span>
+                                <span class="menu-item-kbd">?</span>
+                            </button>
+                            <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="feedbackMenuBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="message-square-plus" class="menu-item-icon" style="color:#2563eb;"></i> Feedback &amp; Review</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuAboutBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="info" class="menu-item-icon"></i> About Formblatt</span>
+                            </button>
+                        </div>
+                    </div>
+                </nav>
             </div>
         
             <div class="toolbar-center">
@@ -977,6 +1164,11 @@
                     </button>
 
                     <div class="tool-divider"></div>
+
+                    <!-- Document Elements & Text Heading -->
+                    <button class="tool-btn" data-tool="staticText" data-tooltip="Add Text / Heading" data-kbd="A" aria-label="Add Text or Heading tool">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16"/><path d="M6 16l6-12 6 12"/><path d="M8 12h8"/></svg>
+                    </button>
 
                     <!-- Form Field Insertion Tools -->
                     <button class="tool-btn" data-tool="textField" data-tooltip="Text Field" data-kbd="T" aria-label="Text Field tool">

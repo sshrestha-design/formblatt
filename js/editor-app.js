@@ -3,7 +3,7 @@ import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, cop
 import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo, loadPdfLibraries } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
-import { initPropertiesPanel, populateProperties, syncDimensionInputsLive } from "./properties-panel.js";
+import { initPropertiesPanel, populateProperties, syncDimensionInputsLive, alignSelectedFields, distributeSelectedFields } from "./properties-panel.js";
 import { renderOverlays, updateOverlayPositionsDirectly } from "./overlay-manager.js";
 import { initCanvasController, handleFieldMouseDown, handleResizeStart } from "./canvas-controller.js";
 import { loadTemplate } from "./landing-controller.js";
@@ -259,36 +259,64 @@ export function initEditorSubsystems() {
         updateModeIndicator();
     });
 
-    // Header Dropdown Menus Setup (File & Edit)
-    const setupMenuDropdown = (btnId, dropdownId) => {
-        const btn = document.getElementById(btnId);
-        const dropdown = document.getElementById(dropdownId);
-        if (btn && dropdown) {
-            btn.addEventListener("click", e => {
-                e.stopPropagation();
-                document.querySelectorAll(".dropdown-menu").forEach(dm => {
-                    if (dm !== dropdown) dm.classList.remove("active");
-                });
-                dropdown.classList.toggle("active");
-            });
-            dropdown.querySelectorAll(".dropdown-item").forEach(item => {
-                item.addEventListener("click", () => setTimeout(() => dropdown.classList.remove("active"), 100));
-            });
-        }
-    };
-    setupMenuDropdown("fileMenuBtn", "fileMenuDropdown");
-    setupMenuDropdown("editMenuBtn", "editMenuDropdown");
+    // ── Desktop Application Menu Bar Controller ──────────────────
+    let isMenuBarActive = false;
+    const menuItems = document.querySelectorAll(".menu-bar-item");
 
-    document.addEventListener("click", e => {
-        document.querySelectorAll(".dropdown-menu").forEach(dm => {
-            if (!dm.contains(e.target)) dm.classList.remove("active");
+    const closeAllMenus = () => {
+        menuItems.forEach(mi => {
+            mi.classList.remove("active");
+            const btn = mi.querySelector(".menu-bar-btn");
+            if (btn) btn.setAttribute("aria-expanded", "false");
+        });
+        isMenuBarActive = false;
+    };
+
+    menuItems.forEach(mi => {
+        const btn = mi.querySelector(".menu-bar-btn");
+        if (!btn) return;
+
+        btn.addEventListener("click", e => {
+            e.stopPropagation();
+            const wasActive = mi.classList.contains("active");
+            closeAllMenus();
+            if (!wasActive) {
+                mi.classList.add("active");
+                btn.setAttribute("aria-expanded", "true");
+                isMenuBarActive = true;
+            }
+        });
+
+        mi.addEventListener("mouseenter", () => {
+            if (isMenuBarActive) {
+                closeAllMenus();
+                mi.classList.add("active");
+                btn.setAttribute("aria-expanded", "true");
+                isMenuBarActive = true;
+            }
+        });
+
+        mi.querySelectorAll(".menu-bar-dropdown-item:not(.menu-submenu-trigger)").forEach(item => {
+            item.addEventListener("click", () => {
+                setTimeout(closeAllMenus, 80);
+            });
         });
     });
 
-    // File Menu Actions
+    document.addEventListener("click", e => {
+        if (!e.target.closest(".app-menu-bar")) {
+            closeAllMenus();
+        }
+    });
+
+    // ── File Menu Actions ──────────────────────────────────────────
     document.getElementById("newBlankDocMenuBtn")?.addEventListener("click", () => {
-        loadTemplate("blank", () => {
-            refreshUI();
+        loadTemplate("blank", () => refreshUI());
+    });
+    document.querySelectorAll(".menu-template-item[data-template]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tmpl = btn.dataset.template;
+            if (tmpl) loadTemplate(tmpl, () => refreshUI());
         });
     });
     document.getElementById("saveProjectMenuBtn")?.addEventListener("click", exportProjectJson);
@@ -297,8 +325,11 @@ export function initEditorSubsystems() {
         if (file) importProjectJson(file, () => refreshUI());
         e.target.value = "";
     });
+    document.getElementById("menuExportPdfBtn")?.addEventListener("click", () => {
+        document.getElementById("generatePdfBtn")?.click();
+    });
 
-    // Edit Menu Actions
+    // ── Edit Menu Actions ──────────────────────────────────────────
     document.getElementById("menuUndoBtn")?.addEventListener("click", () => undo(refreshUI));
     document.getElementById("menuRedoBtn")?.addEventListener("click", () => redo(refreshUI));
     document.getElementById("menuCutBtn")?.addEventListener("click", () => {
@@ -355,6 +386,65 @@ export function initEditorSubsystems() {
     });
     document.getElementById("quickDeleteBtn")?.addEventListener("click", () => {
         document.getElementById("menuDeleteBtn")?.click();
+    });
+
+    // ── Insert Menu Actions ────────────────────────────────────────
+    document.querySelectorAll("[data-menu-insert]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tool = btn.dataset.menuInsert;
+            if (tool) {
+                const toolBtn = document.querySelector(`.tool-btn[data-tool="${tool}"]`);
+                if (toolBtn) toolBtn.click();
+            }
+        });
+    });
+    document.getElementById("menuAutoDetectBtn")?.addEventListener("click", () => {
+        document.getElementById("autoDetectBtn")?.click();
+    });
+
+    // ── View Menu Actions ──────────────────────────────────────────
+    document.getElementById("menuModeDesignBtn")?.addEventListener("click", () => switchEditorMode("design"));
+    document.getElementById("menuModeFillBtn")?.addEventListener("click", () => switchEditorMode("fill"));
+    document.getElementById("menuZoomInBtn")?.addEventListener("click", () => setTransformScale(state.currentScale + 0.15, refreshUI));
+    document.getElementById("menuZoomOutBtn")?.addEventListener("click", () => setTransformScale(state.currentScale - 0.15, refreshUI));
+    document.getElementById("menuZoomResetBtn")?.addEventListener("click", () => setTransformScale(1.0, refreshUI));
+    document.getElementById("menuZoomFitBtn")?.addEventListener("click", () => fitToPage(refreshUI));
+    document.getElementById("menuToggleLayersBtn")?.addEventListener("click", () => toggleLeftSidebar());
+    document.getElementById("menuTogglePropsBtn")?.addEventListener("click", () => toggleRightSidebar());
+
+    // ── Arrange Menu Actions ───────────────────────────────────────
+    document.getElementById("menuAlignLeftBtn")?.addEventListener("click", () => alignSelectedFields("left", refreshUI));
+    document.getElementById("menuAlignCenterBtn")?.addEventListener("click", () => alignSelectedFields("center", refreshUI));
+    document.getElementById("menuAlignRightBtn")?.addEventListener("click", () => alignSelectedFields("right", refreshUI));
+    document.getElementById("menuAlignTopBtn")?.addEventListener("click", () => alignSelectedFields("top", refreshUI));
+    document.getElementById("menuAlignMiddleBtn")?.addEventListener("click", () => alignSelectedFields("middle", refreshUI));
+    document.getElementById("menuAlignBottomBtn")?.addEventListener("click", () => alignSelectedFields("bottom", refreshUI));
+    document.getElementById("menuDistributeVerticalBtn")?.addEventListener("click", () => distributeSelectedFields("vertical", refreshUI));
+    document.getElementById("menuDistributeHorizontalBtn")?.addEventListener("click", () => distributeSelectedFields("horizontal", refreshUI));
+    document.getElementById("menuGroupBtn")?.addEventListener("click", () => {
+        if (state.selectedFieldIds.size > 0) {
+            const grp = createGroupForSelected();
+            if (grp) {
+                saveHistory();
+                refreshUI();
+            }
+        }
+    });
+    document.getElementById("menuUngroupBtn")?.addEventListener("click", () => {
+        ungroupSelected();
+        saveHistory();
+        refreshUI();
+    });
+    document.getElementById("menuMatchWidthBtn")?.addEventListener("click", () => {
+        document.getElementById("multiMatchWidthBtn")?.click();
+    });
+    document.getElementById("menuMatchHeightBtn")?.addEventListener("click", () => {
+        document.getElementById("multiMatchHeightBtn")?.click();
+    });
+
+    // ── Help Menu Actions ──────────────────────────────────────────
+    document.getElementById("menuAboutBtn")?.addEventListener("click", () => {
+        showToast("Formblatt v2.0 - Private Client-Side Interactive PDF Creator", "info");
     });
 
     // Page Navigation Buttons
@@ -1054,6 +1144,7 @@ export function initEditorSubsystems() {
         const toolKeys = {
             v: "select",
             h: "hand",
+            a: "staticText",
             t: "textField",
             d: "dropdown",
             c: "checkBox",

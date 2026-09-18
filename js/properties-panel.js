@@ -113,6 +113,10 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
             }
         } else if (newType === "dropdown" && (!field.options || field.options.length === 0)) {
             field.options = ["Option 1", "Option 2", "Option 3"];
+        } else if (newType === "staticText") {
+            if (!field.defaultValue && !field.label) field.defaultValue = "Heading / Label";
+            if (!field.fontSize) field.fontSize = 16;
+            field.height = Math.max(field.height, 28);
         }
 
         saveHistory(true);
@@ -126,7 +130,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const updateHeaderFieldName = (val) => {
         const badge = document.getElementById("propFieldTypeBadge");
         if (badge) {
-            const displayName = val.trim() || state.selectedField?.autofill || state.selectedField?.id || "Field";
+            const displayName = val.trim() || state.selectedField?.autofill || (state.selectedField?.type === "staticText" ? "Heading Text" : state.selectedField?.id) || "Field";
             badge.textContent = displayName;
             badge.title = val.trim();
         }
@@ -518,12 +522,12 @@ export function populateProperties(field) {
     // Typography accordion visibility
     const accTypography = document.getElementById("accTypography");
     if (accTypography) {
-        accTypography.style.display = (fallbackField.type === "textField" || fallbackField.type === "dropdown" || fallbackField.type === "dateField") ? "block" : "none";
+        accTypography.style.display = (fallbackField.type === "textField" || fallbackField.type === "dropdown" || fallbackField.type === "dateField" || fallbackField.type === "staticText" || fallbackField.type === "label") ? "block" : "none";
     }
 
     const defValLabel = document.querySelector('label[for="fieldDefaultValue"]');
     if (defValLabel) {
-        defValLabel.textContent = "Default Value";
+        defValLabel.textContent = (fallbackField.type === "staticText" || fallbackField.type === "label") ? "Text Content" : "Default Value";
     }
 
     const multilineGroup = document.getElementById("multilineGroup");
@@ -584,6 +588,10 @@ function initMultiSelectTools(onUpdated) {
             } else if (newType === "textField") {
                 f.height = Math.max(f.height, 22);
                 if (f.defaultValue === "YYYY-MM-DD") f.defaultValue = "";
+            } else if (newType === "staticText") {
+                if (!f.defaultValue) f.defaultValue = "Heading / Label";
+                if (!f.fontSize) f.fontSize = 16;
+                f.height = Math.max(f.height, 28);
             } else if (newType === "dropdown") {
                 if (!f.options || f.options.length === 0) {
                     f.options = ["Option 1", "Option 2", "Option 3"];
@@ -813,104 +821,16 @@ function initMultiSelectTools(onUpdated) {
     });
 
     // ── Alignment Tools ──────────────────────────────────────────────
-    document.getElementById("alignLeftBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 2) return;
-        const minX = Math.min(...sel.map(f => f.x));
-        sel.forEach(f => f.x = minX);
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
-
-    document.getElementById("alignCenterBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 2) return;
-        const avgCenter = sel.reduce((sum, f) => sum + (f.x + f.width / 2), 0) / sel.length;
-        sel.forEach(f => f.x = Math.round(avgCenter - f.width / 2));
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
-
-    document.getElementById("alignRightBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 2) return;
-        const maxRight = Math.max(...sel.map(f => f.x + f.width));
-        sel.forEach(f => f.x = maxRight - f.width);
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
-
-    document.getElementById("alignTopBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 2) return;
-        const minY = Math.min(...sel.map(f => f.y));
-        sel.forEach(f => f.y = minY);
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
-
-    document.getElementById("alignMiddleBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 2) return;
-        const avgMiddle = sel.reduce((sum, f) => sum + (f.y + f.height / 2), 0) / sel.length;
-        sel.forEach(f => f.y = Math.round(avgMiddle - f.height / 2));
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
-
-    document.getElementById("alignBottomBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 2) return;
-        const maxBottom = Math.max(...sel.map(f => f.y + f.height));
-        sel.forEach(f => f.y = maxBottom - f.height);
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
+    document.getElementById("alignLeftBtn")?.addEventListener("click", () => alignSelectedFields("left", onUpdated));
+    document.getElementById("alignCenterBtn")?.addEventListener("click", () => alignSelectedFields("center", onUpdated));
+    document.getElementById("alignRightBtn")?.addEventListener("click", () => alignSelectedFields("right", onUpdated));
+    document.getElementById("alignTopBtn")?.addEventListener("click", () => alignSelectedFields("top", onUpdated));
+    document.getElementById("alignMiddleBtn")?.addEventListener("click", () => alignSelectedFields("middle", onUpdated));
+    document.getElementById("alignBottomBtn")?.addEventListener("click", () => alignSelectedFields("bottom", onUpdated));
 
     // ── Spacing Distribution Tools (Even Spacing) ────────────────────
-    document.getElementById("distributeVerticalBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 3) return;
-        sel.sort((a, b) => a.y - b.y);
-        const first = sel[0];
-        const last = sel[sel.length - 1];
-        const totalSpan = (last.y + last.height) - first.y;
-        const totalItemsHeight = sel.reduce((sum, f) => sum + f.height, 0);
-        const totalGap = totalSpan - totalItemsHeight;
-        const gap = totalGap / (sel.length - 1);
-        
-        let currentY = first.y;
-        for (let i = 0; i < sel.length; i++) {
-            if (i > 0) {
-                currentY += sel[i - 1].height + gap;
-                sel[i].y = Math.round(currentY);
-            }
-        }
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
-
-    document.getElementById("distributeHorizontalBtn")?.addEventListener("click", () => {
-        const sel = getSelected();
-        if (sel.length < 3) return;
-        sel.sort((a, b) => a.x - b.x);
-        const first = sel[0];
-        const last = sel[sel.length - 1];
-        const totalSpan = (last.x + last.width) - first.x;
-        const totalItemsWidth = sel.reduce((sum, f) => sum + f.width, 0);
-        const totalGap = totalSpan - totalItemsWidth;
-        const gap = totalGap / (sel.length - 1);
-        
-        let currentX = first.x;
-        for (let i = 0; i < sel.length; i++) {
-            if (i > 0) {
-                currentX += sel[i - 1].width + gap;
-                sel[i].x = Math.round(currentX);
-            }
-        }
-        saveHistory();
-        if (onUpdated) onUpdated();
-    });
+    document.getElementById("distributeVerticalBtn")?.addEventListener("click", () => distributeSelectedFields("vertical", onUpdated));
+    document.getElementById("distributeHorizontalBtn")?.addEventListener("click", () => distributeSelectedFields("horizontal", onUpdated));
 
     // ── Duplicate All Selected ───────────────────────────────────────
     document.getElementById("multiDuplicateBtn")?.addEventListener("click", () => {
@@ -945,4 +865,70 @@ function initMultiSelectTools(onUpdated) {
         saveHistory();
         if (onUpdated) onUpdated();
     });
+}
+
+export function alignSelectedFields(direction, onUpdated) {
+    const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+    if (sel.length < 2) return;
+    if (direction === "left") {
+        const minX = Math.min(...sel.map(f => f.x));
+        sel.forEach(f => f.x = minX);
+    } else if (direction === "center") {
+        const avgCenter = sel.reduce((sum, f) => sum + (f.x + f.width / 2), 0) / sel.length;
+        sel.forEach(f => f.x = Math.round(avgCenter - f.width / 2));
+    } else if (direction === "right") {
+        const maxRight = Math.max(...sel.map(f => f.x + f.width));
+        sel.forEach(f => f.x = maxRight - f.width);
+    } else if (direction === "top") {
+        const minY = Math.min(...sel.map(f => f.y));
+        sel.forEach(f => f.y = minY);
+    } else if (direction === "middle") {
+        const avgMiddle = sel.reduce((sum, f) => sum + (f.y + f.height / 2), 0) / sel.length;
+        sel.forEach(f => f.y = Math.round(avgMiddle - f.height / 2));
+    } else if (direction === "bottom") {
+        const maxBottom = Math.max(...sel.map(f => f.y + f.height));
+        sel.forEach(f => f.y = maxBottom - f.height);
+    }
+    saveHistory();
+    if (onUpdated) onUpdated();
+}
+
+export function distributeSelectedFields(axis, onUpdated) {
+    const sel = state.fields.filter(f => state.selectedFieldIds.has(f.id));
+    if (sel.length < 3) return;
+    if (axis === "vertical") {
+        sel.sort((a, b) => a.y - b.y);
+        const first = sel[0];
+        const last = sel[sel.length - 1];
+        const totalSpan = (last.y + last.height) - first.y;
+        const totalItemsHeight = sel.reduce((sum, f) => sum + f.height, 0);
+        const totalGap = totalSpan - totalItemsHeight;
+        const gap = totalGap / (sel.length - 1);
+        
+        let currentY = first.y;
+        for (let i = 0; i < sel.length; i++) {
+            if (i > 0) {
+                currentY += sel[i - 1].height + gap;
+                sel[i].y = Math.round(currentY);
+            }
+        }
+    } else if (axis === "horizontal") {
+        sel.sort((a, b) => a.x - b.x);
+        const first = sel[0];
+        const last = sel[sel.length - 1];
+        const totalSpan = (last.x + last.width) - first.x;
+        const totalItemsWidth = sel.reduce((sum, f) => sum + f.width, 0);
+        const totalGap = totalSpan - totalItemsWidth;
+        const gap = totalGap / (sel.length - 1);
+        
+        let currentX = first.x;
+        for (let i = 0; i < sel.length; i++) {
+            if (i > 0) {
+                currentX += sel[i - 1].width + gap;
+                sel[i].x = Math.round(currentX);
+            }
+        }
+    }
+    saveHistory();
+    if (onUpdated) onUpdated();
 }
