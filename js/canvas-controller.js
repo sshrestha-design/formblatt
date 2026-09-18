@@ -1,7 +1,7 @@
 // ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/canvas-controller.js) ─
 import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected } from "./state.js";
 import { DEFAULT_FIELD_SIZES, FIELD_TYPE_LABELS, SNAP_THRESHOLD } from "./constants.js";
-import { setTransformScale, getPageTextBlocks } from "./pdf-engine.js";
+import { setTransformScale, getPageTextBlocks, updateCanvasTransform } from "./pdf-engine.js";
 import { saveHistory } from "./storage-manager.js";
 import { triggerHaptic } from "./haptics.js";
 
@@ -508,13 +508,30 @@ export function initCanvasController(handlers) {
     selectionBox = document.getElementById("selectionBox");
     ghostElement = document.getElementById("fieldPlacementGhost");
 
-    // Trackpad Zoom (Wheel with Ctrl or Meta or Alt)
+    // Buttery-smooth Trackpad / Mouse Wheel Zoom & Pan
     centerCanvas?.addEventListener("wheel", e => {
-        if (e.ctrlKey || e.metaKey || e.altKey) {
-            e.preventDefault();
-            const delta = -e.deltaY * 0.005;
-            const newScale = state.currentScale * (1 + delta);
-            setTransformScale(newScale, handlers.onRerender);
+        e.preventDefault();
+        if (panRafId) {
+            cancelAnimationFrame(panRafId);
+            panRafId = null;
+        }
+
+        if (e.ctrlKey || e.metaKey) {
+            // Figma-style Zoom to Pointer
+            const rect = centerCanvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left - rect.width / 2;
+            const mouseY = e.clientY - rect.top - rect.height / 2;
+            const zoomDelta = -e.deltaY * 0.0035;
+            const newScale = state.currentScale * (1 + zoomDelta);
+            setTransformScale(newScale, handlers.onRerender, { x: mouseX, y: mouseY });
+        } else {
+            // Trackpad two-finger pan or Shift+Wheel / standard Wheel pan
+            const deltaX = e.shiftKey ? e.deltaY : e.deltaX;
+            const deltaY = e.shiftKey ? 0 : e.deltaY;
+            if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+            state.panOffset.x -= deltaX;
+            state.panOffset.y -= deltaY;
+            updateCanvasTransform();
         }
     }, { passive: false });
 
@@ -970,8 +987,14 @@ export function initCanvasController(handlers) {
     );
 
     centerCanvas?.addEventListener("touchstart", e => {
-        if (e.touches.length === 1 && !e.target.closest(".field-overlay")) {
+        if (panRafId) {
+            cancelAnimationFrame(panRafId);
+            panRafId = null;
+        }
+        if (e.touches.length === 1 && (state.activeTool === "hand" || !e.target.closest(".field-overlay"))) {
             singleTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            panLastTime = performance.now();
+            panVelocity = { x: 0, y: 0 };
             return;
         }
         if (e.touches.length !== 2) return;
@@ -986,9 +1009,13 @@ export function initCanvasController(handlers) {
     centerCanvas?.addEventListener("touchmove", e => {
         if (!isPinching && e.touches.length === 1 && singleTouchStart) {
             const touch = e.touches[0];
-            centerCanvas.scrollLeft -= touch.clientX - singleTouchStart.x;
-            centerCanvas.scrollTop -= touch.clientY - singleTouchStart.y;
+            const dx = touch.clientX - singleTouchStart.x;
+            const dy = touch.clientY - singleTouchStart.y;
+            if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+            state.panOffset.x += dx;
+            state.panOffset.y += dy;
             singleTouchStart = { x: touch.clientX, y: touch.clientY };
+            updateCanvasTransform();
             e.preventDefault();
             return;
         }
@@ -1408,26 +1435,73 @@ function hideGuides() {
     if (snapPointDot) snapPointDot.style.display = "none";
 }
 
+let panVelocity = { x: 0, y: 0 };
+let panLastPos = { x: 0, y: 0 };
+let panLastTime = 0;
+let panRafId = null;
+
 function startPanning(e) {
+    if (panRafId) {
+        cancelAnimationFrame(panRafId);
+        panRafId = null;
+    }
     state.isPanning = true;
     state.panStart = { x: e.clientX, y: e.clientY };
+    panLastPos = { x: e.clientX, y: e.clientY };
+    panLastTime = performance.now();
+    panVelocity = { x: 0, y: 0 };
     document.body.classList.add("is-panning");
 }
 
 function stopPanning() {
-    if (state.isPanning) {
-        state.isPanning = false;
-        document.body.classList.remove("is-panning");
+    if (!state.isPanning) return;
+    state.isPanning = false;
+    document.body.classList.remove("is-panning");
+
+    // Inertia Momentum Physics Coasting
+    const speed = Math.hypot(panVelocity.x, panVelocity.y);
+    if (speed > 1.2) {
+        const decay = 0.92;
+        function coast() {
+            panVelocity.x *= decay;
+            panVelocity.y *= decay;
+            if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+            state.panOffset.x += panVelocity.x;
+            state.panOffset.y += panVelocity.y;
+            updateCanvasTransform();
+
+            if (Math.hypot(panVelocity.x, panVelocity.y) > 0.25) {
+                panRafId = requestAnimationFrame(coast);
+            } else {
+                panRafId = null;
+            }
+        }
+        panRafId = requestAnimationFrame(coast);
     }
 }
 
-function handlePanning(e, centerCanvas) {
-    if (!centerCanvas) return;
+function handlePanning(e) {
+    if (!state.isPanning) return;
+    const now = performance.now();
+    const dt = Math.max(now - panLastTime, 1);
     const dx = e.clientX - state.panStart.x;
     const dy = e.clientY - state.panStart.y;
-    centerCanvas.scrollLeft -= dx;
-    centerCanvas.scrollTop -= dy;
+
+    if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+    state.panOffset.x += dx;
+    state.panOffset.y += dy;
     state.panStart = { x: e.clientX, y: e.clientY };
+
+    // Real-time exponential moving average for fluid velocity capture
+    const instVx = (e.clientX - panLastPos.x) / dt * 16.67;
+    const instVy = (e.clientY - panLastPos.y) / dt * 16.67;
+    panVelocity.x = panVelocity.x * 0.4 + instVx * 0.6;
+    panVelocity.y = panVelocity.y * 0.4 + instVy * 0.6;
+
+    panLastPos = { x: e.clientX, y: e.clientY };
+    panLastTime = now;
+
+    updateCanvasTransform();
 }
 
 function startLasso(e, container, handlers) {
