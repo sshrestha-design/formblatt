@@ -649,6 +649,23 @@ export function startInlineTextEdit(fieldId, handlers = {}) {
     const field = state.fields.find(f => f.id === fieldId);
     if (!field || field.locked || field.hidden) return;
 
+    if (field.type === "checkBox" || field.type === "radioGroup" || field.type === "radio") {
+        field.defaultChecked = !field.defaultChecked;
+        saveHistory(true);
+        if (handlers?.onUpdated) handlers.onUpdated(field);
+        renderOverlays(handlers);
+        return;
+    }
+
+    if (field.type === "signature") {
+        openSignatureModal(field, () => {
+            saveHistory(true);
+            if (handlers?.onUpdated) handlers.onUpdated(field);
+            renderOverlays(handlers);
+        });
+        return;
+    }
+
     const overlay = document.querySelector(`.field-overlay[data-id="${fieldId}"]`) || document.getElementById(`overlay_${fieldId}`);
     if (!overlay) return;
 
@@ -755,49 +772,59 @@ export function startInlineTextEdit(fieldId, handlers = {}) {
         const input = document.createElement("input");
         input.type = "text";
         input.className = "inline-field-input";
-        input.value = field.label || field.name || "";
-        input.placeholder = "Field label...";
+        
+        let initialVal = "";
+        let placeholderText = "";
+        if (field.type === "dropdown") {
+            initialVal = (field.options && field.options.length) ? field.options.join(", ") : (field.defaultValue || "");
+            placeholderText = "Options separated by comma (e.g. Option 1, Option 2)";
+        } else {
+            initialVal = field.defaultValue || "";
+            placeholderText = field.name ? `Default value (${field.name})...` : "Enter default value...";
+        }
+
+        input.value = initialVal;
+        input.placeholder = placeholderText;
+
+        const { fam, weight, style: fontStyle } = getFieldCssFont(field);
+        const fontSize = Number(field.fontSize) || 12;
+        input.style.fontFamily = fam;
+        input.style.fontSize = `${fontSize}px`;
+        input.style.fontWeight = weight || "500";
+        input.style.fontStyle = (fontStyle === "italic") ? "italic" : "normal";
+        input.style.color = "#0f172a";
 
         let committed = false;
         const commitEdit = (shouldSave = true) => {
             if (committed) return;
             committed = true;
             const finalVal = input.value.trim();
-            if (finalVal) {
-                field.label = finalVal;
-                if (!field.name || field.name.startsWith("field_") || field.name.startsWith("textField_") || field.name.startsWith("input_")) {
-                    field.name = finalVal.toLowerCase().replace(/[^a-z0-9_]+/g, "_").replace(/^_+|_+$/g, "");
+
+            if (field.type === "dropdown") {
+                if (finalVal) {
+                    const items = finalVal.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
+                    if (items.length > 0) {
+                        field.options = items;
+                        field.defaultValue = items[0];
+                    } else {
+                        field.defaultValue = finalVal;
+                        field.options = [finalVal];
+                    }
+                } else {
+                    field.defaultValue = "";
                 }
+            } else {
+                field.defaultValue = finalVal;
+                field.value = finalVal;
             }
 
             overlay.classList.remove("is-editing-text");
             input.remove();
-            if (label) {
-                label.style.display = "";
-                label.textContent = field.label || field.name || "";
-            }
-
-            const propLabel = document.getElementById("fieldLabel");
-            if (propLabel && state.selectedFieldIds.has(field.id)) {
-                propLabel.value = field.label || "";
-            }
-            const propName = document.getElementById("fieldName");
-            if (propName && state.selectedFieldIds.has(field.id)) {
-                propName.value = field.name || "";
-            }
 
             if (shouldSave) saveHistory(true);
             if (handlers?.onUpdated) handlers.onUpdated(field);
             renderOverlays(handlers);
         };
-
-        input.addEventListener("input", () => {
-            field.label = input.value;
-            const propLabel = document.getElementById("fieldLabel");
-            if (propLabel && state.selectedFieldIds.has(field.id)) {
-                propLabel.value = input.value;
-            }
-        });
 
         input.addEventListener("keydown", (e) => {
             if (e.key === "Enter" || e.key === "Escape") {
