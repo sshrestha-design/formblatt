@@ -391,6 +391,7 @@ export async function autoDetectFields(scope = "current", options = {}) {
 
             // 1. Authoritative AcroForm passthrough — real widgets are trusted as-is
             const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
+            const vectorShapes = await extractPdfVectorShapes(page, viewport);
             const boundaryLines = await detectTableGridLines(page);
 
             const textContent = await page.getTextContent();
@@ -408,14 +409,17 @@ export async function autoDetectFields(scope = "current", options = {}) {
                 };
             }).filter(tb => tb.str.length > 0);
 
+            // 1.5 Drawn Vector Rectangles & Checkboxes (Exact vector geometry)
+            const drawnVectorFields = detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields]);
+
             // 2. Lattice table detection — find ruling-line grids
             const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, boundaryLines);
             const boundaryFields = boundaryLines[0]
-                ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields])
+                ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields, ...drawnVectorFields])
                 : [];
 
-            const seedFields = [...widgetFields, ...latticeResult.fields, ...boundaryFields];
-            const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions);
+            const seedFields = [...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields];
+            const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions, vectorShapes);
 
             // 3. Optional In-Browser ONNX Neural Vision Detector (Hybrid Mode)
             let neuralFields = [];
@@ -435,7 +439,7 @@ export async function autoDetectFields(scope = "current", options = {}) {
                 }
             }
 
-            newFields.push(...widgetFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields, ...neuralFields);
+            newFields.push(...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields, ...neuralFields);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
@@ -524,8 +528,223 @@ function matchColumnKeyword(text) {
 }
 
 // ============================================================================
-// 3.7 LATTICE TABLE DETECTION (ruling-line based, not text-position guessing)
+// 3.5 VECTOR SHAPE EXTRACTION (Drawn Checkboxes, Input Boxes, & Underlines)
 // ============================================================================
+export async function extractPdfVectorShapes(page, viewport) {
+    const result = {
+        checkboxRects: [],
+        inputBoxRects: [],
+        underlines: []
+    };
+    if (!page.getOperatorList) return result;
+
+    let operatorList;
+    try {
+        operatorList = await page.getOperatorList();
+    } catch (err) {
+        return result;
+    }
+
+    const OPS = (typeof pdfjsLib !== "undefined" && pdfjsLib.OPS) ? pdfjsLib.OPS : {};
+    const stack = [];
+    let matrix = [1, 0, 0, 1, 0, 0];
+    const multiply = (left, right) => [
+        left[0] * right[0] + left[2] * right[1],
+        left[1] * right[0] + left[3] * right[1],
+        left[0] * right[2] + left[2] * right[3],
+        left[1] * right[2] + left[3] * right[3],
+        left[0] * right[4] + left[2] * right[5] + left[4],
+        left[1] * right[4] + left[3] * right[5] + left[5]
+    ];
+    const point = (x, y) => {
+        const pdfPoint = [
+            matrix[0] * x + matrix[2] * y + matrix[4],
+            matrix[1] * x + matrix[3] * y + matrix[5]
+        ];
+        const vp = viewport.convertToViewportPoint ? viewport.convertToViewportPoint(...pdfPoint) : [pdfPoint[0], viewport.height - pdfPoint[1]];
+        return { x: vp[0], y: vp[1] };
+    };
+
+    let current = null;
+    let pathStart = null;
+
+    const addRectCandidate = (minX, minY, w, h) => {
+        if (w >= 8 && w <= 26 && h >= 8 && h <= 26 && (w / h >= 0.7 && w / h <= 1.45)) {
+            result.checkboxRects.push({ x: minX, y: minY, width: w, height: h });
+        } else if (h >= 14 && h <= 80 && w >= 25 && w <= 540) {
+            result.inputBoxRects.push({ x: minX, y: minY, width: w, height: h });
+        }
+    };
+
+    for (let i = 0; i < (operatorList.fnArray || []).length; i++) {
+        const fn = operatorList.fnArray[i];
+        const args = operatorList.argsArray[i] || [];
+
+        if (fn === OPS.save) {
+            stack.push([...matrix]);
+        } else if (fn === OPS.restore) {
+            matrix = stack.pop() || matrix;
+        } else if (fn === OPS.transform) {
+            matrix = multiply(matrix, args);
+        } else if (fn === OPS.moveTo) {
+            current = point(args[0], args[1]);
+            pathStart = current;
+        } else if (fn === OPS.lineTo) {
+            const next = point(args[0], args[1]);
+            if (current && next) {
+                const dx = Math.abs(current.x - next.x);
+                const dy = Math.abs(current.y - next.y);
+                if (dx >= 20 && dy <= 3) {
+                    result.underlines.push({
+                        x: Math.round(Math.min(current.x, next.x)),
+                        y: Math.round((current.y + next.y) / 2),
+                        width: Math.round(dx)
+                    });
+                }
+            }
+            current = next;
+        } else if (fn === OPS.rectangle) {
+            const [rx, ry, rw, rh] = args;
+            const p1 = point(rx, ry);
+            const p2 = point(rx + rw, ry + rh);
+            const minX = Math.round(Math.min(p1.x, p2.x));
+            const maxX = Math.round(Math.max(p1.x, p2.x));
+            const minY = Math.round(Math.min(p1.y, p2.y));
+            const maxY = Math.round(Math.max(p1.y, p2.y));
+            const w = maxX - minX;
+            const h = maxY - minY;
+            addRectCandidate(minX, minY, w, h);
+            current = p1;
+            pathStart = p1;
+        } else if (fn === OPS.constructPath) {
+            const [ops, coords] = args;
+            if (Array.isArray(ops) && Array.isArray(coords)) {
+                let cIdx = 0;
+                for (let op of ops) {
+                    if (op === OPS.moveTo) {
+                        current = point(coords[cIdx], coords[cIdx + 1]);
+                        pathStart = current;
+                        cIdx += 2;
+                    } else if (op === OPS.lineTo) {
+                        const next = point(coords[cIdx], coords[cIdx + 1]);
+                        if (current && next) {
+                            const dx = Math.abs(current.x - next.x);
+                            const dy = Math.abs(current.y - next.y);
+                            if (dx >= 20 && dy <= 3) {
+                                result.underlines.push({
+                                    x: Math.round(Math.min(current.x, next.x)),
+                                    y: Math.round((current.y + next.y) / 2),
+                                    width: Math.round(dx)
+                                });
+                            }
+                        }
+                        current = next;
+                        cIdx += 2;
+                    } else if (op === OPS.rectangle) {
+                        const rx = coords[cIdx], ry = coords[cIdx + 1], rw = coords[cIdx + 2], rh = coords[cIdx + 3];
+                        const p1 = point(rx, ry);
+                        const p2 = point(rx + rw, ry + rh);
+                        const minX = Math.round(Math.min(p1.x, p2.x));
+                        const maxX = Math.round(Math.max(p1.x, p2.x));
+                        const minY = Math.round(Math.min(p1.y, p2.y));
+                        const maxY = Math.round(Math.max(p1.y, p2.y));
+                        const w = maxX - minX;
+                        const h = maxY - minY;
+                        addRectCandidate(minX, minY, w, h);
+                        cIdx += 4;
+                    }
+                }
+            }
+        }
+    }
+    return result;
+}
+
+export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, existingFields = []) {
+    const fields = [];
+    if (!vectorShapes) return fields;
+    const { checkboxRects = [], inputBoxRects = [] } = vectorShapes;
+
+    // 1. Match Vector Checkbox Squares
+    for (const cbox of checkboxRects) {
+        // Find text label directly to the right
+        const labelBlock = rawBlocks
+            .filter(tb => tb.x >= cbox.x + cbox.width - 2 && (tb.x - (cbox.x + cbox.width)) <= 180 &&
+                          Math.abs(tb.y - cbox.y) <= 12)
+            .sort((a, b) => a.x - b.x)[0];
+        
+        let label = labelBlock?.str || "";
+        if (label && !isUniversalStaticText(label)) {
+            const sem = resolveSemanticProps(label, "checkBox", usedNames);
+            const field = {
+                id: generateFieldId(),
+                type: "checkBox",
+                name: sem.name,
+                value: label,
+                x: cbox.x,
+                y: cbox.y,
+                width: cbox.width,
+                height: cbox.height,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: false,
+                autofill: "",
+                dataFormat: "text",
+                detectedBy: "vector_drawn_checkbox"
+            };
+            if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+                fields.push(field);
+            }
+        }
+    }
+
+    // 2. Match Vector Input Rectangles
+    for (const box of inputBoxRects) {
+        if (box.height > 70 || box.width > 530) continue;
+
+        const leftLabel = rawBlocks
+            .filter(tb => tb.x + tb.width <= box.x + 8 && (box.x - (tb.x + tb.width)) <= 200 &&
+                          Math.abs(tb.y - box.y) <= 16)
+            .sort((a, b) => (box.x - (b.x + b.width)) - (box.x - (a.x + a.width)))[0];
+
+        const topLabel = !leftLabel ? rawBlocks
+            .filter(tb => tb.y + tb.height <= box.y + 4 && (box.y - (tb.y + tb.height)) <= 26 &&
+                          Math.abs(tb.x - box.x) <= 40)
+            .sort((a, b) => (box.y - (b.y + b.height)) - (box.y - (a.y + a.height)))[0] : null;
+
+        const matchedLabel = leftLabel || topLabel;
+        if (matchedLabel && !isUniversalStaticText(matchedLabel.str)) {
+            const sem = resolveSemanticProps(matchedLabel.str, "textField", usedNames);
+            const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(matchedLabel.str);
+            const isDate = sem.type === "dateField" || /date/i.test(matchedLabel.str);
+            const type = isSig ? "signature" : (isDate ? "dateField" : sem.type);
+
+            const field = {
+                id: generateFieldId(),
+                type: type,
+                name: sem.name,
+                x: box.x,
+                y: box.y,
+                width: box.width,
+                height: box.height,
+                page: pageNum,
+                borderStyle: "solid",
+                fillStyle: "white",
+                multiline: box.height >= 36 || sem.multiline,
+                autofill: sem.autofill || "",
+                dataFormat: sem.dataFormat || "text",
+                detectedBy: "vector_drawn_input_box"
+            };
+
+            if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+                fields.push(field);
+            }
+        }
+    }
+
+    return fields;
+}
 // The stream/heuristic approach (Affordance 4 below) infers table structure
 // purely from text positions — cluster words into rows, guess column
 // boundaries, match header keywords. That's inherently approximate: it has
@@ -920,7 +1139,7 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
         const pairedBoundary = horizontalLines.find(other =>
             other.offset > line.offset &&
             other.offset - line.offset >= 24 &&
-            other.offset - line.offset <= 160 &&
+            other.offset - line.offset <= 120 &&
             Math.abs(other.start - line.start) <= 8 &&
             Math.abs(other.end - line.end) <= 8
         );
@@ -933,7 +1152,7 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
             if (line.offset > pairedBoundary.offset) continue;
         }
 
-        const isBox = Boolean(pairedBoundary && endpointIntersections >= 2);
+        const isBox = Boolean(pairedBoundary && endpointIntersections >= 2 && (pairedBoundary.offset - line.offset) / 2 <= 65);
         const fieldHeight = isBox
             ? Math.round((pairedBoundary.offset - line.offset) / 2)
             : 22;
@@ -941,7 +1160,7 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
             x: Math.max(0, Math.round(x)),
             y: Math.max(0, Math.round(isBox ? y : y - 22)),
             width: Math.round(width),
-            height: Math.max(16, fieldHeight),
+            height: Math.min(65, Math.max(16, fieldHeight)),
             page: pageNum
         };
         if (candidate.width < 40 || isOverlapping(candidate, existingFields, 0.2) ||
@@ -952,6 +1171,12 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
                 tb.x + tb.width <= x + 12 && x - (tb.x + tb.width) <= 180)
             .sort((a, b) => (y - (a.y + a.height)) - (y - (b.y + b.height)))[0];
         const label = nearbyLabel?.str || "";
+
+        // GUARD: Reject giant container boxes spanning multiple lines or sections
+        if (candidate.height > 50 && !/comments|notes|remarks|explanation|feedback|description|allergies|medications|signature/i.test(label)) {
+            continue;
+        }
+
         // A standalone decorative rule has no form affordance. Require a
         // nearby, non-banner label unless the pixels clearly form a closed box.
         if (!isBox && (!label || isUniversalStaticText(label))) continue;
@@ -979,7 +1204,7 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
 // ============================================================================
 // 4. DETECTION PIPELINE
 // ============================================================================
-function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = [], preRegisteredTableRegions = []) {
+function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = [], preRegisteredTableRegions = [], vectorShapes = null) {
     const fields = [...existingFields];
     const seedCount = existingFields.length;
     const pageWidth = viewport.width;
@@ -1182,24 +1407,13 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             const fieldName = sem.name;
             const isSingleOnLine = (maxAllowedX >= pageWidth - 45);
 
-            // Calculate optimal natural field width
-            let preferredW = 160;
-            if (isDate || /date|dob/i.test(fieldName)) {
-                preferredW = 95;
-            } else if (isSig) {
-                preferredW = 180;
-            } else if (/phone|tel|fax|mobile/i.test(fieldName)) {
-                preferredW = 130;
-            } else if (/state/i.test(fieldName)) {
-                preferredW = 55;
-            } else if (/zip|postal|code/i.test(fieldName)) {
-                preferredW = 75;
-            } else if (/ssn|social|tax_id|ein/i.test(fieldName)) {
-                preferredW = 110;
-            } else if (/amount|price|unit|qty|quantity/i.test(fieldName)) {
-                preferredW = 85;
-            } else if (isMulti || (isSingleOnLine && /comments|notes|description|responsibilities|address|street/i.test(fieldName))) {
-                preferredW = Math.min(380, availableW);
+            // Check if an explicit vector underline is present next to or under this prompt
+            const matchingUnderline = (vectorShapes?.underlines || []).find(u =>
+                Math.abs(u.y - (line.y + line.height)) <= 14 &&
+                u.x >= promptEndX - 15 && (u.x - promptEndX) <= 50
+            );
+            if (matchingUnderline) {
+                preferredW = matchingUnderline.width;
             }
 
             const targetW = Math.max(30, Math.min(preferredW, availableW));
