@@ -1425,6 +1425,58 @@ async function runAllTests() {
         global.document = prevDoc;
     });
 
+    // ── SUITE 24: Hybrid Neural Vision & Client-Side ONNX Pipeline Verification ──
+    console.log("\n🧠 Suite 24: Hybrid Neural Vision & Client-Side ONNX Pipeline");
+    const { calculateBoxIoU, nonMaximumSuppression } = await import(path.join(WEB_DIR, 'js', 'onnx-detector.js'));
+    const { enrichNeuralFieldsWithText } = await import(path.join(WEB_DIR, 'js', 'auto-detector.js'));
+
+    it("calculateBoxIoU accurately calculates bounding box overlap ratio", () => {
+        const box1 = { x: 0, y: 0, width: 100, height: 100 };
+        const box2 = { x: 50, y: 0, width: 100, height: 100 }; // overlap = 50 * 100 = 5000, union = 15000 -> 1/3
+        const iou = calculateBoxIoU(box1, box2);
+        assert.ok(Math.abs(iou - 0.3333) < 0.01, `IoU should be ~0.33, got ${iou}`);
+
+        const identical = calculateBoxIoU(box1, box1);
+        assert.equal(identical, 1.0, "Identical boxes must have IoU = 1.0");
+
+        const separate = calculateBoxIoU(box1, { x: 200, y: 200, width: 50, height: 50 });
+        assert.equal(separate, 0.0, "Non-overlapping boxes must have IoU = 0.0");
+    });
+
+    it("nonMaximumSuppression suppresses lower-confidence overlapping candidates", () => {
+        const candidates = [
+            { id: "c1", confidence: 0.95, x: 50, y: 50, width: 100, height: 30, type: "textField" },
+            { id: "c2", confidence: 0.82, x: 52, y: 51, width: 98, height: 29, type: "textField" }, // High overlap with c1
+            { id: "c3", confidence: 0.88, x: 50, y: 150, width: 100, height: 30, type: "textField" } // Distinct field
+        ];
+
+        const suppressed = nonMaximumSuppression(candidates, 0.4);
+        assert.equal(suppressed.length, 2, "Should retain exactly 2 distinct boxes");
+        assert.equal(suppressed[0].id, "c1", "Highest confidence box c1 must be retained");
+        assert.equal(suppressed[1].id, "c3", "Distinct box c3 must be retained");
+    });
+
+    it("enrichNeuralFieldsWithText binds adjacent text labels and assigns semantic properties", () => {
+        const rawNeural = [
+            { id: "n1", type: "textField", x: 120, y: 100, width: 180, height: 24 },
+            { id: "n2", type: "checkBox", x: 120, y: 200, width: 16, height: 16 }
+        ];
+
+        const rawBlocks = [
+            { str: "First Name:", x: 30, y: 102, width: 70, height: 12 },
+            { str: "Agree to terms", x: 145, y: 202, width: 90, height: 12 }
+        ];
+
+        const usedNames = new Set();
+        const enriched = enrichNeuralFieldsWithText(rawNeural, rawBlocks, usedNames, 1);
+        assert.equal(enriched.length, 2);
+        assert.equal(enriched[0].type, "textField");
+        assert.equal(enriched[0].name, "first_name");
+        assert.equal(enriched[0].autofill, "given-name");
+        assert.equal(enriched[1].type, "checkBox");
+        assert.equal(enriched[1].name, "agree_to_terms");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

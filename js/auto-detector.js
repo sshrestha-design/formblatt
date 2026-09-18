@@ -306,9 +306,70 @@ function isOverlapping(field, list, threshold = 0.35) {
 }
 
 // ============================================================================
-// 3. MAIN AUTO-DETECT CONTROLLER
+// 3. NEURAL VISION TEXT BINDING & HYBRID ENRICHMENT
 // ============================================================================
-export async function autoDetectFields(scope = "current") {
+export function enrichNeuralFieldsWithText(rawNeuralFields, rawBlocks, usedNames = new Set(), pageNum = 1) {
+    if (!Array.isArray(rawNeuralFields) || rawNeuralFields.length === 0) return [];
+    const enriched = [];
+
+    for (const nf of rawNeuralFields) {
+        // Find nearest text label to the left or above within a reasonable bounding radius
+        let closestBlock = null;
+        let minDistance = Infinity;
+
+        for (const tb of rawBlocks) {
+            // Label is to the left of the field on approximately the same horizontal baseline
+            const isLeft = tb.x + tb.width <= nf.x + 10 && (nf.x - (tb.x + tb.width)) <= 180;
+            // Label is to the right of the field (common for checkboxes and radio buttons)
+            const isRight = tb.x >= nf.x + nf.width - 6 && (tb.x - (nf.x + nf.width)) <= 200;
+            const isSameRow = Math.abs((tb.y + tb.height / 2) - (nf.y + nf.height / 2)) <= Math.max(16, tb.height);
+
+            // Label is directly above the field
+            const isAbove = tb.y + tb.height <= nf.y + 4 && (nf.y - (tb.y + tb.height)) <= 30;
+            const isColumnAligned = tb.x <= nf.x + nf.width && tb.x + tb.width >= nf.x - 20;
+
+            if ((isLeft && isSameRow) || (isRight && isSameRow) || (isAbove && isColumnAligned)) {
+                const dist = isLeft
+                    ? (nf.x - (tb.x + tb.width))
+                    : isRight
+                        ? (tb.x - (nf.x + nf.width))
+                        : ((nf.y - (tb.y + tb.height)) * 1.5);
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestBlock = tb;
+                }
+            }
+        }
+
+        const rawLabel = closestBlock ? closestBlock.str : "";
+        const sem = resolveSemanticProps(rawLabel, nf.type, usedNames);
+
+        enriched.push({
+            id: nf.id || generateFieldId(),
+            type: nf.type || sem.type,
+            name: sem.name,
+            x: nf.x,
+            y: nf.y,
+            width: nf.width,
+            height: nf.height,
+            page: pageNum,
+            borderStyle: nf.borderStyle || "solid",
+            fillStyle: nf.fillStyle || "white",
+            multiline: sem.multiline || false,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            detectedBy: "neural_vision",
+            confidence: nf.confidence || 0.8
+        });
+    }
+
+    return enriched;
+}
+
+// ============================================================================
+// 4. MAIN AUTO-DETECT CONTROLLER (HYBRID & FAST MODES)
+// ============================================================================
+export async function autoDetectFields(scope = "current", options = {}) {
     if (!state.pdfDoc) {
         alert("Please load a PDF document first.");
         return 0;
@@ -318,6 +379,7 @@ export async function autoDetectFields(scope = "current") {
         ? Array.from({ length: state.totalPages }, (_, i) => i + 1)
         : [state.currentPageNum];
 
+    const isHybridMode = options.mode === "hybrid" || options.mode === "deep" || options.useNeural === true;
     let totalDetected = 0;
     const newFields = [];
     const usedNames = new Set(state.fields.map(f => f.name));
@@ -327,10 +389,7 @@ export async function autoDetectFields(scope = "current") {
             const page = await state.pdfDoc.getPage(pageNum);
             const viewport = page.getViewport({ scale: 1.0 });
 
-            // 1. Authoritative AcroForm passthrough — real widgets are trusted
-            // as-is, but a page having SOME real widgets doesn't mean the
-            // rest of the page has no blank fields left to detect. We run
-            // geometric detection seeded with the widget rects as occupied space.
+            // 1. Authoritative AcroForm passthrough — real widgets are trusted as-is
             const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
             const boundaryLines = await detectTableGridLines(page);
 
@@ -349,12 +408,7 @@ export async function autoDetectFields(scope = "current") {
                 };
             }).filter(tb => tb.str.length > 0);
 
-            // 2. Lattice table detection — find ruling-line grids on the
-            // rendered page and build fields directly from their exact cell
-            // bounds. This runs before the stream/heuristic table detection
-            // inside detectVisualAffordances; anywhere it succeeds, the
-            // region gets registered so the heuristic never re-guesses a
-            // second, competing table over the same area.
+            // 2. Lattice table detection — find ruling-line grids
             const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, boundaryLines);
             const boundaryFields = boundaryLines[0]
                 ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields])
@@ -362,7 +416,26 @@ export async function autoDetectFields(scope = "current") {
 
             const seedFields = [...widgetFields, ...latticeResult.fields, ...boundaryFields];
             const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions);
-            newFields.push(...widgetFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields);
+
+            // 3. Optional In-Browser ONNX Neural Vision Detector (Hybrid Mode)
+            let neuralFields = [];
+            if (isHybridMode && typeof document !== "undefined") {
+                try {
+                    const { detectNeuralFieldsOnCanvas } = await import("./onnx-detector.js");
+                    const renderCanvas = document.createElement("canvas");
+                    renderCanvas.width = viewport.width;
+                    renderCanvas.height = viewport.height;
+                    const renderCtx = renderCanvas.getContext("2d");
+                    await page.render({ canvasContext: renderCtx, viewport }).promise;
+
+                    const rawNeural = await detectNeuralFieldsOnCanvas(renderCanvas, pageNum, viewport);
+                    neuralFields = enrichNeuralFieldsWithText(rawNeural, rawBlocks, usedNames, pageNum);
+                } catch (neuralErr) {
+                    console.warn("Neural vision inference skipped:", neuralErr);
+                }
+            }
+
+            newFields.push(...widgetFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields, ...neuralFields);
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
