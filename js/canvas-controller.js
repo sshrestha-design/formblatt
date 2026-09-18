@@ -208,8 +208,7 @@ function handleFieldDrag(e, container, handlers) {
     const primaryField = getSelectedField() || state.fields.find(f => state.selectedFieldIds.has(f.id));
     let snapDx = 0, snapDy = 0;
 
-    // Alt / Option: Holding Alt completely disables magnetic snapping for 100% free smooth precision movement
-    if (!e.altKey && primaryField && state.initialFieldPositions.has(primaryField.id)) {
+    if (primaryField && state.initialFieldPositions.has(primaryField.id)) {
         const init = state.initialFieldPositions.get(primaryField.id);
         const targetX = init.x + dx;
         const targetY = init.y + dy;
@@ -222,7 +221,11 @@ function handleFieldDrag(e, container, handlers) {
 
         snapDx = snaps.snapX;
         snapDy = snaps.snapY;
-        showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
+        if (snaps.guidesX.length || snaps.guidesY.length) {
+            showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
+        } else {
+            hideGuides();
+        }
     } else {
         hideGuides();
     }
@@ -1312,39 +1315,39 @@ function handleFieldResize(e, handlers) {
     // against fields OUTSIDE the selection (unchanged single-field feel),
     // then the resulting nudge is re-applied to every selected field so the
     // whole group snaps together instead of just the primary one.
-    if (!e.altKey) {
-        const otherFields = getFieldsForCurrentPage().filter(f => !state.selectedFieldIds.has(f.id) && f.id !== field.id);
-        const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
-        const container = document.getElementById("canvasContainer");
-        const pageWidth = container ? container.offsetWidth : null;
-        const pageHeight = container ? container.offsetHeight : null;
-        const snaps = checkSnapping(primaryNewX, primaryNewY, primaryNewW, primaryNewH, otherFields, pageTextBlocks, pageWidth, pageHeight);
+    const otherFields = getFieldsForCurrentPage().filter(f => !state.selectedFieldIds.has(f.id) && f.id !== field.id);
+    const pageTextBlocks = state.pageTextCache?.get(state.currentPageNum) || [];
+    const container = document.getElementById("canvasContainer");
+    const pageWidth = container ? container.offsetWidth : null;
+    const pageHeight = container ? container.offsetHeight : null;
+    const snaps = checkSnapping(primaryNewX, primaryNewY, primaryNewW, primaryNewH, otherFields, pageTextBlocks, pageWidth, pageHeight);
 
-        let snapDX = 0, snapDW = 0, snapDY = 0, snapDH = 0;
-        if (dir.includes("e") && snaps.guideX !== null) {
-            snapDW = snaps.snapX;
-        } else if (dir.includes("w") && snaps.guideX !== null) {
-            snapDX = snaps.snapX;
-            snapDW = -snaps.snapX;
-        }
-        if (dir.includes("s") && snaps.guideY !== null) {
-            snapDH = snaps.snapY;
-        } else if (dir.includes("n") && snaps.guideY !== null) {
-            snapDY = snaps.snapY;
-            snapDH = -snaps.snapY;
-        }
+    let snapDX = 0, snapDW = 0, snapDY = 0, snapDH = 0;
+    if (dir.includes("e") && snaps.guideX !== null) {
+        snapDW = snaps.snapX;
+    } else if (dir.includes("w") && snaps.guideX !== null) {
+        snapDX = snaps.snapX;
+        snapDW = -snaps.snapX;
+    }
+    if (dir.includes("s") && snaps.guideY !== null) {
+        snapDH = snaps.snapY;
+    } else if (dir.includes("n") && snaps.guideY !== null) {
+        snapDY = snaps.snapY;
+        snapDH = -snaps.snapY;
+    }
 
-        if (snapDX || snapDW || snapDY || snapDH) {
-            dimsMap.forEach((base, id) => {
-                const f = state.fields.find(item => item.id === id);
-                if (!f) return;
-                if (snapDX) f.x = Math.round(f.x + snapDX);
-                if (snapDW) f.width = Math.max(16, Math.round(f.width + snapDW));
-                if (snapDY) f.y = Math.round(f.y + snapDY);
-                if (snapDH) f.height = Math.max(14, Math.round(f.height + snapDH));
-            });
-        }
+    if (snapDX || snapDW || snapDY || snapDH) {
+        dimsMap.forEach((base, id) => {
+            const f = state.fields.find(item => item.id === id);
+            if (!f) return;
+            if (snapDX) f.x = Math.round(f.x + snapDX);
+            if (snapDW) f.width = Math.max(16, Math.round(f.width + snapDW));
+            if (snapDY) f.y = Math.round(f.y + snapDY);
+            if (snapDH) f.height = Math.max(14, Math.round(f.height + snapDH));
+        });
+    }
 
+    if (snaps.guidesX.length || snaps.guidesY.length) {
         showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
     } else {
         hideGuides();
