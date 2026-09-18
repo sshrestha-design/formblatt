@@ -1276,6 +1276,10 @@
             </div>
         </aside>
         <div class="panel-resizer" id="leftPanelResizer" role="separator" aria-orientation="vertical" title="Drag to resize Layers panel (Double-click to reset width)"></div>
+        <button id="leftEdgePeekTab" class="edge-peek-tab edge-peek-left" type="button" aria-label="Expand Layers panel (⌘\)" data-tooltip="Expand Layers" data-kbd="⌘\" data-tooltip-pos="right">
+            <i data-lucide="panel-left-open" class="edge-peek-icon"></i>
+            <span class="edge-peek-label">Layers</span>
+        </button>
         
         <div class="canvas-workspace-area" style="flex: 1; display: flex; flex-direction: column; height: calc(100vh - 56px); min-width: 0; position: relative; background: var(--canvas-bg);">
             <main class="center-canvas" id="centerCanvas" style="flex: 1; overflow-y: auto; overflow-x: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 36px 36px 36px 36px;">
@@ -1819,6 +1823,10 @@
                 </div>
             </div>
         </aside>
+        <button id="rightEdgePeekTab" class="edge-peek-tab edge-peek-right" type="button" aria-label="Expand Inspector panel (⌘/)" data-tooltip="Expand Inspector" data-kbd="⌘/" data-tooltip-pos="left">
+            <i data-lucide="panel-right-open" class="edge-peek-icon"></i>
+            <span class="edge-peek-label">Inspector</span>
+        </button>
     </div>
     </div> <!-- close appEditorScreen -->
 

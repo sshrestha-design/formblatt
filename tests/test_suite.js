@@ -1012,8 +1012,8 @@ async function runAllTests() {
             "canvasContainer", "overlayContainer", "smartGuides", "snapPointDot",
             // Modals
             "signatureModal", "shortcutsModal", "feedbackModal", "complianceModal",
-            // Panels
-            "leftPanel", "rightPanel", "layersList"
+            // Panels & Peek Tabs
+            "leftPanel", "rightPanel", "layersList", "leftEdgePeekTab", "rightEdgePeekTab"
         ];
 
         for (const id of requiredElements) {

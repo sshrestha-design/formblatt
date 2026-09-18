@@ -1158,8 +1158,12 @@ export function initEditorSubsystems() {
         }
     });
 
-    // Toggle Sidebar & Panels (In-Panel Headers + Toolbar Controls)
+    // Toggle Sidebar & Panels (In-Panel Headers + Toolbar Controls + Edge Peek Tabs)
     document.getElementById("toggleSidebarBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleLeftSidebar();
+    });
+    document.getElementById("leftEdgePeekTab")?.addEventListener("click", () => {
         triggerHaptic();
         toggleLeftSidebar();
     });
@@ -1180,6 +1184,10 @@ export function initEditorSubsystems() {
         toggleRightSidebar();
     });
     document.getElementById("toggleRightSidebarBtn")?.addEventListener("click", () => {
+        triggerHaptic();
+        toggleRightSidebar();
+    });
+    document.getElementById("rightEdgePeekTab")?.addEventListener("click", () => {
         triggerHaptic();
         toggleRightSidebar();
     });
