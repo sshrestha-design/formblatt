@@ -247,7 +247,7 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
             if (f.type === "staticText" || f.type === "label") {
                 const font = resolveFont(f.fontFamily || (f.fontWeight === "bold" ? "helvetica-bold" : "helvetica"));
                 const fontSize = (f.fontSize && parseInt(f.fontSize) >= 4) ? parseInt(f.fontSize) : 14;
-                const textContent = f.label || f.value || f.name || "Text / Heading";
+                const textContent = f.defaultValue || f.label || f.value || f.name || "Text / Heading";
 
                 if (common.backgroundColor) {
                     page.drawRectangle({
