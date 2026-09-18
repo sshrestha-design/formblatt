@@ -126,31 +126,50 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     const pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : (typeof PDFLib !== "undefined" ? PDFLib : null);
     if (!pdfLib) throw new Error("PDF-Lib not initialized.");
     const { PDFDocument, StandardFonts, rgb } = pdfLib;
-    // Load fresh slice of bytes
-    const doc = await PDFDocument.load(sourceBytes.slice(), { ignoreEncryption: true });
+
+    // Load source document and create a pristine target document with copied pages.
+    // This completely eliminates circular AcroForm trees, XFA stream recursion, and duplicate widget
+    // annotations present in pre-designed/fillable forms, preventing "Maximum call stack size exceeded" errors.
+    const loadedSource = await PDFDocument.load(sourceBytes.slice(), { ignoreEncryption: true });
+    const doc = await PDFDocument.create();
     
     // Register fontkit if present in environment
     if (typeof window !== "undefined" && window.fontkit) {
         try { doc.registerFontkit(window.fontkit); } catch(e) {}
     }
 
+    const pageIndices = loadedSource.getPageIndices();
+    const copiedPages = await doc.copyPages(loadedSource, pageIndices);
+
+    for (const cp of copiedPages) {
+        // Strip residual widget annotations from copied page nodes so old form fields don't linger
+        const annotsRaw = cp.node.get(pdfLib.PDFName.of("Annots"));
+        if (annotsRaw) {
+            const annots = doc.context.lookup(annotsRaw);
+            if (annots instanceof pdfLib.PDFArray) {
+                const nonWidgets = [];
+                for (let i = 0; i < annots.size(); i++) {
+                    const annotRef = annots.get(i);
+                    const annotDict = doc.context.lookup(annotRef);
+                    if (annotDict && annotDict.get) {
+                        const subtype = annotDict.get(pdfLib.PDFName.of("Subtype"));
+                        if (subtype && subtype.toString() === "/Widget") continue;
+                    }
+                    nonWidgets.push(annotRef);
+                }
+                if (nonWidgets.length === 0) {
+                    cp.node.delete(pdfLib.PDFName.of("Annots"));
+                } else {
+                    cp.node.set(pdfLib.PDFName.of("Annots"), doc.context.obj(nonWidgets));
+                }
+            }
+        }
+        doc.addPage(cp);
+    }
+
     const form = doc.getForm();
     const pages = doc.getPages();
     const usedNames = new Set();
-
-    // Clean pre-existing AcroForm fields to avoid duplicate widget annotations and circular reference stack overflows
-    try {
-        const existingFields = form.getFields();
-        for (const ef of existingFields) {
-            try {
-                form.removeField(ef);
-            } catch (removeErr) {
-                console.warn("Could not remove existing field:", removeErr);
-            }
-        }
-    } catch (cleanErr) {
-        console.warn("Could not inspect existing form fields:", cleanErr);
-    }
 
     // Embed Standard Vector Fonts for razor-sharp vector rendering
     const helvetica = await doc.embedFont(StandardFonts.Helvetica);
