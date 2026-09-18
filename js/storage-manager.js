@@ -48,32 +48,64 @@ export function safeJsonStringify(value, space = 2) {
     }, space);
 }
 
-export function saveHistory(immediate = false) {
+export function saveHistory(arg1 = false, arg2 = null) {
+    let immediate = false;
+    let actionName = null;
+
+    if (typeof arg1 === "string") {
+        actionName = arg1;
+        immediate = Boolean(arg2);
+    } else {
+        immediate = Boolean(arg1);
+        actionName = typeof arg2 === "string" ? arg2 : null;
+    }
+
     if (immediate) {
         if (historyDebounceTimer) {
             clearTimeout(historyDebounceTimer);
             historyDebounceTimer = null;
         }
-        commitHistorySnapshot();
+        commitHistorySnapshot(actionName);
         return;
     }
 
     // Debounce rapid continuous stream of updates (sliders, scrubbing, typing)
     if (historyDebounceTimer) clearTimeout(historyDebounceTimer);
     historyDebounceTimer = setTimeout(() => {
-        commitHistorySnapshot();
+        commitHistorySnapshot(actionName);
         historyDebounceTimer = null;
     }, 350);
 }
 
-function commitHistorySnapshot() {
-    const snapshot = safeJsonStringify({ fields: state.fields, groups: state.groups || [] });
-    if (state.historyIndex >= 0 && state.history[state.historyIndex] === snapshot) {
+function commitHistorySnapshot(actionName = null) {
+    const rawSnapshot = safeJsonStringify({ fields: state.fields, groups: state.groups || [] });
+    const currentEntry = state.historyIndex >= 0 ? state.history[state.historyIndex] : null;
+    const currentRaw = typeof currentEntry === "object" && currentEntry !== null ? currentEntry.snapshot : currentEntry;
+
+    if (currentRaw === rawSnapshot) {
         return;
     }
+
+    const defaultName = actionName || "Edit";
     state.historyIndex++;
     state.history = state.history.slice(0, state.historyIndex);
-    state.history.push(snapshot);
+    state.history.push({ snapshot: rawSnapshot, name: defaultName });
+}
+
+export function getUndoActionName() {
+    if (state.historyIndex > 0 && state.historyIndex < state.history.length) {
+        const entry = state.history[state.historyIndex];
+        return typeof entry === "object" && entry?.name ? entry.name : "Edit";
+    }
+    return null;
+}
+
+export function getRedoActionName() {
+    if (state.historyIndex >= 0 && state.historyIndex < state.history.length - 1) {
+        const entry = state.history[state.historyIndex + 1];
+        return typeof entry === "object" && entry?.name ? entry.name : "Edit";
+    }
+    return null;
 }
 
 export function undo(onRestore) {
@@ -82,8 +114,11 @@ export function undo(onRestore) {
         historyDebounceTimer = null;
     }
     if (state.historyIndex > 0) {
+        const actionUndone = getUndoActionName() || "Action";
         state.historyIndex--;
-        const parsed = JSON.parse(state.history[state.historyIndex]);
+        const entry = state.history[state.historyIndex];
+        const rawJson = typeof entry === "object" && entry !== null && entry.snapshot ? entry.snapshot : entry;
+        const parsed = typeof rawJson === "string" ? JSON.parse(rawJson) : rawJson;
         if (Array.isArray(parsed)) {
             state.fields = parsed;
         } else {
@@ -91,7 +126,9 @@ export function undo(onRestore) {
             state.groups = parsed.groups || [];
         }
         if (onRestore) onRestore();
+        return actionUndone;
     }
+    return null;
 }
 
 export function redo(onRestore) {
@@ -101,7 +138,10 @@ export function redo(onRestore) {
     }
     if (state.historyIndex < state.history.length - 1) {
         state.historyIndex++;
-        const parsed = JSON.parse(state.history[state.historyIndex]);
+        const entry = state.history[state.historyIndex];
+        const actionRedone = typeof entry === "object" && entry?.name ? entry.name : "Action";
+        const rawJson = typeof entry === "object" && entry !== null && entry.snapshot ? entry.snapshot : entry;
+        const parsed = typeof rawJson === "string" ? JSON.parse(rawJson) : rawJson;
         if (Array.isArray(parsed)) {
             state.fields = parsed;
         } else {
@@ -109,7 +149,9 @@ export function redo(onRestore) {
             state.groups = parsed.groups || [];
         }
         if (onRestore) onRestore();
+        return actionRedone;
     }
+    return null;
 }
 
 export function exportProjectJson(customFileName) {

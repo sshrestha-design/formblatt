@@ -15,16 +15,16 @@ export function makeScrubbableAndScrollable(inputEl, labelEl = null, { min = 1, 
     if (!inputEl) return;
 
     if (!labelEl) {
-        labelEl = inputEl.closest(".form-group")?.querySelector("label") || inputEl.previousElementSibling;
+        labelEl = inputEl.closest(".prop-field")?.querySelector("label") || inputEl.closest(".form-group")?.querySelector("label") || inputEl.previousElementSibling;
     }
 
     // 1. Mouse Wheel / Trackpad Scroll in Number Input
     inputEl.addEventListener("wheel", e => {
         e.preventDefault();
         const currentVal = parseFloat(inputEl.value) || min;
-        const multiplier = e.shiftKey ? 10 : 1;
+        const multiplier = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
         const dir = e.deltaY < 0 ? 1 : -1;
-        const newVal = Math.max(min, Math.min(max, currentVal + dir * step * multiplier));
+        const newVal = Math.max(min, Math.min(max, Math.round((currentVal + dir * step * multiplier) * 10) / 10));
         inputEl.value = newVal;
         inputEl.dispatchEvent(new Event("input", { bubbles: true }));
         if (onUpdate) onUpdate(newVal);
@@ -33,29 +33,47 @@ export function makeScrubbableAndScrollable(inputEl, labelEl = null, { min = 1, 
     // 2. Click & Drag Scrubbing on Label
     if (labelEl) {
         labelEl.classList.add("scrubbable");
-        labelEl.title = "Click & drag left/right to adjust value, or scroll with mouse wheel";
+        labelEl.title = "Click & drag left/right to scrub value (Shift: 10x, Alt: 0.1x)";
 
         labelEl.addEventListener("mousedown", e => {
             if (e.button !== 0) return;
             e.preventDefault();
             const startX = e.clientX;
-            const startVal = parseFloat(inputEl.value) || min;
+            const startVal = parseFloat(inputEl.value) || 0;
             document.body.classList.add("is-scrubbing");
+
+            const labelText = labelEl.textContent.replace(/[↔\s\(px\)pt]/gi, "").trim() || "Value";
+            let hud = document.getElementById("vernierHud");
+            if (!hud) {
+                hud = document.createElement("div");
+                hud.id = "vernierHud";
+                hud.className = "vernier-hud";
+                document.body.appendChild(hud);
+            }
 
             let hasMoved = false;
 
             const onMouseMove = ev => {
                 const deltaX = ev.clientX - startX;
-                if (Math.abs(deltaX) > 2) hasMoved = true;
+                if (Math.abs(deltaX) > 1) hasMoved = true;
                 const multiplier = ev.shiftKey ? 10 : (ev.altKey ? 0.1 : 1);
-                const newVal = Math.max(min, Math.min(max, Math.round(startVal + deltaX * (step * 0.5) * multiplier)));
+                const rawVal = startVal + deltaX * (step * 0.5) * multiplier;
+                const newVal = Math.max(min, Math.min(max, Math.round(rawVal)));
                 inputEl.value = newVal;
                 inputEl.dispatchEvent(new Event("input", { bubbles: true }));
                 if (onUpdate) onUpdate(newVal);
+
+                const delta = newVal - startVal;
+                const deltaSign = delta > 0 ? `+${delta}` : `${delta}`;
+                hud.innerHTML = `<span class="vernier-axis">${labelText}:</span> <span class="vernier-val">${newVal}</span> ${delta !== 0 ? `<span class="vernier-delta">(Δ${deltaSign})</span>` : ""}`;
+                hud.style.left = `${ev.clientX + 14}px`;
+                hud.style.top = `${ev.clientY - 28}px`;
+                hud.classList.add("visible");
             };
 
             const onMouseUp = () => {
                 document.body.classList.remove("is-scrubbing");
+                if (hud) hud.classList.remove("visible");
                 window.removeEventListener("mousemove", onMouseMove);
                 window.removeEventListener("mouseup", onMouseUp);
                 if (hasMoved) {
@@ -83,17 +101,19 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const textAlignmentSelect = document.getElementById("textAlignment");
     const borderStyleSelect = document.getElementById("fieldBorderStyle") || document.getElementById("borderStyleSelect");
     const fillStyleSelect = document.getElementById("fieldFillStyle") || document.getElementById("fillStyleSelect");
+    const posXInput = document.getElementById("posX");
+    const posYInput = document.getElementById("posY");
     const widthInput = document.getElementById("width");
     const heightInput = document.getElementById("height");
     const dropdownOptions = document.getElementById("dropdownOptions");
     const fieldDefaultChecked = document.getElementById("fieldDefaultChecked");
     const fieldCheckboxMark = document.getElementById("fieldCheckboxMark");
 
-    const syncChange = (updater, immediate = false) => {
+    const syncChange = (updater, immediate = false, actionName = null) => {
         const field = getSelectedField();
         if (!field) return;
         updater(field);
-        saveHistory(immediate);
+        saveHistory(immediate, actionName);
         if (onFieldUpdated) onFieldUpdated(field);
     };
 
@@ -119,13 +139,13 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
             field.height = Math.max(field.height, 28);
         }
 
-        saveHistory(true);
+        saveHistory(true, `Change Field Type to ${newType}`);
         populateProperties(field);
         if (onFieldUpdated) onFieldUpdated(field);
     });
 
     const fieldAutofill = document.getElementById("fieldAutofill");
-    fieldAutofill?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true));
+    fieldAutofill?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true, "Set Autofill Token"));
 
     const updateHeaderFieldName = (val) => {
         const badge = document.getElementById("propFieldTypeBadge");
@@ -141,7 +161,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         updateHeaderFieldName(e.target.value);
     });
     fieldNameInput?.addEventListener("change", e => {
-        syncChange(f => f.name = e.target.value, true);
+        syncChange(f => f.name = e.target.value, true, "Rename Field");
         updateHeaderFieldName(e.target.value);
     });
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => {
@@ -155,8 +175,8 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         if (f.type === "staticText" || f.type === "label") {
             f.label = e.target.value;
         }
-    }, true));
-    fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value, true));
+    }, true, "Set Default Value"));
+    fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value, true, "Change Font Family"));
     
     fontSizeInput?.addEventListener("input", e => {
         const raw = e.target.value.trim();
@@ -170,7 +190,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         const raw = e.target.value.trim();
         const val = raw === "" ? null : parseInt(raw);
         if (val === null || (val >= 6 && val <= 120)) {
-            syncChange(f => f.fontSize = val, true);
+            syncChange(f => f.fontSize = val, true, "Set Font Size");
         }
     });
 
@@ -179,29 +199,37 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
             const size = parseInt(btn.dataset.size);
             if (fontSizeInput) fontSizeInput.value = size;
             updateQuickSizeButtons(size, "quick-size-btn");
-            syncChange(f => f.fontSize = size, true);
+            syncChange(f => f.fontSize = size, true, `Set Font Size to ${size}pt`);
         });
     });
 
-    textAlignmentSelect?.addEventListener("change", e => syncChange(f => f.textAlignment = e.target.value, true));
-    borderStyleSelect?.addEventListener("change", e => syncChange(f => f.borderStyle = e.target.value, true));
-    fillStyleSelect?.addEventListener("change", e => syncChange(f => f.fillStyle = e.target.value, true));
+    textAlignmentSelect?.addEventListener("change", e => syncChange(f => f.textAlignment = e.target.value, true, "Change Text Alignment"));
+    borderStyleSelect?.addEventListener("change", e => syncChange(f => f.borderStyle = e.target.value, true, "Change Border Style"));
+    fillStyleSelect?.addEventListener("change", e => syncChange(f => f.fillStyle = e.target.value, true, "Change Fill Style"));
+    
+    posXInput?.addEventListener("input", e => syncChange(f => f.x = parseFloat(e.target.value) || 0, false));
+    posXInput?.addEventListener("change", e => syncChange(f => f.x = parseFloat(e.target.value) || 0, true, "Position X"));
+    posYInput?.addEventListener("input", e => syncChange(f => f.y = parseFloat(e.target.value) || 0, false));
+    posYInput?.addEventListener("change", e => syncChange(f => f.y = parseFloat(e.target.value) || 0, true, "Position Y"));
+
     widthInput?.addEventListener("input", e => syncChange(f => f.width = Math.max(16, parseInt(e.target.value) || f.width), false));
-    widthInput?.addEventListener("change", e => syncChange(f => f.width = Math.max(16, parseInt(e.target.value) || f.width), true));
+    widthInput?.addEventListener("change", e => syncChange(f => f.width = Math.max(16, parseInt(e.target.value) || f.width), true, "Set Width"));
     heightInput?.addEventListener("input", e => syncChange(f => f.height = Math.max(16, parseInt(e.target.value) || f.height), false));
-    heightInput?.addEventListener("change", e => syncChange(f => f.height = Math.max(16, parseInt(e.target.value) || f.height), true));
-    fieldRequired?.addEventListener("change", e => syncChange(f => f.required = e.target.checked, true));
-    fieldReadOnly?.addEventListener("change", e => syncChange(f => f.readOnly = e.target.checked, true));
-    fieldMultiline?.addEventListener("change", e => syncChange(f => f.multiline = e.target.checked, true));
+    heightInput?.addEventListener("change", e => syncChange(f => f.height = Math.max(16, parseInt(e.target.value) || f.height), true, "Set Height"));
+    fieldRequired?.addEventListener("change", e => syncChange(f => f.required = e.target.checked, true, "Toggle Required"));
+    fieldReadOnly?.addEventListener("change", e => syncChange(f => f.readOnly = e.target.checked, true, "Toggle Read Only"));
+    fieldMultiline?.addEventListener("change", e => syncChange(f => f.multiline = e.target.checked, true, "Toggle Multiline"));
     fieldMaxLength?.addEventListener("input", e => syncChange(f => f.maxLength = parseInt(e.target.value) || null, false));
-    fieldMaxLength?.addEventListener("change", e => syncChange(f => f.maxLength = parseInt(e.target.value) || null, true));
+    fieldMaxLength?.addEventListener("change", e => syncChange(f => f.maxLength = parseInt(e.target.value) || null, true, "Set Max Length"));
     fieldTooltip?.addEventListener("input", e => syncChange(f => f.tooltip = e.target.value, false));
-    fieldTooltip?.addEventListener("change", e => syncChange(f => f.tooltip = e.target.value, true));
-    autofillType?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true));
-    fieldDefaultChecked?.addEventListener("change", e => syncChange(f => f.defaultChecked = e.target.checked, true));
-    fieldCheckboxMark?.addEventListener("change", e => syncChange(f => f.checkboxMark = e.target.value, true));
+    fieldTooltip?.addEventListener("change", e => syncChange(f => f.tooltip = e.target.value, true, "Set Tooltip"));
+    autofillType?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true, "Set Autofill"));
+    fieldDefaultChecked?.addEventListener("change", e => syncChange(f => f.defaultChecked = e.target.checked, true, "Toggle Checked"));
+    fieldCheckboxMark?.addEventListener("change", e => syncChange(f => f.checkboxMark = e.target.value, true, "Set Checkbox Style"));
 
     // Enable Scrubbing and Scrolling on Number Inputs
+    makeScrubbableAndScrollable(posXInput, null, { min: -2000, max: 5000, step: 1 });
+    makeScrubbableAndScrollable(posYInput, null, { min: -2000, max: 5000, step: 1 });
     makeScrubbableAndScrollable(widthInput, null, { min: 16, max: 2000, step: 1 });
     makeScrubbableAndScrollable(heightInput, null, { min: 16, max: 1000, step: 1 });
     makeScrubbableAndScrollable(fontSizeInput, null, { min: 6, max: 120, step: 1 });
@@ -457,7 +485,7 @@ export function populateProperties(field) {
             "fieldType", "fieldName", "fieldDefaultValue", "fieldFontFamily", "fontSize",
             "textAlignment", "fieldTooltip", "autofillType", "fieldAutofill",
             "fieldBorderStyle", "borderStyleSelect", "fieldFillStyle", "fillStyleSelect",
-            "width", "height", "dropdownOptions"
+            "posX", "posY", "width", "height", "dropdownOptions"
         ].forEach(clearText);
 
         [
@@ -505,6 +533,8 @@ export function populateProperties(field) {
     setVal("borderStyleSelect", fallbackField.borderStyle || "solid");
     setVal("fieldFillStyle", fallbackField.fillStyle || "white");
     setVal("fillStyleSelect", fallbackField.fillStyle || "white");
+    setVal("posX", Math.round(fallbackField.x ?? 0));
+    setVal("posY", Math.round(fallbackField.y ?? 0));
     setVal("width", fallbackField.width || "");
     setVal("height", fallbackField.height || "");
     setChecked("fieldRequired", fallbackField.required);

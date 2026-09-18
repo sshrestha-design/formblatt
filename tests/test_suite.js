@@ -1264,6 +1264,50 @@ async function runAllTests() {
         assert.equal(loaded.getPageCount(), 1);
     });
 
+    // ── SUITE 22: About Face Interaction Design Enhancements ──
+    console.log("\n🎨 Suite 22: About Face Interaction Design Enhancements");
+
+    it("Named history actions record action descriptors and support undo/redo queries", async () => {
+        const { state } = await import(path.join(WEB_DIR, 'js', 'state.js'));
+        const { saveHistory, undo, redo, getUndoActionName, getRedoActionName } = await import(path.join(WEB_DIR, 'js', 'storage-manager.js'));
+        
+        state.history = [];
+        state.historyIndex = -1;
+        state.fields = [{ id: "f1", x: 10, y: 10, width: 100, height: 30 }];
+        
+        saveHistory(true, "Initial State");
+        assert.equal(state.historyIndex, 0);
+
+        state.fields = [{ id: "f1", x: 50, y: 10, width: 100, height: 30 }];
+        saveHistory(true, "Move Field");
+        assert.equal(state.historyIndex, 1);
+        assert.equal(getUndoActionName(), "Move Field");
+
+        state.fields = [{ id: "f1", x: 50, y: 10, width: 150, height: 30 }];
+        saveHistory(true, "Resize Width to 150px");
+        assert.equal(state.historyIndex, 2);
+        assert.equal(getUndoActionName(), "Resize Width to 150px");
+
+        const undoneAction = undo();
+        assert.equal(undoneAction, "Resize Width to 150px");
+        assert.equal(state.historyIndex, 1);
+        assert.equal(state.fields[0].width, 100);
+        assert.equal(getRedoActionName(), "Resize Width to 150px");
+
+        const redoneAction = redo();
+        assert.equal(redoneAction, "Resize Width to 150px");
+        assert.equal(state.historyIndex, 2);
+        assert.equal(state.fields[0].width, 150);
+    });
+
+    it("index.html contains posX and posY position inputs with scrubbable labels", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="posX"'), "index.html must include #posX input");
+        assert.ok(indexHtml.includes('id="posY"'), "index.html must include #posY input");
+        assert.ok(/<label[^>]*class="[^"]*scrubbable[^"]*"[^>]*for="posX"|<label[^>]*for="posX"[^>]*class="[^"]*scrubbable/.test(indexHtml), "#posX label must have scrubbable class");
+        assert.ok(/<label[^>]*class="[^"]*scrubbable[^"]*"[^>]*for="posY"|<label[^>]*for="posY"[^>]*class="[^"]*scrubbable/.test(indexHtml), "#posY label must have scrubbable class");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);
