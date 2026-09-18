@@ -1221,8 +1221,9 @@ export function initEditorSubsystems() {
         });
     }
 
-    // Initialize Draggable Panel Resizers
+    // Initialize Draggable Panel Resizers & Edge Hover Peek Tabs
     initPanelResizers();
+    initEdgePeekTabs();
     initMobileEditorLayout();
 }
 
@@ -1593,4 +1594,43 @@ function showUndoToast(msg) {
     window.undoToastTimeout = setTimeout(() => {
         if (toast) toast.style.display = "none";
     }, 4500);
+}
+
+function initEdgePeekTabs() {
+    const workspace = document.querySelector(".workspace");
+    const leftTrigger = document.getElementById("leftEdgeTrigger");
+    const rightTrigger = document.getElementById("rightEdgeTrigger");
+    const leftPanel = document.querySelector(".left-panel");
+    const rightPanel = document.querySelector(".right-panel");
+
+    leftTrigger?.addEventListener("click", (e) => {
+        if (e.target.closest("#leftEdgePeekTab") || e.currentTarget === leftTrigger) {
+            triggerHaptic();
+            toggleLeftSidebar();
+        }
+    });
+
+    rightTrigger?.addEventListener("click", (e) => {
+        if (e.target.closest("#rightEdgePeekTab") || e.currentTarget === rightTrigger) {
+            triggerHaptic();
+            toggleRightSidebar();
+        }
+    });
+
+    if (workspace) {
+        workspace.addEventListener("pointermove", (e) => {
+            const rect = workspace.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const isNearLeft = x >= 0 && x <= 40 && leftPanel?.classList.contains("collapsed");
+            const isNearRight = (rect.width - x) >= 0 && (rect.width - x) <= 40 && rightPanel?.classList.contains("collapsed");
+
+            leftTrigger?.classList.toggle("is-peek-active", !!isNearLeft);
+            rightTrigger?.classList.toggle("is-peek-active", !!isNearRight);
+        });
+
+        workspace.addEventListener("pointerleave", () => {
+            leftTrigger?.classList.remove("is-peek-active");
+            rightTrigger?.classList.remove("is-peek-active");
+        });
+    }
 }
