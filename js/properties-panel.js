@@ -87,6 +87,22 @@ export function makeScrubbableAndScrollable(inputEl, labelEl = null, { min = 1, 
     }
 }
 
+export function sanitizePdfFieldName(name) {
+    if (!name || typeof name !== "string") return "field_1";
+    let sanitized = name
+        .trim()
+        .toLowerCase()
+        .replace(/[^\w\s-]/g, "")
+        .replace(/[\s-]+/g, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    if (!sanitized) return "field_1";
+    if (/^\d/.test(sanitized)) {
+        sanitized = `f_${sanitized}`;
+    }
+    return sanitized;
+}
+
 export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const fieldNameInput = document.getElementById("fieldName");
     const fieldDefaultVal = document.getElementById("fieldDefaultValue");
@@ -161,8 +177,10 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         updateHeaderFieldName(e.target.value);
     });
     fieldNameInput?.addEventListener("change", e => {
-        syncChange(f => f.name = e.target.value, true, "Rename Field");
-        updateHeaderFieldName(e.target.value);
+        const clean = sanitizePdfFieldName(e.target.value);
+        e.target.value = clean;
+        syncChange(f => f.name = clean, true, "Rename Field");
+        updateHeaderFieldName(clean);
     });
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => {
         f.defaultValue = e.target.value;
