@@ -1070,6 +1070,17 @@ async function runAllTests() {
         const form = verifiedDoc.getForm();
         const compiledFields = form.getFields();
         assert.ok(compiledFields.length >= 6, `AcroForm must have compiled fields (found ${compiledFields.length})`);
+
+        // Test Re-exporting and Flattening with zero call stack overflow
+        const reExported = await buildPdf(outputBytes, [
+            { id: "f1", name: "FullName", type: "textField", page: 1, x: 50, y: 100, width: 200, height: 24, value: "Jane Doe" }
+        ], { flatten: false });
+        assert.ok(reExported && reExported.length > 0, "Re-exported PDF must succeed without stack overflow");
+
+        const flattened = await buildPdf(outputBytes, [
+            { id: "f1", name: "FullName", type: "textField", page: 1, x: 50, y: 100, width: 200, height: 24, value: "Jane Doe" }
+        ], { flatten: true });
+        assert.ok(flattened && flattened.length > 0, "Flattened PDF must succeed without stack overflow");
     });
 
     it("Storage manager serializes snapshots and manages undo/redo stack accurately", async () => {

@@ -565,11 +565,87 @@ async function detectTableGridLines(page) {
         return merged;
     }
 
+    async function getVectorBoundaryLines(page, scale = 2) {
+        const result = { horizontal: [], vertical: [] };
+        if (!page.getOperatorList || typeof pdfjsLib === "undefined" || !pdfjsLib.OPS) return result;
+
+        let operatorList;
+        try {
+            operatorList = await page.getOperatorList();
+        } catch (err) {
+            console.warn("Could not read PDF drawing operators:", err);
+            return result;
+        }
+
+        const OPS = pdfjsLib.OPS;
+        const stack = [];
+        let matrix = [1, 0, 0, 1, 0, 0];
+        let pathStart = null;
+        let current = null;
+        const multiply = (left, right) => [
+            left[0] * right[0] + left[2] * right[1],
+            left[1] * right[0] + left[3] * right[1],
+            left[0] * right[2] + left[2] * right[3],
+            left[1] * right[2] + left[3] * right[3],
+            left[0] * right[4] + left[2] * right[5] + left[4],
+            left[1] * right[4] + left[3] * right[5] + left[5]
+        ];
+        const point = (x, y) => {
+            const pdfPoint = [
+                matrix[0] * x + matrix[2] * y + matrix[4],
+                matrix[1] * x + matrix[3] * y + matrix[5]
+            ];
+            const viewportPoint = page.getViewport({ scale }).convertToViewportPoint(...pdfPoint);
+            return { x: viewportPoint[0], y: viewportPoint[1] };
+        };
+        const addSegment = (a, b) => {
+            if (!a || !b) return;
+            const dx = Math.abs(a.x - b.x);
+            const dy = Math.abs(a.y - b.y);
+            if (dx >= 80 && dy <= 3) result.horizontal.push({ offset: Math.round((a.y + b.y) / 2), start: Math.round(Math.min(a.x, b.x)), end: Math.round(Math.max(a.x, b.x)) });
+            if (dy >= 80 && dx <= 3) result.vertical.push({ offset: Math.round((a.x + b.x) / 2), start: Math.round(Math.min(a.y, b.y)), end: Math.round(Math.max(a.y, b.y)) });
+        };
+
+        for (let i = 0; i < operatorList.fnArray.length; i++) {
+            const fn = operatorList.fnArray[i];
+            const args = operatorList.argsArray[i] || [];
+            if (fn === OPS.save) stack.push(matrix);
+            else if (fn === OPS.restore) matrix = stack.pop() || matrix;
+            else if (fn === OPS.transform) matrix = multiply(matrix, args);
+            else if (fn === OPS.moveTo) {
+                current = point(args[0], args[1]);
+                pathStart = current;
+            } else if (fn === OPS.lineTo) {
+                const next = point(args[0], args[1]);
+                addSegment(current, next);
+                current = next;
+            } else if (fn === OPS.rectangle) {
+                const [x, y, w, h] = args;
+                const p1 = point(x, y), p2 = point(x + w, y);
+                const p3 = point(x + w, y + h), p4 = point(x, y + h);
+                addSegment(p1, p2);
+                addSegment(p2, p3);
+                addSegment(p3, p4);
+                addSegment(p4, p1);
+                current = p1;
+                pathStart = p1;
+            } else if (fn === OPS.closePath && current && pathStart) {
+                addSegment(current, pathStart);
+                current = pathStart;
+            }
+        }
+        return result;
+    }
+
     const horizontalLines = findLineSegments(MIN_BOUNDARY_RUN, true);
     const verticalLines = findLineSegments(MIN_BOUNDARY_RUN, false);
     const vectorLines = await getVectorBoundaryLines(page, RENDER_SCALE);
-    horizontalLines.push(...vectorLines.horizontal);
-    verticalLines.push(...vectorLines.vertical);
+    if (vectorLines?.horizontal?.length) {
+        for (const l of vectorLines.horizontal) horizontalLines.push(l);
+    }
+    if (vectorLines?.vertical?.length) {
+        for (const l of vectorLines.vertical) verticalLines.push(l);
+    }
 
     function mergeAdjacent(candidates, maxGap = 3) {
         const merged = [];
@@ -582,78 +658,6 @@ async function detectTableGridLines(page) {
             } else {
                 merged.push(Math.round((clusterStart + clusterEnd) / 2));
                 clusterStart = clusterEnd = c;
-            }
-
-            async function getVectorBoundaryLines(page, scale = 2) {
-                const result = { horizontal: [], vertical: [] };
-                if (!page.getOperatorList || typeof pdfjsLib === "undefined" || !pdfjsLib.OPS) return result;
-
-                let operatorList;
-                try {
-                    operatorList = await page.getOperatorList();
-                } catch (err) {
-                    console.warn("Could not read PDF drawing operators:", err);
-                    return result;
-                }
-
-                const OPS = pdfjsLib.OPS;
-                const stack = [];
-                let matrix = [1, 0, 0, 1, 0, 0];
-                let pathStart = null;
-                let current = null;
-                const multiply = (left, right) => [
-                    left[0] * right[0] + left[2] * right[1],
-                    left[1] * right[0] + left[3] * right[1],
-                    left[0] * right[2] + left[2] * right[3],
-                    left[1] * right[2] + left[3] * right[3],
-                    left[0] * right[4] + left[2] * right[5] + left[4],
-                    left[1] * right[4] + left[3] * right[5] + left[5]
-                ];
-                const point = (x, y) => {
-                    const pdfPoint = [
-                        matrix[0] * x + matrix[2] * y + matrix[4],
-                        matrix[1] * x + matrix[3] * y + matrix[5]
-                    ];
-                    const viewportPoint = page.getViewport({ scale }).convertToViewportPoint(...pdfPoint);
-                    return { x: viewportPoint[0], y: viewportPoint[1] };
-                };
-                const addSegment = (a, b) => {
-                    if (!a || !b) return;
-                    const dx = Math.abs(a.x - b.x);
-                    const dy = Math.abs(a.y - b.y);
-                    if (dx >= 80 && dy <= 3) result.horizontal.push({ offset: Math.round((a.y + b.y) / 2), start: Math.round(Math.min(a.x, b.x)), end: Math.round(Math.max(a.x, b.x)) });
-                    if (dy >= 80 && dx <= 3) result.vertical.push({ offset: Math.round((a.x + b.x) / 2), start: Math.round(Math.min(a.y, b.y)), end: Math.round(Math.max(a.y, b.y)) });
-                };
-
-                for (let i = 0; i < operatorList.fnArray.length; i++) {
-                    const fn = operatorList.fnArray[i];
-                    const args = operatorList.argsArray[i] || [];
-                    if (fn === OPS.save) stack.push(matrix);
-                    else if (fn === OPS.restore) matrix = stack.pop() || matrix;
-                    else if (fn === OPS.transform) matrix = multiply(matrix, args);
-                    else if (fn === OPS.moveTo) {
-                        current = point(args[0], args[1]);
-                        pathStart = current;
-                    } else if (fn === OPS.lineTo) {
-                        const next = point(args[0], args[1]);
-                        addSegment(current, next);
-                        current = next;
-                    } else if (fn === OPS.rectangle) {
-                        const [x, y, w, h] = args;
-                        const p1 = point(x, y), p2 = point(x + w, y);
-                        const p3 = point(x + w, y + h), p4 = point(x, y + h);
-                        addSegment(p1, p2);
-                        addSegment(p2, p3);
-                        addSegment(p3, p4);
-                        addSegment(p4, p1);
-                        current = p1;
-                        pathStart = p1;
-                    } else if (fn === OPS.closePath && current && pathStart) {
-                        addSegment(current, pathStart);
-                        current = pathStart;
-                    }
-                }
-                return result;
             }
         }
         if (clusterStart !== null) merged.push(Math.round((clusterStart + clusterEnd) / 2));
