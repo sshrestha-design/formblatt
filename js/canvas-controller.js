@@ -9,6 +9,70 @@ let hAlignLine, vAlignLine, selectionBox, ghostElement;
 let isDrawingField = false;
 let drawStart = null;
 
+let vernierHudEl = null;
+let vernierHideTimer = null;
+
+export function showVernierHud(anchorElOrPos, htmlContent, durationMs = 0) {
+    if (!vernierHudEl) {
+        vernierHudEl = document.createElement("div");
+        vernierHudEl.className = "vernier-hud";
+        vernierHudEl.id = "vernierHud";
+        document.body.appendChild(vernierHudEl);
+    }
+    if (vernierHideTimer) {
+        clearTimeout(vernierHideTimer);
+        vernierHideTimer = null;
+    }
+    vernierHudEl.innerHTML = htmlContent;
+    vernierHudEl.classList.add("visible");
+
+    let left = window.innerWidth / 2;
+    let top = window.innerHeight - 80;
+
+    if (anchorElOrPos) {
+        if (typeof anchorElOrPos.getBoundingClientRect === "function") {
+            const r = anchorElOrPos.getBoundingClientRect();
+            left = r.left + r.width / 2;
+            top = r.bottom + 8;
+        } else if (typeof anchorElOrPos.x === "number" && typeof anchorElOrPos.y === "number") {
+            left = anchorElOrPos.x;
+            top = anchorElOrPos.y + 16;
+        }
+    }
+
+    const w = vernierHudEl.offsetWidth || 130;
+    const h = vernierHudEl.offsetHeight || 28;
+    const clampedLeft = Math.max(12, Math.min(window.innerWidth - w - 12, left - w / 2));
+    let clampedTop = top;
+    if (clampedTop + h > window.innerHeight - 12) {
+        if (anchorElOrPos && typeof anchorElOrPos.getBoundingClientRect === "function") {
+            clampedTop = anchorElOrPos.getBoundingClientRect().top - h - 8;
+        } else if (anchorElOrPos && typeof anchorElOrPos.y === "number") {
+            clampedTop = anchorElOrPos.y - h - 12;
+        }
+    }
+    clampedTop = Math.max(12, clampedTop);
+
+    vernierHudEl.style.left = `${clampedLeft}px`;
+    vernierHudEl.style.top = `${clampedTop}px`;
+
+    if (durationMs > 0) {
+        vernierHideTimer = setTimeout(() => {
+            hideVernierHud();
+        }, durationMs);
+    }
+}
+
+export function hideVernierHud() {
+    if (vernierHideTimer) {
+        clearTimeout(vernierHideTimer);
+        vernierHideTimer = null;
+    }
+    if (vernierHudEl) {
+        vernierHudEl.classList.remove("visible");
+    }
+}
+
 const TOOL_DISPLAY_INFO = {
     staticText: { name: "Text / Heading", icon: "A", placeholder: "Heading Text" },
     textField: { name: "Text Field", icon: "T", placeholder: "Text Field" },
@@ -171,6 +235,13 @@ function handleFieldDrag(e, container, handlers) {
             f.y = Math.max(0, Math.round(init.y + dy + snapDy));
         }
     });
+
+    if (primaryField) {
+        const overlayEl = document.getElementById(`overlay_${primaryField.id}`);
+        const countInfo = state.selectedFieldIds.size > 1 ? `<span class="vernier-count">(${state.selectedFieldIds.size} items)</span>` : "";
+        const altInfo = e.altKey ? `<span class="vernier-delta">[+] Copy</span>` : "";
+        showVernierHud(overlayEl || { x: e.clientX, y: e.clientY }, `<span class="vernier-axis">X</span> <span class="vernier-val">${primaryField.x}</span> <span class="vernier-axis">Y</span> <span class="vernier-val">${primaryField.y}</span> ${countInfo} ${altInfo}`);
+    }
 
     handlers.onFieldMoving();
 }
@@ -905,11 +976,14 @@ export function initCanvasController(handlers) {
         if (state.isDragging) {
             state.isDragging = false;
             hideGuides();
+            hideVernierHud();
+            document.querySelectorAll(".field-overlay.is-alt-duplicating").forEach(el => el.classList.remove("is-alt-duplicating"));
             saveHistory(true);
             handlers.onFieldUpdated();
         }
         if (state.isResizing) {
             state.isResizing = false;
+            hideVernierHud();
             saveHistory(true);
             handlers.onFieldUpdated();
         }
@@ -939,11 +1013,14 @@ export function initCanvasController(handlers) {
         if (state.isDragging) {
             state.isDragging = false;
             hideGuides();
+            hideVernierHud();
+            document.querySelectorAll(".field-overlay.is-alt-duplicating").forEach(el => el.classList.remove("is-alt-duplicating"));
             saveHistory(true);
             handlers.onFieldUpdated();
         }
         if (state.isResizing) {
             state.isResizing = false;
+            hideVernierHud();
             saveHistory(true);
             handlers.onFieldUpdated();
         }
@@ -1110,11 +1187,9 @@ export function handleFieldMouseDown(e, field, handlers) {
                 });
             });
         } else {
-            const nameInput = document.getElementById("fieldName");
-            if (nameInput) {
-                nameInput.focus();
-                nameInput.select();
-            }
+            import("./overlay-manager.js").then(mod => {
+                mod.startInlineTextEdit?.(field.id, handlers);
+            });
         }
         return;
     }
@@ -1149,6 +1224,10 @@ export function handleFieldMouseDown(e, field, handlers) {
         state.isDuplicating = true;
         duplicateSelectedFields();
         handlers.onSelectionChange();
+        state.selectedFieldIds.forEach(id => {
+            const overlay = document.getElementById(`overlay_${id}`);
+            if (overlay) overlay.classList.add("is-alt-duplicating");
+        });
     } else {
         state.isDuplicating = false;
     }
@@ -1297,6 +1376,12 @@ function handleFieldResize(e, handlers) {
         showGuides(snaps.guidesX, snaps.guidesY, snaps.snapPointX, snaps.snapPointY, snaps.spacingX, snaps.spacingY, pageWidth, pageHeight);
     } else {
         hideGuides();
+    }
+
+    if (field) {
+        const overlayEl = document.getElementById(`overlay_${field.id}`);
+        const countInfo = state.selectedFieldIds.size > 1 ? `<span class="vernier-count">(${state.selectedFieldIds.size} items)</span>` : "";
+        showVernierHud(overlayEl || { x: e.clientX, y: e.clientY }, `<span class="vernier-axis">W</span> <span class="vernier-val">${field.width}</span> <span class="vernier-axis">H</span> <span class="vernier-val">${field.height}</span> ${countInfo}`);
     }
 
     handlers.onFieldMoving();
