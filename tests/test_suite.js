@@ -272,6 +272,50 @@ async function runAllTests() {
         assert.equal(global.localStorage.getItem("justforms_guides_enabled"), "false");
     });
 
+    it("Dropdown choices management: add, reorder, delete, and default value tracking", () => {
+        const ddField = {
+            id: "dd_test_1",
+            name: "country_select",
+            type: "dropdown",
+            options: ["USA", "Germany", "France"],
+            defaultValue: "USA",
+            x: 50,
+            y: 50,
+            width: 150,
+            height: 25,
+            page: 1
+        };
+        state.fields = [ddField];
+        setSelectedField("dd_test_1");
+
+        // 1. Add single item
+        ddField.options.push("Japan");
+        assert.equal(ddField.options.length, 4);
+        assert.equal(ddField.options[3], "Japan");
+
+        // 2. Reorder Up (swap index 3 and 2)
+        let temp = ddField.options[3];
+        ddField.options[3] = ddField.options[2];
+        ddField.options[2] = temp;
+        assert.deepEqual(ddField.options, ["USA", "Germany", "Japan", "France"]);
+
+        // 3. Reorder Down (swap index 0 and 1)
+        temp = ddField.options[0];
+        ddField.options[0] = ddField.options[1];
+        ddField.options[1] = temp;
+        assert.deepEqual(ddField.options, ["Germany", "USA", "Japan", "France"]);
+
+        // 4. Delete item that is default value
+        const deletedIdx = 1; // "USA"
+        const deletedVal = ddField.options[deletedIdx];
+        ddField.options.splice(deletedIdx, 1);
+        if (ddField.defaultValue === deletedVal) {
+            ddField.defaultValue = ddField.options[0] || "";
+        }
+        assert.equal(ddField.defaultValue, "Germany");
+        assert.deepEqual(ddField.options, ["Germany", "Japan", "France"]);
+    });
+
     // ── SUITE 3: Constants & Tool Definitions ──
     console.log("\n⚙️ Suite 3: Constants & Default Definitions");
     const { DEFAULT_FIELD_SIZES, AUTOFILL_TYPES } = await import(path.join(WEB_DIR, 'js', 'constants.js'));

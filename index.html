@@ -1431,13 +1431,51 @@
                             <input type="text" id="fieldDefaultValue" class="prop-input" placeholder="Placeholder or default text">
                         </div>
 
-                        <!-- Dropdown Options (when dropdown selected) -->
+                        <!-- Dropdown Options (Adobe Acrobat Style Choices Manager) -->
                         <div class="prop-field" id="dropdownOptionsGroup" style="display: none;">
                             <div class="prop-label-row">
-                                <label class="prop-label" for="dropdownOptions">Dropdown Options</label>
-                                <span id="dropdownOptionsCount" class="prop-meta-badge">0 items</span>
+                                <label class="prop-label">Dropdown Choices</label>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span id="dropdownOptionsCount" class="prop-meta-badge">0 items</span>
+                                    <button type="button" id="toggleDropdownViewModeBtn" class="prop-view-toggle-btn" title="Toggle bulk text edit / interactive list" aria-label="Toggle edit mode">
+                                        <i data-lucide="list" style="width: 12px; height: 12px;"></i>
+                                    </button>
+                                </div>
                             </div>
-                            <textarea id="dropdownOptions" class="prop-textarea" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3"></textarea>
+
+                            <!-- Add Single Choice Row -->
+                            <div class="dd-add-row" id="dropdownAddRow">
+                                <input type="text" id="newDropdownItemInput" class="prop-input dd-add-input" placeholder="Add choice..." aria-label="New dropdown option name">
+                                <button type="button" id="addDropdownItemBtn" class="dd-add-btn" title="Add item (Enter)" aria-label="Add option">
+                                    <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                                </button>
+                            </div>
+
+                            <!-- Adobe-style Interactive Choice List & Reordering -->
+                            <div class="dd-choices-container" id="dropdownChoicesContainer">
+                                <div class="dd-choices-list" id="dropdownChoicesList"></div>
+                                <div class="dd-choices-toolbar" id="dropdownChoicesToolbar">
+                                    <button type="button" id="ddMoveUpBtn" class="dd-tool-btn" title="Move Choice Up" aria-label="Move choice up" disabled>
+                                        <i data-lucide="arrow-up" style="width: 12px; height: 12px;"></i>
+                                        <span>Up</span>
+                                    </button>
+                                    <button type="button" id="ddMoveDownBtn" class="dd-tool-btn" title="Move Choice Down" aria-label="Move choice down" disabled>
+                                        <i data-lucide="arrow-down" style="width: 12px; height: 12px;"></i>
+                                        <span>Down</span>
+                                    </button>
+                                    <button type="button" id="ddDeleteSelectedBtn" class="dd-tool-btn danger" title="Delete Choice" aria-label="Delete choice" disabled>
+                                        <i data-lucide="trash-2" style="width: 12px; height: 12px;"></i>
+                                        <span>Delete</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Bulk Textarea Mode (Toggleable fallback) -->
+                            <div id="dropdownBulkEditContainer" style="display: none;">
+                                <textarea id="dropdownOptions" class="prop-textarea" rows="4" placeholder="Option 1&#10;Option 2&#10;Option 3" aria-label="Dropdown options bulk editor"></textarea>
+                            </div>
+
+                            <!-- Quick Presets -->
                             <div class="preset-pills-row">
                                 <button type="button" class="preset-pill-btn" data-preset="yes-no">Yes/No</button>
                                 <button type="button" class="preset-pill-btn" data-preset="titles">Mr/Ms/Dr</button>
