@@ -1492,7 +1492,9 @@ export function toggleLeftSidebar() {
         toggleBtn.innerHTML = isCollapsed
             ? `<i data-lucide="panel-left-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
             : `<i data-lucide="panel-left-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
-        if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+    if (typeof lucide !== "undefined") {
+        setTimeout(() => lucide.createIcons(), 10);
     }
 }
 if (typeof window !== "undefined") {
@@ -1517,7 +1519,9 @@ export function toggleRightSidebar() {
         toggleBtn.innerHTML = isCollapsed
             ? `<i data-lucide="panel-right-open" style="width: 14px; height: 14px; color: #2563eb;"></i>`
             : `<i data-lucide="panel-right-close" style="width: 14px; height: 14px; color: #475569;"></i>`;
-        if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+    if (typeof lucide !== "undefined") {
+        setTimeout(() => lucide.createIcons(), 10);
     }
 }
 if (typeof window !== "undefined") {
