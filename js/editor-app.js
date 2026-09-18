@@ -199,7 +199,7 @@ const canvasHandlers = {
 
 function ensureEditorStyles() {
     if (typeof document === "undefined") return;
-    ["styles/editor.css?v=16.0", "styles/canvas.css?v=16.0"].forEach(href => {
+    ["styles/editor.css?v=17.0", "styles/canvas.css?v=17.0"].forEach(href => {
         const base = href.split("?")[0];
         if (!document.querySelector(`link[href*="${base}"]`)) {
             const link = document.createElement("link");
@@ -1615,8 +1615,9 @@ function initEdgePeekTabs() {
         workspace.addEventListener("pointermove", (e) => {
             const rect = workspace.getBoundingClientRect();
             const x = e.clientX - rect.left;
-            const isNearLeft = x >= 0 && x <= 40 && leftPanel?.classList.contains("collapsed");
-            const isNearRight = (rect.width - x) >= 0 && (rect.width - x) <= 40 && rightPanel?.classList.contains("collapsed");
+            const y = e.clientY - rect.top;
+            const isNearLeft = x >= 0 && x <= 40 && y <= 200 && leftPanel?.classList.contains("collapsed");
+            const isNearRight = (rect.width - x) >= 0 && (rect.width - x) <= 40 && y <= 200 && rightPanel?.classList.contains("collapsed");
 
             leftTrigger?.classList.toggle("is-peek-active", !!isNearLeft);
             rightTrigger?.classList.toggle("is-peek-active", !!isNearRight);
