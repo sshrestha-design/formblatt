@@ -85,7 +85,7 @@ export function renderLayers(onSelect, onRerender) {
             <button type="button" class="group-toggle-btn" title="${isCollapsed ? 'Expand Group' : 'Collapse Group'}" style="flex-shrink: 0;">
                 <i data-lucide="${isCollapsed ? 'chevron-right' : 'chevron-down'}" style="width: 13px; height: 13px;"></i>
             </button>
-            <i data-lucide="${isCollapsed ? 'folder' : 'folder-open'}" class="group-folder-icon" style="width: 14px; height: 14px; color: ${isGroupAllSelected ? '#2563eb' : '#64748b'}; flex-shrink: 0;"></i>
+            <i data-lucide="${isCollapsed ? 'folder' : 'folder-open'}" class="group-folder-icon" style="width: 14px; height: 14px; color: #2563eb; flex-shrink: 0;"></i>
             <div style="flex: 1; min-width: 0; display: flex; align-items: center; gap: 4px; overflow: hidden;">
                 <span class="group-name" title="${escapeHtml(g.name || 'Group')} (Double-click to rename)" style="flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; cursor: pointer;">${escapeHtml(g.name || 'Group')}</span>
                 <button type="button" class="layer-rename-btn" title="Rename Group" style="flex-shrink: 0;">
@@ -595,7 +595,7 @@ export function updateLayerSelectionDOM() {
         if (header) {
             header.classList.toggle("selected", isGroupAllSelected);
             const icon = header.querySelector(".group-folder-icon");
-            if (icon) icon.style.color = isGroupAllSelected ? "#2563eb" : "#64748b";
+            if (icon) icon.style.color = "#2563eb";
         }
     });
 }
