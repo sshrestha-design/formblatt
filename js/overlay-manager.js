@@ -1,9 +1,10 @@
 // ── Canvas Overlay Rendering & Visual Elements (js/overlay-manager.js) ─
-import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "./state.js";
+import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder } from "./state.js";
 import { FIELD_TYPE_LABELS } from "./constants.js";
 import { openSignatureModal } from "./signature-pad.js";
 import { makeScrubbableAndScrollable, distributeSelectedFields } from "./properties-panel.js";
 import { saveHistory } from "./storage-manager.js";
+import { goToPage } from "./pdf-engine.js";
 
 export function getFieldCssFont(field) {
     let fam = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -71,7 +72,7 @@ export function renderOverlays(handlers) {
     if (!container) return;
     container.innerHTML = "";
 
-    const pageFields = getFieldsForCurrentPage();
+    const pageFields = sortFieldsByReadingOrder(getFieldsForCurrentPage());
 
     pageFields.forEach(f => {
         const div = document.createElement("div");
@@ -540,8 +541,35 @@ export function renderOverlays(handlers) {
             }
         });
 
-        div.addEventListener("keydown", e => {
-            if (e.key === "Enter" && !f.locked && !f.hidden) {
+        div.addEventListener("keydown", async e => {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                e.stopPropagation();
+                const activeFields = sortFieldsByReadingOrder(state.fields.filter(item => !item.hidden && !item.locked));
+                if (activeFields.length === 0) return;
+                const currentIdx = activeFields.findIndex(item => item.id === f.id);
+                const nextIdx = currentIdx === -1
+                    ? 0
+                    : (e.shiftKey ? (currentIdx - 1 + activeFields.length) % activeFields.length : (currentIdx + 1) % activeFields.length);
+                const targetField = activeFields[nextIdx];
+                if (targetField) {
+                    if (targetField.page && targetField.page !== state.currentPageNum) {
+                        await goToPage(targetField.page, () => {
+                            setSelectedField(targetField.id);
+                            if (handlers?.onSelect) handlers.onSelect(targetField);
+                            renderOverlays(handlers);
+                            const targetEl = document.getElementById(`overlay_${targetField.id}`);
+                            if (targetEl) targetEl.focus();
+                        });
+                    } else {
+                        setSelectedField(targetField.id);
+                        if (handlers?.onSelect) handlers.onSelect(targetField);
+                        renderOverlays(handlers);
+                        const targetEl = document.getElementById(`overlay_${targetField.id}`);
+                        if (targetEl) targetEl.focus();
+                    }
+                }
+            } else if (e.key === "Enter" && !f.locked && !f.hidden) {
                 e.preventDefault();
                 if (f.type === "signature" && !f.signatureImage) {
                     openSignatureModal(f, () => {
@@ -901,8 +929,36 @@ export function startInlineTextEdit(fieldId, handlers = {}) {
             syncDimensions();
         });
 
-        textarea.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
+        textarea.addEventListener("keydown", async (e) => {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(true);
+
+                const activeFields = sortFieldsByReadingOrder(state.fields.filter(item => !item.hidden && !item.locked));
+                if (activeFields.length > 0) {
+                    const currentIdx = activeFields.findIndex(item => item.id === field.id);
+                    const nextIdx = currentIdx === -1
+                        ? 0
+                        : (e.shiftKey ? (currentIdx - 1 + activeFields.length) % activeFields.length : (currentIdx + 1) % activeFields.length);
+                    const targetField = activeFields[nextIdx];
+                    if (targetField) {
+                        if (targetField.page && targetField.page !== state.currentPageNum) {
+                            await goToPage(targetField.page, () => {
+                                setSelectedField(targetField.id);
+                                if (handlers?.onSelect) handlers.onSelect(targetField);
+                                renderOverlays(handlers);
+                                startInlineTextEdit(targetField.id, handlers);
+                            });
+                        } else {
+                            setSelectedField(targetField.id);
+                            if (handlers?.onSelect) handlers.onSelect(targetField);
+                            renderOverlays(handlers);
+                            startInlineTextEdit(targetField.id, handlers);
+                        }
+                    }
+                }
+            } else if (e.key === "Escape") {
                 e.preventDefault();
                 e.stopPropagation();
                 commitEdit(true);
@@ -996,8 +1052,36 @@ export function startInlineTextEdit(fieldId, handlers = {}) {
             renderOverlays(handlers);
         };
 
-        input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" || e.key === "Escape") {
+        input.addEventListener("keydown", async (e) => {
+            if (e.key === "Tab") {
+                e.preventDefault();
+                e.stopPropagation();
+                commitEdit(true);
+
+                const activeFields = sortFieldsByReadingOrder(state.fields.filter(item => !item.hidden && !item.locked));
+                if (activeFields.length > 0) {
+                    const currentIdx = activeFields.findIndex(item => item.id === field.id);
+                    const nextIdx = currentIdx === -1
+                        ? 0
+                        : (e.shiftKey ? (currentIdx - 1 + activeFields.length) % activeFields.length : (currentIdx + 1) % activeFields.length);
+                    const targetField = activeFields[nextIdx];
+                    if (targetField) {
+                        if (targetField.page && targetField.page !== state.currentPageNum) {
+                            await goToPage(targetField.page, () => {
+                                setSelectedField(targetField.id);
+                                if (handlers?.onSelect) handlers.onSelect(targetField);
+                                renderOverlays(handlers);
+                                startInlineTextEdit(targetField.id, handlers);
+                            });
+                        } else {
+                            setSelectedField(targetField.id);
+                            if (handlers?.onSelect) handlers.onSelect(targetField);
+                            renderOverlays(handlers);
+                            startInlineTextEdit(targetField.id, handlers);
+                        }
+                    }
+                }
+            } else if (e.key === "Enter" || e.key === "Escape") {
                 e.preventDefault();
                 e.stopPropagation();
                 commitEdit(true);

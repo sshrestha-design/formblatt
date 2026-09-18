@@ -122,7 +122,8 @@ async function runAllTests() {
         duplicateSelectedFields,
         setEditorMode,
         setGuidesEnabled,
-        toggleGuides
+        toggleGuides,
+        sortFieldsByReadingOrder
     } = await import(path.join(WEB_DIR, 'js', 'state.js'));
     const { populateProperties } = await import(path.join(WEB_DIR, 'js', 'properties-panel.js'));
 
@@ -314,6 +315,21 @@ async function runAllTests() {
         }
         assert.equal(ddField.defaultValue, "Germany");
         assert.deepEqual(ddField.options, ["Germany", "Japan", "France"]);
+    });
+
+    it("sortFieldsByReadingOrder correctly orders fields top-to-bottom and left-to-right across pages", () => {
+        const unordered = [
+            { id: "f4_p2", name: "Page 2 Field", x: 100, y: 100, page: 2 },
+            { id: "f2_row1_right", name: "Last Name", x: 300, y: 50, page: 1 },
+            { id: "f3_row2", name: "Email", x: 50, y: 120, page: 1 },
+            { id: "f1_row1_left", name: "First Name", x: 50, y: 52, page: 1 }, // within yTolerance of 10px to row 1
+        ];
+
+        const sorted = sortFieldsByReadingOrder(unordered);
+        assert.equal(sorted[0].id, "f1_row1_left");
+        assert.equal(sorted[1].id, "f2_row1_right");
+        assert.equal(sorted[2].id, "f3_row2");
+        assert.equal(sorted[3].id, "f4_p2");
     });
 
     // ── SUITE 3: Constants & Tool Definitions ──
@@ -1124,6 +1140,13 @@ async function runAllTests() {
         const form = verifiedDoc.getForm();
         const compiledFields = form.getFields();
         assert.ok(compiledFields.length >= 6, `AcroForm must have compiled fields (found ${compiledFields.length})`);
+
+        // Verify Page Tab Order is set to Row (/Tabs /R)
+        const verifiedPages = verifiedDoc.getPages();
+        for (const p of verifiedPages) {
+            const tabsVal = p.node.get(PDFLib.PDFName.of("Tabs"));
+            assert.ok(tabsVal && tabsVal.toString() === "/R", "Page must have /Tabs /R set for row-order Tab navigation");
+        }
 
         // Test Re-exporting and Flattening with zero call stack overflow
         const reExported = await buildPdf(outputBytes, [

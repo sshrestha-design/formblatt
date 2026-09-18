@@ -355,6 +355,16 @@ export const COMMANDS = [
             document.getElementById("groupSelectedBtn")?.click();
         }
     },
+    {
+        id: "edit-sort-tab-order",
+        title: "Auto-Sort Tab Flow (Top to Bottom, Left to Right)",
+        category: "Edit & Clipboard",
+        keywords: ["tab", "order", "flow", "sequence", "reading", "sort", "acroform"],
+        icon: "arrow-down-narrow-wide",
+        action: () => {
+            document.getElementById("autoSortTabOrderBtn")?.click();
+        }
+    },
 
     // ── Alignment & Spacing ──────────────────────────────────────────
     {
