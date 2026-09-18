@@ -138,6 +138,20 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     const pages = doc.getPages();
     const usedNames = new Set();
 
+    // Clean pre-existing AcroForm fields to avoid duplicate widget annotations and circular reference stack overflows
+    try {
+        const existingFields = form.getFields();
+        for (const ef of existingFields) {
+            try {
+                form.removeField(ef);
+            } catch (removeErr) {
+                console.warn("Could not remove existing field:", removeErr);
+            }
+        }
+    } catch (cleanErr) {
+        console.warn("Could not inspect existing form fields:", cleanErr);
+    }
+
     // Embed Standard Vector Fonts for razor-sharp vector rendering
     const helvetica = await doc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await doc.embedFont(StandardFonts.HelveticaBold);
@@ -197,8 +211,9 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     }
 
     for (let f of targetFields) {
-        const pageIdx = (f.page || 1) - 1;
+        const pageIdx = Math.max(0, Math.min(pages.length - 1, (f.page || 1) - 1));
         const page = pages[pageIdx] || pages[0];
+        if (!page) continue;
         const pageHeight = page.getHeight();
         
         let nm = (f.name || `field_${f.id}`).trim().replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -442,7 +457,7 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         }
     }
 
-    return await doc.save();
+    return await doc.save({ useObjectStreams: false });
 }
 
 export async function downloadAcroForm() {

@@ -3,22 +3,37 @@ import { state } from "./state.js";
 import { loadPdfLibraries } from "./pdf-engine.js";
 
 export function uint8ArrayToBase64(bytes) {
-    if (!bytes) return null;
-    let binary = "";
-    const len = bytes.byteLength;
-    const chunkSize = 1024;
-    try {
-        for (let i = 0; i < len; i += chunkSize) {
-            const sub = bytes.subarray(i, Math.min(i + chunkSize, len));
-            binary += String.fromCharCode.apply(null, sub);
-        }
-    } catch (e) {
-        binary = "";
-        for (let i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
+    if (!bytes || bytes.length === 0) return null;
+    if (typeof Buffer !== "undefined") {
+        return Buffer.from(bytes).toString("base64");
+    }
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    const len = bytes.length;
+    let base64 = "";
+    let i = 0;
+    for (i = 0; i < len - 2; i += 3) {
+        const b0 = bytes[i];
+        const b1 = bytes[i + 1];
+        const b2 = bytes[i + 2];
+        base64 += chars[b0 >> 2];
+        base64 += chars[((b0 & 3) << 4) | (b1 >> 4)];
+        base64 += chars[((b1 & 15) << 2) | (b2 >> 6)];
+        base64 += chars[b2 & 63];
+    }
+    if (i < len) {
+        const b0 = bytes[i];
+        base64 += chars[b0 >> 2];
+        if (i === len - 1) {
+            base64 += chars[(b0 & 3) << 4];
+            base64 += "==";
+        } else {
+            const b1 = bytes[i + 1];
+            base64 += chars[((b0 & 3) << 4) | (b1 >> 4)];
+            base64 += chars[(b1 & 15) << 2];
+            base64 += "=";
         }
     }
-    return btoa(binary);
+    return base64;
 }
 
 export function base64ToUint8Array(base64) {
