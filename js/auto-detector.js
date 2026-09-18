@@ -44,7 +44,7 @@ export const GENERIC_PATTERNS = [
     { regex: /zip|postal\s*code|postcode|plz|postleitzahl|code\s*postal|c[óo]digo\s*postal|cap\b|cep\b|वडा\s*नं|पिन\s*कोड/i, id: "zip_code", type: "textField", autofill: "postal-code" },
     { regex: /country|land\b|pays|pa[íi]s|nazione|paese|देश/i, id: "country", type: "textField", autofill: "country-name" },
     { regex: /company|organization|employer|institution|firma|unternehmen|arbeitgeber|entreprise|soci[eé]t[eé]|employeur|empresa|instituci[óo]n|organiza[çc][ãa]o|bedrijf|werkgever|कार्यालय|कम्पनी|संस्था/i, id: "organization", type: "textField", autofill: "organization" },
-    { regex: /title|role|position|designation|berufsbezeichnung|funktion|poste|titre|cargo|puesto|ruolo|mansione|functie|पद|ओहोदा/i, id: "job_title", type: "textField", autofill: "organization-title" },
+    { regex: /title|role|position|designation|profession|occupation|berufsbezeichnung|beruf|funktion|poste|titre|cargo|puesto|profesi[óo]n|ruolo|mansione|profiss[ãa]o|functie|beroep|पद|ओहोदा/i, id: "job_title", type: "textField", autofill: "organization-title" },
     { regex: /department|division|unit|abteilung|bereich|d[eé]partement|service|departamento|secci[óo]n|dipartimento|afdeling|शाखा|विभाग/i, id: "department", type: "textField" },
     
     // ── Table Line Items & Description ──
@@ -989,6 +989,14 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
     // ------------------------------------------------------------------------
     // AFFORDANCE 1: Standalone & Labelled Checkboxes & Radios (with Fieldset Groups)
     // ------------------------------------------------------------------------
+    const CHECKBOX_CHARS = new Set([
+        "☐", "□", "▣", "■", "◻", "◼", "◽", "◾", "⬜", "⬛",
+        "☑", "✓", "✔", "☒", "✗", "✘",
+        "○", "●", "◯", "◎", "◦", "⬤", "⭕", "⭘", "⭙",
+        "", "\uF063", "\uF0A8", "\uF0A9", "\uF0FE", "\uF06F", "\uF071", "\uF073", "\uF074", "\uF0A3", "\uF0B7"
+    ]);
+    const CHECKBOX_REGEX = /(\[\s*\]|\(\s*\)|[☐□▣■◻◼◽◾⬜⬛☑✓✔☒✗✘○●◯◎◦⬤⭕⭘⭙\uF063\uF0A8\uF0A9\uF0FE\uF06F\uF071\uF073\uF074\uF0A3\uF0B7])/gu;
+
     for (const line of textLines) {
         // Skip date format placeholder brackets like [ YYYY - MM - DD ]
         if (/\[\s*(?:yyyy|mm|dd)[^\]]*\]/i.test(line.str)) {
@@ -1000,7 +1008,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
         const colonIdx = line.str.indexOf(":");
         if (colonIdx !== -1) {
             const beforeColon = line.str.slice(0, colonIdx).trim();
-            if (beforeColon.length < 35 && !isUniversalStaticText(beforeColon)) {
+            if (beforeColon.length < 45 && !isUniversalStaticText(beforeColon)) {
                 linePrompt = beforeColon;
             }
         }
@@ -1010,7 +1018,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             const item = line.items[wIdx];
             const str = item.str.trim();
 
-            const isDiscreteSymbol = str === "☐" || str === "□" || str === "✓" || str === "✔" || str === "○" || str === "●" || str === "■" || str === "☑";
+            const isDiscreteSymbol = CHECKBOX_CHARS.has(str);
             const isBracketPair = (str === "[" && wIdx + 1 < line.items.length && line.items[wIdx + 1].str === "]") || /^\[\s*\]$/.test(str);
             const isParenPair = (str === "(" && wIdx + 1 < line.items.length && line.items[wIdx + 1].str === ")") || /^\(\s*\)$/.test(str);
 
@@ -1018,7 +1026,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             if (isOpen) {
                 const markerX = item.x;
                 const markerY = item.y;
-                const markerType = (str === "(" || str === "○" || str === "●" || isParenPair) ? "radioGroup" : "checkBox";
+                const markerType = (str === "(" || str === "○" || str === "●" || str === "◯" || str === "◎" || isParenPair) ? "radioGroup" : "checkBox";
 
                 // Advance index past closing bracket/paren if separate item
                 if (wIdx + 1 < line.items.length && (line.items[wIdx + 1].str === ")" || line.items[wIdx + 1].str === "]")) {
@@ -1026,9 +1034,9 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 }
 
                 let optLabel = "";
-                if (wIdx + 1 < line.items.length && !["(", "[", "☐", "□", "✓", "✔", "○", "●", "■", "☑"].includes(line.items[wIdx + 1].str)) {
+                if (wIdx + 1 < line.items.length && !CHECKBOX_CHARS.has(line.items[wIdx + 1].str) && !["(", "["].includes(line.items[wIdx + 1].str)) {
                     optLabel = line.items[wIdx + 1].str;
-                    if (wIdx + 2 < line.items.length && !["(", "[", "☐", "□", "✓", "✔", "○", "●", "■", "☑", ":"].includes(line.items[wIdx + 2].str)) {
+                    if (wIdx + 2 < line.items.length && !CHECKBOX_CHARS.has(line.items[wIdx + 2].str) && !["(", "[", ":"].includes(line.items[wIdx + 2].str)) {
                         optLabel += " " + line.items[wIdx + 2].str;
                     }
                 } else {
@@ -1036,18 +1044,12 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 }
 
                 pushCheckboxOrRadioField(markerType, optLabel, markerX, markerY, "affordance1_checkbox_radio");
-            } else if (str.length > 3) {
-                // Slow path: the marker wasn't its own isolated text item — it's
-                // embedded inside a longer run (e.g. pdf.js/the source PDF emitted
-                // "[ ] Hardware Malfunction / Physical Repair" as ONE text item).
-                // The exact-match checks above never see this, so without this
-                // fallback the entire line silently gets no field at all. Scan the
-                // raw item string for marker patterns and estimate their on-page
-                // position proportionally within the item's bounding box.
-                const embeddedMatches = [...item.str.matchAll(/(\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/g)];
+            } else if (str.length > 2) {
+                // Embedded matches inside single text span
+                const embeddedMatches = [...item.str.matchAll(CHECKBOX_REGEX)];
                 for (const m of embeddedMatches) {
                     const markerStr = m[0];
-                    const markerType = /^\(|[○●]/.test(markerStr) ? "radioGroup" : "checkBox";
+                    const markerType = /^(\(|[○●◯◎◦⬤⭕⭘⭙])/.test(markerStr) ? "radioGroup" : "checkBox";
                     const charFrac = item.str.length > 0 ? (m.index / item.str.length) : 0;
                     const markerX = Math.round(item.x + charFrac * item.width);
                     const markerY = item.y;
@@ -1078,8 +1080,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 value: optLabel,
                 x: Math.max(10, markerX),
                 y: Math.max(10, markerY),
-                width: 16,
-                height: 16,
+                width: 15,
+                height: 15,
                 page: pageNum,
                 borderStyle: "solid",
                 fillStyle: "white",
@@ -1089,7 +1091,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 detectedBy: detectedBy
             };
 
-            if (!isOverlapping(newField, fields, 0.4)) {
+            if (!isOverlapping(newField, fields, 0.45)) {
                 fields.push(newField);
             }
         }
@@ -1102,7 +1104,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
         const text = line.str.trim();
         if (isUniversalStaticText(text)) continue;
 
-        const promptMatches = [...text.matchAll(/([\p{L}\p{N}\s/().#$&-]+?)[:ः]/gu)];
+        const promptMatches = [...text.matchAll(/([\p{L}\p{N}\s/()[\]'’"«»*.,#$&_°º-]+?)[:ः]/gu)];
         for (let i = 0; i < promptMatches.length; i++) {
             const m = promptMatches[i];
             const cleanLabel = m[1].trim();
@@ -1111,13 +1113,19 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             const textAfterColon = text.slice(m.index + m[0].length).trim();
 
             // 1. Skip if choices (checkboxes/radios) immediately follow
-            if (/^(?:\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/.test(textAfterColon)) continue;
+            if (CHECKBOX_REGEX.test(textAfterColon)) {
+                CHECKBOX_REGEX.lastIndex = 0;
+                if (/^(?:\[\s*\]|\(\s*\)|[☐□▣■◻◼◽◾⬜⬛☑✓✔☒✗✘○●◯◎◦⬤⭕⭘⭙\uF063\uF0A8\uF0A9\uF0FE\uF06F\uF071\uF073\uF074\uF0A3\uF0B7])/.test(textAfterColon)) {
+                    continue;
+                }
+            }
             if (/select\s*all|select\s*one|bitte\s*ausw[äa]hlen|veuillez\s*s[eé]lectionner|seleccione/i.test(cleanLabel)) continue;
 
             // 2. Skip if this is already-filled static text (e.g. "REF: FRM-7745", "REVISION: 2.4", "STATUS: BLANK")
-            const nextPromptInLine = textAfterColon.search(/[\p{L}\p{N}\s/().#$&-]+?[:ः]/u);
+            const nextPromptInLine = textAfterColon.search(/[\p{L}\p{N}\s/()[\]'’"«»*.,#$&_°º-]+?[:ः]/u);
             const valueChunk = nextPromptInLine !== -1 ? textAfterColon.slice(0, nextPromptInLine).trim() : textAfterColon;
-            const isAlreadyFilledStatic = valueChunk.length > 0 && !valueChunk.startsWith("_") && !valueChunk.startsWith("-") && !valueChunk.startsWith(".");
+            const isBlankPlaceholder = /^[\s_.\-…·\u2026\u2022]*$/.test(valueChunk);
+            const isAlreadyFilledStatic = valueChunk.length > 0 && !isBlankPlaceholder;
             if (isAlreadyFilledStatic) continue;
 
             const preSem = resolveSemanticProps(cleanLabel);
@@ -1154,23 +1162,17 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 }
             }
 
-            // Skip choice group headers (prompts with checkboxes directly below
-            // them). Bounded to THIS prompt's own column (promptEndX..maxAllowedX)
-            // rather than a fixed absolute pixel window — in a multi-column row
-            // (e.g. "Manager:" | "Claim Period (Start):" | "Claim Period (End):" |
-            // "Direct Deposit? [ ] YES [ ] NO"), a fixed +140px window can reach
-            // into the NEXT column's checkboxes and wrongly skip a prompt that
-            // has nothing to do with them.
+            // Skip choice group headers with checkboxes below
             const hasCheckboxesBelow = rawBlocks.some(tb => {
                 const isBelow = tb.y > line.y && (tb.y - line.y) <= 22;
                 const isAligned = tb.x >= promptEndX - 15 && tb.x < maxAllowedX;
-                const isBox = /^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str);
+                const isBox = /^[(\[]|[☐□▣■◻◼◽◾⬜⬛☑✓✔☒✗✘○●◯◎◦⬤⭕⭘⭙\uF063\uF0A8\uF0A9\uF0FE\uF06F\uF071\uF073\uF074\uF0A3\uF0B7]/.test(tb.str);
                 return isBelow && isAligned && isBox;
             });
             if (hasCheckboxesBelow) continue;
 
             const availableW = maxAllowedX - targetX - 8;
-            if (availableW < 30) {
+            if (availableW < 24) {
                 // Insufficient space before next column / text; avoid label collision
                 continue;
             }
@@ -1200,32 +1202,24 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
                 preferredW = Math.min(380, availableW);
             }
 
-            const targetW = Math.max(35, Math.min(preferredW, availableW));
+            const targetW = Math.max(30, Math.min(preferredW, availableW));
 
-            // Strict vertical collision avoidance: clamp targetH against text blocks below
+            // Strict vertical collision avoidance: clamp targetH against text blocks below in same column
             let maxAllowedY = pageHeight - 25;
             for (const tb of rawBlocks) {
                 if (tb.y > targetY + 4) {
                     const hOverlap = Math.max(0, Math.min(targetX + targetW, tb.x + tb.width) - Math.max(targetX, tb.x));
-                    if (hOverlap > 8) {
+                    if (hOverlap > 6) {
                         maxAllowedY = Math.min(maxAllowedY, tb.y);
                     }
                 }
             }
-            // Also clamp against the next line of text ANYWHERE on the page,
-            // regardless of x-overlap. In a stacked label:value block (e.g. a
-            // multi-line address section), each row's field starts at a
-            // different x depending on how long that row's own label is — a
-            // long label like "Attention / Accounts Payable:" pushes its
-            // field's x well past where the next row's (shorter) label text
-            // sits, so the x-overlap check above never sees it and the
-            // field's default height is free to bleed down into the next
-            // row's space, colliding with (and silently dropping) that row's
-            // own field. A field should never extend past the next line of
-            // text on the page, whatever its x-position.
+
+            // Column-aware next line check: only consider lines that share horizontal column overlap
             let nextLineY = null;
             for (const otherLine of textLines) {
-                if (otherLine.y > line.y + 2 && (nextLineY === null || otherLine.y < nextLineY)) {
+                const hOverlap = Math.max(0, Math.min(targetX + targetW, otherLine.x + otherLine.width) - Math.max(targetX, otherLine.x));
+                if (hOverlap > 6 && otherLine.y > line.y + 2 && (nextLineY === null || otherLine.y < nextLineY)) {
                     nextLineY = otherLine.y;
                 }
             }
