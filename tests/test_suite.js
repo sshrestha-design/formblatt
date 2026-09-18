@@ -1554,6 +1554,83 @@ async function runAllTests() {
         assert.equal(enriched[1].name, "agree_to_terms");
     });
 
+    // ── SUITE 25: Form Detection Benchmark & Evaluation Studio Verification ──
+    console.log("\n📊 Suite 25: Form Detection Benchmark & Evaluation Studio");
+    const { generateEmployeeOnboardingPdf, generateMedicalIntakePdf, generateCommercialInvoicePdf } = await import(path.join(WEB_DIR, 'tests', 'generate_test_pdfs.js'));
+
+    await asyncIt("generate_test_pdfs correctly builds valid vector PDFs for all sample fixtures", async () => {
+        const onboardingBytes = await generateEmployeeOnboardingPdf();
+        assert.ok(onboardingBytes && onboardingBytes.length > 500);
+
+        const medicalBytes = await generateMedicalIntakePdf();
+        assert.ok(medicalBytes && medicalBytes.length > 500);
+
+        const invoiceBytes = await generateCommercialInvoicePdf();
+        assert.ok(invoiceBytes && invoiceBytes.length > 500);
+
+        const doc1 = await PDFLib.PDFDocument.load(onboardingBytes);
+        assert.equal(doc1.getPageCount(), 1);
+        const doc2 = await PDFLib.PDFDocument.load(medicalBytes);
+        assert.equal(doc2.getPageCount(), 1);
+        const doc3 = await PDFLib.PDFDocument.load(invoiceBytes);
+        assert.equal(doc3.getPageCount(), 1);
+    });
+
+    it("evaluate.html and tests/evaluate.html exist and contain interactive precision/recall/F1 scorecard", () => {
+        const evalHtml = fs.readFileSync(path.join(WEB_DIR, 'tests', 'evaluate.html'), 'utf8');
+        assert.ok(evalHtml.includes("Formblatt Detection Benchmark"));
+        assert.ok(evalHtml.includes("metricF1"));
+        assert.ok(evalHtml.includes("metricPrecision"));
+        assert.ok(evalHtml.includes("metricRecall"));
+        assert.ok(evalHtml.includes("countTP"));
+        assert.ok(evalHtml.includes("countFP"));
+        assert.ok(evalHtml.includes("countFN"));
+        assert.ok(evalHtml.includes("exportReportBtn"));
+    });
+
+    it("detectVectorDrawnFields correctly detects drawn checkboxes and input boxes with exact vector dimensions", async () => {
+        const { detectVectorDrawnFields } = await import(path.join(WEB_DIR, 'js', 'auto-detector.js'));
+
+        const mockVectorShapes = {
+            checkboxRects: [
+                { x: 445, y: 320, width: 14, height: 14 },
+                { x: 510, y: 320, width: 14, height: 14 }
+            ],
+            inputBoxRects: [
+                { x: 140, y: 118, width: 220, height: 22 }
+            ],
+            underlines: [
+                { x: 155, y: 217, width: 395 }
+            ]
+        };
+
+        const mockRawBlocks = [
+            { str: "Checking", x: 465, y: 321, width: 40, height: 10 },
+            { str: "Savings", x: 528, y: 321, width: 35, height: 10 },
+            { str: "Full Legal Name:", x: 45, y: 120, width: 90, height: 10 }
+        ];
+
+        const usedNames = new Set();
+        const detected = detectVectorDrawnFields(mockVectorShapes, mockRawBlocks, 1, usedNames, []);
+
+        assert.equal(detected.length, 3);
+        
+        // Checkboxes
+        assert.equal(detected[0].type, "checkBox");
+        assert.equal(detected[0].name, "checking");
+        assert.equal(detected[0].width, 14);
+        assert.equal(detected[0].height, 14);
+
+        assert.equal(detected[1].type, "checkBox");
+        assert.equal(detected[1].name, "savings");
+
+        // Input Box
+        assert.equal(detected[2].type, "textField");
+        assert.equal(detected[2].name, "full_legal_name");
+        assert.equal(detected[2].width, 220);
+        assert.equal(detected[2].height, 22);
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

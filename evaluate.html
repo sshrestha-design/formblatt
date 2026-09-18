@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formblatt - Form Detection Benchmark & Evaluation Studio</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/styles/variables.css">
+    <script src="/vendor/pdf.min.js"></script>
+    <script src="/vendor/pdf-lib.min.js"></script>
+    <script src="/vendor/lucide.min.js"></script>
+    <style>
+        :root {
+            --bg-canvas: #0f172a;
+            --bg-panel: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-yellow: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg-canvas);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            z-index: 10;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .badge-pill {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        select, button, input[type="file"] {
+            font-family: inherit;
+        }
+
+        .select-doc {
+            background: #0f172a;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: #334155;
+            color: #f8fafc;
+            border: 1px solid #475569;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background: #475569;
+        }
+
+        .btn-primary {
+            background: #2563eb;
+            border-color: #1d4ed8;
+        }
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+
+        .btn-success {
+            background: #059669;
+            border-color: #047857;
+        }
+        .btn-success:hover {
+            background: #047857;
+        }
+
+        /* Scorecard Bar */
+        .scorecard-bar {
+            background: #1e293b;
+            border-bottom: 1px solid #334155;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .metrics-grid {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .metric-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .metric-label {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .metric-val {
+            font-size: 1.15rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .val-f1 { color: #38bdf8; }
+        .val-tp { color: #34d399; }
+        .val-fp { color: #f87171; }
+        .val-fn { color: #fbbf24; }
+
+        /* Main Workspace */
+        .workspace {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Left / Center PDF Canvas Area */
+        .canvas-container {
+            flex: 1;
+            background: #090d16;
+            overflow: auto;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+
+        .pdf-page-wrapper {
+            position: relative;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+            background: #ffffff;
+            border-radius: 4px;
+            user-select: none;
+        }
+
+        canvas.pdf-render-canvas {
+            display: block;
+        }
+
+        .overlay-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        /* Field Overlays */
+        .eval-box {
+            position: absolute;
+            pointer-events: auto;
+            border: 2px solid #3b82f6;
+            background: rgba(59, 130, 246, 0.15);
+            border-radius: 3px;
+            box-sizing: border-box;
+            cursor: pointer;
+            transition: border-color 0.15s, background-color 0.15s;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            padding: 2px 4px;
+            font-size: 10px;
+            font-family: monospace;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .eval-box:hover {
+            border-width: 2px;
+            z-index: 20;
+        }
+
+        .eval-box.status-correct {
+            border-color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.2) !important;
+        }
+
+        .eval-box.status-wrong {
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.25) !important;
+        }
+
+        .eval-box.status-missed {
+            border-color: #f59e0b !important;
+            background: rgba(245, 158, 11, 0.25) !important;
+            border-style: dashed !important;
+        }
+
+        .eval-box-badge {
+            background: rgba(15, 23, 42, 0.85);
+            color: #ffffff;
+            font-size: 9px;
+            padding: 1px 4px;
+            border-radius: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80%;
+        }
+
+        .eval-box-actions {
+            display: flex;
+            gap: 2px;
+        }
+
+        .eval-mini-btn {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 2px;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .eval-mini-btn.btn-tp:hover { background: #d1fae5; color: #065f46; }
+        .eval-mini-btn.btn-fp:hover { background: #fee2e2; color: #991b1b; }
+
+        /* Right Sidebar: Field Inspector & Annotations */
+        .sidebar {
+            width: 380px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .sidebar-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .fields-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .field-card {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 10px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.15s ease;
+        }
+
+        .field-card.selected {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+
+        .field-card.status-correct {
+            border-left: 4px solid #10b981;
+        }
+
+        .field-card.status-wrong {
+            border-left: 4px solid #ef4444;
+        }
+
+        .field-card.status-missed {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .field-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .field-name {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #f1f5f9;
+            word-break: break-all;
+        }
+
+        .field-type-tag {
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #334155;
+            color: #94a3b8;
+            font-family: monospace;
+        }
+
+        .field-meta {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-family: monospace;
+        }
+
+        .field-eval-buttons {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .btn-tag {
+            flex: 1;
+            padding: 5px 8px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.15s ease;
+        }
+
+        .tag-correct {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        .tag-correct.active, .tag-correct:hover {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .tag-wrong {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        .tag-wrong.active, .tag-wrong:hover {
+            background: #ef4444;
+            color: #ffffff;
+        }
+
+        .sidebar-footer {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #1e293b;
+        }
+
+        /* Instructions Modal / Empty State */
+        .empty-hint {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <path d="m9 15 2 2 4-4"></path>
+            </svg>
+            <span>Formblatt Detection Benchmark</span>
+            <span class="badge-pill">Evaluation Studio</span>
+        </div>
+
+        <div class="header-actions">
+            <select id="docSelector" class="select-doc">
+                <option value="onboarding">📄 Employee Onboarding & Direct Deposit</option>
+                <option value="medical">🏥 Patient Medical Intake & Checklist</option>
+                <option value="invoice">💼 Commercial Service Invoice</option>
+                <option value="w9">📑 Form W-9: Taxpayer ID & Cert</option>
+                <option value="custom">📤 Upload Custom PDF...</option>
+            </select>
+            <input type="file" id="customPdfUpload" accept=".pdf" style="display: none;">
+
+            <button id="runDetectionBtn" class="btn btn-primary">
+                <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                Run Auto-Detect
+            </button>
+
+            <button id="addMissedBtn" class="btn">
+                <i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i>
+                + Mark Missed Field
+            </button>
+        </div>
+    </header>
+
+    <!-- Metrics Scorecard Bar -->
+    <div class="scorecard-bar">
+        <div class="metrics-grid">
+            <div class="metric-item">
+                <span class="metric-label">F1-Score / Accuracy</span>
+                <span class="metric-val val-f1" id="metricF1">-- %</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Precision</span>
+                <span class="metric-val" id="metricPrecision" style="color: #60a5fa;">-- %</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Recall</span>
+                <span class="metric-val" id="metricRecall" style="color: #a78bfa;">-- %</span>
+            </div>
+            <div class="metric-item" style="border-left: 1px solid #334155; padding-left: 16px;">
+                <span class="metric-label">True Positives (✅ Right)</span>
+                <span class="metric-val val-tp" id="countTP">0</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">False Positives (❌ Wrong)</span>
+                <span class="metric-val val-fp" id="countFP">0</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Missed Fields (⚠️ FN)</span>
+                <span class="metric-val val-fn" id="countFN">0</span>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+            <button id="markAllRightBtn" class="btn" title="Mark all unrated detections as correct">
+                ✅ Mark All Right
+            </button>
+            <button id="exportReportBtn" class="btn btn-success">
+                <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                Export Ground Truth JSON
+            </button>
+            <a href="/" class="btn" style="text-decoration: none;" title="Back to main editor">
+                Open Formblatt Editor
+            </a>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace">
+        <!-- PDF Render Canvas -->
+        <div class="canvas-container" id="canvasContainer">
+            <div id="pageWrapper" class="pdf-page-wrapper">
+                <canvas id="pdfCanvas" class="pdf-render-canvas"></canvas>
+                <div id="overlayLayer" class="overlay-layer"></div>
+            </div>
+        </div>
+
+        <!-- Sidebar Inspector -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <span class="sidebar-title">Detected Fields (<span id="totalFieldsCount">0</span>)</span>
+                <span style="font-size: 0.75rem; color: #94a3b8;">Click field or box to review</span>
+            </div>
+
+            <div class="fields-list" id="fieldsList">
+                <div class="empty-hint">Loading document...</div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button id="copySummaryBtn" class="btn" style="width: 100%; justify-content: center;">
+                    📋 Copy Summary Markdown
+                </button>
+            </div>
+        </aside>
+    </div>
+
+    <script type="module">
+        import { createTemplatePdf } from "/js/templates-engine.js";
+        import { autoDetectFields } from "/js/auto-detector.js";
+        import { generateEmployeeOnboardingPdf, generateMedicalIntakePdf, generateCommercialInvoicePdf } from "/tests/generate_test_pdfs.js";
+        import { state } from "/js/state.js";
+
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+
+        // Configure PDF.js worker
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdf.worker.min.js";
+        }
+
+        let currentPdfBytes = null;
+        let pdfDoc = null;
+        let detectedFields = [];
+        let missedFields = [];
+        let isAddingMissed = false;
+        let selectedFieldId = null;
+
+        // Evaluation state: map of fieldId -> { status: "correct"|"wrong", reason: "" }
+        let evaluations = new Map();
+
+        async function loadDocument(docKey) {
+            evaluations.clear();
+            missedFields = [];
+            document.getElementById("fieldsList").innerHTML = `<div class="empty-hint">Rendering PDF...</div>`;
+
+            if (docKey === "onboarding") {
+                currentPdfBytes = await generateEmployeeOnboardingPdf();
+            } else if (docKey === "medical") {
+                currentPdfBytes = await generateMedicalIntakePdf();
+            } else if (docKey === "invoice") {
+                currentPdfBytes = await generateCommercialInvoicePdf();
+            } else if (docKey === "w9") {
+                currentPdfBytes = await createTemplatePdf("w9");
+            }
+
+            if (!currentPdfBytes) return;
+
+            const loadingTask = pdfjsLib.getDocument({ data: currentPdfBytes });
+            pdfDoc = await loadingTask.promise;
+            
+            // Sync state for auto-detector
+            state.pdfDoc = pdfDoc;
+            state.pdfBytes = currentPdfBytes;
+            state.totalPages = pdfDoc.numPages;
+            state.currentPageNum = 1;
+            state.fields = [];
+
+            await renderPage(1);
+            await runDetection();
+        }
+
+        async function renderPage(pageNum) {
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 1.25 });
+
+            const canvas = document.getElementById("pdfCanvas");
+            const ctx = canvas.getContext("2d");
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+
+            const wrapper = document.getElementById("pageWrapper");
+            wrapper.style.width = `${viewport.width}px`;
+            wrapper.style.height = `${viewport.height}px`;
+
+            await page.render({ canvasContext: ctx, viewport }).promise;
+        }
+
+        async function runDetection() {
+            document.getElementById("fieldsList").innerHTML = `<div class="empty-hint">Analyzing form fields...</div>`;
+            
+            state.fields = [];
+            const resultCount = await autoDetectFields("current");
+            detectedFields = [...state.fields];
+
+            // Default all initial detections to "correct"
+            detectedFields.forEach(f => {
+                if (!evaluations.has(f.id)) {
+                    evaluations.set(f.id, { status: "correct", reason: "" });
+                }
+            });
+
+            renderOverlays();
+            renderSidebarList();
+            updateScorecard();
+        }
+
+        function renderOverlays() {
+            const layer = document.getElementById("overlayLayer");
+            layer.innerHTML = "";
+            const scale = 1.25;
+
+            // Render detected fields
+            detectedFields.forEach(f => {
+                const evalData = evaluations.get(f.id) || { status: "correct" };
+                const box = document.createElement("div");
+                box.className = `eval-box status-${evalData.status} ${f.id === selectedFieldId ? 'selected' : ''}`;
+                box.style.left = `${f.x * scale}px`;
+                box.style.top = `${f.y * scale}px`;
+                box.style.width = `${f.width * scale}px`;
+                box.style.height = `${f.height * scale}px`;
+
+                box.innerHTML = `
+                    <span class="eval-box-badge">${f.name || f.type}</span>
+                    <div class="eval-box-actions">
+                        <button class="eval-mini-btn btn-tp" title="Mark Right">✓</button>
+                        <button class="eval-mini-btn btn-fp" title="Mark Wrong">✗</button>
+                    </div>
+                `;
+
+                box.querySelector(".btn-tp").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    evaluations.set(f.id, { status: "correct", reason: "" });
+                    renderOverlays();
+                    renderSidebarList();
+                    updateScorecard();
+                });
+
+                box.querySelector(".btn-fp").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    evaluations.set(f.id, { status: "wrong", reason: "False positive / misplaced" });
+                    renderOverlays();
+                    renderSidebarList();
+                    updateScorecard();
+                });
+
+                box.addEventListener("click", () => {
+                    selectField(f.id);
+                });
+
+                layer.appendChild(box);
+            });
+
+            // Render marked missed fields
+            missedFields.forEach((mf, idx) => {
+                const box = document.createElement("div");
+                box.className = "eval-box status-missed";
+                box.style.left = `${mf.x * scale}px`;
+                box.style.top = `${mf.y * scale}px`;
+                box.style.width = `${mf.width * scale}px`;
+                box.style.height = `${mf.height * scale}px`;
+
+                box.innerHTML = `
+                    <span class="eval-box-badge" style="background: #b45309;">⚠️ Missed: ${mf.name}</span>
+                    <button class="eval-mini-btn" style="color: #ef4444;" title="Delete">✕</button>
+                `;
+
+                box.querySelector("button").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    missedFields.splice(idx, 1);
+                    renderOverlays();
+                    renderSidebarList();
+                    updateScorecard();
+                });
+
+                layer.appendChild(box);
+            });
+        }
+
+        function renderSidebarList() {
+            const list = document.getElementById("fieldsList");
+            list.innerHTML = "";
+            document.getElementById("totalFieldsCount").textContent = detectedFields.length + missedFields.length;
+
+            if (detectedFields.length === 0 && missedFields.length === 0) {
+                list.innerHTML = `<div class="empty-hint">No fields found on this document.</div>`;
+                return;
+            }
+
+            // Detections
+            detectedFields.forEach(f => {
+                const evalData = evaluations.get(f.id) || { status: "correct" };
+                const card = document.createElement("div");
+                card.className = `field-card status-${evalData.status} ${f.id === selectedFieldId ? 'selected' : ''}`;
+                card.id = `card-${f.id}`;
+
+                card.innerHTML = `
+                    <div class="field-card-header">
+                        <span class="field-name">${f.name}</span>
+                        <span class="field-type-tag">${f.type}</span>
+                    </div>
+                    <div class="field-meta">x: ${Math.round(f.x)}, y: ${Math.round(f.y)}, w: ${Math.round(f.width)}, h: ${Math.round(f.height)}</div>
+                    <div class="field-eval-buttons">
+                        <button class="btn-tag tag-correct ${evalData.status === 'correct' ? 'active' : ''}">✅ Right (TP)</button>
+                        <button class="btn-tag tag-wrong ${evalData.status === 'wrong' ? 'active' : ''}">❌ Wrong (FP)</button>
+                    </div>
+                `;
+
+                card.querySelector(".tag-correct").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    evaluations.set(f.id, { status: "correct", reason: "" });
+                    renderOverlays();
+                    renderSidebarList();
+                    updateScorecard();
+                });
+
+                card.querySelector(".tag-wrong").addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    evaluations.set(f.id, { status: "wrong", reason: "False positive / misplaced" });
+                    renderOverlays();
+                    renderSidebarList();
+                    updateScorecard();
+                });
+
+                card.addEventListener("click", () => {
+                    selectField(f.id);
+                });
+
+                list.appendChild(card);
+            });
+
+            // Missed fields
+            missedFields.forEach((mf, idx) => {
+                const card = document.createElement("div");
+                card.className = "field-card status-missed";
+                card.innerHTML = `
+                    <div class="field-card-header">
+                        <span class="field-name" style="color: #fbbf24;">⚠️ ${mf.name} (Missed Field)</span>
+                        <span class="field-type-tag">${mf.type}</span>
+                    </div>
+                    <div class="field-meta">x: ${Math.round(mf.x)}, y: ${Math.round(mf.y)}, w: ${Math.round(mf.width)}, h: ${Math.round(mf.height)}</div>
+                    <div class="field-eval-buttons">
+                        <button class="btn-tag" style="background: rgba(239, 68, 68, 0.2); color: #f87171;" onclick="window.removeMissedField(${idx})">Remove</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        window.removeMissedField = function(idx) {
+            missedFields.splice(idx, 1);
+            renderOverlays();
+            renderSidebarList();
+            updateScorecard();
+        };
+
+        function selectField(id) {
+            selectedFieldId = id;
+            renderOverlays();
+            const cards = document.querySelectorAll(".field-card");
+            cards.forEach(c => c.classList.remove("selected"));
+            const activeCard = document.getElementById(`card-${id}`);
+            if (activeCard) {
+                activeCard.classList.add("selected");
+                activeCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            }
+        }
+
+        function updateScorecard() {
+            let tp = 0;
+            let fp = 0;
+            const fn = missedFields.length;
+
+            detectedFields.forEach(f => {
+                const st = (evaluations.get(f.id) || {}).status;
+                if (st === "correct") tp++;
+                else if (st === "wrong") fp++;
+            });
+
+            const precision = (tp + fp) > 0 ? (tp / (tp + fp)) * 100 : 0;
+            const recall = (tp + fn) > 0 ? (tp / (tp + fn)) * 100 : 0;
+            const f1 = (precision + recall) > 0 ? (2 * precision * recall) / (precision + recall) : 0;
+
+            document.getElementById("countTP").textContent = tp;
+            document.getElementById("countFP").textContent = fp;
+            document.getElementById("countFN").textContent = fn;
+
+            document.getElementById("metricPrecision").textContent = `${precision.toFixed(1)}%`;
+            document.getElementById("metricRecall").textContent = `${recall.toFixed(1)}%`;
+            document.getElementById("metricF1").textContent = `${f1.toFixed(1)}%`;
+        }
+
+        // Add Missed Field Drag / Click Interaction
+        const canvasContainer = document.getElementById("canvasContainer");
+        const addMissedBtn = document.getElementById("addMissedBtn");
+
+        addMissedBtn.addEventListener("click", () => {
+            isAddingMissed = !isAddingMissed;
+            if (isAddingMissed) {
+                addMissedBtn.style.background = "#f59e0b";
+                addMissedBtn.style.color = "#000000";
+                addMissedBtn.textContent = "📍 Click PDF to place Missed Field";
+                canvasContainer.style.cursor = "crosshair";
+            } else {
+                addMissedBtn.style.background = "";
+                addMissedBtn.style.color = "";
+                addMissedBtn.innerHTML = `<i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i> + Mark Missed Field`;
+                canvasContainer.style.cursor = "default";
+                if (window.lucide) lucide.createIcons();
+            }
+        });
+
+        document.getElementById("pageWrapper").addEventListener("click", (e) => {
+            if (!isAddingMissed) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const scale = 1.25;
+            const x = Math.round((e.clientX - rect.left) / scale);
+            const y = Math.round((e.clientY - rect.top) / scale);
+
+            const missedName = prompt("Enter missed field name / label:", `missed_field_${missedFields.length + 1}`);
+            if (missedName) {
+                missedFields.push({
+                    id: `missed_${Date.now()}`,
+                    name: missedName,
+                    type: "textField",
+                    x: Math.max(0, x - 10),
+                    y: Math.max(0, y - 10),
+                    width: 160,
+                    height: 24
+                });
+                renderOverlays();
+                renderSidebarList();
+                updateScorecard();
+            }
+
+            // Reset tool
+            isAddingMissed = false;
+            addMissedBtn.style.background = "";
+            addMissedBtn.style.color = "";
+            addMissedBtn.innerHTML = `<i data-lucide="plus-circle" style="width: 14px; height: 14px;"></i> + Mark Missed Field`;
+            canvasContainer.style.cursor = "default";
+            if (window.lucide) lucide.createIcons();
+        });
+
+        // Event listeners
+        document.getElementById("docSelector").addEventListener("change", (e) => {
+            if (e.target.value === "custom") {
+                document.getElementById("customPdfUpload").click();
+            } else {
+                loadDocument(e.target.value);
+            }
+        });
+
+        document.getElementById("customPdfUpload").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async () => {
+                currentPdfBytes = new Uint8Array(reader.result);
+                evaluations.clear();
+                missedFields = [];
+                const loadingTask = pdfjsLib.getDocument({ data: currentPdfBytes });
+                pdfDoc = await loadingTask.promise;
+                state.pdfDoc = pdfDoc;
+                state.pdfBytes = currentPdfBytes;
+                state.totalPages = pdfDoc.numPages;
+                state.currentPageNum = 1;
+                state.fields = [];
+                await renderPage(1);
+                await runDetection();
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        document.getElementById("runDetectionBtn").addEventListener("click", runDetection);
+
+        document.getElementById("markAllRightBtn").addEventListener("click", () => {
+            detectedFields.forEach(f => {
+                evaluations.set(f.id, { status: "correct", reason: "" });
+            });
+            renderOverlays();
+            renderSidebarList();
+            updateScorecard();
+        });
+
+        document.getElementById("exportReportBtn").addEventListener("click", () => {
+            const report = {
+                timestamp: new Date().toISOString(),
+                document: document.getElementById("docSelector").value,
+                summary: {
+                    f1Score: document.getElementById("metricF1").textContent,
+                    precision: document.getElementById("metricPrecision").textContent,
+                    recall: document.getElementById("metricRecall").textContent,
+                    truePositives: parseInt(document.getElementById("countTP").textContent),
+                    falsePositives: parseInt(document.getElementById("countFP").textContent),
+                    missedFalseNegatives: parseInt(document.getElementById("countFN").textContent)
+                },
+                detections: detectedFields.map(f => ({
+                    ...f,
+                    evaluation: evaluations.get(f.id) || { status: "unrated" }
+                })),
+                missedFields: missedFields
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `formblatt_benchmark_${report.document}_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById("copySummaryBtn").addEventListener("click", () => {
+            const doc = document.getElementById("docSelector").value;
+            const f1 = document.getElementById("metricF1").textContent;
+            const prec = document.getElementById("metricPrecision").textContent;
+            const rec = document.getElementById("metricRecall").textContent;
+            const tp = document.getElementById("countTP").textContent;
+            const fp = document.getElementById("countFP").textContent;
+            const fn = document.getElementById("countFN").textContent;
+
+            const md = `| Benchmark Document | F1 Score | Precision | Recall | True Positives (Right) | False Positives (Wrong) | Missed (FN) |\n` +
+                       `|:---|:---|:---|:---|:---|:---|:---|\n` +
+                       `| **${doc}** | ${f1} | ${prec} | ${rec} | ${tp} | ${fp} | ${fn} |`;
+
+            navigator.clipboard.writeText(md).then(() => {
+                alert("Summary copied to clipboard in Markdown format!");
+            });
+        });
+
+        // Initialize default document
+        loadDocument("onboarding");
+    </script>
+</body>
+</html>

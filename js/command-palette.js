@@ -138,6 +138,16 @@ export const COMMANDS = [
             document.getElementById("toggleGuidesBtn")?.click();
         }
     },
+    {
+        id: "ai-detection-benchmark",
+        title: "Open Form Detection Benchmark & Evaluation Studio",
+        category: "Form Intelligence",
+        keywords: ["benchmark", "test", "evaluate", "accuracy", "precision", "recall", "f1", "ground truth", "dataset", "right", "wrong"],
+        icon: "flask-conical",
+        action: () => {
+            window.open("/evaluate.html", "_blank");
+        }
+    },
 
     // ── Mode & View ──────────────────────────────────────────────────
     {
