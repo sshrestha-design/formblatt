@@ -2863,8 +2863,10 @@
         targets.forEach(function(el){ io.observe(el); });
       })();
     </script>
-    <!-- Deferred core libraries to optimize FCP, LCP, and TBT metrics -->
-    <script defer src="https://unpkg.com/lucide@1.41.0/dist/umd/lucide.min.js"></script>
+    <!-- High-performance local vendor libraries for instant PDF loading and offline capability -->
+    <script defer src="/vendor/lucide.min.js"></script>
+    <script defer src="/vendor/pdf.min.js"></script>
+    <script defer src="/vendor/pdf-lib.min.js"></script>
 
     <div id="floatingToolStamp" class="floating-tool-stamp"></div>
     <script type="module" src="js/main.js?v=15.0"></script>
