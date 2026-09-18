@@ -1077,8 +1077,13 @@ export function initCanvasController(handlers) {
         e.preventDefault();
         const distance = getPinchDistance(e.touches);
         if (!distance || !pinchStartDistance) return;
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const rect = centerCanvas.getBoundingClientRect();
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left - rect.width / 2;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top - rect.height / 2;
         const nextScale = pinchStartScale * (distance / pinchStartDistance);
-        setTransformScale(nextScale, handlers.onRerender);
+        setTransformScale(nextScale, handlers.onRerender, { x: midX, y: midY });
     }, { passive: false });
 
     const stopPinching = () => {

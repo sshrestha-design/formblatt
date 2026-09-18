@@ -179,7 +179,7 @@ export function setTransformScale(newScale, onRerender, zoomCenter) {
         el.style.display = "none";
     });
 
-    if (onRerender) onRerender();
+    if (onRerender && !zoomCenter) onRerender();
 
     clearTimeout(rasterDebounceTimer);
     rasterDebounceTimer = setTimeout(() => {
@@ -187,6 +187,8 @@ export function setTransformScale(newScale, onRerender, zoomCenter) {
             renderPage(true).then(() => {
                 if (onRerender) onRerender();
             });
+        } else {
+            if (onRerender) onRerender();
         }
     }, 200);
 }
