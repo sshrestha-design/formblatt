@@ -226,7 +226,6 @@ export function updateDocumentTitle(customName) {
     const editorHasClass = editor && editor.classList && typeof editor.classList.contains === "function" && editor.classList.contains("active");
     const editorIsVisible = editor && editor.style && (editor.style.display === "flex" || editor.style.display === "block");
     const isEditorActive = Boolean(editor && (bodyHasClass || editorHasClass || editorIsVisible));
-    
     if (!isEditorActive) {
         document.title = defaultTitle;
         return;
@@ -238,4 +237,19 @@ export function updateDocumentTitle(customName) {
     } else {
         document.title = defaultTitle;
     }
+}
+
+export function sortFieldsByReadingOrder(fields, yTolerance = 10) {
+    if (!Array.isArray(fields)) return [];
+    return [...fields].sort((a, b) => {
+        const pageA = a.page || 1;
+        const pageB = b.page || 1;
+        if (pageA !== pageB) return pageA - pageB;
+
+        const yDiff = (a.y || 0) - (b.y || 0);
+        if (Math.abs(yDiff) > yTolerance) {
+            return yDiff; // Top to bottom (smaller y is higher up)
+        }
+        return (a.x || 0) - (b.x || 0); // Left to right within same visual row
+    });
 }

@@ -1,5 +1,5 @@
 // ── pdf-lib AcroForm Compiler & Exporter (js/acroform-builder.js) ─
-import { state } from "./state.js";
+import { state, sortFieldsByReadingOrder } from "./state.js";
 import { showToast } from "./toast.js";
 import { loadPdfLibraries } from "./pdf-engine.js";
 
@@ -142,6 +142,11 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     const copiedPages = await doc.copyPages(loadedSource, pageIndices);
 
     for (const cp of copiedPages) {
+        // Enforce ISO-compliant logical row tab order (/Tabs /R) for Acrobat, Chrome, Preview, etc.
+        try {
+            cp.node.set(pdfLib.PDFName.of("Tabs"), pdfLib.PDFName.of("R"));
+        } catch(e) {}
+
         // Strip residual widget annotations from copied page nodes so old form fields don't linger
         const annotsRaw = cp.node.get(pdfLib.PDFName.of("Annots"));
         if (annotsRaw) {
@@ -169,6 +174,11 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
 
     const form = doc.getForm();
     const pages = doc.getPages();
+    pages.forEach(p => {
+        try {
+            p.node.set(pdfLib.PDFName.of("Tabs"), pdfLib.PDFName.of("R"));
+        } catch(e) {}
+    });
     const usedNames = new Set();
 
     // Embed Standard Vector Fonts for razor-sharp vector rendering
@@ -229,7 +239,8 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         console.warn("Could not register fonts in AcroForm DR dictionary:", e);
     }
 
-    for (let f of targetFields) {
+    const fieldsToCompile = (opts && opts.preserveExplicitOrder) ? targetFields : sortFieldsByReadingOrder(targetFields);
+    for (let f of fieldsToCompile) {
         const pageIdx = Math.max(0, Math.min(pages.length - 1, (f.page || 1) - 1));
         const page = pages[pageIdx] || pages[0];
         if (!page) continue;

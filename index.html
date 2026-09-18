@@ -1114,6 +1114,9 @@
                                 <span class="menu-item-left"><i data-lucide="folder-minus" class="menu-item-icon"></i> Ungroup Selected</span>
                                 <span class="menu-item-kbd">⌘⇧G</span>
                             </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuSortTabOrderBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="arrow-down-narrow-wide" class="menu-item-icon"></i> Auto-Sort Tab Flow (Reading Order)</span>
+                            </button>
                             <div class="menu-divider"></div>
                             <button type="button" class="menu-bar-dropdown-item" id="menuMatchWidthBtn" role="menuitem">
                                 <span class="menu-item-left"><i data-lucide="scaling" class="menu-item-icon"></i> Match Width</span>
@@ -1253,6 +1256,9 @@
             <div class="left-panel-header">
                 <h2>Layers</h2>
                 <div style="display: flex; gap: 4px; align-items: center;">
+                    <button id="autoSortTabOrderBtn" type="button" class="panel-collapse-btn" data-tooltip="Auto-Sort Tab Flow (Top to Bottom, Left to Right)" aria-label="Auto-sort tab order">
+                        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></svg>
+                    </button>
                     <button id="groupSelectedBtn" type="button" data-tooltip="Group Selected (Ctrl+G)">
                         <i data-lucide="folder-plus"></i> Group
                     </button>

@@ -1,5 +1,5 @@
 // ── Formblatt Editor Subsystems & Controller (js/editor-app.js) ─
-import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled } from "./state.js";
+import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled, sortFieldsByReadingOrder } from "./state.js";
 import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo, loadPdfLibraries } from "./pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
@@ -471,6 +471,9 @@ export function initEditorSubsystems() {
         ungroupSelected();
         saveHistory();
         refreshUI();
+    });
+    document.getElementById("menuSortTabOrderBtn")?.addEventListener("click", () => {
+        document.getElementById("autoSortTabOrderBtn")?.click();
     });
     document.getElementById("menuMatchWidthBtn")?.addEventListener("click", () => {
         document.getElementById("multiMatchWidthBtn")?.click();
@@ -961,6 +964,19 @@ export function initEditorSubsystems() {
             e.returnValue = "Your form fields are saved in browser storage. Are you sure you want to leave?";
             return e.returnValue;
         }
+    });
+
+    // ── Auto-Sort Tab Order Button (Left Layers Header) ──────────────
+    document.getElementById("autoSortTabOrderBtn")?.addEventListener("click", () => {
+        if (!state.fields || state.fields.length === 0) {
+            showToast("No fields to sort.", "info");
+            return;
+        }
+        state.fields = sortFieldsByReadingOrder(state.fields);
+        saveHistory(true, "Sort Tab Order");
+        refreshUI();
+        triggerHaptic("success");
+        showToast("Tab flow auto-sorted (Top-to-Bottom, Left-to-Right)", "success");
     });
 
     // ── Group Selected Button (Left Layers Header) ───────────────────
