@@ -821,6 +821,15 @@ export function startInlineTextEdit(fieldId, handlers = {}) {
             overlay.classList.remove("is-editing-text");
             input.remove();
 
+            const propDef = document.getElementById("fieldDefaultValue");
+            if (propDef && state.selectedFieldIds.has(field.id)) {
+                propDef.value = field.defaultValue || "";
+            }
+            const propDropdownOpts = document.getElementById("dropdownOptions");
+            if (propDropdownOpts && field.type === "dropdown" && state.selectedFieldIds.has(field.id)) {
+                propDropdownOpts.value = (field.options || []).join("\n");
+            }
+
             if (shouldSave) saveHistory(true);
             if (handlers?.onUpdated) handlers.onUpdated(field);
             renderOverlays(handlers);

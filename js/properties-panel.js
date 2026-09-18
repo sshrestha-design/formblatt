@@ -146,9 +146,15 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     });
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => {
         f.defaultValue = e.target.value;
+        if (f.type === "staticText" || f.type === "label") {
+            f.label = e.target.value;
+        }
     }, false));
     fieldDefaultVal?.addEventListener("change", e => syncChange(f => {
         f.defaultValue = e.target.value;
+        if (f.type === "staticText" || f.type === "label") {
+            f.label = e.target.value;
+        }
     }, true));
     fieldFontFamily?.addEventListener("change", e => syncChange(f => f.fontFamily = e.target.value, true));
     
@@ -484,7 +490,7 @@ export function populateProperties(field) {
 
     setVal("fieldType", fallbackField.type);
     setVal("fieldName", fallbackField.name || "");
-    setVal("fieldDefaultValue", fallbackField.defaultValue || "");
+    setVal("fieldDefaultValue", fallbackField.defaultValue || (fallbackField.type === "staticText" || fallbackField.type === "label" ? fallbackField.label : "") || "");
     setVal("fieldFontFamily", fallbackField.fontFamily || "helvetica");
     setVal("fontSize", fallbackField.fontSize || "");
     
@@ -742,8 +748,9 @@ function initMultiSelectTools(onUpdated) {
         e.target.classList.remove("is-mixed");
         const val = e.target.value;
         batchUpdate(f => {
-            if (f.type === "textField") {
-                f.defaultValue = val;
+            f.defaultValue = val;
+            if (f.type === "staticText" || f.type === "label") {
+                f.label = val;
             }
         });
     });
