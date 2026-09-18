@@ -63,3 +63,33 @@ body.mode-fill .edge-peek-trigger,body.mode-fill .edge-peek-tab{display:none !im
 .docked-footer-hints{display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b;flex-shrink:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 @media (max-width:1050px){.docked-footer-hints,.docked-footer-hints-divider{display:none !important}}
 body.mode-fill .canvas-docked-footer{display:none !important}
+
+/* ── Adobe-Style Dropdown Choices Manager ── */
+.prop-view-toggle-btn{background:transparent;border:1px solid #cbd5e1;border-radius:4px;width:20px;height:20px;padding:0;display:inline-flex;align-items:center;justify-content:center;color:#64748b;cursor:pointer;transition:all 0.15s ease}
+.prop-view-toggle-btn:hover{background:#f1f5f9;color:#0f172a;border-color:#94a3b8}
+.prop-view-toggle-btn.active{background:#eff6ff;color:#2563eb;border-color:#93c5fd}
+.dd-add-row{display:flex;align-items:center;gap:4px;margin-bottom:4px}
+.dd-add-input{flex:1;min-width:0;height:28px}
+.dd-add-btn{width:28px;height:28px;min-width:28px;padding:0;display:inline-flex;align-items:center;justify-content:center;background:#2563eb;color:#ffffff;border:1px solid #1d4ed8;border-radius:6px;cursor:pointer;transition:all 0.12s ease}
+.dd-add-btn:hover{background:#1d4ed8;border-color:#1e40af}
+.dd-add-btn:active{transform:scale(0.95)}
+.dd-choices-container{border:1px solid #cbd5e1;border-radius:6px;background:#ffffff;overflow:hidden;display:flex;flex-direction:column}
+.dd-choices-list{max-height:165px;min-height:70px;overflow-y:auto;background:#ffffff;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.dd-choices-list::-webkit-scrollbar{width:4px}
+.dd-choices-list::-webkit-scrollbar-thumb{background-color:#cbd5e1;border-radius:3px}
+.dd-choice-empty{padding:14px 10px;text-align:center;font-size:11px;font-style:italic;color:#94a3b8;user-select:none}
+.dd-choice-item{display:flex;align-items:center;gap:6px;padding:5px 8px;font-size:12px;color:#334155;border-bottom:1px solid #f1f5f9;cursor:pointer;user-select:none;transition:background 0.12s ease,border-left-color 0.12s ease;border-left:3px solid transparent}
+.dd-choice-item:hover{background:#f8fafc;border-left-color:#94a3b8}
+.dd-choice-item.selected{background:#eff6ff;border-left-color:#2563eb;color:#1d4ed8;font-weight:600}
+.dd-choice-idx{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:700;color:#94a3b8;width:16px;text-align:center;flex-shrink:0}
+.dd-choice-item.selected .dd-choice-idx{color:#2563eb}
+.dd-choice-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-choice-default-tag{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;border-radius:4px;padding:1px 4px;margin-left:auto;flex-shrink:0}
+.dd-choice-del-btn{background:transparent;border:none;padding:2px 3px;border-radius:4px;color:#94a3b8;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;opacity:0;transition:opacity 0.15s ease,color 0.15s ease}
+.dd-choice-item:hover .dd-choice-del-btn,.dd-choice-item.selected .dd-choice-del-btn{opacity:1}
+.dd-choice-del-btn:hover{color:#dc2626;background:#fee2e2}
+.dd-choices-toolbar{display:flex;align-items:center;gap:4px;padding:4px 6px;background:#f8fafc;border-top:1px solid #e2e8f0}
+.dd-tool-btn{height:24px;padding:0 7px;font-size:11px;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;gap:3px;border-radius:4px;background:#ffffff;border:1px solid #cbd5e1;color:#475569;cursor:pointer;transition:all 0.12s ease;box-sizing:border-box}
+.dd-tool-btn:hover:not(:disabled){background:#f1f5f9;color:#0f172a;border-color:#94a3b8}
+.dd-tool-btn.danger:hover:not(:disabled){background:#fef2f2;color:#dc2626;border-color:#fecaca}
+.dd-tool-btn:disabled{opacity:0.4;cursor:not-allowed;background:#f8fafc;border-color:#e2e8f0;color:#94a3b8}

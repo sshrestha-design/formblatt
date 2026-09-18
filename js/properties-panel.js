@@ -262,18 +262,222 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         "ratings": ["1 - Poor", "2 - Fair", "3 - Good", "4 - Very Good", "5 - Excellent"]
     };
 
+    let selectedDropdownChoiceIndex = null;
+    let isDropdownBulkEditMode = false;
+
+    function escapeHtml(str) {
+        return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
     function updateDropdownCount(opts) {
         const countEl = document.getElementById("dropdownOptionsCount");
         if (countEl) {
             const count = opts ? opts.length : 0;
-            countEl.textContent = `${count} ${count === 1 ? 'item' : 'items'}`;
+            countEl.textContent = `${count} ${count === 1 ? "item" : "items"}`;
         }
     }
+
+    function renderDropdownChoiceList(field) {
+        const listEl = document.getElementById("dropdownChoicesList");
+        if (!listEl) return;
+        const opts = (field && field.options) || [];
+        updateDropdownCount(opts);
+
+        if (selectedDropdownChoiceIndex !== null && (selectedDropdownChoiceIndex < 0 || selectedDropdownChoiceIndex >= opts.length)) {
+            selectedDropdownChoiceIndex = opts.length > 0 ? Math.max(0, opts.length - 1) : null;
+        }
+
+        if (opts.length === 0) {
+            listEl.innerHTML = '<div class="dd-choice-empty">No choices added yet. Type above &amp; press Enter.</div>';
+        } else {
+            listEl.innerHTML = opts.map((opt, idx) => {
+                const isSel = idx === selectedDropdownChoiceIndex;
+                const isDef = field.defaultValue === opt;
+                return `
+                    <div class="dd-choice-item ${isSel ? "selected" : ""}" data-idx="${idx}" title="Click to select, double-click to set default">
+                        <span class="dd-choice-idx">${idx + 1}</span>
+                        <span class="dd-choice-text">${escapeHtml(opt)}</span>
+                        ${isDef ? '<span class="dd-choice-default-tag" title="Default Selected Option">Default</span>' : ""}
+                        <button type="button" class="dd-choice-del-btn" data-del-idx="${idx}" title="Delete &quot;${escapeHtml(opt)}&quot;" aria-label="Delete option ${escapeHtml(opt)}">
+                            <i data-lucide="x" style="width: 12px; height: 12px;"></i>
+                        </button>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        const upBtn = document.getElementById("ddMoveUpBtn");
+        const downBtn = document.getElementById("ddMoveDownBtn");
+        const delBtn = document.getElementById("ddDeleteSelectedBtn");
+        if (upBtn) upBtn.disabled = (selectedDropdownChoiceIndex === null || selectedDropdownChoiceIndex <= 0);
+        if (downBtn) downBtn.disabled = (selectedDropdownChoiceIndex === null || selectedDropdownChoiceIndex >= opts.length - 1);
+        if (delBtn) delBtn.disabled = (selectedDropdownChoiceIndex === null || opts.length === 0);
+
+        if (dropdownOptions) {
+            dropdownOptions.value = opts.join("\n");
+        }
+
+        if (typeof lucide !== "undefined") lucide.createIcons();
+    }
+
+    function addDropdownChoiceFromInput() {
+        const input = document.getElementById("newDropdownItemInput");
+        if (!input) return;
+        const val = input.value.trim();
+        if (!val) return;
+        const field = getSelectedField();
+        if (!field || field.type !== "dropdown") return;
+        if (!field.options) field.options = [];
+        field.options.push(val);
+        if (!field.defaultValue) {
+            field.defaultValue = val;
+            setVal("fieldDefaultValue", val);
+        }
+        selectedDropdownChoiceIndex = field.options.length - 1;
+        input.value = "";
+        renderDropdownChoiceList(field);
+        saveHistory();
+        if (onFieldUpdated) onFieldUpdated(field);
+    }
+
+    document.getElementById("addDropdownItemBtn")?.addEventListener("click", addDropdownChoiceFromInput);
+    document.getElementById("newDropdownItemInput")?.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            addDropdownChoiceFromInput();
+        }
+    });
+
+    document.getElementById("dropdownChoicesList")?.addEventListener("click", e => {
+        const delBtn = e.target.closest("[data-del-idx]");
+        const field = getSelectedField();
+        if (!field || field.type !== "dropdown" || !field.options) return;
+
+        if (delBtn) {
+            e.stopPropagation();
+            const delIdx = parseInt(delBtn.dataset.delIdx, 10);
+            if (!isNaN(delIdx) && delIdx >= 0 && delIdx < field.options.length) {
+                const deletedVal = field.options[delIdx];
+                field.options.splice(delIdx, 1);
+                if (field.defaultValue === deletedVal) {
+                    field.defaultValue = field.options[0] || "";
+                    setVal("fieldDefaultValue", field.defaultValue);
+                }
+                if (selectedDropdownChoiceIndex !== null) {
+                    if (selectedDropdownChoiceIndex === delIdx) {
+                        selectedDropdownChoiceIndex = field.options.length > 0 ? Math.min(delIdx, field.options.length - 1) : null;
+                    } else if (selectedDropdownChoiceIndex > delIdx) {
+                        selectedDropdownChoiceIndex--;
+                    }
+                }
+                renderDropdownChoiceList(field);
+                saveHistory();
+                if (onFieldUpdated) onFieldUpdated(field);
+            }
+            return;
+        }
+
+        const item = e.target.closest(".dd-choice-item");
+        if (item) {
+            const idx = parseInt(item.dataset.idx, 10);
+            if (!isNaN(idx)) {
+                selectedDropdownChoiceIndex = idx;
+                renderDropdownChoiceList(field);
+            }
+        }
+    });
+
+    document.getElementById("dropdownChoicesList")?.addEventListener("dblclick", e => {
+        const item = e.target.closest(".dd-choice-item");
+        const field = getSelectedField();
+        if (!item || !field || field.type !== "dropdown" || !field.options) return;
+        const idx = parseInt(item.dataset.idx, 10);
+        if (!isNaN(idx) && field.options[idx]) {
+            field.defaultValue = field.options[idx];
+            setVal("fieldDefaultValue", field.defaultValue);
+            selectedDropdownChoiceIndex = idx;
+            renderDropdownChoiceList(field);
+            saveHistory();
+            if (onFieldUpdated) onFieldUpdated(field);
+        }
+    });
+
+    document.getElementById("ddMoveUpBtn")?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (!field || field.type !== "dropdown" || !field.options) return;
+        if (selectedDropdownChoiceIndex !== null && selectedDropdownChoiceIndex > 0) {
+            const temp = field.options[selectedDropdownChoiceIndex];
+            field.options[selectedDropdownChoiceIndex] = field.options[selectedDropdownChoiceIndex - 1];
+            field.options[selectedDropdownChoiceIndex - 1] = temp;
+            selectedDropdownChoiceIndex--;
+            renderDropdownChoiceList(field);
+            saveHistory();
+            if (onFieldUpdated) onFieldUpdated(field);
+        }
+    });
+
+    document.getElementById("ddMoveDownBtn")?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (!field || field.type !== "dropdown" || !field.options) return;
+        if (selectedDropdownChoiceIndex !== null && selectedDropdownChoiceIndex < field.options.length - 1) {
+            const temp = field.options[selectedDropdownChoiceIndex];
+            field.options[selectedDropdownChoiceIndex] = field.options[selectedDropdownChoiceIndex + 1];
+            field.options[selectedDropdownChoiceIndex + 1] = temp;
+            selectedDropdownChoiceIndex++;
+            renderDropdownChoiceList(field);
+            saveHistory();
+            if (onFieldUpdated) onFieldUpdated(field);
+        }
+    });
+
+    document.getElementById("ddDeleteSelectedBtn")?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (!field || field.type !== "dropdown" || !field.options) return;
+        if (selectedDropdownChoiceIndex !== null && selectedDropdownChoiceIndex >= 0 && selectedDropdownChoiceIndex < field.options.length) {
+            const deletedVal = field.options[selectedDropdownChoiceIndex];
+            field.options.splice(selectedDropdownChoiceIndex, 1);
+            if (field.defaultValue === deletedVal) {
+                field.defaultValue = field.options[0] || "";
+                setVal("fieldDefaultValue", field.defaultValue);
+            }
+            selectedDropdownChoiceIndex = field.options.length > 0 ? Math.min(selectedDropdownChoiceIndex, field.options.length - 1) : null;
+            renderDropdownChoiceList(field);
+            saveHistory();
+            if (onFieldUpdated) onFieldUpdated(field);
+        }
+    });
+
+    document.getElementById("toggleDropdownViewModeBtn")?.addEventListener("click", () => {
+        isDropdownBulkEditMode = !isDropdownBulkEditMode;
+        const choicesContainer = document.getElementById("dropdownChoicesContainer");
+        const addRow = document.getElementById("dropdownAddRow");
+        const bulkContainer = document.getElementById("dropdownBulkEditContainer");
+        const toggleBtn = document.getElementById("toggleDropdownViewModeBtn");
+
+        if (choicesContainer) choicesContainer.style.display = isDropdownBulkEditMode ? "none" : "flex";
+        if (addRow) addRow.style.display = isDropdownBulkEditMode ? "none" : "flex";
+        if (bulkContainer) bulkContainer.style.display = isDropdownBulkEditMode ? "block" : "none";
+        if (toggleBtn) {
+            toggleBtn.classList.toggle("active", isDropdownBulkEditMode);
+            toggleBtn.title = isDropdownBulkEditMode ? "Switch to interactive choice list" : "Switch to bulk text editor";
+        }
+
+        const field = getSelectedField();
+        if (field && field.type === "dropdown") {
+            if (!isDropdownBulkEditMode && dropdownOptions) {
+                field.options = dropdownOptions.value.split("\n").map(s => s.trim()).filter(Boolean);
+                renderDropdownChoiceList(field);
+            }
+        }
+    });
 
     dropdownOptions?.addEventListener("input", e => {
         syncChange(f => {
             f.options = e.target.value.split("\n").map(s => s.trim()).filter(Boolean);
             updateDropdownCount(f.options);
+            if (!isDropdownBulkEditMode) {
+                renderDropdownChoiceList(f);
+            }
         });
     });
 
@@ -290,7 +494,8 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
             }
             if (dropdownOptions) dropdownOptions.value = presetList.join("\n");
             setVal("fieldDefaultValue", field.defaultValue);
-            updateDropdownCount(field.options);
+            selectedDropdownChoiceIndex = 0;
+            renderDropdownChoiceList(field);
             saveHistory();
             if (onFieldUpdated) onFieldUpdated(field);
         });
@@ -593,10 +798,7 @@ export function populateProperties(field) {
     if (ddGroup) {
         ddGroup.style.display = fallbackField.type === "dropdown" ? "block" : "none";
         if (fallbackField.type === "dropdown") {
-            const opts = fallbackField.options || [];
-            setVal("dropdownOptions", opts.join("\n"));
-            const countEl = document.getElementById("dropdownOptionsCount");
-            if (countEl) countEl.textContent = `${opts.length} ${opts.length === 1 ? 'item' : 'items'}`;
+            renderDropdownChoiceList(fallbackField);
         }
     }
 
