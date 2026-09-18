@@ -23,3 +23,22 @@
 .menu-submenu-trigger::after{content:"▸";font-size:10px;color:#94a3b8;margin-left:auto}
 .menu-submenu-content{display:none;position:absolute;top:-4px;left:calc(100% - 2px);background:#ffffff;min-width:210px;box-shadow:0 10px 28px rgba(15,23,42,0.16),0 1px 3px rgba(15,23,42,0.08);border-radius:8px;padding:5px 0;border:1px solid #e2e8f0;z-index:2510}
 .menu-submenu:hover > .menu-submenu-content,.menu-submenu:focus-within > .menu-submenu-content{display:block;animation:menuDropdownSlide 0.16s cubic-bezier(0.16,1,0.3,1) forwards}
+
+/* ── Subtle "Peek" Edge Tabs (When Sidebars Are Collapsed) ────── */
+.edge-peek-tab{position:absolute;top:50%;transform:translateY(-50%);z-index:60;display:none;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px 6px;background:rgba(255,255,255,0.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--border-color,#e2e8f0);box-shadow:0 4px 14px rgba(15,23,42,0.08),0 1px 3px rgba(15,23,42,0.04);cursor:pointer;user-select:none;color:#64748b;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;transition:transform 0.2s cubic-bezier(0.16,1,0.3,1),background-color 0.15s ease,border-color 0.15s ease,color 0.15s ease,box-shadow 0.2s ease;box-sizing:border-box}
+.edge-peek-left{left:0;border-left:none;border-top-left-radius:0;border-bottom-left-radius:0;border-top-right-radius:8px;border-bottom-right-radius:8px}
+.edge-peek-right{right:0;border-right:none;border-top-right-radius:0;border-bottom-right-radius:0;border-top-left-radius:8px;border-bottom-left-radius:8px}
+.edge-peek-tab .edge-peek-icon{width:14px;height:14px;color:#64748b;transition:color 0.15s ease,transform 0.2s ease}
+.edge-peek-tab .edge-peek-label{writing-mode:vertical-rl;text-orientation:mixed;transform:rotate(180deg);line-height:1;color:#64748b;font-size:10px;font-weight:700;letter-spacing:0.08em;transition:color 0.15s ease}
+.edge-peek-right .edge-peek-label{transform:none}
+.edge-peek-tab:hover{background:#ffffff;border-color:#93c5fd;color:#2563eb;box-shadow:0 6px 20px rgba(37,99,235,0.16),0 2px 6px rgba(15,23,42,0.06)}
+.edge-peek-left:hover{transform:translateY(-50%) translateX(4px)}
+.edge-peek-right:hover{transform:translateY(-50%) translateX(-4px)}
+.edge-peek-tab:hover .edge-peek-icon,.edge-peek-tab:hover .edge-peek-label{color:#2563eb}
+.edge-peek-tab:active{transform:translateY(-50%) scale(0.95)}
+.left-panel.collapsed ~ #leftEdgePeekTab{display:flex;animation:peekSlideInLeft 0.22s cubic-bezier(0.16,1,0.3,1) forwards}
+.right-panel.collapsed ~ #rightEdgePeekTab{display:flex;animation:peekSlideInRight 0.22s cubic-bezier(0.16,1,0.3,1) forwards}
+@keyframes peekSlideInLeft{from{opacity:0;transform:translateY(-50%) translateX(-12px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
+@keyframes peekSlideInRight{from{opacity:0;transform:translateY(-50%) translateX(12px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
+body.mode-fill .edge-peek-tab{display:none !important}
+@media (max-width:767px){.edge-peek-tab{display:none !important}}
