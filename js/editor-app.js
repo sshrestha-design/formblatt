@@ -199,7 +199,7 @@ const canvasHandlers = {
 
 function ensureEditorStyles() {
     if (typeof document === "undefined") return;
-    ["styles/editor.css?v=14.0", "styles/canvas.css?v=14.0"].forEach(href => {
+    ["styles/editor.css?v=16.0", "styles/canvas.css?v=16.0"].forEach(href => {
         const base = href.split("?")[0];
         if (!document.querySelector(`link[href*="${base}"]`)) {
             const link = document.createElement("link");
@@ -1158,12 +1158,8 @@ export function initEditorSubsystems() {
         }
     });
 
-    // Toggle Sidebar & Panels (In-Panel Headers + Toolbar Controls + Edge Peek Tabs)
+    // Toggle Sidebar & Panels (In-Panel Headers + Toolbar Controls)
     document.getElementById("toggleSidebarBtn")?.addEventListener("click", () => {
-        triggerHaptic();
-        toggleLeftSidebar();
-    });
-    document.getElementById("leftEdgePeekTab")?.addEventListener("click", () => {
         triggerHaptic();
         toggleLeftSidebar();
     });
@@ -1184,10 +1180,6 @@ export function initEditorSubsystems() {
         toggleRightSidebar();
     });
     document.getElementById("toggleRightSidebarBtn")?.addEventListener("click", () => {
-        triggerHaptic();
-        toggleRightSidebar();
-    });
-    document.getElementById("rightEdgePeekTab")?.addEventListener("click", () => {
         triggerHaptic();
         toggleRightSidebar();
     });
@@ -1604,15 +1596,17 @@ function initEdgePeekTabs() {
     const rightPanel = document.querySelector(".right-panel");
 
     leftTrigger?.addEventListener("click", (e) => {
-        if (e.target.closest("#leftEdgePeekTab") || e.currentTarget === leftTrigger) {
-            triggerHaptic();
+        e.stopPropagation();
+        triggerHaptic();
+        if (leftPanel?.classList.contains("collapsed")) {
             toggleLeftSidebar();
         }
     });
 
     rightTrigger?.addEventListener("click", (e) => {
-        if (e.target.closest("#rightEdgePeekTab") || e.currentTarget === rightTrigger) {
-            triggerHaptic();
+        e.stopPropagation();
+        triggerHaptic();
+        if (rightPanel?.classList.contains("collapsed")) {
             toggleRightSidebar();
         }
     });
