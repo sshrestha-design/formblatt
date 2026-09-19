@@ -445,20 +445,7 @@ export async function loadPdfFile(file, onLoaded) {
         if (es) es.style.display = "none";
 
         await showEditorScreen(() => {
-            goToPage(1).then(async () => {
-                // Auto-run field detector if document has 0 interactive widgets (scanned docs / images)
-                if (state.fields.length === 0) {
-                    try {
-                        const { autoDetectFields } = await import("./auto-detector.js");
-                        const detectedCount = await autoDetectFields("all");
-                        if (detectedCount > 0) {
-                            const { refreshUI } = await import("./editor-app.js");
-                            refreshUI();
-                        }
-                    } catch(detectErr) {
-                        console.warn("Auto-detect on load skipped:", detectErr);
-                    }
-                }
+            goToPage(1).then(() => {
                 saveHistory();
                 if (onLoaded) onLoaded();
             });
