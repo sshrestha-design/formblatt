@@ -428,6 +428,9 @@ export async function autoDetectFields(scope = "current", options = {}) {
                     if (ocrResult.allRects && ocrResult.allRects.length > 0) {
                         vectorShapes.allRects = [...(vectorShapes.allRects || []), ...ocrResult.allRects];
                     }
+                    if (ocrResult.underlines && ocrResult.underlines.length > 0) {
+                        vectorShapes.underlines = [...(vectorShapes.underlines || []), ...ocrResult.underlines];
+                    }
                 } catch (ocrErr) {
                     console.warn("Client-side OCR scanning skipped:", ocrErr);
                 }
@@ -865,6 +868,57 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
                 autofill: sem.autofill || "",
                 dataFormat: sem.dataFormat || "text",
                 detectedBy: "vector_drawn_input_box"
+            };
+
+            if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+                fields.push(field);
+            }
+        }
+    }
+
+    // 4. Match Vector Underlines (e.g. from scanned docs or vector path underlines)
+    const underlineLines = vectorShapes.underlines || [];
+    for (const u of underlineLines) {
+        if (u.width < 35) continue;
+        const uX = u.x;
+        const uY = u.y;
+        const uW = u.width;
+        const uH = 20;
+        const fieldY = Math.max(0, uY - 18);
+
+        // Find label directly to the left or directly above
+        const leftLabel = rawBlocks
+            .filter(tb => tb.x + tb.width <= uX + 8 && (uX - (tb.x + tb.width)) <= 220 &&
+                          Math.abs(tb.y - (uY - 10)) <= 16)
+            .sort((a, b) => (uX - (b.x + b.width)) - (uX - (a.x + a.width)))[0];
+
+        const topLabel = !leftLabel ? rawBlocks
+            .filter(tb => tb.y + tb.height <= uY && (uY - (tb.y + tb.height)) <= 28 &&
+                          (tb.x >= uX - 30 && tb.x <= uX + uW + 30))
+            .sort((a, b) => (uY - (b.y + b.height)) - (uY - (a.y + a.height)))[0] : null;
+
+        const matchedLabel = leftLabel || topLabel;
+        if (matchedLabel && !isUniversalStaticText(matchedLabel.str)) {
+            const sem = resolveSemanticProps(matchedLabel.str, "textField", usedNames);
+            const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(matchedLabel.str);
+            const isDate = sem.type === "dateField" || /date/i.test(matchedLabel.str);
+            const type = isSig ? "signature" : (isDate ? "dateField" : sem.type);
+
+            const field = {
+                id: generateFieldId(),
+                type: type,
+                name: sem.name,
+                x: uX,
+                y: fieldY,
+                width: uW,
+                height: uH,
+                page: pageNum,
+                borderStyle: "none",
+                fillStyle: "transparent",
+                multiline: sem.multiline || false,
+                autofill: sem.autofill || "",
+                dataFormat: sem.dataFormat || "text",
+                detectedBy: "vector_drawn_underline"
             };
 
             if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
