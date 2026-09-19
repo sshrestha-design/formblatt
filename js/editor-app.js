@@ -575,7 +575,9 @@ export function initEditorSubsystems() {
 
     // Auto-Detect Fields Action
     const autoDetectBtn = document.getElementById("autoDetectBtn");
+    autoDetectBtn?.addEventListener("mouseenter", () => autoDetectBtn.classList.remove("attention-pulse"), { passive: true });
     autoDetectBtn?.addEventListener("click", async () => {
+        autoDetectBtn.classList.remove("attention-pulse");
         if (!state.pdfDoc) {
             showToast("Please load a PDF document first.", "warning");
             return;
