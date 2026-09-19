@@ -234,15 +234,91 @@ function inferScannedLabelHeuristic(width, height) {
 }
 
 /**
+ * Detects horizontal fill-in underlines and ruling lines from binary image canvas.
+ * @param {Uint8Array} binary 
+ * @param {number} width 
+ * @param {number} height 
+ * @param {number} scale Canvas render scale
+ * @returns {Array<{ x: number, y: number, width: number, height: number }>}
+ */
+export function detectScannedHorizontalLines(binary, width, height, scale = 1.0) {
+    const lines = [];
+    const minLineLen = Math.round(35 * scale);
+    const maxThickness = Math.max(1, Math.round(4 * scale));
+    const visited = new Uint8Array(width * height);
+
+    for (let y = 1; y < height - 1; y++) {
+        for (let x = 1; x < width - minLineLen; x++) {
+            const idx = y * width + x;
+            if (binary[idx] === 0 && !visited[idx]) {
+                // Measure contiguous horizontal dark run
+                let lineW = 0;
+                while (x + lineW < width && binary[y * width + (x + lineW)] === 0) {
+                    lineW++;
+                }
+
+                if (lineW >= minLineLen) {
+                    // Check line thickness (should be thin, 1..maxThickness px)
+                    let thickness = 1;
+                    while (y + thickness < height && thickness <= maxThickness) {
+                        let matchCount = 0;
+                        const sampleStep = Math.max(1, Math.round(4 * scale));
+                        let totalSamples = 0;
+                        for (let k = 0; k < lineW; k += sampleStep) {
+                            totalSamples++;
+                            if (binary[(y + thickness) * width + (x + k)] === 0) matchCount++;
+                        }
+                        if (matchCount >= totalSamples * 0.6) {
+                            thickness++;
+                        } else {
+                            break;
+                        }
+                    }
+
+                    if (thickness <= maxThickness) {
+                        const userX = Math.round(x / scale);
+                        const userY = Math.round((y + Math.floor(thickness / 2)) / scale);
+                        const userW = Math.round(lineW / scale);
+
+                        const isDuplicate = lines.some(l => 
+                            Math.abs(l.y - userY) <= 4 && Math.abs(l.x - userX) <= 6 && Math.abs(l.width - userW) <= 10
+                        );
+
+                        if (!isDuplicate) {
+                            lines.push({
+                                x: userX,
+                                y: userY,
+                                width: userW,
+                                height: Math.max(1, Math.round(thickness / scale))
+                            });
+                        }
+
+                        // Mark visited
+                        for (let ty = y; ty < y + thickness; ty++) {
+                            for (let tx = x; tx < x + lineW; tx++) {
+                                visited[ty * width + tx] = 1;
+                            }
+                        }
+                    }
+                }
+                x += Math.max(1, lineW - 1);
+            }
+        }
+    }
+
+    return lines;
+}
+
+/**
  * Performs full client-side OCR and contour analysis on a rendered PDF page canvas.
  * @param {HTMLCanvasElement} canvas 
  * @param {Object} viewport 
  * @param {number} [pageNum=1] 
- * @returns {{ textBlocks: Array, allRects: Array, isScanned: boolean }}
+ * @returns {{ textBlocks: Array, allRects: Array, underlines: Array, isScanned: boolean }}
  */
 export async function performScannedPageOcr(canvas, viewport, pageNum = 1) {
     if (!canvas) {
-        return { textBlocks: [], allRects: [], isScanned: false };
+        return { textBlocks: [], allRects: [], underlines: [], isScanned: false };
     }
 
     const ctx = canvas.getContext("2d", { willReadFrequently: true });
@@ -251,6 +327,7 @@ export async function performScannedPageOcr(canvas, viewport, pageNum = 1) {
 
     const binary = binarizeImageData(imgData);
     const detectedBoxes = detectScannedBoxContours(binary, canvas.width, canvas.height, renderScale);
+    const underlines = detectScannedHorizontalLines(binary, canvas.width, canvas.height, renderScale);
     const textBlocks = extractScannedTextLines(binary, canvas.width, canvas.height, renderScale);
 
     // Convert detected boxes into vector rect format expected by auto-detector
@@ -265,7 +342,9 @@ export async function performScannedPageOcr(canvas, viewport, pageNum = 1) {
     return {
         textBlocks,
         allRects,
+        underlines,
         isScanned: true,
         pageNum
     };
 }
+
