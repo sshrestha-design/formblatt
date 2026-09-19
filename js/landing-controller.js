@@ -373,6 +373,13 @@ export async function showEditorScreen(onReady, skipPush = false) {
     if (onReady) onReady();
 }
 
+export function isSupportedUploadFile(file) {
+    if (!file) return false;
+    const isImage = (file.type && file.type.startsWith("image/")) || /\.(jpe?g|png|webp|bmp)$/i.test(file.name || "");
+    const isPdfOrProject = file.type === "application/pdf" || /\.(pdf|json|formblatt|fblatt|jform|justforms)$/i.test(file.name || "");
+    return isImage || isPdfOrProject;
+}
+
 export async function loadPdfFile(file, onLoaded) {
     if (!file) return;
 
@@ -936,10 +943,10 @@ export function initLandingController(onLoaded) {
         });
         heroDropzone.addEventListener("drop", async e => {
             const file = e.dataTransfer?.files[0];
-            if (file && (file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".formblatt") || file.name.endsWith(".jform") || file.name.endsWith(".justforms"))) {
+            if (file && isSupportedUploadFile(file)) {
                 await loadPdfFile(file, onLoaded);
             } else if (file) {
-                showToast("Supported formats: PDF documents (.pdf) or Formblatt project files (.formblatt).", "warning");
+                showToast("Supported formats: PDF documents (.pdf), Images (.jpg, .png, .webp), or Formblatt project files (.formblatt).", "warning");
             }
         });
     }
@@ -992,7 +999,7 @@ export function initLandingController(onLoaded) {
         }
     });
 
-    // Global Canvas & Window Drag & Drop PDF Loader
+    // Global Canvas & Window Drag & Drop PDF & Image Loader
     window.addEventListener("dragover", e => {
         if (e.dataTransfer?.types?.includes("Files")) {
             e.preventDefault();
@@ -1002,16 +1009,12 @@ export function initLandingController(onLoaded) {
         if (e.target.closest("#layersList") || e.target.closest(".layer-item")) return;
         const file = e.dataTransfer?.files[0];
         if (!file) return;
-        const isValid = file.type === "application/pdf" || file.name.endsWith(".pdf") || file.name.endsWith(".json") || file.name.endsWith(".formblatt") || file.name.endsWith(".jform") || file.name.endsWith(".justforms");
-        // Always preventDefault on any dropped file — otherwise the browser's
-        // default behavior for an unhandled drop is to navigate the whole
-        // tab away to that file, silently destroying the user's session.
-        // Previously this only ran inside the valid-file branch below.
+        const isValid = isSupportedUploadFile(file);
         e.preventDefault();
         if (isValid) {
             await loadPdfFile(file, onLoaded);
         } else {
-            showToast("Supported formats: PDF documents (.pdf) or Formblatt project files (.formblatt).", "warning");
+            showToast("Supported formats: PDF documents (.pdf), Images (.jpg, .png, .webp), or Formblatt project files (.formblatt).", "warning");
         }
     });
 
