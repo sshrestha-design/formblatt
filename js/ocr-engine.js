@@ -1,5 +1,5 @@
 // ── Client-Side Zero-Telemetry OCR Engine for Scanned PDFs (js/ocr-engine.js) ──
-// 100% in-browser image binarization, contour analysis, line segmentation & visual text extraction.
+// 100% in-browser multi-pass adaptive binarization, contour analysis, line segmentation & visual text extraction.
 
 /**
  * Checks whether a PDF page is a scanned image or flattened raster bitmap.
@@ -18,20 +18,90 @@ export function isPageScannedOrFlattened(rawBlocks = [], vectorShapes = {}) {
 
 /**
  * Converts ImageData to binary grayscale matrix (0 = foreground text/ink, 1 = background paper).
+ * Implements Bradley-Roth local adaptive thresholding using Integral Images for robust handling of
+ * shadows, lighting gradients, and low-contrast mobile phone captures of paper forms.
+ * 
  * @param {ImageData} imageData 
- * @param {number} threshold Default 190
+ * @param {number} threshold Default 205 for global fallback
+ * @param {Object} [options={}]
+ * @param {boolean} [options.adaptive=true] Whether to use adaptive local thresholding
+ * @param {number} [options.sensitivity=0.14] Dark ink contrast delta (0.10 to 0.20)
  * @returns {Uint8Array} Binary grid (0 or 1)
  */
-export function binarizeImageData(imageData, threshold = 205) {
+export function binarizeImageData(imageData, threshold = 205, options = {}) {
     const { width, height, data } = imageData;
     const binary = new Uint8Array(width * height);
+    const useAdaptive = options.adaptive !== false && width >= 40 && height >= 40;
+    const sensitivity = options.sensitivity || 0.14;
 
+    if (!useAdaptive) {
+        // Fast global thresholding fallback
+        for (let i = 0, p = 0; i < data.length; i += 4, p++) {
+            const luma = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            const alpha = data[i + 3];
+            binary[p] = (luma > threshold || alpha < 50) ? 1 : 0;
+        }
+        return binary;
+    }
+
+    // 1. Calculate luminance channel
+    const luma = new Float32Array(width * height);
     for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-        // Standard Rec. 601 luma
-        const luma = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
-        const alpha = data[i + 3];
-        // 1 = background (light/transparent), 0 = foreground (dark ink)
-        binary[p] = (luma > threshold || alpha < 50) ? 1 : 0;
+        if (data[i + 3] < 50) {
+            luma[p] = 255;
+        } else {
+            luma[p] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        }
+    }
+
+    // 2. Compute 2D Integral Image (Summed Area Table)
+    const integral = new Float64Array(width * height);
+    for (let y = 0; y < height; y++) {
+        let sum = 0;
+        const rowOffset = y * width;
+        const prevRowOffset = (y - 1) * width;
+        for (let x = 0; x < width; x++) {
+            sum += luma[rowOffset + x];
+            if (y === 0) {
+                integral[rowOffset + x] = sum;
+            } else {
+                integral[rowOffset + x] = integral[prevRowOffset + x] + sum;
+            }
+        }
+    }
+
+    // 3. Adaptive local thresholding (Bradley-Roth)
+    const S = Math.max(16, Math.round(width / 16));
+    const s2 = Math.floor(S / 2);
+
+    for (let y = 0; y < height; y++) {
+        const y1 = Math.max(0, y - s2);
+        const y2 = Math.min(height - 1, y + s2);
+        const countY = (y2 - y1 + 1);
+
+        for (let x = 0; x < width; x++) {
+            const x1 = Math.max(0, x - s2);
+            const x2 = Math.min(width - 1, x + s2);
+            const count = countY * (x2 - x1 + 1);
+
+            // Area sum from integral image: D - B - C + A
+            const D = integral[y2 * width + x2];
+            const B = y1 > 0 ? integral[(y1 - 1) * width + x2] : 0;
+            const C = x1 > 0 ? integral[y2 * width + (x1 - 1)] : 0;
+            const A = (x1 > 0 && y1 > 0) ? integral[(y1 - 1) * width + (x1 - 1)] : 0;
+            const localSum = D - B - C + A;
+            const localMean = localSum / count;
+
+            const pIdx = y * width + x;
+            const pixelLuma = luma[pIdx];
+
+            // 0 = foreground ink (dark), 1 = background paper (light)
+            if (pixelLuma <= localMean * (1 - sensitivity)) {
+                binary[pIdx] = 0;
+            } else {
+                binary[pIdx] = 1;
+            }
+        }
     }
 
     return binary;
@@ -48,9 +118,9 @@ export function binarizeImageData(imageData, threshold = 205) {
 export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
     const detectedBoxes = [];
     const minSize = Math.round(10 * scale);
-    const maxSize = Math.round(420 * scale);
+    const maxSize = Math.round(520 * scale);
     const minHeight = Math.round(10 * scale);
-    const maxHeight = Math.round(60 * scale);
+    const maxHeight = Math.round(80 * scale);
 
     const visited = new Uint8Array(width * height);
 
@@ -84,13 +154,13 @@ export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
                             if (binary[vy * width + (x + boxW - 1)] === 0) rightCount++;
                         }
 
-                        if (matchCount >= (boxW * 0.45) && (leftCount >= (testH * 0.35) || rightCount >= (testH * 0.35))) {
+                        if (matchCount >= (boxW * 0.40) && (leftCount >= (testH * 0.30) || rightCount >= (testH * 0.30))) {
                             // Valid rectangular contour found
                             const boxX = Math.round(x / scale);
                             const boxY = Math.round(y / scale);
                             const boxWidth = Math.round(boxW / scale);
                             const boxHeight = Math.round(testH / scale);
-                            const isSquare = Math.abs(boxWidth - boxHeight) <= 6;
+                            const isSquare = Math.abs(boxWidth - boxHeight) <= 6 && boxWidth <= 35;
 
                             // Prevent duplicate overlapping detections
                             const isDuplicate = detectedBoxes.some(b => 
@@ -232,7 +302,9 @@ function inferScannedLabelHeuristic(width, height) {
 }
 
 /**
- * Detects horizontal fill-in underlines and ruling lines from binary image canvas.
+ * Detects horizontal fill-in underlines, dotted ruling lines, and multi-segment lines from binary image.
+ * Features collinear fragment merging to seamlessly recover broken scans, dotted rules, and underlines.
+ * 
  * @param {Uint8Array} binary 
  * @param {number} width 
  * @param {number} height 
@@ -240,42 +312,42 @@ function inferScannedLabelHeuristic(width, height) {
  * @returns {Array<{ x: number, y: number, width: number, height: number }>}
  */
 export function detectScannedHorizontalLines(binary, width, height, scale = 1.0) {
-    const lines = [];
-    const minLineLen = Math.round(25 * scale);
+    const rawSegments = [];
+    const minSegmentLen = Math.round(15 * scale);
     const maxThickness = Math.max(1, Math.round(6 * scale));
     const visited = new Uint8Array(width * height);
 
+    // Pass 1: Extract all raw horizontal dark ink segments
     for (let y = 1; y < height - 1; y++) {
-        for (let x = 1; x < width - minLineLen; x++) {
+        for (let x = 1; x < width - minSegmentLen; x++) {
             const idx = y * width + x;
             if (binary[idx] === 0 && !visited[idx]) {
-                // Measure contiguous horizontal dark run with 1-2px gap tolerance
-                let lineW = 0;
+                let segW = 0;
                 let gapCount = 0;
-                while (x + lineW < width) {
-                    if (binary[y * width + (x + lineW)] === 0) {
-                        lineW++;
+                while (x + segW < width) {
+                    if (binary[y * width + (x + segW)] === 0) {
+                        segW++;
                         gapCount = 0;
-                    } else if (gapCount < 2 && x + lineW + 1 < width && binary[y * width + (x + lineW + 1)] === 0) {
-                        lineW += 2;
+                    } else if (gapCount < 3 && x + segW + 1 < width && binary[y * width + (x + segW + 1)] === 0) {
+                        segW += 2;
                         gapCount = 0;
                     } else {
                         break;
                     }
                 }
 
-                if (lineW >= minLineLen) {
-                    // Check line thickness (should be thin, 1..maxThickness px)
+                if (segW >= minSegmentLen) {
+                    // Check line thickness (thin ruling line, not solid block)
                     let thickness = 1;
                     while (y + thickness < height && thickness <= maxThickness) {
                         let matchCount = 0;
                         const sampleStep = Math.max(1, Math.round(4 * scale));
                         let totalSamples = 0;
-                        for (let k = 0; k < lineW; k += sampleStep) {
+                        for (let k = 0; k < segW; k += sampleStep) {
                             totalSamples++;
                             if (binary[(y + thickness) * width + (x + k)] === 0) matchCount++;
                         }
-                        if (matchCount >= totalSamples * 0.4) {
+                        if (matchCount >= totalSamples * 0.35) {
                             thickness++;
                         } else {
                             break;
@@ -283,47 +355,92 @@ export function detectScannedHorizontalLines(binary, width, height, scale = 1.0)
                     }
 
                     if (thickness <= maxThickness) {
-                        const userX = Math.round(x / scale);
-                        const userY = Math.round((y + Math.floor(thickness / 2)) / scale);
-                        const userW = Math.round(lineW / scale);
-
-                        const isDuplicate = lines.some(l => 
-                            Math.abs(l.y - userY) <= 6 && Math.abs(l.x - userX) <= 8 && Math.abs(l.width - userW) <= 15
-                        );
-
-                        if (!isDuplicate) {
-                            lines.push({
-                                x: userX,
-                                y: userY,
-                                width: userW,
-                                height: Math.max(1, Math.round(thickness / scale))
-                            });
-                        }
+                        rawSegments.push({
+                            x: x,
+                            y: y + Math.floor(thickness / 2),
+                            width: segW,
+                            thickness: thickness
+                        });
 
                         // Mark visited
                         for (let ty = Math.max(0, y - 1); ty < Math.min(height, y + thickness + 1); ty++) {
-                            for (let tx = x; tx < Math.min(width, x + lineW); tx++) {
+                            for (let tx = x; tx < Math.min(width, x + segW); tx++) {
                                 visited[ty * width + tx] = 1;
                             }
                         }
                     }
                 }
-                x += Math.max(1, lineW - 1);
+                x += Math.max(1, segW - 1);
             }
         }
     }
 
-    return lines;
+    // Pass 2: Collinear fragment merging (joins dotted / dashed / broken line runs on same row)
+    const minTotalLineLen = Math.round(30 * scale);
+    const maxCollinearGap = Math.round(20 * scale);
+    const mergedLines = [];
+
+    // Group segments by row (within ±2px)
+    const sortedSegments = [...rawSegments].sort((a, b) => a.y - b.y || a.x - b.x);
+    const usedSegment = new Set();
+
+    for (let i = 0; i < sortedSegments.length; i++) {
+        if (usedSegment.has(i)) continue;
+        const current = sortedSegments[i];
+        let lineX1 = current.x;
+        let lineX2 = current.x + current.width;
+        let lineY = current.y;
+        usedSegment.add(i);
+
+        // Look ahead for collinear segments on the same row with small gap
+        for (let j = i + 1; j < sortedSegments.length; j++) {
+            if (usedSegment.has(j)) continue;
+            const next = sortedSegments[j];
+            if (Math.abs(next.y - lineY) > 3) {
+                if (next.y > lineY + 6) break; // Segments are y-sorted
+                continue;
+            }
+
+            const gap = next.x - lineX2;
+            if (gap >= -4 && gap <= maxCollinearGap) {
+                lineX2 = Math.max(lineX2, next.x + next.width);
+                usedSegment.add(j);
+            }
+        }
+
+        const totalW = lineX2 - lineX1;
+        if (totalW >= minTotalLineLen) {
+            const userX = Math.round(lineX1 / scale);
+            const userY = Math.round(lineY / scale);
+            const userW = Math.round(totalW / scale);
+
+            const isDuplicate = mergedLines.some(l => 
+                Math.abs(l.y - userY) <= 5 && Math.abs(l.x - userX) <= 10 && Math.abs(l.width - userW) <= 20
+            );
+
+            if (!isDuplicate) {
+                mergedLines.push({
+                    x: userX,
+                    y: userY,
+                    width: userW,
+                    height: Math.max(1, Math.round(current.thickness / scale))
+                });
+            }
+        }
+    }
+
+    return mergedLines;
 }
 
 /**
- * Performs full client-side OCR and contour analysis on a rendered PDF page canvas.
+ * Performs thorough multi-pass client-side OCR and contour analysis on a rendered PDF page canvas.
  * @param {HTMLCanvasElement} canvas 
  * @param {Object} viewport 
  * @param {number} [pageNum=1] 
- * @returns {{ textBlocks: Array, allRects: Array, underlines: Array, isScanned: boolean }}
+ * @param {Object} [options={}]
+ * @returns {Promise<{ textBlocks: Array, allRects: Array, underlines: Array, isScanned: boolean }>}
  */
-export async function performScannedPageOcr(canvas, viewport, pageNum = 1) {
+export async function performScannedPageOcr(canvas, viewport, pageNum = 1, options = {}) {
     if (!canvas) {
         return { textBlocks: [], allRects: [], underlines: [], isScanned: false };
     }
@@ -332,9 +449,18 @@ export async function performScannedPageOcr(canvas, viewport, pageNum = 1) {
     const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const renderScale = canvas.width / (viewport.width || 1);
 
-    const binary = binarizeImageData(imgData);
-    const detectedBoxes = detectScannedBoxContours(binary, canvas.width, canvas.height, renderScale);
+    if (options.onProgress) options.onProgress("Adaptive local contrast analysis...", 25);
+
+    // Pass 1: Adaptive Bradley-Roth local thresholding
+    const binary = binarizeImageData(imgData, 205, { adaptive: true, sensitivity: 0.14 });
+
+    if (options.onProgress) options.onProgress("Detecting fill-in underlines & ruling lines...", 50);
     const underlines = detectScannedHorizontalLines(binary, canvas.width, canvas.height, renderScale);
+
+    if (options.onProgress) options.onProgress("Extracting rectangular boxes & table cells...", 75);
+    const detectedBoxes = detectScannedBoxContours(binary, canvas.width, canvas.height, renderScale);
+
+    if (options.onProgress) options.onProgress("Mapping visual text blocks...", 90);
     const textBlocks = extractScannedTextLines(binary, canvas.width, canvas.height, renderScale);
 
     // Convert detected boxes into vector rect format expected by auto-detector
@@ -354,4 +480,5 @@ export async function performScannedPageOcr(canvas, viewport, pageNum = 1) {
         pageNum
     };
 }
+
 

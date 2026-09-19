@@ -410,7 +410,8 @@ export async function autoDetectFields(scope = "current", options = {}) {
             }).filter(tb => tb.str.length > 0);
 
             // 1.25 Scanned / Flattened PDF Client-Side OCR Fallback
-            if (rawBlocks.length < 3 && typeof document !== "undefined") {
+            const isScannedDoc = rawBlocks.length < 5 || (vectorShapes.allRects?.length === 0 && (vectorShapes.paths?.length || 0) < 5);
+            if (isScannedDoc && typeof document !== "undefined") {
                 try {
                     const { performScannedPageOcr } = await import("./ocr-engine.js");
                     let ocrCanvas = null;
@@ -428,7 +429,7 @@ export async function autoDetectFields(scope = "current", options = {}) {
                         await page.render({ canvasContext: ocrCtx, viewport: ocrViewport }).promise;
                     }
 
-                    const ocrResult = await performScannedPageOcr(ocrCanvas, viewport, pageNum);
+                    const ocrResult = await performScannedPageOcr(ocrCanvas, viewport, pageNum, options);
                     if (ocrResult.textBlocks && ocrResult.textBlocks.length > 0) {
                         rawBlocks = [...rawBlocks, ...ocrResult.textBlocks];
                     }
