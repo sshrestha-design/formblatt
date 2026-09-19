@@ -1829,6 +1829,178 @@ async function runAllTests() {
         assert.ok(coArray, "AcroForm catalog must contain /CO calculation order array");
     });
 
+    // ── SUITE 29: Form Data Export / Import (CSV & JSON) ──
+    console.log("\n📊 Suite 29: Form Data Export / Import (CSV & JSON)");
+    const { exportFormDataAsJson, exportFormDataAsCsv, parseCsv, importFormData, escapeCsvValue } = await import(path.join(WEB_DIR, 'js', 'data-exporter.js'));
+
+    it("escapeCsvValue handles special characters, commas, and quotes", () => {
+        assert.equal(escapeCsvValue("SimpleText"), "SimpleText");
+        assert.equal(escapeCsvValue("Hello, World"), '"Hello, World"');
+        assert.equal(escapeCsvValue('Quote "Test"'), '"Quote ""Test"""');
+    });
+
+    it("parseCsv accurately parses RFC-4180 CSV with quotes and commas", () => {
+        const sampleCsv = 'first_name,last_name,notes\r\n"John, Jr.",Doe,"Line 1\nLine 2"';
+        const rows = parseCsv(sampleCsv);
+        assert.equal(rows.length, 2);
+        assert.equal(rows[0][0], "first_name");
+        assert.equal(rows[0][1], "last_name");
+        assert.equal(rows[1][0], "John, Jr.");
+        assert.equal(rows[1][1], "Doe");
+    });
+
+    it("exportFormDataAsJson and exportFormDataAsCsv serialize fields properly", () => {
+        const mockFields = [
+            { id: "f1", name: "full_name", type: "textField", value: "Ada Lovelace" },
+            { id: "f2", name: "agree_terms", type: "checkbox", checked: true },
+            { id: "f3", name: "total_amount", type: "textField", value: "150.50" }
+        ];
+
+        const jsonStr = exportFormDataAsJson(mockFields, "test.json");
+        const parsed = JSON.parse(jsonStr);
+        assert.equal(parsed.data.full_name, "Ada Lovelace");
+        assert.equal(parsed.data.agree_terms, true);
+        assert.equal(parsed.fields.length, 3);
+
+        const csvRow = exportFormDataAsCsv(mockFields, "test.csv", "row");
+        assert.ok(csvRow.includes("full_name,agree_terms,total_amount"));
+        assert.ok(csvRow.includes("Ada Lovelace,true,150.50"));
+
+        const csvTable = exportFormDataAsCsv(mockFields, "test.csv", "table");
+        assert.ok(csvTable.includes("Field Name,Field ID,Type,Page,Value"));
+        assert.ok(csvTable.includes("Ada Lovelace"));
+    });
+
+    it("importFormData maps CSV and JSON values and triggers formula recalculation", () => {
+        const mockState = {
+            fields: [
+                { id: "f_name", name: "user_name", type: "textField", value: "" },
+                { id: "f_opt", name: "subscribe", type: "checkbox", checked: false },
+                { id: "f_val1", name: "qty", type: "textField", value: "0" },
+                { id: "f_val2", name: "price", type: "textField", value: "0" },
+                { id: "f_tot", name: "total", type: "textField", calculationType: "custom", calculationFormula: "qty * price", value: "0" }
+            ]
+        };
+
+        // 1. Import from JSON
+        const jsonData = JSON.stringify({
+            data: {
+                user_name: "Alan Turing",
+                subscribe: true,
+                qty: "4",
+                price: "25"
+            }
+        });
+        const resJson = importFormData(jsonData, "json", mockState);
+        assert.equal(resJson.success, true);
+        assert.equal(resJson.count, 4);
+        assert.equal(mockState.fields[0].value, "Alan Turing");
+        assert.equal(mockState.fields[1].checked, true);
+        assert.equal(mockState.fields[4].value, "100", "Formula field total must calculate to 100 after import");
+
+        // 2. Import from CSV
+        const csvData = "user_name,subscribe,qty,price\r\nGrace Hopper,false,10,15";
+        const resCsv = importFormData(csvData, "csv", mockState);
+        assert.equal(resCsv.success, true);
+        assert.equal(mockState.fields[0].value, "Grace Hopper");
+        assert.equal(mockState.fields[1].checked, false);
+        assert.equal(mockState.fields[4].value, "150", "Formula field total must calculate to 150 after CSV import");
+    });
+
+    // ── SUITE 30: Offline Service Worker (PWA) & Manifest ──
+    console.log("\n📦 Suite 30: Offline Service Worker (PWA) & Manifest");
+    it("sw.js defines complete static assets manifest for offline PWA execution", () => {
+        const swContent = fs.readFileSync(path.join(WEB_DIR, 'sw.js'), 'utf8');
+        assert.ok(swContent.includes('CACHE_NAME = "formblatt-cache-v3.0"'));
+        assert.ok(swContent.includes('"/js/data-exporter.js"'));
+        assert.ok(swContent.includes('"/js/ocr-engine.js"'));
+        assert.ok(swContent.includes('"/vendor/pdf.min.js"'));
+        assert.ok(swContent.includes('"/vendor/pdf-lib.min.js"'));
+        assert.ok(swContent.includes('"/vendor/lucide.min.js"'));
+    });
+
+    it("site.webmanifest contains valid PWA specification metadata", () => {
+        const manifestRaw = fs.readFileSync(path.join(WEB_DIR, 'site.webmanifest'), 'utf8');
+        const manifest = JSON.parse(manifestRaw);
+        assert.equal(manifest.name, "Formblatt — Free Interactive PDF Form Creator");
+        assert.equal(manifest.short_name, "Formblatt");
+        assert.equal(manifest.display, "standalone");
+        assert.equal(manifest.start_url, "/");
+        assert.ok(Array.isArray(manifest.icons) && manifest.icons.length > 0);
+    });
+
+    it("index.html contains PWA manifest link and Install App menu elements", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('rel="manifest" href="/site.webmanifest"'));
+        assert.ok(indexHtml.includes('id="menuInstallAppBtn"'));
+        assert.ok(indexHtml.includes('id="menuExportDataJsonBtn"'));
+        assert.ok(indexHtml.includes('id="menuExportDataCsvBtn"'));
+        assert.ok(indexHtml.includes('id="menuImportDataBtn"'));
+        assert.ok(indexHtml.includes('id="importFormDataInput"'));
+    });
+
+    // ── SUITE 31: Client-Side OCR & Scanned Form Detection ──
+    console.log("\n🔍 Suite 31: Client-Side OCR & Scanned Form Detection");
+    const { isPageScannedOrFlattened, binarizeImageData, detectScannedBoxContours, extractScannedTextLines } = await import(path.join(WEB_DIR, 'js', 'ocr-engine.js'));
+
+    it("isPageScannedOrFlattened accurately detects scanned bitmap pages", () => {
+        assert.equal(isPageScannedOrFlattened([], { allRects: [], paths: [] }), true);
+        assert.equal(isPageScannedOrFlattened([{ str: "Hello", x: 10, y: 10, width: 40, height: 12 }], { allRects: [] }), true);
+        assert.equal(isPageScannedOrFlattened([
+            { str: "Invoice", x: 10, y: 10, width: 40, height: 12 },
+            { str: "Date:", x: 10, y: 30, width: 30, height: 12 },
+            { str: "Total:", x: 10, y: 50, width: 30, height: 12 },
+            { str: "$100", x: 50, y: 50, width: 25, height: 12 }
+        ], {}), false);
+    });
+
+    it("binarizeImageData converts RGB pixel buffer to binary text and background grid", () => {
+        const width = 10;
+        const height = 10;
+        const data = new Uint8ClampedArray(width * height * 4);
+        // Fill with white background (255, 255, 255, 255)
+        for (let i = 0; i < data.length; i += 4) {
+            data[i] = 255;
+            data[i + 1] = 255;
+            data[i + 2] = 255;
+            data[i + 3] = 255;
+        }
+        // Draw black ink pixel at (2, 2)
+        const idx = (2 * width + 2) * 4;
+        data[idx] = 0;
+        data[idx + 1] = 0;
+        data[idx + 2] = 0;
+        data[idx + 3] = 255;
+
+        const binary = binarizeImageData({ width, height, data }, 190);
+        assert.equal(binary[2 * width + 2], 0, "Black pixel must be 0 (foreground ink)");
+        assert.equal(binary[0], 1, "White pixel must be 1 (background paper)");
+    });
+
+    it("detectScannedBoxContours extracts rectangular box contours from pixel grid", () => {
+        const width = 100;
+        const height = 60;
+        const binary = new Uint8Array(width * height).fill(1);
+
+        // Draw a 40x20 rectangular box at x: 20, y: 15
+        for (let x = 20; x < 60; x++) {
+            binary[15 * width + x] = 0; // top border
+            binary[34 * width + x] = 0; // bottom border
+        }
+        for (let y = 15; y < 35; y++) {
+            binary[y * width + 20] = 0; // left border
+            binary[y * width + 59] = 0; // right border
+        }
+
+        const boxes = detectScannedBoxContours(binary, width, height, 1.0);
+        assert.ok(boxes.length >= 1, "Should detect at least 1 box contour");
+        const b = boxes[0];
+        assert.ok(Math.abs(b.x - 20) <= 2);
+        assert.ok(Math.abs(b.y - 15) <= 2);
+        assert.ok(Math.abs(b.width - 40) <= 2);
+        assert.ok(Math.abs(b.height - 20) <= 2);
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

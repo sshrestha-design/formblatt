@@ -477,7 +477,49 @@ export const COMMANDS = [
         keywords: ["export", "pdf", "flatten", "flattened", "bake", "lock", "readonly", "archive", "print"],
         icon: "lock",
         action: () => {
-            document.getElementById("quickExportFlattenedBtn")?.click();
+            const flattenRadio = document.querySelector('input[name="exportMode"][value="flatten"]');
+            if (flattenRadio) {
+                flattenRadio.checked = true;
+                const labelAcro = document.getElementById("labelAcroFormOption");
+                const labelFlat = document.getElementById("labelFlattenOption");
+                if (labelAcro && labelFlat) {
+                    labelAcro.style.borderColor = "#e2e8f0";
+                    labelAcro.style.background = "#ffffff";
+                    labelFlat.style.borderColor = "#2563eb";
+                    labelFlat.style.background = "#eff6ff";
+                }
+            }
+            document.getElementById("generatePdfBtn")?.click();
+        }
+    },
+    {
+        id: "project-export-data-json",
+        title: "Export Form Data (JSON)",
+        category: "Project & Export",
+        keywords: ["export", "data", "json", "values", "download", "form", "prefill"],
+        icon: "file-json",
+        action: () => {
+            document.getElementById("menuExportDataJsonBtn")?.click();
+        }
+    },
+    {
+        id: "project-export-data-csv",
+        title: "Export Form Data (CSV / Excel)",
+        category: "Project & Export",
+        keywords: ["export", "data", "csv", "excel", "spreadsheet", "values", "download"],
+        icon: "file-spreadsheet",
+        action: () => {
+            document.getElementById("menuExportDataCsvBtn")?.click();
+        }
+    },
+    {
+        id: "project-import-data",
+        title: "Import Form Data (JSON / CSV)",
+        category: "Project & Export",
+        keywords: ["import", "data", "json", "csv", "prefill", "populate", "fill", "bulk"],
+        icon: "file-input",
+        action: () => {
+            document.getElementById("menuImportDataBtn")?.click();
         }
     },
     {
@@ -577,6 +619,20 @@ export const COMMANDS = [
             if (modal) {
                 modal.style.display = "flex";
                 if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+            }
+        }
+    },
+    {
+        id: "app-install-pwa",
+        title: "Install Desktop App (100% Offline PWA)",
+        category: "Help & Community",
+        keywords: ["install", "app", "desktop", "pwa", "offline", "airplane", "download"],
+        icon: "download-cloud",
+        action: () => {
+            if (typeof window.installPwaApp === "function") {
+                window.installPwaApp();
+            } else {
+                showToast("Formblatt is ready for 100% offline use!", "success");
             }
         }
     }

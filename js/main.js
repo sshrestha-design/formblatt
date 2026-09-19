@@ -197,12 +197,45 @@ if (typeof window !== "undefined" && typeof document !== "undefined" && typeof h
 }
 
 // ── Progressive Web App (PWA) Offline Engine ────────────────────────
-if (typeof navigator !== "undefined" && "serviceWorker" in navigator && typeof window !== "undefined" && !window.location.host.startsWith("localhost")) {
+let deferredPrompt = null;
+
+if (typeof window !== "undefined") {
+    window.addEventListener("beforeinstallprompt", e => {
+        e.preventDefault();
+        deferredPrompt = e;
+        const installBtn = document.getElementById("menuInstallAppBtn");
+        const installDivider = document.getElementById("menuInstallDivider");
+        if (installBtn) installBtn.style.display = "flex";
+        if (installDivider) installDivider.style.display = "block";
+        if (typeof lucide !== "undefined" && lucide.createIcons) lucide.createIcons();
+    });
+
+    window.installPwaApp = async function() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const choice = await deferredPrompt.userChoice;
+            if (choice && choice.outcome === "accepted") {
+                showToast("Formblatt App installed successfully!", "success");
+            }
+            deferredPrompt = null;
+            const installBtn = document.getElementById("menuInstallAppBtn");
+            if (installBtn) installBtn.style.display = "none";
+        } else {
+            showToast("Formblatt is 100% cached & ready for offline use!", "success");
+        }
+    };
+
+    document.getElementById("menuInstallAppBtn")?.addEventListener("click", () => {
+        window.installPwaApp?.();
+    });
+}
+
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator && typeof window !== "undefined") {
     window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").then(reg => {
             console.log("[PWA] Service Worker registered for offline execution:", reg.scope);
         }).catch(err => {
-            console.warn("[PWA] Service Worker registration failed:", err);
+            console.warn("[PWA] Service Worker registration:", err);
         });
     });
 }

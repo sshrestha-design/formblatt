@@ -922,6 +922,18 @@
                             <input type="file" id="loadProjectMenuBtn" accept=".formblatt,.fblatt,.jform,.justforms,.json,application/json" style="display: none;" aria-label="Load project file from menu">
                             
                             <div class="menu-divider"></div>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuExportDataJsonBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="file-json" class="menu-item-icon"></i> Export Form Data (JSON)...</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuExportDataCsvBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="file-spreadsheet" class="menu-item-icon"></i> Export Form Data (CSV)...</span>
+                            </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuImportDataBtn" role="menuitem">
+                                <span class="menu-item-left"><i data-lucide="file-input" class="menu-item-icon"></i> Import Form Data (JSON / CSV)...</span>
+                            </button>
+                            <input type="file" id="importFormDataInput" accept=".json,.csv,text/csv,application/json" style="display: none;" aria-label="Import form data file">
+
+                            <div class="menu-divider"></div>
                             <button type="button" class="menu-bar-dropdown-item" id="menuExportPdfBtn" role="menuitem">
                                 <span class="menu-item-left"><i data-lucide="download" class="menu-item-icon"></i> Export PDF...</span>
                                 <span class="menu-item-kbd">⌘E</span>
@@ -1143,6 +1155,10 @@
                             <button type="button" class="menu-bar-dropdown-item" id="feedbackMenuBtn" role="menuitem">
                                 <span class="menu-item-left"><i data-lucide="message-square-plus" class="menu-item-icon" style="color:#2563eb;"></i> Feedback &amp; Review</span>
                             </button>
+                            <button type="button" class="menu-bar-dropdown-item" id="menuInstallAppBtn" role="menuitem" style="display: none;">
+                                <span class="menu-item-left"><i data-lucide="download-cloud" class="menu-item-icon"></i> Install Offline App (PWA)</span>
+                            </button>
+                            <div class="menu-divider" id="menuInstallDivider" style="display: none;"></div>
                             <button type="button" class="menu-bar-dropdown-item" id="menuAboutBtn" role="menuitem">
                                 <span class="menu-item-left"><i data-lucide="info" class="menu-item-icon"></i> About Formblatt</span>
                             </button>
