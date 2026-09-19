@@ -413,13 +413,20 @@ export async function autoDetectFields(scope = "current", options = {}) {
             if (rawBlocks.length < 3 && typeof document !== "undefined") {
                 try {
                     const { performScannedPageOcr } = await import("./ocr-engine.js");
-                    const ocrCanvas = document.createElement("canvas");
-                    const ocrScale = 2.0;
-                    const ocrViewport = page.getViewport({ scale: ocrScale });
-                    ocrCanvas.width = ocrViewport.width;
-                    ocrCanvas.height = ocrViewport.height;
-                    const ocrCtx = ocrCanvas.getContext("2d", { willReadFrequently: true });
-                    await page.render({ canvasContext: ocrCtx, viewport: ocrViewport }).promise;
+                    let ocrCanvas = null;
+                    const mainCanvas = document.getElementById("pdfCanvas");
+                    
+                    if (mainCanvas && mainCanvas.width > 0 && pageNum === state.currentPageNum) {
+                        ocrCanvas = mainCanvas;
+                    } else {
+                        ocrCanvas = document.createElement("canvas");
+                        const ocrScale = 2.0;
+                        const ocrViewport = page.getViewport({ scale: ocrScale });
+                        ocrCanvas.width = ocrViewport.width;
+                        ocrCanvas.height = ocrViewport.height;
+                        const ocrCtx = ocrCanvas.getContext("2d", { willReadFrequently: true });
+                        await page.render({ canvasContext: ocrCtx, viewport: ocrViewport }).promise;
+                    }
 
                     const ocrResult = await performScannedPageOcr(ocrCanvas, viewport, pageNum);
                     if (ocrResult.textBlocks && ocrResult.textBlocks.length > 0) {
@@ -432,7 +439,7 @@ export async function autoDetectFields(scope = "current", options = {}) {
                         vectorShapes.underlines = [...(vectorShapes.underlines || []), ...ocrResult.underlines];
                     }
                 } catch (ocrErr) {
-                    console.warn("Client-side OCR scanning skipped:", ocrErr);
+                    console.warn("Client-side OCR scanning fallback:", ocrErr);
                 }
             }
 
