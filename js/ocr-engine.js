@@ -22,7 +22,7 @@ export function isPageScannedOrFlattened(rawBlocks = [], vectorShapes = {}) {
  * @param {number} threshold Default 190
  * @returns {Uint8Array} Binary grid (0 or 1)
  */
-export function binarizeImageData(imageData, threshold = 190) {
+export function binarizeImageData(imageData, threshold = 205) {
     const { width, height, data } = imageData;
     const binary = new Uint8Array(width * height);
 
@@ -48,12 +48,10 @@ export function binarizeImageData(imageData, threshold = 190) {
 export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
     const detectedBoxes = [];
     const minSize = Math.round(10 * scale);
-    const maxSize = Math.round(400 * scale);
+    const maxSize = Math.round(420 * scale);
     const minHeight = Math.round(10 * scale);
-    const maxHeight = Math.round(50 * scale);
+    const maxHeight = Math.round(60 * scale);
 
-    // Horizontal run-length line scanner for rectangular box outlines
-    const stepY = Math.max(2, Math.round(3 * scale));
     const visited = new Uint8Array(width * height);
 
     for (let y = 1; y < height - minHeight; y += 1) {
@@ -86,13 +84,13 @@ export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
                             if (binary[vy * width + (x + boxW - 1)] === 0) rightCount++;
                         }
 
-                        if (matchCount >= (boxW * 0.5) && (leftCount >= (testH * 0.4) || rightCount >= (testH * 0.4))) {
+                        if (matchCount >= (boxW * 0.45) && (leftCount >= (testH * 0.35) || rightCount >= (testH * 0.35))) {
                             // Valid rectangular contour found
                             const boxX = Math.round(x / scale);
                             const boxY = Math.round(y / scale);
                             const boxWidth = Math.round(boxW / scale);
                             const boxHeight = Math.round(testH / scale);
-                            const isSquare = Math.abs(boxWidth - boxHeight) <= 4;
+                            const isSquare = Math.abs(boxWidth - boxHeight) <= 6;
 
                             // Prevent duplicate overlapping detections
                             const isDuplicate = detectedBoxes.some(b => 
@@ -151,8 +149,8 @@ export function extractScannedTextLines(binary, width, height, scale = 1.0) {
 
     // Segment horizontal bands (lines of text)
     const minInkPerRow = Math.max(3, Math.round(4 * scale));
-    const minLineHeight = Math.round(7 * scale);
-    const maxLineHeight = Math.round(45 * scale);
+    const minLineHeight = Math.round(6 * scale);
+    const maxLineHeight = Math.round(50 * scale);
 
     let inLine = false;
     let lineStartY = 0;
@@ -178,7 +176,7 @@ export function extractScannedTextLines(binary, width, height, scale = 1.0) {
 
                 let inWord = false;
                 let wordStartX = 0;
-                const minWordWidth = Math.round(6 * scale);
+                const minWordWidth = Math.round(5 * scale);
                 const wordGapThreshold = Math.round(5 * scale);
                 let emptyColCount = 0;
 
@@ -243,18 +241,27 @@ function inferScannedLabelHeuristic(width, height) {
  */
 export function detectScannedHorizontalLines(binary, width, height, scale = 1.0) {
     const lines = [];
-    const minLineLen = Math.round(35 * scale);
-    const maxThickness = Math.max(1, Math.round(4 * scale));
+    const minLineLen = Math.round(25 * scale);
+    const maxThickness = Math.max(1, Math.round(6 * scale));
     const visited = new Uint8Array(width * height);
 
     for (let y = 1; y < height - 1; y++) {
         for (let x = 1; x < width - minLineLen; x++) {
             const idx = y * width + x;
             if (binary[idx] === 0 && !visited[idx]) {
-                // Measure contiguous horizontal dark run
+                // Measure contiguous horizontal dark run with 1-2px gap tolerance
                 let lineW = 0;
-                while (x + lineW < width && binary[y * width + (x + lineW)] === 0) {
-                    lineW++;
+                let gapCount = 0;
+                while (x + lineW < width) {
+                    if (binary[y * width + (x + lineW)] === 0) {
+                        lineW++;
+                        gapCount = 0;
+                    } else if (gapCount < 2 && x + lineW + 1 < width && binary[y * width + (x + lineW + 1)] === 0) {
+                        lineW += 2;
+                        gapCount = 0;
+                    } else {
+                        break;
+                    }
                 }
 
                 if (lineW >= minLineLen) {
@@ -268,7 +275,7 @@ export function detectScannedHorizontalLines(binary, width, height, scale = 1.0)
                             totalSamples++;
                             if (binary[(y + thickness) * width + (x + k)] === 0) matchCount++;
                         }
-                        if (matchCount >= totalSamples * 0.6) {
+                        if (matchCount >= totalSamples * 0.4) {
                             thickness++;
                         } else {
                             break;
@@ -281,7 +288,7 @@ export function detectScannedHorizontalLines(binary, width, height, scale = 1.0)
                         const userW = Math.round(lineW / scale);
 
                         const isDuplicate = lines.some(l => 
-                            Math.abs(l.y - userY) <= 4 && Math.abs(l.x - userX) <= 6 && Math.abs(l.width - userW) <= 10
+                            Math.abs(l.y - userY) <= 6 && Math.abs(l.x - userX) <= 8 && Math.abs(l.width - userW) <= 15
                         );
 
                         if (!isDuplicate) {
@@ -294,8 +301,8 @@ export function detectScannedHorizontalLines(binary, width, height, scale = 1.0)
                         }
 
                         // Mark visited
-                        for (let ty = y; ty < y + thickness; ty++) {
-                            for (let tx = x; tx < x + lineW; tx++) {
+                        for (let ty = Math.max(0, y - 1); ty < Math.min(height, y + thickness + 1); ty++) {
+                            for (let tx = x; tx < Math.min(width, x + lineW); tx++) {
                                 visited[ty * width + tx] = 1;
                             }
                         }
