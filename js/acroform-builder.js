@@ -71,6 +71,41 @@ function resolveAutofillTooltip(f) {
     return AUTOFILL_ROLE_TITLES[autofillRole] || autofillRole;
 }
 
+export function compileFormulaToAcroJs(field, allFields = []) {
+    const calcType = field.calculationType || "none";
+    if (calcType === "none") return "";
+
+    const targets = Array.isArray(field.calculationFields) 
+        ? field.calculationFields 
+        : (field.calculationFields ? String(field.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+
+    if (calcType === "sum") {
+        const fieldList = targets.map(fn => JSON.stringify(fn.replace(/[^a-zA-Z0-9_-]/g, "_"))).join(", ");
+        return `var s = 0; [${fieldList}].forEach(function(fn){ var f = this.getField(fn); if(f && f.value !== "" && !isNaN(Number(f.value))) s += Number(f.value); }.bind(this)); event.value = s;`;
+    }
+
+    if (calcType === "prod") {
+        const fieldList = targets.map(fn => JSON.stringify(fn.replace(/[^a-zA-Z0-9_-]/g, "_"))).join(", ");
+        return `var p = 1, found = false; [${fieldList}].forEach(function(fn){ var f = this.getField(fn); if(f && f.value !== "" && !isNaN(Number(f.value))){ p *= Number(f.value); found = true; } }.bind(this)); event.value = found ? p : 0;`;
+    }
+
+    if (calcType === "custom" && field.calculationFormula) {
+        const expr = field.calculationFormula.trim();
+        const tokens = expr.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+        const reserved = new Set(["Math", "Number", "parseInt", "parseFloat", "min", "max", "round", "abs", "floor", "ceil", "SUM", "PROD", "true", "false", "null", "undefined"]);
+        const uniqueTokens = Array.from(new Set(tokens)).filter(t => !reserved.has(t));
+        
+        let jsPre = "";
+        uniqueTokens.forEach(tok => {
+            const sanitizedTok = tok.replace(/[^a-zA-Z0-9_-]/g, "_");
+            jsPre += `var ${sanitizedTok} = (function(th){ var f = th.getField("${sanitizedTok}"); return (f && f.value !== "" && !isNaN(Number(f.value))) ? Number(f.value) : 0; })(this);\n`;
+        });
+        return `${jsPre}try { event.value = (${expr}); } catch(e) { event.value = 0; }`;
+    }
+
+    return "";
+}
+
 function applyTextFieldAppearance(fieldObj, font, fontSize) {
     if (!fieldObj || !font) return;
 
@@ -239,6 +274,7 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         console.warn("Could not register fonts in AcroForm DR dictionary:", e);
     }
 
+    const calcOrderRefs = [];
     const fieldsToCompile = (opts && opts.preserveExplicitOrder) ? targetFields : sortFieldsByReadingOrder(targetFields);
     for (let f of fieldsToCompile) {
         const pageIdx = Math.max(0, Math.min(pages.length - 1, (f.page || 1) - 1));
@@ -335,6 +371,40 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
                 try { if (f.readOnly) tf.enableReadOnly(); } catch(e) {}
                 try { if (f.required) tf.enableRequired(); } catch(e) {}
                 try { if (f.maxLength) tf.setMaxLength(f.maxLength); } catch(e) {}
+                
+                if (f.isComb && f.maxLength > 1) {
+                    try {
+                        const len = parseInt(f.maxLength, 10);
+                        tf.setMaxLength(len);
+                        // PDF 1.7 / ISO 32000-1 §12.7.4.3: Bit 25 is Comb (1 << 24 = 16777216)
+                        const currentFlags = tf.acroField.getFlags();
+                        tf.acroField.setFlags(currentFlags | (1 << 24));
+                    } catch (combErr) {
+                        console.warn("Could not set comb flag on text field:", combErr);
+                    }
+                }
+
+                // Calculation Script (/AA << /C << /S /JavaScript /JS (...) >> >>)
+                if (f.calculationType && f.calculationType !== "none") {
+                    try {
+                        const jsCode = compileFormulaToAcroJs(f, targetFields);
+                        if (jsCode) {
+                            const jsAction = doc.context.obj({
+                                S: PDFLib.PDFName.of("JavaScript"),
+                                JS: PDFLib.PDFString.of(jsCode)
+                            });
+                            const aaDict = doc.context.obj({
+                                C: jsAction
+                            });
+                            tf.acroField.dict.set(PDFLib.PDFName.of("AA"), aaDict);
+                            if (tf.acroField.ref) {
+                                calcOrderRefs.push(tf.acroField.ref);
+                            }
+                        }
+                    } catch (calcErr) {
+                        console.warn("Could not attach calculation script to field:", calcErr);
+                    }
+                }
                 
                 // Enhanced PDF Viewer Autofill Descriptor (/TU)
                 const autoFillTooltip = resolveAutofillTooltip(f);
@@ -479,6 +549,16 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         }
     }
 
+    // Attach Calculation Order Array (/CO) to AcroForm Catalog Dictionary
+    if (calcOrderRefs.length > 0) {
+        try {
+            const acroForm = doc.catalog.getOrCreateAcroForm();
+            acroForm.dict.set(PDFLib.PDFName.of("CO"), doc.context.obj(calcOrderRefs));
+        } catch(coErr) {
+            console.warn("Could not set calculation order array /CO:", coErr);
+        }
+    }
+
     if (opts && opts.flatten) {
         try {
             form.flatten();
@@ -490,18 +570,36 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     return await doc.save({ useObjectStreams: false });
 }
 
-export async function downloadAcroForm() {
+export async function downloadAcroForm(customFilename) {
     try {
         const bytes = await buildPdf();
         const blob = new Blob([bytes], { type: "application/pdf" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = state.fileName || "interactive_form.pdf";
+        const name = customFilename || state.fileName || "interactive_form.pdf";
+        a.download = name.endsWith(".pdf") ? name : `${name}.pdf`;
         a.click();
         URL.revokeObjectURL(url);
     } catch(err) {
         console.error("PDF Export error:", err);
         showToast("Failed to export PDF: " + err.message, "error");
+    }
+}
+
+export async function downloadFlattenedPdf(customFilename) {
+    try {
+        const bytes = await buildPdf({ flatten: true });
+        const blob = new Blob([bytes], { type: "application/pdf" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const baseName = (customFilename || state.fileName || "document").replace(/\.pdf$/i, "");
+        a.download = `${baseName}_flattened.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch(err) {
+        console.error("Flattened PDF Export error:", err);
+        showToast("Failed to export flattened PDF: " + err.message, "error");
     }
 }

@@ -1,5 +1,5 @@
 // ── Canvas Overlay Rendering & Visual Elements (js/overlay-manager.js) ─
-import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder } from "./state.js";
+import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder, evaluateCalculations } from "./state.js";
 import { FIELD_TYPE_LABELS } from "./constants.js";
 import { openSignatureModal } from "./signature-pad.js";
 import { makeScrubbableAndScrollable, distributeSelectedFields } from "./properties-panel.js";
@@ -208,6 +208,7 @@ export function renderOverlays(handlers) {
                 dateInput.addEventListener("input", () => {
                     f.value = dateInput.value;
                     f.defaultValue = dateInput.value;
+                    evaluateCalculations();
                     saveHistory();
                 });
                 div.appendChild(dateInput);
@@ -222,6 +223,7 @@ export function renderOverlays(handlers) {
                 ta.addEventListener("input", () => {
                     f.value = ta.value;
                     f.defaultValue = ta.value;
+                    evaluateCalculations();
                     saveHistory();
                 });
                 div.appendChild(ta);
@@ -242,13 +244,23 @@ export function renderOverlays(handlers) {
                             inp.value = "$" + Number(val).toFixed(2);
                             f.value = inp.value;
                             f.defaultValue = inp.value;
+                            evaluateCalculations();
                         }
                     });
+                }
+
+                if (f.isComb && f.maxLength > 1) {
+                    inp.maxLength = parseInt(f.maxLength);
+                    const cellW = f.width / f.maxLength;
+                    inp.style.letterSpacing = `${Math.max(2, (cellW - 8) * 0.5)}px`;
+                    inp.style.fontFamily = "'IBM Plex Mono', 'Courier New', monospace";
+                    inp.style.textAlign = "center";
                 }
 
                 inp.addEventListener("input", () => {
                     f.value = inp.value;
                     f.defaultValue = inp.value;
+                    evaluateCalculations();
                     saveHistory();
                 });
                 div.appendChild(inp);
@@ -445,6 +457,20 @@ export function renderOverlays(handlers) {
                     label.textContent = "";
                 }
                 div.appendChild(label);
+
+                if (f.isComb && f.maxLength > 1) {
+                    const combWrap = document.createElement("div");
+                    combWrap.className = "comb-cell-container";
+                    combWrap.style.cssText = "position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; pointer-events: none; z-index: 1;";
+                    const cellCount = parseInt(f.maxLength) || 1;
+                    for (let i = 0; i < cellCount; i++) {
+                        const cell = document.createElement("div");
+                        cell.className = "comb-cell";
+                        cell.style.cssText = `flex: 1; height: 100%; border-right: ${i < cellCount - 1 ? '1px solid rgba(148, 163, 184, 0.45)' : 'none'}; box-sizing: border-box;`;
+                        combWrap.appendChild(cell);
+                    }
+                    div.appendChild(combWrap);
+                }
             }
         }
 

@@ -237,6 +237,18 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     fieldRequired?.addEventListener("change", e => syncChange(f => f.required = e.target.checked, true, "Toggle Required"));
     fieldReadOnly?.addEventListener("change", e => syncChange(f => f.readOnly = e.target.checked, true, "Toggle Read Only"));
     fieldMultiline?.addEventListener("change", e => syncChange(f => f.multiline = e.target.checked, true, "Toggle Multiline"));
+    
+    const fieldIsComb = document.getElementById("fieldIsComb");
+    fieldIsComb?.addEventListener("change", e => {
+        syncChange(f => {
+            f.isComb = e.target.checked;
+            if (f.isComb && (!f.maxLength || f.maxLength < 1)) {
+                f.maxLength = 10;
+                if (fieldMaxLength) fieldMaxLength.value = 10;
+            }
+        }, true, "Toggle Comb Characters");
+    });
+
     fieldMaxLength?.addEventListener("input", e => syncChange(f => f.maxLength = parseInt(e.target.value) || null, false));
     fieldMaxLength?.addEventListener("change", e => syncChange(f => f.maxLength = parseInt(e.target.value) || null, true, "Set Max Length"));
     fieldTooltip?.addEventListener("input", e => syncChange(f => f.tooltip = e.target.value, false));
@@ -244,6 +256,48 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     autofillType?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true, "Set Autofill"));
     fieldDefaultChecked?.addEventListener("change", e => syncChange(f => f.defaultChecked = e.target.checked, true, "Toggle Checked"));
     fieldCheckboxMark?.addEventListener("change", e => syncChange(f => f.checkboxMark = e.target.value, true, "Set Checkbox Style"));
+
+    // Calculation & Formula listeners
+    const fieldCalcType = document.getElementById("fieldCalcType");
+    const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
+    const fieldCalcFormula = document.getElementById("fieldCalcFormula");
+    const calcFieldsGroup = document.getElementById("calcFieldsGroup");
+    const calcFormulaGroup = document.getElementById("calcFormulaGroup");
+
+    const updateCalcVisibility = (calcType) => {
+        if (calcFieldsGroup) calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
+        if (calcFormulaGroup) calcFormulaGroup.style.display = (calcType === "custom") ? "block" : "none";
+    };
+
+    fieldCalcType?.addEventListener("change", e => {
+        const val = e.target.value;
+        updateCalcVisibility(val);
+        syncChange(f => {
+            f.calculationType = val;
+        }, true, "Change Calculation Type");
+    });
+
+    fieldCalcTargetFields?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+        }, false);
+    });
+    fieldCalcTargetFields?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+        }, true, "Set Calculation Fields");
+    });
+
+    fieldCalcFormula?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationFormula = e.target.value;
+        }, false);
+    });
+    fieldCalcFormula?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationFormula = e.target.value;
+        }, true, "Set Calculation Formula");
+    });
 
     // Enable Scrubbing and Scrolling on Number Inputs
     makeScrubbableAndScrollable(posXInput, null, { min: -2000, max: 5000, step: 1 });
@@ -763,8 +817,31 @@ export function populateProperties(field) {
     setChecked("fieldRequired", fallbackField.required);
     setChecked("fieldReadOnly", fallbackField.readOnly);
     setChecked("fieldMultiline", fallbackField.multiline);
+    setChecked("fieldIsComb", fallbackField.isComb);
+    setVal("fieldMaxLength", fallbackField.maxLength || "");
     setChecked("fieldDefaultChecked", fallbackField.defaultChecked);
     setVal("fieldCheckboxMark", fallbackField.checkboxMark || "check");
+
+    // Calculation properties
+    setVal("fieldCalcType", fallbackField.calculationType || "none");
+    setVal("fieldCalcTargetFields", Array.isArray(fallbackField.calculationFields) ? fallbackField.calculationFields.join(", ") : (fallbackField.calculationFields || ""));
+    setVal("fieldCalcFormula", fallbackField.calculationFormula || "");
+
+    // Calculation drawer and groups visibility
+    const accCalculation = document.getElementById("accCalculation");
+    const calcFieldsGroup = document.getElementById("calcFieldsGroup");
+    const calcFormulaGroup = document.getElementById("calcFormulaGroup");
+    const calcType = fallbackField.calculationType || "none";
+
+    if (accCalculation) {
+        accCalculation.style.display = (fallbackField.type === "textField" || fallbackField.type === "number") ? "block" : "none";
+    }
+    if (calcFieldsGroup) {
+        calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
+    }
+    if (calcFormulaGroup) {
+        calcFormulaGroup.style.display = (calcType === "custom") ? "block" : "none";
+    }
 
     // Signature controls visibility
     const sigGroup = document.getElementById("signatureActionsGroup");
@@ -792,6 +869,11 @@ export function populateProperties(field) {
     const multilineGroup = document.getElementById("multilineGroup");
     if (multilineGroup) {
         multilineGroup.style.display = (fallbackField.type === "textField") ? "flex" : "none";
+    }
+
+    const combGroup = document.getElementById("combGroup");
+    if (combGroup) {
+        combGroup.style.display = (fallbackField.type === "textField" || fallbackField.type === "dateField" || fallbackField.type === "number") ? "flex" : "none";
     }
 
     const ddGroup = document.getElementById("dropdownOptionsGroup");

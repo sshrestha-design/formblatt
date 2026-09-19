@@ -633,6 +633,50 @@ export function initEditorSubsystems() {
         triggerHaptic(12);
         openExportModal();
     });
+
+    const exportSplitToggle = document.getElementById("exportSplitDropdownToggle");
+    const exportSplitDropdownMenu = document.getElementById("exportSplitDropdownMenu");
+
+    exportSplitToggle?.addEventListener("click", e => {
+        e.stopPropagation();
+        if (!exportSplitDropdownMenu) return;
+        const isOpen = exportSplitDropdownMenu.style.display === "block";
+        exportSplitDropdownMenu.style.display = isOpen ? "none" : "block";
+        exportSplitToggle.setAttribute("aria-expanded", isOpen ? "false" : "true");
+        if (typeof lucide !== "undefined") lucide.createIcons();
+    });
+
+    document.addEventListener("click", e => {
+        if (exportSplitDropdownMenu && exportSplitDropdownMenu.style.display === "block") {
+            if (!e.target.closest("#exportSplitBtnGroup")) {
+                exportSplitDropdownMenu.style.display = "none";
+                exportSplitToggle?.setAttribute("aria-expanded", "false");
+            }
+        }
+    });
+
+    document.getElementById("quickExportAcroFormBtn")?.addEventListener("click", () => {
+        if (exportSplitDropdownMenu) exportSplitDropdownMenu.style.display = "none";
+        exportSplitToggle?.setAttribute("aria-expanded", "false");
+        triggerHaptic(12);
+        if (acroformRadio) {
+            acroformRadio.checked = true;
+            updateExportModeStyle();
+        }
+        openExportModal();
+    });
+
+    document.getElementById("quickExportFlattenedBtn")?.addEventListener("click", () => {
+        if (exportSplitDropdownMenu) exportSplitDropdownMenu.style.display = "none";
+        exportSplitToggle?.setAttribute("aria-expanded", "false");
+        triggerHaptic(12);
+        if (flattenRadio) {
+            flattenRadio.checked = true;
+            updateExportModeStyle();
+        }
+        openExportModal();
+    });
+
     document.getElementById("previewDownloadBtn")?.addEventListener("click", openExportModal);
 
     // ── 2-Step Export Modal & Toast Controller ──────────────────────
