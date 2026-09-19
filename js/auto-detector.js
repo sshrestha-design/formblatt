@@ -1595,6 +1595,8 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             const fieldName = sem.name;
             const isSingleOnLine = (maxAllowedX >= pageWidth - 45);
 
+            let preferredW = isSig ? Math.min(220, availableW) : (isSingleOnLine ? Math.min(260, availableW) : Math.min(180, availableW));
+
             // Check if an explicit vector underline is present next to or under this prompt
             const matchingUnderline = (vectorShapes?.underlines || []).find(u =>
                 Math.abs(u.y - (line.y + line.height)) <= 14 &&
