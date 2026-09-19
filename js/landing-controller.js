@@ -431,6 +431,17 @@ export async function loadPdfFile(file, onLoaded) {
         } catch(importErr) {
             console.warn("Could not import existing acroform widgets:", importErr);
         }
+
+        // Auto-run smart field detector if flat document / image has 0 interactive widgets
+        if (state.fields.length === 0) {
+            try {
+                const { autoDetectFields } = await import("./auto-detector.js");
+                await autoDetectFields("all");
+            } catch(detectErr) {
+                console.warn("Auto-detect on load skipped:", detectErr);
+            }
+        }
+
         state.lastSelectedFieldId = state.fields[0]?.id || null;
 
         const es = document.getElementById("emptyState");

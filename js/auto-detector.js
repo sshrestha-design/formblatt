@@ -802,32 +802,30 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         // Find text label directly to the right
         const labelBlock = rawBlocks
             .filter(tb => tb.x >= cbox.x + cbox.width - 2 && (tb.x - (cbox.x + cbox.width)) <= 180 &&
-                          Math.abs(tb.y - cbox.y) <= 12)
+                          Math.abs(tb.y - cbox.y) <= 14)
             .sort((a, b) => a.x - b.x)[0];
         
-        let label = labelBlock?.str || "";
-        if (label && !isUniversalStaticText(label)) {
-            const sem = resolveSemanticProps(label, "checkBox", usedNames);
-            const field = {
-                id: generateFieldId(),
-                type: "checkBox",
-                name: sem.name,
-                value: label,
-                x: cbox.x,
-                y: cbox.y,
-                width: cbox.width,
-                height: cbox.height,
-                page: pageNum,
-                borderStyle: "solid",
-                fillStyle: "white",
-                multiline: false,
-                autofill: "",
-                dataFormat: "text",
-                detectedBy: "vector_drawn_checkbox"
-            };
-            if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
-                fields.push(field);
-            }
+        const label = labelBlock?.str || "";
+        const sem = resolveSemanticProps(label || "checkbox", "checkBox", usedNames);
+        const field = {
+            id: generateFieldId(),
+            type: "checkBox",
+            name: sem.name,
+            value: label || "Yes",
+            x: cbox.x,
+            y: cbox.y,
+            width: cbox.width,
+            height: cbox.height,
+            page: pageNum,
+            borderStyle: "solid",
+            fillStyle: "white",
+            multiline: false,
+            autofill: "",
+            dataFormat: "text",
+            detectedBy: "vector_drawn_checkbox"
+        };
+        if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+            fields.push(field);
         }
     }
 
@@ -847,39 +845,38 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (box.y - (b.y + b.height)) - (box.y - (a.y + a.height)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel;
-        if (matchedLabel && !isUniversalStaticText(matchedLabel.str)) {
-            const sem = resolveSemanticProps(matchedLabel.str, "textField", usedNames);
-            const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(matchedLabel.str);
-            const isDate = sem.type === "dateField" || /date/i.test(matchedLabel.str);
-            const type = isSig ? "signature" : (isDate ? "dateField" : sem.type);
+        const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "field";
+        const sem = resolveSemanticProps(labelText, "textField", usedNames);
+        const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
+        const isDate = sem.type === "dateField" || /date/i.test(labelText);
+        const type = isSig ? "signature" : (isDate ? "dateField" : sem.type);
 
-            const field = {
-                id: generateFieldId(),
-                type: type,
-                name: sem.name,
-                x: box.x,
-                y: box.y,
-                width: box.width,
-                height: box.height,
-                page: pageNum,
-                borderStyle: "solid",
-                fillStyle: "white",
-                multiline: box.height >= 36 || sem.multiline,
-                autofill: sem.autofill || "",
-                dataFormat: sem.dataFormat || "text",
-                detectedBy: "vector_drawn_input_box"
-            };
+        const field = {
+            id: generateFieldId(),
+            type: type,
+            name: sem.name,
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height,
+            page: pageNum,
+            borderStyle: "solid",
+            fillStyle: "white",
+            multiline: box.height >= 36 || sem.multiline,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            detectedBy: "vector_drawn_input_box"
+        };
 
-            if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
-                fields.push(field);
-            }
+        if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+            fields.push(field);
         }
     }
 
     // 4. Match Vector Underlines (e.g. from scanned docs or vector path underlines)
     const underlineLines = vectorShapes.underlines || [];
     for (const u of underlineLines) {
-        if (u.width < 35) continue;
+        if (u.width < 30) continue;
         const uX = u.x;
         const uY = u.y;
         const uW = u.width;
@@ -888,42 +885,41 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
 
         // Find label directly to the left or directly above
         const leftLabel = rawBlocks
-            .filter(tb => tb.x + tb.width <= uX + 8 && (uX - (tb.x + tb.width)) <= 220 &&
-                          Math.abs(tb.y - (uY - 10)) <= 16)
+            .filter(tb => tb.x + tb.width <= uX + 12 && (uX - (tb.x + tb.width)) <= 240 &&
+                          Math.abs(tb.y - (uY - 10)) <= 18)
             .sort((a, b) => (uX - (b.x + b.width)) - (uX - (a.x + a.width)))[0];
 
         const topLabel = !leftLabel ? rawBlocks
-            .filter(tb => tb.y + tb.height <= uY && (uY - (tb.y + tb.height)) <= 28 &&
-                          (tb.x >= uX - 30 && tb.x <= uX + uW + 30))
+            .filter(tb => tb.y + tb.height <= uY && (uY - (tb.y + tb.height)) <= 30 &&
+                          (tb.x >= uX - 40 && tb.x <= uX + uW + 40))
             .sort((a, b) => (uY - (b.y + b.height)) - (uY - (a.y + a.height)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel;
-        if (matchedLabel && !isUniversalStaticText(matchedLabel.str)) {
-            const sem = resolveSemanticProps(matchedLabel.str, "textField", usedNames);
-            const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(matchedLabel.str);
-            const isDate = sem.type === "dateField" || /date/i.test(matchedLabel.str);
-            const type = isSig ? "signature" : (isDate ? "dateField" : sem.type);
+        const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "field";
+        const sem = resolveSemanticProps(labelText, "textField", usedNames);
+        const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
+        const isDate = sem.type === "dateField" || /date/i.test(labelText);
+        const type = isSig ? "signature" : (isDate ? "dateField" : sem.type);
 
-            const field = {
-                id: generateFieldId(),
-                type: type,
-                name: sem.name,
-                x: uX,
-                y: fieldY,
-                width: uW,
-                height: uH,
-                page: pageNum,
-                borderStyle: "none",
-                fillStyle: "transparent",
-                multiline: sem.multiline || false,
-                autofill: sem.autofill || "",
-                dataFormat: sem.dataFormat || "text",
-                detectedBy: "vector_drawn_underline"
-            };
+        const field = {
+            id: generateFieldId(),
+            type: type,
+            name: sem.name,
+            x: uX,
+            y: fieldY,
+            width: uW,
+            height: uH,
+            page: pageNum,
+            borderStyle: "none",
+            fillStyle: "transparent",
+            multiline: sem.multiline || false,
+            autofill: sem.autofill || "",
+            dataFormat: sem.dataFormat || "text",
+            detectedBy: "vector_drawn_underline"
+        };
 
-            if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
-                fields.push(field);
-            }
+        if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+            fields.push(field);
         }
     }
 
