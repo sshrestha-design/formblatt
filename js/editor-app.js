@@ -10,6 +10,7 @@ import { loadTemplate } from "./landing-controller.js";
 import { initSignaturePad } from "./signature-pad.js";
 import { autoDetectFields } from "./auto-detector.js";
 import { saveHistory, undo, redo, getUndoActionName, getRedoActionName, exportProjectJson, importProjectJson } from "./storage-manager.js";
+import { exportFormDataAsJson, exportFormDataAsCsv, importFormData } from "./data-exporter.js";
 import { showToast } from "./toast.js";
 import { triggerHaptic } from "./haptics.js";
 
@@ -349,6 +350,33 @@ export function initEditorSubsystems() {
         if (file) importProjectJson(file, () => refreshUI());
         e.target.value = "";
     });
+    document.getElementById("menuExportDataJsonBtn")?.addEventListener("click", () => {
+        const baseName = (state.filename ? state.filename.replace(/\.pdf$/i, "") : "form-data");
+        exportFormDataAsJson(state.fields, `${baseName}.json`);
+    });
+    document.getElementById("menuExportDataCsvBtn")?.addEventListener("click", () => {
+        const baseName = (state.filename ? state.filename.replace(/\.pdf$/i, "") : "form-data");
+        exportFormDataAsCsv(state.fields, `${baseName}.csv`, "row");
+    });
+    document.getElementById("menuImportDataBtn")?.addEventListener("click", () => {
+        document.getElementById("importFormDataInput")?.click();
+    });
+    document.getElementById("importFormDataInput")?.addEventListener("change", e => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = evt => {
+                const text = evt.target.result;
+                const result = importFormData(text, "auto", state);
+                if (result.success) {
+                    refreshUI();
+                }
+            };
+            reader.readAsText(file);
+        }
+        e.target.value = "";
+    });
+
     document.getElementById("menuExportPdfBtn")?.addEventListener("click", () => {
         document.getElementById("generatePdfBtn")?.click();
     });

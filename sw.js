@@ -1,7 +1,7 @@
-// ── JustForms Offline Service Worker (sw.js) ──────────────────────────
+// ── Formblatt Offline Service Worker (sw.js) ──────────────────────────
 // Enables 100% client-side offline execution (PWA) — works in Airplane Mode.
 
-const CACHE_NAME = "justforms-cache-v2.7";
+const CACHE_NAME = "formblatt-cache-v3.0";
 const STATIC_ASSETS = [
     "/",
     "/index.html",
@@ -14,7 +14,13 @@ const STATIC_ASSETS = [
     "/styles/canvas.css",
     "/styles/editor.css",
     "/styles/modals.css",
+    "/vendor/pdf.min.js",
+    "/vendor/pdf.worker.min.js",
+    "/vendor/pdf-lib.min.js",
+    "/vendor/lucide.min.js",
+    "/vendor/fontkit.umd.min.js",
     "/js/main.js",
+    "/js/editor-app.js",
     "/js/command-palette.js",
     "/js/state.js",
     "/js/constants.js",
@@ -30,7 +36,13 @@ const STATIC_ASSETS = [
     "/js/storage-manager.js",
     "/js/signature-pad.js",
     "/js/landing-controller.js",
-    "/js/onboarding-tour.js"
+    "/js/onboarding-tour.js",
+    "/js/gradient-waves.js",
+    "/js/haptics.js",
+    "/js/onnx-detector.js",
+    "/js/tooltip.js",
+    "/js/data-exporter.js",
+    "/js/ocr-engine.js"
 ];
 
 // Install event: cache all core static assets

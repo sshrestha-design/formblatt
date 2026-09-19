@@ -396,7 +396,7 @@ export async function autoDetectFields(scope = "current", options = {}) {
 
             const textContent = await page.getTextContent();
             
-            const rawBlocks = textContent.items.map(item => {
+            let rawBlocks = textContent.items.map(item => {
                 const tx = item.transform[4];
                 const ty = item.transform[5];
                 const fontHeight = Math.abs(item.transform[3]) || item.height || 12;
@@ -408,6 +408,30 @@ export async function autoDetectFields(scope = "current", options = {}) {
                     str: (item.str || "").trim()
                 };
             }).filter(tb => tb.str.length > 0);
+
+            // 1.25 Scanned / Flattened PDF Client-Side OCR Fallback
+            if (rawBlocks.length < 3 && typeof document !== "undefined") {
+                try {
+                    const { performScannedPageOcr } = await import("./ocr-engine.js");
+                    const ocrCanvas = document.createElement("canvas");
+                    const ocrScale = 2.0;
+                    const ocrViewport = page.getViewport({ scale: ocrScale });
+                    ocrCanvas.width = ocrViewport.width;
+                    ocrCanvas.height = ocrViewport.height;
+                    const ocrCtx = ocrCanvas.getContext("2d", { willReadFrequently: true });
+                    await page.render({ canvasContext: ocrCtx, viewport: ocrViewport }).promise;
+
+                    const ocrResult = await performScannedPageOcr(ocrCanvas, viewport, pageNum);
+                    if (ocrResult.textBlocks && ocrResult.textBlocks.length > 0) {
+                        rawBlocks = [...rawBlocks, ...ocrResult.textBlocks];
+                    }
+                    if (ocrResult.allRects && ocrResult.allRects.length > 0) {
+                        vectorShapes.allRects = [...(vectorShapes.allRects || []), ...ocrResult.allRects];
+                    }
+                } catch (ocrErr) {
+                    console.warn("Client-side OCR scanning skipped:", ocrErr);
+                }
+            }
 
             // 1.5 Drawn Vector Rectangles & Checkboxes (Exact vector geometry)
             const drawnVectorFields = detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields]);

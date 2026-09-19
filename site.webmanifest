@@ -1,15 +1,16 @@
 {
-  "name": "JustForms — Free Interactive PDF Form Creator",
-  "short_name": "JustForms",
-  "description": "Free, client-side PDF form creator and AcroForm generator.",
+  "name": "Formblatt — Free Interactive PDF Form Creator",
+  "short_name": "Formblatt",
+  "description": "Zero-cloud, privacy-first interactive PDF form builder & AcroForm editor.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#0284c7",
+  "background_color": "#0f172a",
+  "theme_color": "#2563eb",
+  "categories": ["productivity", "utilities", "business"],
   "icons": [
     {
       "src": "/favicon.svg",
-      "sizes": "512x512",
+      "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
