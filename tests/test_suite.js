@@ -1631,6 +1631,205 @@ async function runAllTests() {
         assert.equal(detected[2].height, 22);
     });
 
+    // ── SUITE 26: Comb / Boxed Character Recognition Verification ──
+    console.log("\n📦 Suite 26: Comb / Boxed Character Recognition");
+    const { clusterCombBoxes } = await import(path.join(WEB_DIR, 'js', 'auto-detector.js'));
+
+    it("clusterCombBoxes clusters contiguous horizontal character boxes into comb groups", () => {
+        // Mock SSN 9 character boxes [ ][ ][ ] [ ][ ] [ ][ ][ ][ ]
+        const ssnBoxes = [
+            { x: 100, y: 200, width: 14, height: 18 },
+            { x: 115, y: 200, width: 14, height: 18 },
+            { x: 130, y: 200, width: 14, height: 18 },
+            { x: 148, y: 200, width: 14, height: 18 },
+            { x: 163, y: 200, width: 14, height: 18 },
+            { x: 181, y: 200, width: 14, height: 18 },
+            { x: 196, y: 200, width: 14, height: 18 },
+            { x: 211, y: 200, width: 14, height: 18 },
+            { x: 226, y: 200, width: 14, height: 18 }
+        ];
+
+        const clusters = clusterCombBoxes(ssnBoxes);
+        assert.equal(clusters.length, 1);
+        assert.equal(clusters[0].length, 9);
+    });
+
+    it("detectVectorDrawnFields creates comb text field with isComb and maxLength", async () => {
+        const { detectVectorDrawnFields } = await import(path.join(WEB_DIR, 'js', 'auto-detector.js'));
+        const dateBoxes = [
+            { x: 100, y: 150, width: 14, height: 18 },
+            { x: 115, y: 150, width: 14, height: 18 },
+            { x: 135, y: 150, width: 14, height: 18 },
+            { x: 150, y: 150, width: 14, height: 18 },
+            { x: 170, y: 150, width: 14, height: 18 },
+            { x: 185, y: 150, width: 14, height: 18 },
+            { x: 200, y: 150, width: 14, height: 18 },
+            { x: 215, y: 150, width: 14, height: 18 }
+        ];
+        const rawBlocks = [
+            { str: "Date of Birth (MM/DD/YYYY):", x: 100, y: 132, width: 120, height: 10 }
+        ];
+        const detected = detectVectorDrawnFields({ allRects: dateBoxes }, rawBlocks, 1, new Set(), []);
+        assert.equal(detected.length, 1);
+        assert.equal(detected[0].type, "textField");
+        assert.equal(detected[0].isComb, true);
+        assert.equal(detected[0].maxLength, 8);
+        assert.equal(detected[0].dataFormat, "date");
+    });
+
+    await asyncIt("buildPdf sets Comb flag (bit 25 = 16777216) and maxLen in exported PDF", async () => {
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+
+        const blankDoc = await PDFLib.PDFDocument.create();
+        blankDoc.addPage([600, 800]);
+        const baseBytes = await blankDoc.save();
+
+        const combField = {
+            id: "fld_ssn_test",
+            name: "social_security_number",
+            type: "textField",
+            x: 50,
+            y: 50,
+            width: 180,
+            height: 24,
+            isComb: true,
+            maxLength: 9
+        };
+
+        const compiledPdfBytes = await buildPdf(baseBytes, [combField]);
+        const loadedPdf = await PDFLib.PDFDocument.load(compiledPdfBytes);
+        const form = loadedPdf.getForm();
+        const tf = form.getTextField("social_security_number");
+        assert.ok(tf, "Comb text field exists in exported PDF");
+        assert.equal(tf.getMaxLength(), 9);
+
+        const flags = tf.acroField.getFlags();
+        const isCombFlagSet = Boolean(flags & (1 << 24)); // Bit 25
+        assert.equal(isCombFlagSet, true, "AcroForm Comb flag (16777216) must be set on text field");
+    });
+
+    // ── SUITE 27: PDF Flattening & Split Export Verification ──
+    console.log("\n🔒 Suite 27: PDF Flattening & Split Export");
+    const { downloadFlattenedPdf, downloadAcroForm } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+
+    it("acroform-builder exports downloadFlattenedPdf and downloadAcroForm functions", () => {
+        assert.equal(typeof downloadFlattenedPdf, "function");
+        assert.equal(typeof downloadAcroForm, "function");
+    });
+
+    await asyncIt("buildPdf with flatten: true strips all interactive widget annotations and burns in vector contents", async () => {
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+        const blankDoc = await PDFLib.PDFDocument.create();
+        blankDoc.addPage([600, 800]);
+        const baseBytes = await blankDoc.save();
+
+        const testFields = [
+            { id: "fld_1", name: "full_name", type: "textField", value: "Jane Doe", x: 50, y: 50, width: 200, height: 25 },
+            { id: "fld_2", name: "agree", type: "checkBox", defaultChecked: true, x: 50, y: 90, width: 18, height: 18 }
+        ];
+
+        // 1. Build normal fillable AcroForm
+        const fillableBytes = await buildPdf(baseBytes, testFields, { flatten: false });
+        const fillableDoc = await PDFLib.PDFDocument.load(fillableBytes);
+        const fillableForm = fillableDoc.getForm();
+        assert.equal(fillableForm.getFields().length, 2, "Fillable PDF should retain 2 interactive AcroForm fields");
+
+        // 2. Build Flattened Read-Only PDF
+        const flattenedBytes = await buildPdf(baseBytes, testFields, { flatten: true });
+        const flattenedDoc = await PDFLib.PDFDocument.load(flattenedBytes);
+        const flattenedForm = flattenedDoc.getForm();
+        assert.equal(flattenedForm.getFields().length, 0, "Flattened PDF must have 0 interactive fields (baked permanent vectors)");
+    });
+
+    it("index.html contains toolbar split button group and quick export menu items", () => {
+        const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
+        assert.ok(indexHtml.includes('id="exportSplitBtnGroup"'));
+        assert.ok(indexHtml.includes('id="exportSplitDropdownToggle"'));
+        assert.ok(indexHtml.includes('id="exportSplitDropdownMenu"'));
+        assert.ok(indexHtml.includes('id="quickExportAcroFormBtn"'));
+        assert.ok(indexHtml.includes('id="quickExportFlattenedBtn"'));
+    });
+
+    // ── SUITE 28: Formula & Calculation Engine (/JS + /CO) Verification ──
+    console.log("\n🧮 Suite 28: Formula & Calculation Engine (/JS + /CO)");
+    const { evaluateCalculations } = await import(path.join(WEB_DIR, 'js', 'state.js'));
+    const { compileFormulaToAcroJs } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+
+    it("evaluateCalculations computes reactive sums, products, and custom math formulas in real time", () => {
+        const mockFields = [
+            { id: "fld_qty", name: "quantity", type: "textField", value: "5" },
+            { id: "fld_price", name: "unit_price", type: "textField", value: "20.50" },
+            { id: "fld_tax_rate", name: "tax_percent", type: "textField", value: "10" },
+            { id: "fld_subtotal", name: "subtotal", type: "textField", calculationType: "custom", calculationFormula: "quantity * unit_price", value: "" },
+            { id: "fld_total", name: "grand_total", type: "textField", calculationType: "custom", calculationFormula: "subtotal * (1 + tax_percent / 100)", value: "" }
+        ];
+
+        evaluateCalculations(mockFields);
+
+        // 5 * 20.50 = 102.5
+        assert.equal(mockFields[3].value, "102.5");
+        // 102.5 * 1.1 = 112.75
+        assert.equal(mockFields[4].value, "112.75");
+    });
+
+    it("compileFormulaToAcroJs generates ISO-compliant AcroForm JavaScript scripts", () => {
+        const sumField = {
+            calculationType: "sum",
+            calculationFields: ["item_1", "item_2", "item_3"]
+        };
+        const sumJs = compileFormulaToAcroJs(sumField);
+        assert.ok(sumJs.includes("var s = 0;"));
+        assert.ok(sumJs.includes("item_1"));
+        assert.ok(sumJs.includes("event.value = s;"));
+
+        const prodField = {
+            calculationType: "prod",
+            calculationFields: ["qty", "unit_price"]
+        };
+        const prodJs = compileFormulaToAcroJs(prodField);
+        assert.ok(prodJs.includes("var p = 1"));
+        assert.ok(prodJs.includes("qty"));
+        assert.ok(prodJs.includes("unit_price"));
+
+        const customField = {
+            calculationType: "custom",
+            calculationFormula: "subtotal + tax - discount"
+        };
+        const customJs = compileFormulaToAcroJs(customField);
+        assert.ok(customJs.includes("var subtotal ="));
+        assert.ok(customJs.includes("var tax ="));
+        assert.ok(customJs.includes("var discount ="));
+        assert.ok(customJs.includes("event.value = (subtotal + tax - discount)"));
+    });
+
+    await asyncIt("buildPdf attaches /AA Calculate actions and /CO Calculation Order Array to AcroForm catalog", async () => {
+        const { buildPdf } = await import(path.join(WEB_DIR, 'js', 'acroform-builder.js'));
+        const blankDoc = await PDFLib.PDFDocument.create();
+        blankDoc.addPage([600, 800]);
+        const baseBytes = await blankDoc.save();
+
+        const testFields = [
+            { id: "f1", name: "item1", type: "textField", value: "10", x: 50, y: 50, width: 100, height: 22 },
+            { id: "f2", name: "item2", type: "textField", value: "25", x: 50, y: 80, width: 100, height: 22 },
+            { id: "f3", name: "total", type: "textField", calculationType: "sum", calculationFields: ["item1", "item2"], x: 50, y: 110, width: 100, height: 22 }
+        ];
+
+        const pdfBytes = await buildPdf(baseBytes, testFields);
+        const doc = await PDFLib.PDFDocument.load(pdfBytes);
+        const form = doc.getForm();
+        const totalTf = form.getTextField("total");
+        assert.ok(totalTf, "Calculated total field exists");
+
+        // Verify /AA << /C << /S /JavaScript ... >> >>
+        const aaDict = totalTf.acroField.dict.get(PDFLib.PDFName.of("AA"));
+        assert.ok(aaDict, "Total field must possess /AA dictionary");
+
+        // Verify /CO (Calculation Order Array) in /AcroForm catalog
+        const acroForm = doc.catalog.getOrCreateAcroForm();
+        const coArray = acroForm.dict.get(PDFLib.PDFName.of("CO"));
+        assert.ok(coArray, "AcroForm catalog must contain /CO calculation order array");
+    });
+
     // ── Summary ──
     console.log("\n=================================================");
     console.log(`🏁 TEST RUN SUMMARY:`);

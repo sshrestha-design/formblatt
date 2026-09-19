@@ -461,13 +461,23 @@ export const COMMANDS = [
     // ── Project & Export ─────────────────────────────────────────────
     {
         id: "project-export",
-        title: "Export Standard AcroForm PDF",
+        title: "Export Standard AcroForm PDF (Fillable)",
         category: "Project & Export",
-        keywords: ["export", "pdf", "download", "save", "acroform", "generate", "build"],
+        keywords: ["export", "pdf", "download", "save", "acroform", "generate", "build", "fillable"],
         icon: "download",
         kbd: "⌘E",
         action: () => {
             document.getElementById("generatePdfBtn")?.click();
+        }
+    },
+    {
+        id: "project-export-flattened",
+        title: "Export Flattened PDF (Bake & Lock / Read-Only)",
+        category: "Project & Export",
+        keywords: ["export", "pdf", "flatten", "flattened", "bake", "lock", "readonly", "archive", "print"],
+        icon: "lock",
+        action: () => {
+            document.getElementById("quickExportFlattenedBtn")?.click();
         }
     },
     {

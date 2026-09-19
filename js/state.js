@@ -253,3 +253,74 @@ export function sortFieldsByReadingOrder(fields, yTolerance = 10) {
         return (a.x || 0) - (b.x || 0); // Left to right within same visual row
     });
 }
+
+export function evaluateCalculations(fields = state.fields) {
+    if (!Array.isArray(fields)) return;
+    const calcFields = fields.filter(f => f.calculationType && f.calculationType !== "none");
+    if (calcFields.length === 0) return;
+
+    const getVal = (name) => {
+        if (!name) return 0;
+        const clean = String(name).trim().toLowerCase().replace(/[^a-zA-Z0-9_-]/g, "_");
+        const found = fields.find(f => {
+            const fName = (f.name || "").trim().toLowerCase().replace(/[^a-zA-Z0-9_-]/g, "_");
+            return fName === clean || f.id === name;
+        });
+        if (!found) return 0;
+        const val = found.value !== undefined && found.value !== "" ? found.value : found.defaultValue;
+        const num = parseFloat(String(val || "").replace(/[^0-9.-]/g, ""));
+        return isNaN(num) ? 0 : num;
+    };
+
+    for (let pass = 0; pass < 5; pass++) {
+        let changed = false;
+        for (const f of calcFields) {
+            let res = 0;
+            const targets = Array.isArray(f.calculationFields) 
+                ? f.calculationFields 
+                : (f.calculationFields ? String(f.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+
+            if (f.calculationType === "sum") {
+                res = targets.reduce((sum, t) => sum + getVal(t), 0);
+            } else if (f.calculationType === "prod") {
+                if (targets.length === 0) res = 0;
+                else res = targets.reduce((prod, t) => prod * getVal(t), 1);
+            } else if (f.calculationType === "custom" && f.calculationFormula) {
+                const expr = f.calculationFormula.trim();
+                const tokens = expr.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+                const reserved = new Set(["Math", "Number", "parseInt", "parseFloat", "min", "max", "round", "abs", "floor", "ceil", "SUM", "PROD", "true", "false", "null", "undefined"]);
+                let evalExpr = expr;
+                tokens.forEach(tok => {
+                    if (!reserved.has(tok)) {
+                        const val = getVal(tok);
+                        evalExpr = evalExpr.replace(new RegExp(`\\b${tok}\\b`, "g"), `(${val})`);
+                    }
+                });
+                try {
+                    if (/^[0-9+\-*/().\s]+$/.test(evalExpr)) {
+                        res = Function(`"use strict"; return (${evalExpr})`)();
+                    }
+                } catch(e) {
+                    res = 0;
+                }
+            }
+
+            const formattedRes = (Number.isFinite(res) && !Number.isInteger(res)) ? Math.round(res * 100) / 100 : (Number.isFinite(res) ? res : 0);
+            const strRes = String(formattedRes);
+            if (f.value !== strRes) {
+                f.value = strRes;
+                f.defaultValue = strRes;
+                changed = true;
+
+                if (typeof document !== "undefined" && typeof document.querySelector === "function") {
+                    const overlayInput = document.querySelector(`#overlay_${f.id} input, #overlay_${f.id} textarea`);
+                    if (overlayInput && overlayInput.value !== strRes && document.activeElement !== overlayInput) {
+                        overlayInput.value = strRes;
+                    }
+                }
+            }
+        }
+        if (!changed) break;
+    }
+}
+

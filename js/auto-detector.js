@@ -534,6 +534,7 @@ export async function extractPdfVectorShapes(page, viewport) {
     const result = {
         checkboxRects: [],
         inputBoxRects: [],
+        allRects: [],
         underlines: []
     };
     if (!page.getOperatorList) return result;
@@ -569,6 +570,9 @@ export async function extractPdfVectorShapes(page, viewport) {
     let pathStart = null;
 
     const addRectCandidate = (minX, minY, w, h) => {
+        if (w >= 6 && w <= 540 && h >= 6 && h <= 120) {
+            result.allRects.push({ x: minX, y: minY, width: w, height: h });
+        }
         if (w >= 8 && w <= 26 && h >= 8 && h <= 26 && (w / h >= 0.7 && w / h <= 1.45)) {
             result.checkboxRects.push({ x: minX, y: minY, width: w, height: h });
         } else if (h >= 14 && h <= 80 && w >= 25 && w <= 540) {
@@ -660,13 +664,114 @@ export async function extractPdfVectorShapes(page, viewport) {
     return result;
 }
 
+export function clusterCombBoxes(rects) {
+    if (!rects || rects.length < 2) return [];
+    // Filter to small boxes suitable for character cells (width 8-36, height 10-36)
+    const candidates = rects.filter(r => r.width >= 8 && r.width <= 36 && r.height >= 10 && r.height <= 36)
+        .sort((a, b) => {
+            const yDiff = a.y - b.y;
+            if (Math.abs(yDiff) > 4) return yDiff;
+            return a.x - b.x;
+        });
+
+    const clusters = [];
+    const usedIndices = new Set();
+
+    for (let i = 0; i < candidates.length; i++) {
+        if (usedIndices.has(i)) continue;
+        const currentCluster = [candidates[i]];
+        let lastBox = candidates[i];
+
+        for (let j = i + 1; j < candidates.length; j++) {
+            if (usedIndices.has(j)) continue;
+            const nextBox = candidates[j];
+            if (Math.abs(nextBox.y - lastBox.y) > 4) break;
+            if (Math.abs(nextBox.height - lastBox.height) > 4 || Math.abs(nextBox.width - lastBox.width) > 6) continue;
+            const gap = nextBox.x - (lastBox.x + lastBox.width);
+            if (gap >= -2 && gap <= 16) {
+                currentCluster.push(nextBox);
+                usedIndices.add(j);
+                lastBox = nextBox;
+            }
+        }
+
+        if (currentCluster.length >= 2) {
+            usedIndices.add(i);
+            clusters.push(currentCluster);
+        }
+    }
+    return clusters;
+}
+
 export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, existingFields = []) {
     const fields = [];
     if (!vectorShapes) return fields;
-    const { checkboxRects = [], inputBoxRects = [] } = vectorShapes;
+    const { checkboxRects = [], inputBoxRects = [], allRects = [] } = vectorShapes;
 
-    // 1. Match Vector Checkbox Squares
+    const consumedRects = new Set();
+    const candidateRects = allRects.length > 0 ? allRects : [...checkboxRects, ...inputBoxRects.filter(b => b.width <= 40)];
+
+    // 1. Detect Comb / Segmented Character Fields (SSN, Date, TIN, Account #)
+    const combClusters = clusterCombBoxes(candidateRects);
+    for (const cluster of combClusters) {
+        const minX = Math.min(...cluster.map(b => b.x));
+        const minY = Math.min(...cluster.map(b => b.y));
+        const maxX = Math.max(...cluster.map(b => b.x + b.width));
+        const maxY = Math.max(...cluster.map(b => b.y + b.height));
+        const combWidth = maxX - minX;
+        const combHeight = maxY - minY;
+        const maxLen = cluster.length;
+
+        // Find label directly to the left or directly above
+        const leftLabel = rawBlocks
+            .filter(tb => tb.x + tb.width <= minX + 8 && (minX - (tb.x + tb.width)) <= 220 &&
+                          Math.abs(tb.y - minY) <= 16)
+            .sort((a, b) => (minX - (b.x + b.width)) - (minX - (a.x + a.width)))[0];
+
+        const topLabel = !leftLabel ? rawBlocks
+            .filter(tb => tb.y + tb.height <= minY + 4 && (minY - (tb.y + tb.height)) <= 28 &&
+                          (tb.x >= minX - 30 && tb.x <= maxX + 30))
+            .sort((a, b) => (minY - (b.y + b.height)) - (minY - (a.y + a.height)))[0] : null;
+
+        const matchedLabel = leftLabel || topLabel;
+        const labelText = matchedLabel?.str || "comb_field";
+        const sem = resolveSemanticProps(labelText, "textField", usedNames);
+
+        let dataFormat = sem.dataFormat || "text";
+        if (/ssn|social\s*sec/i.test(labelText)) dataFormat = "ssn";
+        else if (/date|dob|birth/i.test(labelText)) dataFormat = "date";
+        else if (/tin|ein|tax\s*id/i.test(labelText)) dataFormat = "tin";
+        else if (/zip|postal/i.test(labelText)) dataFormat = "zip";
+
+        const field = {
+            id: generateFieldId(),
+            type: "textField",
+            name: sem.name,
+            x: minX,
+            y: minY,
+            width: combWidth,
+            height: combHeight,
+            page: pageNum,
+            borderStyle: "solid",
+            fillStyle: "white",
+            multiline: false,
+            autofill: sem.autofill || "",
+            dataFormat: dataFormat,
+            isComb: true,
+            maxLength: maxLen,
+            detectedBy: "vector_drawn_comb"
+        };
+
+        if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
+            fields.push(field);
+            cluster.forEach(box => consumedRects.add(box));
+        }
+    }
+
+    // 2. Match Vector Checkbox Squares (excluding consumed comb boxes)
     for (const cbox of checkboxRects) {
+        if (consumedRects.has(cbox)) continue;
+
         // Find text label directly to the right
         const labelBlock = rawBlocks
             .filter(tb => tb.x >= cbox.x + cbox.width - 2 && (tb.x - (cbox.x + cbox.width)) <= 180 &&
@@ -699,8 +804,9 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         }
     }
 
-    // 2. Match Vector Input Rectangles
+    // 3. Match Vector Input Rectangles (excluding consumed comb boxes)
     for (const box of inputBoxRects) {
+        if (consumedRects.has(box)) continue;
         if (box.height > 70 || box.width > 530) continue;
 
         const leftLabel = rawBlocks
