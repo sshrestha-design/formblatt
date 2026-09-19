@@ -1741,13 +1741,12 @@ async function runAllTests() {
         assert.equal(flattenedForm.getFields().length, 0, "Flattened PDF must have 0 interactive fields (baked permanent vectors)");
     });
 
-    it("index.html contains toolbar split button group and quick export menu items", () => {
+    it("index.html contains export button and exportModal with interactive vs flatten radio options", () => {
         const indexHtml = fs.readFileSync(path.join(WEB_DIR, 'index.html'), 'utf8');
-        assert.ok(indexHtml.includes('id="exportSplitBtnGroup"'));
-        assert.ok(indexHtml.includes('id="exportSplitDropdownToggle"'));
-        assert.ok(indexHtml.includes('id="exportSplitDropdownMenu"'));
-        assert.ok(indexHtml.includes('id="quickExportAcroFormBtn"'));
-        assert.ok(indexHtml.includes('id="quickExportFlattenedBtn"'));
+        assert.ok(indexHtml.includes('id="generatePdfBtn"'));
+        assert.ok(indexHtml.includes('id="exportModal"'));
+        assert.ok(indexHtml.includes('value="flatten"'));
+        assert.ok(indexHtml.includes('value="acroform"'));
     });
 
     // ── SUITE 28: Formula & Calculation Engine (/JS + /CO) Verification ──

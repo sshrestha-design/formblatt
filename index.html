@@ -1243,32 +1243,11 @@
                     <i data-lucide="keyboard" style="width: 15px; height: 15px;"></i>
                 </button>
 
-                <!-- Primary CTA Split Button -->
-                <div class="toolbar-split-btn-group" id="exportSplitBtnGroup" style="position: relative; display: inline-flex; align-items: stretch;">
-                    <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" data-tooltip="Export Standard AcroForm PDF" data-kbd="⌘E" aria-label="Export PDF">
-                        <i data-lucide="download" style="width: 14px; height: 14px;"></i>
-                        <span>Export PDF</span>
-                    </button>
-                    <button type="button" id="exportSplitDropdownToggle" class="btn-primary toolbar-export-split-btn" data-tooltip="Export Options" aria-label="Export options" aria-haspopup="true" aria-expanded="false" style="border-left: 1px solid rgba(255,255,255,0.25); padding: 0 7px; min-width: 24px; border-top-left-radius: 0; border-bottom-left-radius: 0;">
-                        <i data-lucide="chevron-down" style="width: 13px; height: 13px;"></i>
-                    </button>
-                    <div id="exportSplitDropdownMenu" class="export-split-dropdown-menu" style="display: none; position: absolute; top: calc(100% + 6px); right: 0; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; box-shadow: 0 10px 25px -5px rgba(15,23,42,0.15), 0 0 0 1px rgba(15,23,42,0.05); min-width: 240px; z-index: 2000; padding: 4px; overflow: hidden;" role="menu">
-                        <button type="button" class="export-split-menu-item" id="quickExportAcroFormBtn" role="menuitem" style="width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: none; background: transparent; cursor: pointer; text-align: left; border-radius: 6px; transition: background 0.12s ease;">
-                            <i data-lucide="file-check-2" style="width: 16px; height: 16px; color: #2563eb; flex-shrink: 0; margin-top: 2px;"></i>
-                            <div>
-                                <div style="font-size: 12.5px; font-weight: 700; color: #0f172a; line-height: 1.2;">Fillable AcroForm PDF</div>
-                                <div style="font-size: 11px; color: #64748b; margin-top: 2px; line-height: 1.2;">Interactive fields (Recommended)</div>
-                            </div>
-                        </button>
-                        <button type="button" class="export-split-menu-item" id="quickExportFlattenedBtn" role="menuitem" style="width: 100%; display: flex; align-items: flex-start; gap: 10px; padding: 8px 10px; border: none; background: transparent; cursor: pointer; text-align: left; border-radius: 6px; transition: background 0.12s ease;">
-                            <i data-lucide="lock" style="width: 16px; height: 16px; color: #059669; flex-shrink: 0; margin-top: 2px;"></i>
-                            <div>
-                                <div style="font-size: 12.5px; font-weight: 700; color: #0f172a; line-height: 1.2;">Flattened Read-Only PDF</div>
-                                <div style="font-size: 11px; color: #64748b; margin-top: 2px; line-height: 1.2;">Bake &amp; lock for permanent archiving</div>
-                            </div>
-                        </button>
-                    </div>
-                </div>
+                <!-- Primary CTA Button -->
+                <button id="generatePdfBtn" class="btn-primary toolbar-export-btn" data-tooltip="Export Fillable PDF" data-kbd="⌘E" aria-label="Export PDF">
+                    <i data-lucide="download" style="width: 14px; height: 14px;"></i>
+                    <span>Export PDF</span>
+                </button>
             </div>
         </header>
 
