@@ -391,7 +391,30 @@ export async function loadPdfFile(file, onLoaded) {
         const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : (typeof pdfjsLib !== "undefined" ? pdfjsLib : null);
         if (!pdfjs) throw new Error("PDF.js library could not be loaded");
 
-        const bytes = new Uint8Array(await file.arrayBuffer());
+        let bytes = new Uint8Array(await file.arrayBuffer());
+
+        // Auto-convert image files (JPG, JPEG, PNG, WebP) into PDF document in memory
+        const isImage = (file.type && file.type.startsWith("image/")) || /\.(jpe?g|png|webp|bmp)$/i.test(file.name);
+        if (isImage) {
+            const pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : (typeof PDFLib !== "undefined" ? PDFLib : null);
+            if (!pdfLib) throw new Error("PDF engine could not be loaded for image conversion");
+            const imgDoc = await pdfLib.PDFDocument.create();
+            let embeddedImg;
+            if ((file.type && file.type === "image/png") || /\.png$/i.test(file.name)) {
+                embeddedImg = await imgDoc.embedPng(bytes);
+            } else {
+                embeddedImg = await imgDoc.embedJpg(bytes);
+            }
+            const imgPage = imgDoc.addPage([embeddedImg.width, embeddedImg.height]);
+            imgPage.drawImage(embeddedImg, {
+                x: 0,
+                y: 0,
+                width: embeddedImg.width,
+                height: embeddedImg.height
+            });
+            bytes = await imgDoc.save();
+        }
+
         const loadingTask = pdfjs.getDocument({ data: bytes.slice() });
         const loadedDoc = await loadingTask.promise;
         state.originalPdfBytes = bytes;
@@ -400,7 +423,7 @@ export async function loadPdfFile(file, onLoaded) {
         state.currentPageNum = 1;
         state.fields.length = 0;
         state.selectedFieldIds.clear();
-        state.fileName = file.name ? (file.name.toLowerCase().endsWith(".pdf") ? file.name : file.name + ".pdf") : "interactive_form.pdf";
+        state.fileName = file.name ? (file.name.replace(/\.[^/.]+$/, "") + ".pdf") : "interactive_form.pdf";
 
         await analyzePdfDocument();
         try {
