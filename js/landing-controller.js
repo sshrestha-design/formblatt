@@ -19,6 +19,18 @@ export function closeLeaveEditorModal() {
     }
 }
 
+export function pulseAutoDetectButton() {
+    if (typeof document === "undefined") return;
+    const btn = document.getElementById("autoDetectBtn");
+    if (!btn) return;
+    btn.classList.remove("attention-pulse");
+    void btn.offsetWidth; // Force reflow
+    btn.classList.add("attention-pulse");
+    setTimeout(() => {
+        btn.classList.remove("attention-pulse");
+    }, 2800);
+}
+
 export function showLandingScreen(force = false, skipPush = false) {
     const editor = document.getElementById("appEditorScreen");
     const isEditorActive = Boolean(editor && (document.body.classList.contains("editor-active") || editor.classList.contains("active") || editor.style.display === "flex" || editor.style.display === "block"));
@@ -447,6 +459,7 @@ export async function loadPdfFile(file, onLoaded) {
         await showEditorScreen(() => {
             goToPage(1).then(() => {
                 saveHistory();
+                pulseAutoDetectButton();
                 if (onLoaded) onLoaded();
             });
         });
