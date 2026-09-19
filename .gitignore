@@ -29,3 +29,5 @@ yarn-error.log*
 # Test and temp browser files
 .chrome-test-profile/
 assets/frame-*.jpg
+tests/
+evaluate.html
