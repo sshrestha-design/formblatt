@@ -206,7 +206,7 @@
                     <label for="landingPdfUpload" class="nav-cta" id="navUploadBtn" style="cursor: pointer;">
                         <span>Open PDF</span>
                     </label>
-                    <input type="file" id="landingPdfUpload" aria-label="Open PDF or Formblatt project" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                    <input type="file" id="landingPdfUpload" aria-label="Open PDF or Formblatt project" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                 </nav>
             </div>
         </header>
@@ -227,9 +227,9 @@
 
                         <div class="cta-row">
                             <label for="heroPdfUpload" class="btn-primary" id="heroBrowseBtn" style="cursor: pointer;">
-                                <span>Browse PDF File</span>
+                                <span>Browse PDF / Image</span>
                             </label>
-                            <input type="file" id="heroPdfUpload" aria-label="Browse PDF file" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                            <input type="file" id="heroPdfUpload" aria-label="Browse PDF or image file" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
                             <label for="heroOpenProjectUpload" class="btn-secondary" id="heroOpenProjectBtn" title="Open a previously saved editable Formblatt project backup file" style="cursor: pointer;">
                                 <span>Open Saved Project (.formblatt)</span>
                             </label>
@@ -771,7 +771,7 @@
                 <label for="footerPdfUpload" class="btn-inverse" id="footerBrowseBtn" style="cursor: pointer;">
                     <span>Browse PDF File</span>
                 </label>
-                <input type="file" id="footerPdfUpload" aria-label="Browse PDF file from footer" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+                <input type="file" id="footerPdfUpload" aria-label="Browse PDF file from footer" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.json,.formblatt,.fblatt,.jform,.justforms" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
             </div>
         </main>
 
@@ -881,7 +881,7 @@
                             <button type="button" class="menu-bar-dropdown-item" id="openPdfDropdownBtn" role="menuitem" onclick="document.getElementById('pdfUploadMenu').click()">
                                 <span class="menu-item-left"><i data-lucide="file-up" class="menu-item-icon"></i> Open PDF...</span>
                             </button>
-                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file from menu">
+                            <input type="file" id="pdfUploadMenu" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF file or image from menu">
                             
                             <div class="menu-submenu">
                                 <button type="button" class="menu-bar-dropdown-item menu-submenu-trigger" role="menuitem" aria-haspopup="true">
@@ -1314,7 +1314,7 @@
                         <button type="button" id="emptyStateUploadBtn" class="btn-secondary" onclick="document.getElementById('emptyStateUpload').click()" style="padding: 10px 20px; font-size: 13px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; border-radius: 8px; background: #ffffff; border: 1px solid #cbd5e1;">
                             <i data-lucide="folder-open" style="width: 15px; height: 15px;"></i> Open PDF
                         </button>
-                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF document">
+                        <input type="file" id="emptyStateUpload" accept="application/pdf,.pdf,image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp,.json,.formblatt,.fblatt,.jform,.justforms" style="display: none;" aria-label="Open PDF or image document">
                     </div>
                 </div>
                 
