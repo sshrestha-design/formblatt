@@ -401,7 +401,12 @@ body.is-picking-calc-field .field-overlay {
     cursor: crosshair !important;
     outline: 2.5px dashed #2563eb !important;
     outline-offset: 2px !important;
+    pointer-events: auto !important;
     animation: calcPickerPulse 1.8s infinite ease-in-out;
+}
+
+body.is-picking-calc-field .field-overlay * {
+    pointer-events: none !important;
 }
 
 @keyframes calcPickerPulse {

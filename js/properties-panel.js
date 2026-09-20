@@ -224,7 +224,233 @@ export function updateFormulaLivePreview(field) {
     }
 }
 
+let panelOnFieldUpdated = null;
+let lastHandledPickTime = 0;
+export let isPickingCalcField = false;
+
+export function syncFieldChange(updater, immediate = false, actionName = null) {
+    const field = getSelectedField();
+    if (!field) return;
+    updater(field);
+    saveHistory(immediate, actionName);
+    if (panelOnFieldUpdated) panelOnFieldUpdated(field);
+}
+
+export const updateCalcVisibility = (calcType) => {
+    const calcFieldsGroup = document.getElementById("calcFieldsGroup");
+    const calcTaxGroup = document.getElementById("calcTaxGroup");
+    const calcDiscountGroup = document.getElementById("calcDiscountGroup");
+    const calcFormulaGroup = document.getElementById("calcFormulaGroup");
+    const calcOperatorsGroup = document.getElementById("calcOperatorsGroup");
+    const calcFieldChipsGroup = document.getElementById("calcFieldChipsGroup");
+    const calcPreviewCard = document.getElementById("calcPreviewCard");
+
+    if (calcFieldsGroup) calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
+    if (calcTaxGroup) calcTaxGroup.style.display = (calcType === "tax") ? "flex" : "none";
+    if (calcDiscountGroup) calcDiscountGroup.style.display = (calcType === "discount") ? "flex" : "none";
+    if (calcFormulaGroup) calcFormulaGroup.style.display = (calcType === "custom") ? "block" : "none";
+    if (calcOperatorsGroup) calcOperatorsGroup.style.display = (calcType === "custom") ? "flex" : "none";
+    if (calcFieldChipsGroup) calcFieldChipsGroup.style.display = (calcType !== "none") ? "flex" : "none";
+    if (calcPreviewCard) calcPreviewCard.style.display = (calcType !== "none") ? "flex" : "none";
+};
+
+export const populateBaseFieldOptions = (currentField) => {
+    if (!currentField) return;
+    const calcTaxBaseField = document.getElementById("calcTaxBaseField");
+    const calcDiscountBaseField = document.getElementById("calcDiscountBaseField");
+    const otherFields = (state.fields || []).filter(f => f.id !== currentField.id && (f.type === "textField" || f.type === "number" || !f.type));
+    const buildOptionsHtml = (selectedVal) => {
+        if (otherFields.length === 0) return '<option value="">(No other fields on page)</option>';
+        return otherFields.map(f => {
+            const name = f.name || f.id;
+            const isSel = (selectedVal === name || selectedVal === f.id);
+            return `<option value="${escapeHtml(name)}" ${isSel ? "selected" : ""}>${escapeHtml(name)}</option>`;
+        }).join("");
+    };
+
+    if (calcTaxBaseField) {
+        calcTaxBaseField.innerHTML = buildOptionsHtml(currentField.calculationTaxBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
+    }
+    if (calcDiscountBaseField) {
+        calcDiscountBaseField.innerHTML = buildOptionsHtml(currentField.calculationDiscountBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
+    }
+};
+
+export const renderFormulaFieldChips = (currentField) => {
+    const tray = document.getElementById("calcFieldChipsTray");
+    const countEl = document.getElementById("calcAvailableFieldsCount");
+    if (!tray || !currentField) return;
+
+    tray.innerHTML = "";
+    const otherFields = (state.fields || []).filter(f => f.id !== currentField.id && (f.type === "textField" || f.type === "number" || !f.type));
+    if (countEl) countEl.textContent = `${otherFields.length} field${otherFields.length === 1 ? "" : "s"}`;
+
+    const currentTargets = Array.isArray(currentField.calculationFields)
+        ? currentField.calculationFields
+        : (currentField.calculationFields ? String(currentField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+
+    otherFields.forEach(f => {
+        const fieldName = f.name || f.id;
+        const isSelected = currentTargets.includes(fieldName);
+
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = `calc-chip-btn ${isSelected ? "selected" : ""}`;
+        chip.innerHTML = `<span class="chip-plus">${isSelected ? "✓" : "+"}</span><span>${escapeHtml(fieldName)}</span>`;
+        chip.title = `Insert ${fieldName}`;
+
+        chip.addEventListener("click", e => {
+            e.preventDefault();
+            handleFieldChipClicked(fieldName);
+        });
+
+        tray.appendChild(chip);
+    });
+};
+
+export const handleFieldChipClicked = (fieldName) => {
+    const field = getSelectedField();
+    if (!field) return;
+
+    // If calculation type is not set or none, auto-switch to sum so target fields work immediately
+    if (!field.calculationType || field.calculationType === "none") {
+        field.calculationType = "sum";
+        const fieldCalcType = document.getElementById("fieldCalcType");
+        if (fieldCalcType) fieldCalcType.value = "sum";
+        updateCalcVisibility("sum");
+    }
+
+    const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
+    const calcTaxBaseField = document.getElementById("calcTaxBaseField");
+    const calcDiscountBaseField = document.getElementById("calcDiscountBaseField");
+
+    if (field.calculationType === "sum" || field.calculationType === "prod") {
+        let targets = Array.isArray(field.calculationFields)
+            ? [...field.calculationFields]
+            : (field.calculationFields ? String(field.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+        
+        if (targets.includes(fieldName)) {
+            targets = targets.filter(t => t !== fieldName);
+        } else {
+            targets.push(fieldName);
+        }
+        field.calculationFields = targets;
+        if (fieldCalcTargetFields) fieldCalcTargetFields.value = targets.join(", ");
+        syncFieldChange(f => f.calculationFields = targets, true, "Update Target Fields");
+        renderFormulaFieldChips(field);
+        updateFormulaLivePreview(field);
+    } else if (field.calculationType === "tax") {
+        field.calculationTaxBaseField = fieldName;
+        if (calcTaxBaseField) calcTaxBaseField.value = fieldName;
+        syncFieldChange(f => f.calculationTaxBaseField = fieldName, true, "Set Base Tax Field");
+        renderFormulaFieldChips(field);
+        updateFormulaLivePreview(field);
+    } else if (field.calculationType === "discount") {
+        field.calculationDiscountBaseField = fieldName;
+        if (calcDiscountBaseField) calcDiscountBaseField.value = fieldName;
+        syncFieldChange(f => f.calculationDiscountBaseField = fieldName, true, "Set Base Discount Field");
+        renderFormulaFieldChips(field);
+        updateFormulaLivePreview(field);
+    } else {
+        // Custom Formula
+        insertTokenIntoFormula(fieldName);
+    }
+};
+
+export const insertTokenIntoFormula = (token) => {
+    const input = document.getElementById("fieldCalcFormula");
+    if (!input) return;
+    const start = input.selectionStart !== null ? input.selectionStart : input.value.length;
+    const end = input.selectionEnd !== null ? input.selectionEnd : input.value.length;
+    const before = input.value.substring(0, start);
+    const after = input.value.substring(end);
+
+    const needLeadingSpace = before.length > 0 && !/[\s(+\-*/]$/.test(before) && !/^\s/.test(token);
+    const needTrailingSpace = after.length > 0 && !/^[\s)+\-*/]/.test(after) && !/\s$/.test(token);
+
+    const insertion = `${needLeadingSpace ? " " : ""}${token}${needTrailingSpace ? " " : ""}`;
+    input.value = before + insertion + after;
+    const newPos = start + insertion.length;
+    input.setSelectionRange(newPos, newPos);
+    input.focus();
+
+    syncFieldChange(f => {
+        f.calculationFormula = input.value;
+    }, true, "Insert Formula Token");
+    updateFormulaLivePreview(getSelectedField());
+};
+
+export const setCanvasPickMode = (active) => {
+    isPickingCalcField = !!active;
+    document.body.classList.toggle("is-picking-calc-field", isPickingCalcField);
+    const calcPickFromCanvasBtn = document.getElementById("calcPickFromCanvasBtn");
+    const calcFormulaCanvasPickBtn = document.getElementById("calcFormulaCanvasPickBtn");
+    calcPickFromCanvasBtn?.classList.toggle("active", isPickingCalcField);
+    calcFormulaCanvasPickBtn?.classList.toggle("active", isPickingCalcField);
+
+    let hud = document.getElementById("calcPickerHud");
+    if (isPickingCalcField) {
+        if (!hud) {
+            hud = document.createElement("div");
+            hud.id = "calcPickerHud";
+            hud.className = "calc-picker-hud";
+            hud.innerHTML = `
+                <span class="calc-picker-hud-badge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                    Pick on Canvas Active
+                </span>
+                <span>Click any field on the canvas to add to calculation</span>
+                <button type="button" class="calc-picker-hud-done-btn" id="calcPickerDoneBtn">Done (Esc)</button>
+            `;
+            document.body.appendChild(hud);
+            document.getElementById("calcPickerDoneBtn")?.addEventListener("click", () => setCanvasPickMode(false));
+        } else {
+            hud.style.display = "flex";
+        }
+    } else {
+        if (hud) hud.style.display = "none";
+    }
+};
+
+export const handleCanvasFieldPick = e => {
+    if (!isPickingCalcField) return;
+    const fieldEl = e.target.closest(".field-overlay");
+    if (!fieldEl) return;
+
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    e.preventDefault();
+
+    const now = Date.now();
+    if (now - lastHandledPickTime < 180) return;
+    lastHandledPickTime = now;
+
+    const fieldId = fieldEl.id?.replace(/^overlay_/, "") || fieldEl.dataset?.id;
+    const targetField = (state.fields || []).find(f => String(f.id) === String(fieldId));
+    if (targetField) {
+        handleFieldChipClicked(targetField.name || targetField.id);
+        fieldEl.classList.remove("just-picked-flash");
+        void fieldEl.offsetWidth;
+        fieldEl.classList.add("just-picked-flash");
+        setTimeout(() => fieldEl.classList.remove("just-picked-flash"), 400);
+    }
+};
+
+if (typeof window !== "undefined") {
+    window.addEventListener("mousedown", handleCanvasFieldPick, true);
+    window.addEventListener("pointerdown", handleCanvasFieldPick, true);
+    window.addEventListener("click", handleCanvasFieldPick, true);
+    window.addEventListener("keydown", e => {
+        if (e.key === "Escape" && isPickingCalcField) {
+            setCanvasPickMode(false);
+        }
+    });
+}
+
 export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
+    panelOnFieldUpdated = onFieldUpdated;
+    const syncChange = syncFieldChange;
+
     const fieldNameInput = document.getElementById("fieldName");
     const fieldDefaultVal = document.getElementById("fieldDefaultValue");
     const fieldRequired = document.getElementById("fieldRequired");
@@ -245,14 +471,6 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const dropdownOptions = document.getElementById("dropdownOptions");
     const fieldDefaultChecked = document.getElementById("fieldDefaultChecked");
     const fieldCheckboxMark = document.getElementById("fieldCheckboxMark");
-
-    const syncChange = (updater, immediate = false, actionName = null) => {
-        const field = getSelectedField();
-        if (!field) return;
-        updater(field);
-        saveHistory(immediate, actionName);
-        if (onFieldUpdated) onFieldUpdated(field);
-    };
 
     const fieldTypeSelect = document.getElementById("fieldType");
     fieldTypeSelect?.addEventListener("change", e => {
@@ -382,207 +600,36 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const fieldCalcType = document.getElementById("fieldCalcType");
     const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
     const fieldCalcFormula = document.getElementById("fieldCalcFormula");
-    const calcFieldsGroup = document.getElementById("calcFieldsGroup");
-    const calcTaxGroup = document.getElementById("calcTaxGroup");
     const calcTaxBaseField = document.getElementById("calcTaxBaseField");
     const calcTaxRateInput = document.getElementById("calcTaxRateInput");
-    const calcDiscountGroup = document.getElementById("calcDiscountGroup");
     const calcDiscountBaseField = document.getElementById("calcDiscountBaseField");
     const calcDiscountRateInput = document.getElementById("calcDiscountRateInput");
-    const calcFormulaGroup = document.getElementById("calcFormulaGroup");
-    const calcOperatorsGroup = document.getElementById("calcOperatorsGroup");
-    const calcFieldChipsGroup = document.getElementById("calcFieldChipsGroup");
-    const calcPreviewCard = document.getElementById("calcPreviewCard");
     const calcPickFromCanvasBtn = document.getElementById("calcPickFromCanvasBtn");
     const calcFormulaCanvasPickBtn = document.getElementById("calcFormulaCanvasPickBtn");
 
-    let isPickingCalcField = false;
-
-    const setCanvasPickMode = (active) => {
-        isPickingCalcField = !!active;
-        document.body.classList.toggle("is-picking-calc-field", isPickingCalcField);
-        calcPickFromCanvasBtn?.classList.toggle("active", isPickingCalcField);
-        calcFormulaCanvasPickBtn?.classList.toggle("active", isPickingCalcField);
-
-        let hud = document.getElementById("calcPickerHud");
-        if (isPickingCalcField) {
-            if (!hud) {
-                hud = document.createElement("div");
-                hud.id = "calcPickerHud";
-                hud.className = "calc-picker-hud";
-                hud.innerHTML = `
-                    <span class="calc-picker-hud-badge">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-                        Pick on Canvas Active
-                    </span>
-                    <span>Click any field on the canvas to add to formula</span>
-                    <button type="button" class="calc-picker-hud-done-btn" id="calcPickerDoneBtn">Done (Esc)</button>
-                `;
-                document.body.appendChild(hud);
-                document.getElementById("calcPickerDoneBtn")?.addEventListener("click", () => setCanvasPickMode(false));
-            } else {
-                hud.style.display = "flex";
-            }
-        } else {
-            if (hud) hud.style.display = "none";
+    calcPickFromCanvasBtn?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (field && (!field.calculationType || field.calculationType === "none")) {
+            field.calculationType = "sum";
+            if (fieldCalcType) fieldCalcType.value = "sum";
+            updateCalcVisibility("sum");
+            populateBaseFieldOptions(field);
+            renderFormulaFieldChips(field);
         }
-    };
-
-    calcPickFromCanvasBtn?.addEventListener("click", () => setCanvasPickMode(!isPickingCalcField));
-    calcFormulaCanvasPickBtn?.addEventListener("click", () => setCanvasPickMode(!isPickingCalcField));
-
-    window.addEventListener("keydown", e => {
-        if (e.key === "Escape" && isPickingCalcField) {
-            setCanvasPickMode(false);
-        }
+        setCanvasPickMode(!isPickingCalcField);
     });
 
-    const updateCalcVisibility = (calcType) => {
-        if (calcFieldsGroup) calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
-        if (calcTaxGroup) calcTaxGroup.style.display = (calcType === "tax") ? "flex" : "none";
-        if (calcDiscountGroup) calcDiscountGroup.style.display = (calcType === "discount") ? "flex" : "none";
-        if (calcFormulaGroup) calcFormulaGroup.style.display = (calcType === "custom") ? "block" : "none";
-        if (calcOperatorsGroup) calcOperatorsGroup.style.display = (calcType === "custom") ? "flex" : "none";
-        if (calcFieldChipsGroup) calcFieldChipsGroup.style.display = (calcType !== "none") ? "flex" : "none";
-        if (calcPreviewCard) calcPreviewCard.style.display = (calcType !== "none") ? "flex" : "none";
-    };
-
-    const populateBaseFieldOptions = (currentField) => {
-        if (!currentField) return;
-        const otherFields = (state.fields || []).filter(f => f.id !== currentField.id && (f.type === "textField" || f.type === "number" || !f.type));
-        const buildOptionsHtml = (selectedVal) => {
-            if (otherFields.length === 0) return '<option value="">(No other fields on page)</option>';
-            return otherFields.map(f => {
-                const name = f.name || f.id;
-                const isSel = (selectedVal === name || selectedVal === f.id);
-                return `<option value="${escapeHtml(name)}" ${isSel ? "selected" : ""}>${escapeHtml(name)}</option>`;
-            }).join("");
-        };
-
-        if (calcTaxBaseField) {
-            calcTaxBaseField.innerHTML = buildOptionsHtml(currentField.calculationTaxBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
-        }
-        if (calcDiscountBaseField) {
-            calcDiscountBaseField.innerHTML = buildOptionsHtml(currentField.calculationDiscountBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
-        }
-    };
-
-    const renderFormulaFieldChips = (currentField) => {
-        const tray = document.getElementById("calcFieldChipsTray");
-        const countEl = document.getElementById("calcAvailableFieldsCount");
-        if (!tray || !currentField) return;
-
-        tray.innerHTML = "";
-        const otherFields = (state.fields || []).filter(f => f.id !== currentField.id && (f.type === "textField" || f.type === "number" || !f.type));
-        if (countEl) countEl.textContent = `${otherFields.length} field${otherFields.length === 1 ? "" : "s"}`;
-
-        const currentTargets = Array.isArray(currentField.calculationFields)
-            ? currentField.calculationFields
-            : (currentField.calculationFields ? String(currentField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
-
-        otherFields.forEach(f => {
-            const fieldName = f.name || f.id;
-            const isSelected = currentTargets.includes(fieldName);
-
-            const chip = document.createElement("button");
-            chip.type = "button";
-            chip.className = `calc-chip-btn ${isSelected ? "selected" : ""}`;
-            chip.innerHTML = `<span class="chip-plus">${isSelected ? "✓" : "+"}</span><span>${escapeHtml(fieldName)}</span>`;
-            chip.title = `Insert ${fieldName}`;
-
-            chip.addEventListener("click", e => {
-                e.preventDefault();
-                handleFieldChipClicked(fieldName);
-            });
-
-            tray.appendChild(chip);
-        });
-    };
-
-    const handleFieldChipClicked = (fieldName) => {
+    calcFormulaCanvasPickBtn?.addEventListener("click", () => {
         const field = getSelectedField();
-        if (!field) return;
-
-        if (field.calculationType === "sum" || field.calculationType === "prod") {
-            let targets = Array.isArray(field.calculationFields)
-                ? [...field.calculationFields]
-                : (field.calculationFields ? String(field.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
-            
-            if (targets.includes(fieldName)) {
-                targets = targets.filter(t => t !== fieldName);
-            } else {
-                targets.push(fieldName);
-            }
-            field.calculationFields = targets;
-            if (fieldCalcTargetFields) fieldCalcTargetFields.value = targets.join(", ");
-            syncChange(f => f.calculationFields = targets, true, "Update Target Fields");
+        if (field && (!field.calculationType || field.calculationType === "none")) {
+            field.calculationType = "custom";
+            if (fieldCalcType) fieldCalcType.value = "custom";
+            updateCalcVisibility("custom");
+            populateBaseFieldOptions(field);
             renderFormulaFieldChips(field);
-            updateFormulaLivePreview(field);
-        } else if (field.calculationType === "tax") {
-            field.calculationTaxBaseField = fieldName;
-            if (calcTaxBaseField) calcTaxBaseField.value = fieldName;
-            syncChange(f => f.calculationTaxBaseField = fieldName, true, "Set Base Tax Field");
-            updateFormulaLivePreview(field);
-        } else if (field.calculationType === "discount") {
-            field.calculationDiscountBaseField = fieldName;
-            if (calcDiscountBaseField) calcDiscountBaseField.value = fieldName;
-            syncChange(f => f.calculationDiscountBaseField = fieldName, true, "Set Base Discount Field");
-            updateFormulaLivePreview(field);
-        } else {
-            // Custom Formula
-            insertTokenIntoFormula(fieldName);
         }
-    };
-
-    const insertTokenIntoFormula = (token) => {
-        if (!fieldCalcFormula) return;
-        const input = fieldCalcFormula;
-        const start = input.selectionStart !== null ? input.selectionStart : input.value.length;
-        const end = input.selectionEnd !== null ? input.selectionEnd : input.value.length;
-        const before = input.value.substring(0, start);
-        const after = input.value.substring(end);
-
-        const needLeadingSpace = before.length > 0 && !/[\s(+\-*/]$/.test(before) && !/^\s/.test(token);
-        const needTrailingSpace = after.length > 0 && !/^[\s)+\-*/]/.test(after) && !/\s$/.test(token);
-
-        const insertion = `${needLeadingSpace ? " " : ""}${token}${needTrailingSpace ? " " : ""}`;
-        input.value = before + insertion + after;
-        const newPos = start + insertion.length;
-        input.setSelectionRange(newPos, newPos);
-        input.focus();
-
-        syncChange(f => {
-            f.calculationFormula = input.value;
-        }, true, "Insert Formula Token");
-        updateFormulaLivePreview(getSelectedField());
-    };
-
-    // Global canvas picker capture mousedown, pointerdown & click listeners
-    const handleCanvasFieldPick = e => {
-        if (!isPickingCalcField) return;
-        const fieldEl = e.target.closest(".field-overlay");
-        if (!fieldEl) return;
-
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        e.preventDefault();
-
-        if (e.type === "mousedown" || (e.type === "pointerdown" && e.pointerType === "touch")) {
-            const fieldId = fieldEl.id?.replace(/^overlay_/, "") || fieldEl.dataset?.id;
-            const targetField = (state.fields || []).find(f => f.id === fieldId);
-            if (targetField) {
-                handleFieldChipClicked(targetField.name || targetField.id);
-                fieldEl.classList.remove("just-picked-flash");
-                void fieldEl.offsetWidth;
-                fieldEl.classList.add("just-picked-flash");
-                setTimeout(() => fieldEl.classList.remove("just-picked-flash"), 400);
-            }
-        }
-    };
-
-    window.addEventListener("mousedown", handleCanvasFieldPick, true);
-    window.addEventListener("pointerdown", handleCanvasFieldPick, true);
-    window.addEventListener("click", handleCanvasFieldPick, true);
+        setCanvasPickMode(!isPickingCalcField);
+    });
 
     fieldCalcType?.addEventListener("change", e => {
         const val = e.target.value;
@@ -715,6 +762,105 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         updateFormulaLivePreview(getSelectedField());
     });
 
+    fieldCalcTargetFields?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+            renderFormulaFieldChips(f);
+            updateFormulaLivePreview(f);
+        }, false);
+    });
+    fieldCalcTargetFields?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+            renderFormulaFieldChips(f);
+            updateFormulaLivePreview(f);
+        }, true, "Set Calculation Fields");
+    });
+
+    calcTaxBaseField?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationTaxBaseField = e.target.value;
+            updateFormulaLivePreview(f);
+        }, true, "Set Tax Base Field");
+    });
+    calcTaxRateInput?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationTaxRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, false);
+    });
+    calcTaxRateInput?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationTaxRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, true, "Set Tax Rate");
+    });
+
+    calcDiscountBaseField?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationDiscountBaseField = e.target.value;
+            updateFormulaLivePreview(f);
+        }, true, "Set Discount Base Field");
+    });
+    calcDiscountRateInput?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationDiscountRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, false);
+    });
+    calcDiscountRateInput?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationDiscountRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, true, "Set Discount Rate");
+    });
+
+    fieldCalcFormula?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationFormula = e.target.value;
+            updateFormulaLivePreview(f);
+        }, false);
+    });
+    fieldCalcFormula?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationFormula = e.target.value;
+            updateFormulaLivePreview(f);
+        }, true, "Set Calculation Formula");
+    });
+
+    // Operator Buttons
+    document.querySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const op = btn.dataset.op;
+            if (op) insertTokenIntoFormula(op);
+        });
+    });
+
+    document.getElementById("calcOpBackspace")?.addEventListener("click", () => {
+        if (!fieldCalcFormula) return;
+        const input = fieldCalcFormula;
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        if (start !== end) {
+            input.value = input.value.substring(0, start) + input.value.substring(end);
+            input.setSelectionRange(start, start);
+        } else if (start > 0) {
+            input.value = input.value.substring(0, start - 1) + input.value.substring(start);
+            input.setSelectionRange(start - 1, start - 1);
+        }
+        input.focus();
+        syncChange(f => f.calculationFormula = input.value, true, "Backspace Formula");
+        updateFormulaLivePreview(getSelectedField());
+    });
+
+    document.getElementById("calcOpClear")?.addEventListener("click", () => {
+        if (!fieldCalcFormula) return;
+        fieldCalcFormula.value = "";
+        fieldCalcFormula.focus();
+        syncChange(f => f.calculationFormula = "", true, "Clear Formula");
+        updateFormulaLivePreview(getSelectedField());
+    });
+
     // Enable Scrubbing and Scrolling on Number Inputs
     makeScrubbableAndScrollable(posXInput, null, { min: -2000, max: 5000, step: 1 });
     makeScrubbableAndScrollable(posYInput, null, { min: -2000, max: 5000, step: 1 });
@@ -743,10 +889,6 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
 
     let selectedDropdownChoiceIndex = null;
     let isDropdownBulkEditMode = false;
-
-    function escapeHtml(str) {
-        return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
 
     function updateDropdownCount(opts) {
         const countEl = document.getElementById("dropdownOptionsCount");
@@ -1315,90 +1457,8 @@ export function populateProperties(field) {
     }
 
     // Populate base field selectors, dynamic chips, and live preview
-    const otherFields = (state.fields || []).filter(f => f.id !== fallbackField.id && (f.type === "textField" || f.type === "number" || !f.type));
-    const buildOptionsHtml = (selectedVal) => {
-        if (otherFields.length === 0) return '<option value="">(No other fields on page)</option>';
-        return otherFields.map(f => {
-            const name = f.name || f.id;
-            const isSel = (selectedVal === name || selectedVal === f.id);
-            return `<option value="${escapeHtml(name)}" ${isSel ? "selected" : ""}>${escapeHtml(name)}</option>`;
-        }).join("");
-    };
-
-    const calcTaxBaseField = document.getElementById("calcTaxBaseField");
-    const calcDiscountBaseField = document.getElementById("calcDiscountBaseField");
-    if (calcTaxBaseField) {
-        calcTaxBaseField.innerHTML = buildOptionsHtml(fallbackField.calculationTaxBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
-    }
-    if (calcDiscountBaseField) {
-        calcDiscountBaseField.innerHTML = buildOptionsHtml(fallbackField.calculationDiscountBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
-    }
-
-    // Field Chips Tray
-    const chipTray = document.getElementById("calcFieldChipsTray");
-    const countEl = document.getElementById("calcAvailableFieldsCount");
-    if (chipTray) {
-        chipTray.innerHTML = "";
-        if (countEl) countEl.textContent = `${otherFields.length} field${otherFields.length === 1 ? "" : "s"}`;
-        const currentTargets = Array.isArray(fallbackField.calculationFields)
-            ? fallbackField.calculationFields
-            : (fallbackField.calculationFields ? String(fallbackField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
-
-        otherFields.forEach(f => {
-            const fieldName = f.name || f.id;
-            const isSelected = currentTargets.includes(fieldName);
-
-            const chip = document.createElement("button");
-            chip.type = "button";
-            chip.className = `calc-chip-btn ${isSelected ? "selected" : ""}`;
-            chip.innerHTML = `<span class="chip-plus">${isSelected ? "✓" : "+"}</span><span>${escapeHtml(fieldName)}</span>`;
-            chip.title = `Insert ${fieldName}`;
-
-            chip.addEventListener("click", e => {
-                e.preventDefault();
-                const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
-                const fieldCalcFormula = document.getElementById("fieldCalcFormula");
-                if (fallbackField.calculationType === "sum" || fallbackField.calculationType === "prod") {
-                    let targets = Array.isArray(fallbackField.calculationFields) ? [...fallbackField.calculationFields] : [];
-                    if (targets.includes(fieldName)) {
-                        targets = targets.filter(t => t !== fieldName);
-                    } else {
-                        targets.push(fieldName);
-                    }
-                    fallbackField.calculationFields = targets;
-                    if (fieldCalcTargetFields) fieldCalcTargetFields.value = targets.join(", ");
-                    chip.classList.toggle("selected", targets.includes(fieldName));
-                    const plusSpan = chip.querySelector(".chip-plus");
-                    if (plusSpan) plusSpan.textContent = targets.includes(fieldName) ? "✓" : "+";
-                    updateFormulaLivePreview(fallbackField);
-                } else if (fallbackField.calculationType === "tax") {
-                    fallbackField.calculationTaxBaseField = fieldName;
-                    if (calcTaxBaseField) calcTaxBaseField.value = fieldName;
-                    updateFormulaLivePreview(fallbackField);
-                } else if (fallbackField.calculationType === "discount") {
-                    fallbackField.calculationDiscountBaseField = fieldName;
-                    if (calcDiscountBaseField) calcDiscountBaseField.value = fieldName;
-                    updateFormulaLivePreview(fallbackField);
-                } else {
-                    if (fieldCalcFormula) {
-                        const input = fieldCalcFormula;
-                        const start = input.selectionStart ?? input.value.length;
-                        const end = input.selectionEnd ?? input.value.length;
-                        const before = input.value.substring(0, start);
-                        const after = input.value.substring(end);
-                        const needLeading = before.length > 0 && !/[\s(+\-*/]$/.test(before);
-                        const needTrailing = after.length > 0 && !/^[\s)+\-*/]/.test(after);
-                        input.value = before + (needLeading ? " " : "") + fieldName + (needTrailing ? " " : "") + after;
-                        fallbackField.calculationFormula = input.value;
-                        updateFormulaLivePreview(fallbackField);
-                    }
-                }
-            });
-
-            chipTray.appendChild(chip);
-        });
-    }
-
+    populateBaseFieldOptions(fallbackField);
+    renderFormulaFieldChips(fallbackField);
     updateFormulaLivePreview(fallbackField);
 
     // Signature controls visibility
