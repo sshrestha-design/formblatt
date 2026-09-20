@@ -89,6 +89,18 @@ export function compileFormulaToAcroJs(field, allFields = []) {
         return `var p = 1, found = false; [${fieldList}].forEach(function(fn){ var f = this.getField(fn); if(f && f.value !== "" && !isNaN(Number(f.value))){ p *= Number(f.value); found = true; } }.bind(this)); event.value = found ? p : 0;`;
     }
 
+    if (calcType === "tax") {
+        const baseField = (field.calculationTaxBaseField || targets[0] || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+        const rate = parseFloat(field.calculationTaxRate) || 0;
+        return `var f = this.getField("${baseField}"); var v = (f && f.value !== "" && !isNaN(Number(f.value))) ? Number(f.value) : 0; event.value = v * (${rate} / 100);`;
+    }
+
+    if (calcType === "discount") {
+        const baseField = (field.calculationDiscountBaseField || targets[0] || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+        const rate = parseFloat(field.calculationDiscountRate) || 0;
+        return `var f = this.getField("${baseField}"); var v = (f && f.value !== "" && !isNaN(Number(f.value))) ? Number(f.value) : 0; event.value = v * (${rate} / 100);`;
+    }
+
     if (calcType === "custom" && field.calculationFormula) {
         const expr = field.calculationFormula.trim();
         const tokens = expr.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];

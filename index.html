@@ -156,7 +156,7 @@
     <noscript><link rel="stylesheet" href="styles/fonts.css?v=19.0"></noscript>
 
     <!-- Module Preloads to eliminate JS waterfalls and Critical Request Chains -->
-    <link rel="modulepreload" href="js/main.js?v=19.1">
+    <link rel="modulepreload" href="js/main.js?v=19.2">
     <link rel="modulepreload" href="js/landing-controller.js?v=19.0">
     <link rel="modulepreload" href="js/state.js?v=19.0">
     <link rel="modulepreload" href="js/gradient-waves.js?v=19.0">
@@ -1684,22 +1684,103 @@
                         </summary>
                         <div class="prop-drawer-body">
                             <div class="prop-field">
-                                <label class="prop-label" for="fieldCalcType">Calculation Type</label>
+                                <label class="prop-label" for="fieldCalcType">Calculation Recipe</label>
                                 <select id="fieldCalcType" class="prop-select">
-                                    <option value="none">None (User Input)</option>
-                                    <option value="sum">Sum (+)</option>
-                                    <option value="prod">Product (×)</option>
-                                    <option value="custom">Custom Formula</option>
+                                    <option value="none">None (Regular Input)</option>
+                                    <option value="sum">Sum Total (+)</option>
+                                    <option value="prod">Line Total / Product (×)</option>
+                                    <option value="tax">Sales Tax / Percentage (+%)</option>
+                                    <option value="discount">Discount Deduction (−%)</option>
+                                    <option value="custom">Custom Formula (fx)</option>
                                 </select>
                             </div>
+
+                            <!-- Target Fields for Sum / Product -->
                             <div class="prop-field" id="calcFieldsGroup" style="display: none;">
-                                <label class="prop-label" for="fieldCalcTargetFields">Target Fields (comma-separated)</label>
-                                <input type="text" id="fieldCalcTargetFields" class="prop-input" placeholder="e.g. qty, unit_price">
+                                <div class="prop-label-row">
+                                    <label class="prop-label" for="fieldCalcTargetFields">Target Fields</label>
+                                    <button type="button" id="calcPickFromCanvasBtn" class="calc-canvas-picker-btn" title="Click fields on canvas to toggle them in this calculation">
+                                        <i data-lucide="crosshair" style="width: 11px; height: 11px;"></i>
+                                        <span>Pick on Canvas</span>
+                                    </button>
+                                </div>
+                                <input type="text" id="fieldCalcTargetFields" class="prop-input" placeholder="e.g. qty, price">
                             </div>
+
+                            <!-- Tax Recipe Inputs -->
+                            <div id="calcTaxGroup" style="display: none; flex-direction: column; gap: 8px;">
+                                <div class="prop-field">
+                                    <label class="prop-label" for="calcTaxBaseField">Base Amount Field</label>
+                                    <select id="calcTaxBaseField" class="prop-select"></select>
+                                </div>
+                                <div class="prop-field">
+                                    <label class="prop-label" for="calcTaxRateInput">Tax Rate (%)</label>
+                                    <input type="number" id="calcTaxRateInput" class="prop-input" placeholder="e.g. 19" min="0" step="0.1" value="10">
+                                </div>
+                            </div>
+
+                            <!-- Discount Recipe Inputs -->
+                            <div id="calcDiscountGroup" style="display: none; flex-direction: column; gap: 8px;">
+                                <div class="prop-field">
+                                    <label class="prop-label" for="calcDiscountBaseField">Base Subtotal Field</label>
+                                    <select id="calcDiscountBaseField" class="prop-select"></select>
+                                </div>
+                                <div class="prop-field">
+                                    <label class="prop-label" for="calcDiscountRateInput">Discount Rate (%)</label>
+                                    <input type="number" id="calcDiscountRateInput" class="prop-input" placeholder="e.g. 15" min="0" step="0.5" value="10">
+                                </div>
+                            </div>
+
+                            <!-- Custom Formula Expression -->
                             <div class="prop-field" id="calcFormulaGroup" style="display: none;">
-                                <label class="prop-label" for="fieldCalcFormula">Formula Expression</label>
-                                <input type="text" id="fieldCalcFormula" class="prop-input" placeholder="e.g. qty * unit_price">
-                                <span style="font-size: 10.5px; color: #64748b; margin-top: 3px; display: block; font-style: italic;">Supports +, -, *, /, () and field names</span>
+                                <div class="prop-label-row">
+                                    <label class="prop-label" for="fieldCalcFormula">Formula Expression</label>
+                                    <button type="button" id="calcFormulaCanvasPickBtn" class="calc-canvas-picker-btn" title="Click fields on canvas to insert into formula">
+                                        <i data-lucide="crosshair" style="width: 11px; height: 11px;"></i>
+                                        <span>Pick on Canvas</span>
+                                    </button>
+                                </div>
+                                <input type="text" id="fieldCalcFormula" class="prop-input calc-formula-code-input" placeholder="e.g. qty * unit_price">
+                            </div>
+
+                            <!-- Quick Operator Pad (for custom formula) -->
+                            <div id="calcOperatorsGroup" class="calc-operators-group" style="display: none;">
+                                <label class="prop-label" style="margin-bottom: 2px;">Operators</label>
+                                <div class="calc-operators-pad">
+                                    <button type="button" class="calc-op-btn" data-op=" + " title="Add (+)">+</button>
+                                    <button type="button" class="calc-op-btn" data-op=" - " title="Subtract (-)">−</button>
+                                    <button type="button" class="calc-op-btn" data-op=" * " title="Multiply (*)">×</button>
+                                    <button type="button" class="calc-op-btn" data-op=" / " title="Divide (/)">÷</button>
+                                    <button type="button" class="calc-op-btn" data-op="(" title="Open Parenthesis">(</button>
+                                    <button type="button" class="calc-op-btn" data-op=")" title="Close Parenthesis">)</button>
+                                    <button type="button" class="calc-op-btn" data-op=" / 100" title="Percent (/ 100)">%</button>
+                                    <button type="button" class="calc-op-btn calc-op-action" id="calcOpBackspace" title="Backspace">⌫</button>
+                                    <button type="button" class="calc-op-btn calc-op-action" id="calcOpClear" title="Clear Formula">Clear</button>
+                                </div>
+                            </div>
+
+                            <!-- Available Document Fields (Chips Tray) -->
+                            <div id="calcFieldChipsGroup" class="calc-chips-group" style="display: none;">
+                                <div class="prop-label-row">
+                                    <label class="prop-label">Insert Field</label>
+                                    <span class="prop-meta-badge" id="calcAvailableFieldsCount">0 fields</span>
+                                </div>
+                                <div class="calc-chips-tray" id="calcFieldChipsTray">
+                                    <!-- Dynamic field chips injected here -->
+                                </div>
+                            </div>
+
+                            <!-- Live Calculation Preview Badge -->
+                            <div id="calcPreviewCard" class="calc-preview-card" style="display: none;">
+                                <div class="calc-preview-header">
+                                    <span class="calc-preview-title">Live Preview</span>
+                                    <span class="calc-preview-status status-valid" id="calcPreviewStatus">✓ Valid</span>
+                                </div>
+                                <div class="calc-preview-result-row">
+                                    <span class="calc-preview-expr" id="calcPreviewExpr">0</span>
+                                    <span class="calc-preview-equals">=</span>
+                                    <span class="calc-preview-val" id="calcPreviewVal">0.00</span>
+                                </div>
                             </div>
                         </div>
                     </details>
@@ -3005,6 +3086,6 @@
     <script defer src="/vendor/pdf.min.js"></script>
     <script defer src="/vendor/pdf-lib.min.js"></script>
 
-    <script type="module" src="js/main.js?v=19.1"></script>
+    <script type="module" src="js/main.js?v=19.2"></script>
 </body>
 </html>

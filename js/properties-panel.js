@@ -105,6 +105,125 @@ export function sanitizePdfFieldName(name) {
     return sanitized;
 }
 
+export function escapeHtml(str) {
+    return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+export function updateFormulaLivePreview(field) {
+    if (typeof document === "undefined") return;
+    const previewCard = document.getElementById("calcPreviewCard");
+    const previewStatus = document.getElementById("calcPreviewStatus");
+    const previewExpr = document.getElementById("calcPreviewExpr");
+    const previewVal = document.getElementById("calcPreviewVal");
+    if (!previewCard || !previewStatus || !previewExpr || !previewVal) return;
+
+    if (!field || !field.calculationType || field.calculationType === "none") {
+        previewCard.style.display = "none";
+        return;
+    }
+
+    previewCard.style.display = "flex";
+
+    const getSampleVal = (name) => {
+        const found = (state.fields || []).find(f => f.name === name || f.id === name);
+        if (found) {
+            const raw = found.value !== undefined && found.value !== "" ? found.value : found.defaultValue;
+            const num = parseFloat(String(raw || "").replace(/[^0-9.-]/g, ""));
+            if (!isNaN(num) && num !== 0) return num;
+        }
+        return 10;
+    };
+
+    let evaluatedVal = 0;
+    let expressionString = "";
+    let isValid = true;
+    let errorMessage = "";
+
+    const targets = Array.isArray(field.calculationFields)
+        ? field.calculationFields
+        : (field.calculationFields ? String(field.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+
+    if (field.calculationType === "sum") {
+        if (targets.length === 0) {
+            expressionString = "No fields selected";
+            evaluatedVal = 0;
+        } else {
+            const sampleVals = targets.map(t => getSampleVal(t));
+            expressionString = sampleVals.join(" + ");
+            evaluatedVal = sampleVals.reduce((a, b) => a + b, 0);
+        }
+    } else if (field.calculationType === "prod") {
+        if (targets.length === 0) {
+            expressionString = "No fields selected";
+            evaluatedVal = 0;
+        } else {
+            const sampleVals = targets.map(t => getSampleVal(t));
+            expressionString = sampleVals.join(" × ");
+            evaluatedVal = sampleVals.reduce((a, b) => a * b, 1);
+        }
+    } else if (field.calculationType === "tax") {
+        const baseName = field.calculationTaxBaseField || targets[0] || "subtotal";
+        const rate = parseFloat(field.calculationTaxRate !== undefined ? field.calculationTaxRate : 10);
+        const baseVal = getSampleVal(baseName);
+        expressionString = `${baseVal} × ${rate}%`;
+        evaluatedVal = baseVal * (rate / 100);
+    } else if (field.calculationType === "discount") {
+        const baseName = field.calculationDiscountBaseField || targets[0] || "subtotal";
+        const rate = parseFloat(field.calculationDiscountRate !== undefined ? field.calculationDiscountRate : 10);
+        const baseVal = getSampleVal(baseName);
+        expressionString = `${baseVal} × ${rate}%`;
+        evaluatedVal = baseVal * (rate / 100);
+    } else if (field.calculationType === "custom" && field.calculationFormula) {
+        const rawFormula = field.calculationFormula.trim();
+        if (!rawFormula) {
+            expressionString = "Empty formula";
+            evaluatedVal = 0;
+        } else {
+            const tokens = rawFormula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+            const reserved = new Set(["Math", "Number", "parseInt", "parseFloat", "min", "max", "round", "abs", "floor", "ceil", "SUM", "PROD", "true", "false", "null", "undefined"]);
+            let substitutedExpr = rawFormula;
+            tokens.forEach(tok => {
+                if (!reserved.has(tok)) {
+                    const sample = getSampleVal(tok);
+                    substitutedExpr = substitutedExpr.replace(new RegExp(`\\b${tok}\\b`, "g"), `${sample}`);
+                }
+            });
+            expressionString = substitutedExpr;
+            try {
+                if (/^[0-9+\-*/().\s]+$/.test(substitutedExpr)) {
+                    evaluatedVal = Function(`"use strict"; return (${substitutedExpr})`)();
+                    if (!Number.isFinite(evaluatedVal)) {
+                        isValid = false;
+                        errorMessage = "Division by zero or invalid";
+                    }
+                } else {
+                    isValid = false;
+                    errorMessage = "Incomplete expression";
+                }
+            } catch (err) {
+                isValid = false;
+                errorMessage = "Incomplete expression";
+            }
+        }
+    } else if (field.calculationType === "custom") {
+        expressionString = "Type or insert formula";
+        evaluatedVal = 0;
+    }
+
+    if (isValid) {
+        previewStatus.className = "calc-preview-status status-valid";
+        previewStatus.textContent = "✓ Valid";
+        previewExpr.textContent = expressionString;
+        previewVal.textContent = (Number.isFinite(evaluatedVal) && !Number.isInteger(evaluatedVal)) ? Number(evaluatedVal).toFixed(2) : String(evaluatedVal);
+        previewVal.style.display = "inline";
+    } else {
+        previewStatus.className = "calc-preview-status status-error";
+        previewStatus.textContent = `⚠️ ${errorMessage || "Incomplete"}`;
+        previewExpr.textContent = expressionString;
+        previewVal.style.display = "none";
+    }
+}
+
 export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     const fieldNameInput = document.getElementById("fieldName");
     const fieldDefaultVal = document.getElementById("fieldDefaultValue");
@@ -259,46 +378,307 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     fieldDefaultChecked?.addEventListener("change", e => syncChange(f => f.defaultChecked = e.target.checked, true, "Toggle Checked"));
     fieldCheckboxMark?.addEventListener("change", e => syncChange(f => f.checkboxMark = e.target.value, true, "Set Checkbox Style"));
 
-    // Calculation & Formula listeners
+    // ── Visual Formula & Calculation Builder Listeners ───────────────────────
     const fieldCalcType = document.getElementById("fieldCalcType");
     const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
     const fieldCalcFormula = document.getElementById("fieldCalcFormula");
     const calcFieldsGroup = document.getElementById("calcFieldsGroup");
+    const calcTaxGroup = document.getElementById("calcTaxGroup");
+    const calcTaxBaseField = document.getElementById("calcTaxBaseField");
+    const calcTaxRateInput = document.getElementById("calcTaxRateInput");
+    const calcDiscountGroup = document.getElementById("calcDiscountGroup");
+    const calcDiscountBaseField = document.getElementById("calcDiscountBaseField");
+    const calcDiscountRateInput = document.getElementById("calcDiscountRateInput");
     const calcFormulaGroup = document.getElementById("calcFormulaGroup");
+    const calcOperatorsGroup = document.getElementById("calcOperatorsGroup");
+    const calcFieldChipsGroup = document.getElementById("calcFieldChipsGroup");
+    const calcPreviewCard = document.getElementById("calcPreviewCard");
+    const calcPickFromCanvasBtn = document.getElementById("calcPickFromCanvasBtn");
+    const calcFormulaCanvasPickBtn = document.getElementById("calcFormulaCanvasPickBtn");
+
+    let isPickingCalcField = false;
+
+    const setCanvasPickMode = (active) => {
+        isPickingCalcField = !!active;
+        document.body.classList.toggle("is-picking-calc-field", isPickingCalcField);
+        calcPickFromCanvasBtn?.classList.toggle("active", isPickingCalcField);
+        calcFormulaCanvasPickBtn?.classList.toggle("active", isPickingCalcField);
+    };
+
+    calcPickFromCanvasBtn?.addEventListener("click", () => setCanvasPickMode(!isPickingCalcField));
+    calcFormulaCanvasPickBtn?.addEventListener("click", () => setCanvasPickMode(!isPickingCalcField));
+
+    window.addEventListener("keydown", e => {
+        if (e.key === "Escape" && isPickingCalcField) {
+            setCanvasPickMode(false);
+        }
+    });
 
     const updateCalcVisibility = (calcType) => {
         if (calcFieldsGroup) calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
+        if (calcTaxGroup) calcTaxGroup.style.display = (calcType === "tax") ? "flex" : "none";
+        if (calcDiscountGroup) calcDiscountGroup.style.display = (calcType === "discount") ? "flex" : "none";
         if (calcFormulaGroup) calcFormulaGroup.style.display = (calcType === "custom") ? "block" : "none";
+        if (calcOperatorsGroup) calcOperatorsGroup.style.display = (calcType === "custom") ? "flex" : "none";
+        if (calcFieldChipsGroup) calcFieldChipsGroup.style.display = (calcType !== "none") ? "flex" : "none";
+        if (calcPreviewCard) calcPreviewCard.style.display = (calcType !== "none") ? "flex" : "none";
     };
+
+    const populateBaseFieldOptions = (currentField) => {
+        if (!currentField) return;
+        const otherFields = (state.fields || []).filter(f => f.id !== currentField.id && (f.type === "textField" || f.type === "number" || !f.type));
+        const buildOptionsHtml = (selectedVal) => {
+            if (otherFields.length === 0) return '<option value="">(No other fields on page)</option>';
+            return otherFields.map(f => {
+                const name = f.name || f.id;
+                const isSel = (selectedVal === name || selectedVal === f.id);
+                return `<option value="${escapeHtml(name)}" ${isSel ? "selected" : ""}>${escapeHtml(name)}</option>`;
+            }).join("");
+        };
+
+        if (calcTaxBaseField) {
+            calcTaxBaseField.innerHTML = buildOptionsHtml(currentField.calculationTaxBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
+        }
+        if (calcDiscountBaseField) {
+            calcDiscountBaseField.innerHTML = buildOptionsHtml(currentField.calculationDiscountBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
+        }
+    };
+
+    const renderFormulaFieldChips = (currentField) => {
+        const tray = document.getElementById("calcFieldChipsTray");
+        const countEl = document.getElementById("calcAvailableFieldsCount");
+        if (!tray || !currentField) return;
+
+        tray.innerHTML = "";
+        const otherFields = (state.fields || []).filter(f => f.id !== currentField.id && (f.type === "textField" || f.type === "number" || !f.type));
+        if (countEl) countEl.textContent = `${otherFields.length} field${otherFields.length === 1 ? "" : "s"}`;
+
+        const currentTargets = Array.isArray(currentField.calculationFields)
+            ? currentField.calculationFields
+            : (currentField.calculationFields ? String(currentField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+
+        otherFields.forEach(f => {
+            const fieldName = f.name || f.id;
+            const isSelected = currentTargets.includes(fieldName);
+
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = `calc-chip-btn ${isSelected ? "selected" : ""}`;
+            chip.innerHTML = `<span class="chip-plus">${isSelected ? "✓" : "+"}</span><span>${escapeHtml(fieldName)}</span>`;
+            chip.title = `Insert ${fieldName}`;
+
+            chip.addEventListener("click", e => {
+                e.preventDefault();
+                handleFieldChipClicked(fieldName);
+            });
+
+            tray.appendChild(chip);
+        });
+    };
+
+    const handleFieldChipClicked = (fieldName) => {
+        const field = getSelectedField();
+        if (!field) return;
+
+        if (field.calculationType === "sum" || field.calculationType === "prod") {
+            let targets = Array.isArray(field.calculationFields)
+                ? [...field.calculationFields]
+                : (field.calculationFields ? String(field.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+            
+            if (targets.includes(fieldName)) {
+                targets = targets.filter(t => t !== fieldName);
+            } else {
+                targets.push(fieldName);
+            }
+            field.calculationFields = targets;
+            if (fieldCalcTargetFields) fieldCalcTargetFields.value = targets.join(", ");
+            syncChange(f => f.calculationFields = targets, true, "Update Target Fields");
+            renderFormulaFieldChips(field);
+            updateFormulaLivePreview(field);
+        } else if (field.calculationType === "tax") {
+            field.calculationTaxBaseField = fieldName;
+            if (calcTaxBaseField) calcTaxBaseField.value = fieldName;
+            syncChange(f => f.calculationTaxBaseField = fieldName, true, "Set Base Tax Field");
+            updateFormulaLivePreview(field);
+        } else if (field.calculationType === "discount") {
+            field.calculationDiscountBaseField = fieldName;
+            if (calcDiscountBaseField) calcDiscountBaseField.value = fieldName;
+            syncChange(f => f.calculationDiscountBaseField = fieldName, true, "Set Base Discount Field");
+            updateFormulaLivePreview(field);
+        } else {
+            // Custom Formula
+            insertTokenIntoFormula(fieldName);
+        }
+    };
+
+    const insertTokenIntoFormula = (token) => {
+        if (!fieldCalcFormula) return;
+        const input = fieldCalcFormula;
+        const start = input.selectionStart !== null ? input.selectionStart : input.value.length;
+        const end = input.selectionEnd !== null ? input.selectionEnd : input.value.length;
+        const before = input.value.substring(0, start);
+        const after = input.value.substring(end);
+
+        const needLeadingSpace = before.length > 0 && !/[\s(+\-*/]$/.test(before) && !/^\s/.test(token);
+        const needTrailingSpace = after.length > 0 && !/^[\s)+\-*/]/.test(after) && !/\s$/.test(token);
+
+        const insertion = `${needLeadingSpace ? " " : ""}${token}${needTrailingSpace ? " " : ""}`;
+        input.value = before + insertion + after;
+        const newPos = start + insertion.length;
+        input.setSelectionRange(newPos, newPos);
+        input.focus();
+
+        syncChange(f => {
+            f.calculationFormula = input.value;
+        }, true, "Insert Formula Token");
+        updateFormulaLivePreview(getSelectedField());
+    };
+
+    // Global canvas picker capture click listener
+    document.addEventListener("click", e => {
+        if (!isPickingCalcField) return;
+        const fieldEl = e.target.closest(".field-element, .field-overlay");
+        if (!fieldEl) return;
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        const fieldId = fieldEl.dataset?.fieldId || fieldEl.id?.replace(/^overlay_/, "");
+        const targetField = (state.fields || []).find(f => f.id === fieldId);
+        if (targetField) {
+            handleFieldChipClicked(targetField.name || targetField.id);
+        }
+    }, true);
 
     fieldCalcType?.addEventListener("change", e => {
         const val = e.target.value;
         updateCalcVisibility(val);
-        syncChange(f => {
-            f.calculationType = val;
-        }, true, "Change Calculation Type");
+        const field = getSelectedField();
+        if (field) {
+            field.calculationType = val;
+            if (val === "tax") {
+                if (field.calculationTaxRate === undefined) field.calculationTaxRate = 10;
+                if (!field.calculationTaxBaseField) {
+                    const other = (state.fields || []).find(f => f.id !== field.id);
+                    if (other) field.calculationTaxBaseField = other.name || other.id;
+                }
+            } else if (val === "discount") {
+                if (field.calculationDiscountRate === undefined) field.calculationDiscountRate = 10;
+                if (!field.calculationDiscountBaseField) {
+                    const other = (state.fields || []).find(f => f.id !== field.id);
+                    if (other) field.calculationDiscountBaseField = other.name || other.id;
+                }
+            }
+            populateBaseFieldOptions(field);
+            renderFormulaFieldChips(field);
+            updateFormulaLivePreview(field);
+            syncChange(f => {
+                f.calculationType = val;
+                if (field.calculationTaxRate !== undefined) f.calculationTaxRate = field.calculationTaxRate;
+                if (field.calculationTaxBaseField) f.calculationTaxBaseField = field.calculationTaxBaseField;
+                if (field.calculationDiscountRate !== undefined) f.calculationDiscountRate = field.calculationDiscountRate;
+                if (field.calculationDiscountBaseField) f.calculationDiscountBaseField = field.calculationDiscountBaseField;
+            }, true, "Change Calculation Type");
+        }
     });
 
     fieldCalcTargetFields?.addEventListener("input", e => {
         syncChange(f => {
             f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+            renderFormulaFieldChips(f);
+            updateFormulaLivePreview(f);
         }, false);
     });
     fieldCalcTargetFields?.addEventListener("change", e => {
         syncChange(f => {
             f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
+            renderFormulaFieldChips(f);
+            updateFormulaLivePreview(f);
         }, true, "Set Calculation Fields");
+    });
+
+    calcTaxBaseField?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationTaxBaseField = e.target.value;
+            updateFormulaLivePreview(f);
+        }, true, "Set Tax Base Field");
+    });
+    calcTaxRateInput?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationTaxRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, false);
+    });
+    calcTaxRateInput?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationTaxRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, true, "Set Tax Rate");
+    });
+
+    calcDiscountBaseField?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationDiscountBaseField = e.target.value;
+            updateFormulaLivePreview(f);
+        }, true, "Set Discount Base Field");
+    });
+    calcDiscountRateInput?.addEventListener("input", e => {
+        syncChange(f => {
+            f.calculationDiscountRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, false);
+    });
+    calcDiscountRateInput?.addEventListener("change", e => {
+        syncChange(f => {
+            f.calculationDiscountRate = parseFloat(e.target.value) || 0;
+            updateFormulaLivePreview(f);
+        }, true, "Set Discount Rate");
     });
 
     fieldCalcFormula?.addEventListener("input", e => {
         syncChange(f => {
             f.calculationFormula = e.target.value;
+            updateFormulaLivePreview(f);
         }, false);
     });
     fieldCalcFormula?.addEventListener("change", e => {
         syncChange(f => {
             f.calculationFormula = e.target.value;
+            updateFormulaLivePreview(f);
         }, true, "Set Calculation Formula");
+    });
+
+    // Operator Buttons
+    document.querySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const op = btn.dataset.op;
+            if (op) insertTokenIntoFormula(op);
+        });
+    });
+
+    document.getElementById("calcOpBackspace")?.addEventListener("click", () => {
+        if (!fieldCalcFormula) return;
+        const input = fieldCalcFormula;
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        if (start !== end) {
+            input.value = input.value.substring(0, start) + input.value.substring(end);
+            input.setSelectionRange(start, start);
+        } else if (start > 0) {
+            input.value = input.value.substring(0, start - 1) + input.value.substring(start);
+            input.setSelectionRange(start - 1, start - 1);
+        }
+        input.focus();
+        syncChange(f => f.calculationFormula = input.value, true, "Backspace Formula");
+        updateFormulaLivePreview(getSelectedField());
+    });
+
+    document.getElementById("calcOpClear")?.addEventListener("click", () => {
+        if (!fieldCalcFormula) return;
+        fieldCalcFormula.value = "";
+        fieldCalcFormula.focus();
+        syncChange(f => f.calculationFormula = "", true, "Clear Formula");
+        updateFormulaLivePreview(getSelectedField());
     });
 
     // Enable Scrubbing and Scrolling on Number Inputs
@@ -861,11 +1241,18 @@ export function populateProperties(field) {
     setVal("fieldCalcType", fallbackField.calculationType || "none");
     setVal("fieldCalcTargetFields", Array.isArray(fallbackField.calculationFields) ? fallbackField.calculationFields.join(", ") : (fallbackField.calculationFields || ""));
     setVal("fieldCalcFormula", fallbackField.calculationFormula || "");
+    setVal("calcTaxRateInput", fallbackField.calculationTaxRate !== undefined ? fallbackField.calculationTaxRate : 10);
+    setVal("calcDiscountRateInput", fallbackField.calculationDiscountRate !== undefined ? fallbackField.calculationDiscountRate : 10);
 
     // Calculation drawer and groups visibility
     const accCalculation = document.getElementById("accCalculation");
     const calcFieldsGroup = document.getElementById("calcFieldsGroup");
+    const calcTaxGroup = document.getElementById("calcTaxGroup");
+    const calcDiscountGroup = document.getElementById("calcDiscountGroup");
     const calcFormulaGroup = document.getElementById("calcFormulaGroup");
+    const calcOperatorsGroup = document.getElementById("calcOperatorsGroup");
+    const calcFieldChipsGroup = document.getElementById("calcFieldChipsGroup");
+    const calcPreviewCard = document.getElementById("calcPreviewCard");
     const calcType = fallbackField.calculationType || "none";
 
     if (accCalculation) {
@@ -874,9 +1261,111 @@ export function populateProperties(field) {
     if (calcFieldsGroup) {
         calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
     }
+    if (calcTaxGroup) {
+        calcTaxGroup.style.display = (calcType === "tax") ? "flex" : "none";
+    }
+    if (calcDiscountGroup) {
+        calcDiscountGroup.style.display = (calcType === "discount") ? "flex" : "none";
+    }
     if (calcFormulaGroup) {
         calcFormulaGroup.style.display = (calcType === "custom") ? "block" : "none";
     }
+    if (calcOperatorsGroup) {
+        calcOperatorsGroup.style.display = (calcType === "custom") ? "flex" : "none";
+    }
+    if (calcFieldChipsGroup) {
+        calcFieldChipsGroup.style.display = (calcType !== "none") ? "flex" : "none";
+    }
+    if (calcPreviewCard) {
+        calcPreviewCard.style.display = (calcType !== "none") ? "flex" : "none";
+    }
+
+    // Populate base field selectors, dynamic chips, and live preview
+    const otherFields = (state.fields || []).filter(f => f.id !== fallbackField.id && (f.type === "textField" || f.type === "number" || !f.type));
+    const buildOptionsHtml = (selectedVal) => {
+        if (otherFields.length === 0) return '<option value="">(No other fields on page)</option>';
+        return otherFields.map(f => {
+            const name = f.name || f.id;
+            const isSel = (selectedVal === name || selectedVal === f.id);
+            return `<option value="${escapeHtml(name)}" ${isSel ? "selected" : ""}>${escapeHtml(name)}</option>`;
+        }).join("");
+    };
+
+    const calcTaxBaseField = document.getElementById("calcTaxBaseField");
+    const calcDiscountBaseField = document.getElementById("calcDiscountBaseField");
+    if (calcTaxBaseField) {
+        calcTaxBaseField.innerHTML = buildOptionsHtml(fallbackField.calculationTaxBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
+    }
+    if (calcDiscountBaseField) {
+        calcDiscountBaseField.innerHTML = buildOptionsHtml(fallbackField.calculationDiscountBaseField || otherFields[0]?.name || otherFields[0]?.id || "");
+    }
+
+    // Field Chips Tray
+    const chipTray = document.getElementById("calcFieldChipsTray");
+    const countEl = document.getElementById("calcAvailableFieldsCount");
+    if (chipTray) {
+        chipTray.innerHTML = "";
+        if (countEl) countEl.textContent = `${otherFields.length} field${otherFields.length === 1 ? "" : "s"}`;
+        const currentTargets = Array.isArray(fallbackField.calculationFields)
+            ? fallbackField.calculationFields
+            : (fallbackField.calculationFields ? String(fallbackField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+
+        otherFields.forEach(f => {
+            const fieldName = f.name || f.id;
+            const isSelected = currentTargets.includes(fieldName);
+
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = `calc-chip-btn ${isSelected ? "selected" : ""}`;
+            chip.innerHTML = `<span class="chip-plus">${isSelected ? "✓" : "+"}</span><span>${escapeHtml(fieldName)}</span>`;
+            chip.title = `Insert ${fieldName}`;
+
+            chip.addEventListener("click", e => {
+                e.preventDefault();
+                const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
+                const fieldCalcFormula = document.getElementById("fieldCalcFormula");
+                if (fallbackField.calculationType === "sum" || fallbackField.calculationType === "prod") {
+                    let targets = Array.isArray(fallbackField.calculationFields) ? [...fallbackField.calculationFields] : [];
+                    if (targets.includes(fieldName)) {
+                        targets = targets.filter(t => t !== fieldName);
+                    } else {
+                        targets.push(fieldName);
+                    }
+                    fallbackField.calculationFields = targets;
+                    if (fieldCalcTargetFields) fieldCalcTargetFields.value = targets.join(", ");
+                    chip.classList.toggle("selected", targets.includes(fieldName));
+                    const plusSpan = chip.querySelector(".chip-plus");
+                    if (plusSpan) plusSpan.textContent = targets.includes(fieldName) ? "✓" : "+";
+                    updateFormulaLivePreview(fallbackField);
+                } else if (fallbackField.calculationType === "tax") {
+                    fallbackField.calculationTaxBaseField = fieldName;
+                    if (calcTaxBaseField) calcTaxBaseField.value = fieldName;
+                    updateFormulaLivePreview(fallbackField);
+                } else if (fallbackField.calculationType === "discount") {
+                    fallbackField.calculationDiscountBaseField = fieldName;
+                    if (calcDiscountBaseField) calcDiscountBaseField.value = fieldName;
+                    updateFormulaLivePreview(fallbackField);
+                } else {
+                    if (fieldCalcFormula) {
+                        const input = fieldCalcFormula;
+                        const start = input.selectionStart ?? input.value.length;
+                        const end = input.selectionEnd ?? input.value.length;
+                        const before = input.value.substring(0, start);
+                        const after = input.value.substring(end);
+                        const needLeading = before.length > 0 && !/[\s(+\-*/]$/.test(before);
+                        const needTrailing = after.length > 0 && !/^[\s)+\-*/]/.test(after);
+                        input.value = before + (needLeading ? " " : "") + fieldName + (needTrailing ? " " : "") + after;
+                        fallbackField.calculationFormula = input.value;
+                        updateFormulaLivePreview(fallbackField);
+                    }
+                }
+            });
+
+            chipTray.appendChild(chip);
+        });
+    }
+
+    updateFormulaLivePreview(fallbackField);
 
     // Signature controls visibility
     const sigGroup = document.getElementById("signatureActionsGroup");

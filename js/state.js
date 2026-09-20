@@ -285,7 +285,15 @@ export function evaluateCalculations(fields = state.fields) {
             } else if (f.calculationType === "prod") {
                 if (targets.length === 0) res = 0;
                 else res = targets.reduce((prod, t) => prod * getVal(t), 1);
-            } else if (f.calculationType === "custom" && f.calculationFormula) {
+            } else if (f.calculationType === "tax") {
+                const baseVal = getVal(f.calculationTaxBaseField || targets[0] || "");
+                const rate = parseFloat(f.calculationTaxRate) || 0;
+                res = baseVal * (rate / 100);
+            } else if (f.calculationType === "discount") {
+                const baseVal = getVal(f.calculationDiscountBaseField || targets[0] || "");
+                const rate = parseFloat(f.calculationDiscountRate) || 0;
+                res = baseVal * (rate / 100);
+            } else if ((f.calculationType === "custom" || f.calculationFormula) && f.calculationFormula) {
                 const expr = f.calculationFormula.trim();
                 const tokens = expr.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
                 const reserved = new Set(["Math", "Number", "parseInt", "parseFloat", "min", "max", "round", "abs", "floor", "ceil", "SUM", "PROD", "true", "false", "null", "undefined"]);
