@@ -457,6 +457,63 @@ export const COMMANDS = [
             document.getElementById("distributeVerticalBtn")?.click();
         }
     },
+    {
+        id: "checkbox-mark-tick",
+        title: "Set Selected Checkboxes to Tick (✓)",
+        category: "Field Properties",
+        keywords: ["checkbox", "mark", "style", "tick", "check", "checkmark", "toggle"],
+        icon: "check",
+        action: () => {
+            const btn = document.querySelector('.multi-mark-quick-btn[data-mark="check"]');
+            if (btn) {
+                btn.click();
+            } else {
+                const singleSelect = document.getElementById("fieldCheckboxMark");
+                if (singleSelect) {
+                    singleSelect.value = "check";
+                    singleSelect.dispatchEvent(new Event("change"));
+                }
+            }
+        }
+    },
+    {
+        id: "checkbox-mark-cross",
+        title: "Set Selected Checkboxes to Cross / X (✕)",
+        category: "Field Properties",
+        keywords: ["checkbox", "mark", "style", "cross", "x", "times", "toggle"],
+        icon: "x",
+        action: () => {
+            const btn = document.querySelector('.multi-mark-quick-btn[data-mark="x"]');
+            if (btn) {
+                btn.click();
+            } else {
+                const singleSelect = document.getElementById("fieldCheckboxMark");
+                if (singleSelect) {
+                    singleSelect.value = "x";
+                    singleSelect.dispatchEvent(new Event("change"));
+                }
+            }
+        }
+    },
+    {
+        id: "checkbox-mark-toggle",
+        title: "Toggle Checkbox Mark Style (✓ ⇄ ✕)",
+        category: "Field Properties",
+        keywords: ["checkbox", "toggle", "switch", "mark", "tick", "cross", "x"],
+        icon: "check-square",
+        action: () => {
+            const quickBtn = document.querySelector("#contextualQuickBar .quick-bar-btn[title*='Switch Checkbox']");
+            if (quickBtn) {
+                quickBtn.click();
+            } else {
+                const singleSelect = document.getElementById("fieldCheckboxMark");
+                if (singleSelect) {
+                    singleSelect.value = singleSelect.value === "x" ? "check" : "x";
+                    singleSelect.dispatchEvent(new Event("change"));
+                }
+            }
+        }
+    },
 
     // ── Project & Export ─────────────────────────────────────────────
     {

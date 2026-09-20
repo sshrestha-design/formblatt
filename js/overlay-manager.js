@@ -755,6 +755,24 @@ export function renderContextualQuickBar(container, selectedFieldsOnPage, handle
             bar.appendChild(reqBtn);
         }
 
+        if (primaryField.type === "checkBox") {
+            const isCross = primaryField.checkboxMark === "x";
+            const markBtn = document.createElement("button");
+            markBtn.className = "quick-bar-btn" + (isCross ? " active" : "");
+            markBtn.title = isCross ? "Switch Checkbox to Tick (✓)" : "Switch Checkbox to Cross (✕)";
+            markBtn.innerHTML = isCross
+                ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg><span>Mark: ✕</span>`
+                : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Mark: ✓</span>`;
+            markBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                primaryField.checkboxMark = isCross ? "check" : "x";
+                saveHistory(true, `Switch Checkbox to ${primaryField.checkboxMark === "x" ? "Cross (X)" : "Tick (✓)"}`);
+                if (handlers?.onUpdated) handlers.onUpdated(primaryField);
+                else renderOverlays(handlers);
+            });
+            bar.appendChild(markBtn);
+        }
+
         const lockBtn = document.createElement("button");
         lockBtn.className = "quick-bar-btn" + (primaryField.locked ? " active" : "");
         lockBtn.title = primaryField.locked ? "Unlock Field" : "Lock Field";
@@ -785,6 +803,27 @@ export function renderContextualQuickBar(container, selectedFieldsOnPage, handle
             else renderOverlays(handlers);
         });
         bar.appendChild(grpBtn);
+
+        // Checkbox Specific Quick Action: Toggle Mark Style (Tick ✓ ⇄ Cross ✕)
+        const checkboxFields = selectedFieldsOnPage.filter(f => f.type === "checkBox");
+        if (checkboxFields.length > 0) {
+            const allCross = checkboxFields.every(f => f.checkboxMark === "x");
+            const markBtn = document.createElement("button");
+            markBtn.className = "quick-bar-btn" + (allCross ? " active" : "");
+            markBtn.title = allCross ? "Switch Checkboxes to Tick (✓)" : "Switch Checkboxes to Cross (✕)";
+            markBtn.innerHTML = allCross
+                ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg><span>Mark: ✕</span>`
+                : `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg><span>Mark: ✓</span>`;
+            markBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                const nextMark = allCross ? "check" : "x";
+                checkboxFields.forEach(f => f.checkboxMark = nextMark);
+                saveHistory(true, `Switch Checkboxes to ${nextMark === "x" ? "Cross (X)" : "Tick (✓)"}`);
+                if (handlers?.onUpdated) handlers.onUpdated();
+                else renderOverlays(handlers);
+            });
+            bar.appendChild(markBtn);
+        }
 
         if (selectedFieldsOnPage.length >= 3) {
             const div2 = document.createElement("div");

@@ -1897,6 +1897,33 @@
                             </label>
                         </div>
                     </div>
+
+                    <!-- 6. Checkbox Options (visible when checkboxes are selected) -->
+                    <div class="prop-group" id="multiCheckboxGroup" style="display: none;">
+                        <div class="prop-section-heading">Checkbox Options</div>
+                        <div class="prop-field">
+                            <label class="prop-label" for="multiCheckboxMark">Mark Style</label>
+                            <select id="multiCheckboxMark" class="prop-select">
+                                <option value="" style="color: #64748b; font-style: italic;">Mark Style (Mixed)</option>
+                                <option value="check">Checkmark (✓)</option>
+                                <option value="x">Cross / X (✕)</option>
+                            </select>
+                        </div>
+                        <div class="prop-quick-types-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 4px;">
+                            <button type="button" class="multi-mark-quick-btn prop-quick-type-btn" data-mark="check" title="Apply Checkmark (✓) to all selected checkboxes">
+                                <i data-lucide="check" style="width: 13px; height: 13px; color: #16a34a;"></i> <span>Tick (✓)</span>
+                            </button>
+                            <button type="button" class="multi-mark-quick-btn prop-quick-type-btn" data-mark="x" title="Apply Cross / X (✕) to all selected checkboxes">
+                                <i data-lucide="x" style="width: 13px; height: 13px; color: #2563eb;"></i> <span>Cross (✕)</span>
+                            </button>
+                        </div>
+                        <div class="prop-chips-grid">
+                            <label class="prop-chip-toggle">
+                                <input type="checkbox" id="multiFieldDefaultChecked" aria-label="Default checked state for all selected checkboxes">
+                                <span>Default Checked</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Pinned Footer -->
@@ -2978,6 +3005,6 @@
     <script defer src="/vendor/pdf.min.js"></script>
     <script defer src="/vendor/pdf-lib.min.js"></script>
 
-    <script type="module" src="js/main.js?v=18.2"></script>
+    <script type="module" src="js/main.js?v=18.3"></script>
 </body>
 </html>

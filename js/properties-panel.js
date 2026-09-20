@@ -739,6 +739,30 @@ export function populateProperties(field) {
                 fillInput.value = (allSameFill && commonFill) ? commonFill : "";
                 fillInput.classList.toggle("is-mixed", !allSameFill || !commonFill);
             }
+
+            // Sync Checkbox specific options if selection contains checkboxes
+            const multiCheckboxGroup = document.getElementById("multiCheckboxGroup");
+            const checkboxFields = selectedFields.filter(f => f.type === "checkBox");
+            if (multiCheckboxGroup) {
+                multiCheckboxGroup.style.display = checkboxFields.length > 0 ? "flex" : "none";
+                if (checkboxFields.length > 0) {
+                    const markInput = document.getElementById("multiCheckboxMark");
+                    if (markInput && document.activeElement !== markInput) {
+                        const firstMark = checkboxFields[0]?.checkboxMark || "check";
+                        const allSameMark = checkboxFields.every(f => (f.checkboxMark || "check") === firstMark);
+                        markInput.value = allSameMark ? firstMark : "";
+                        markInput.classList.toggle("is-mixed", !allSameMark);
+                    }
+
+                    const multiDefChecked = document.getElementById("multiFieldDefaultChecked");
+                    if (multiDefChecked) {
+                        const allChecked = checkboxFields.every(f => !!f.defaultChecked);
+                        const allUnchecked = checkboxFields.every(f => !f.defaultChecked);
+                        multiDefChecked.checked = allChecked;
+                        multiDefChecked.indeterminate = (!allChecked && !allUnchecked);
+                    }
+                }
+            }
         }
         if (typeof lucide !== "undefined") lucide.createIcons();
         return;
@@ -1157,6 +1181,40 @@ function initMultiSelectTools(onUpdated) {
     document.getElementById("multiFieldReadOnly")?.addEventListener("change", e => {
         const ro = e.target.checked;
         batchUpdate(f => f.readOnly = ro);
+    });
+
+    // ── Batch Checkbox Options (Mark Style & Checked State) ──────────
+    const multiMarkSelect = document.getElementById("multiCheckboxMark");
+    multiMarkSelect?.addEventListener("change", e => {
+        multiMarkSelect.classList.remove("is-mixed");
+        const val = e.target.value;
+        if (val) {
+            batchUpdate(f => {
+                if (f.type === "checkBox") f.checkboxMark = val;
+            }, true);
+        }
+    });
+
+    document.querySelectorAll(".multi-mark-quick-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const mark = btn.dataset.mark;
+            if (mark) {
+                if (multiMarkSelect) {
+                    multiMarkSelect.value = mark;
+                    multiMarkSelect.classList.remove("is-mixed");
+                }
+                batchUpdate(f => {
+                    if (f.type === "checkBox") f.checkboxMark = mark;
+                }, true);
+            }
+        });
+    });
+
+    document.getElementById("multiFieldDefaultChecked")?.addEventListener("change", e => {
+        const chk = e.target.checked;
+        batchUpdate(f => {
+            if (f.type === "checkBox" || f.type === "radioGroup") f.defaultChecked = chk;
+        }, true);
     });
 
     // ── Alignment Tools ──────────────────────────────────────────────
