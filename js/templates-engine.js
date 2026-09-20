@@ -29,7 +29,7 @@ export const STARTER_TEMPLATES = {
             { id: 2, type: "textField", name: "receiving_party", x: 310, y: 105, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Receiving Party Name" },
             { id: 3, type: "dateField", name: "effective_date", x: 45, y: 155, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Effective Date" },
             { id: 4, type: "dropdown", name: "governing_jurisdiction", x: 310, y: 155, width: 240, height: 28, options: ["State of California", "State of New York", "State of Delaware", "United Kingdom", "European Union"], borderStyle: "solid", fillStyle: "tint" },
-            { id: 5, type: "checkBox", name: "includes_trade_secrets", x: 45, y: 220, width: 20, height: 20, defaultChecked: true },
+            { id: 5, type: "checkBox", name: "includes_trade_secrets", x: 45, y: 220, width: 20, height: 20, defaultChecked: false },
             { id: 6, type: "textField", name: "signer1_title", x: 45, y: 310, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Discloser Title" },
             { id: 7, type: "signature", name: "discloser_signature", x: 45, y: 358, width: 240, height: 55, borderStyle: "none", fillStyle: "tint" },
             { id: 8, type: "textField", name: "signer2_title", x: 310, y: 310, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Recipient Title" },
@@ -60,8 +60,8 @@ export const STARTER_TEMPLATES = {
             { id: 15, type: "textField", name: "insurance_group_num", x: 465, y: 458, width: 85, height: 26, borderStyle: "solid", fillStyle: "white", tooltip: "Group #" },
 
             // Section 3: HIPAA & Consent Checkboxes
-            { id: 16, type: "checkBox", name: "hipaa_consent_ack", x: 45, y: 518, width: 16, height: 16, defaultChecked: true, tooltip: "HIPAA Notice Acknowledgement" },
-            { id: 17, type: "checkBox", name: "treatment_consent_ack", x: 45, y: 554, width: 16, height: 16, defaultChecked: true, tooltip: "Medical Treatment Consent" },
+            { id: 16, type: "checkBox", name: "hipaa_consent_ack", x: 45, y: 518, width: 16, height: 16, defaultChecked: false, tooltip: "HIPAA Notice Acknowledgement" },
+            { id: 17, type: "checkBox", name: "treatment_consent_ack", x: 45, y: 554, width: 16, height: 16, defaultChecked: false, tooltip: "Medical Treatment Consent" },
 
             // Section 4: Signature & Date
             { id: 18, type: "signature", name: "patient_or_guardian_signature", x: 45, y: 622, width: 240, height: 50, borderStyle: "none", fillStyle: "tint", tooltip: "Patient / Guardian Signature" },
@@ -78,7 +78,7 @@ export const STARTER_TEMPLATES = {
             { id: 3, type: "dateField", name: "available_date", x: 310, y: 155, width: 240, height: 28, borderStyle: "solid", fillStyle: "white" },
             { id: 4, type: "dropdown", name: "employment_type", x: 45, y: 205, width: 240, height: 28, options: ["Full-Time", "Part-Time", "Contract / Freelance", "Internship"], borderStyle: "solid", fillStyle: "tint" },
             { id: 5, type: "textField", name: "expected_salary", x: 310, y: 205, width: 240, height: 28, borderStyle: "solid", fillStyle: "white" },
-            { id: 6, type: "checkBox", name: "work_authorization", x: 45, y: 255, width: 20, height: 20, defaultChecked: true },
+            { id: 6, type: "checkBox", name: "work_authorization", x: 45, y: 255, width: 20, height: 20, defaultChecked: false },
             { id: 7, type: "signature", name: "applicant_signature", x: 45, y: 335, width: 260, height: 55, borderStyle: "none", fillStyle: "tint" },
             { id: 8, type: "dateField", name: "application_date", x: 325, y: 348, width: 225, height: 30, borderStyle: "solid", fillStyle: "white" }
         ]
@@ -111,7 +111,7 @@ export const STARTER_TEMPLATES = {
             { id: 6, type: "textField", name: "monthly_income", x: 310, y: 255, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Monthly Income ($)" },
             { id: 7, type: "textField", name: "emergency_contact", x: 45, y: 305, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Emergency Contact" },
             { id: 8, type: "dateField", name: "desired_move_in", x: 310, y: 305, width: 240, height: 28, borderStyle: "solid", fillStyle: "white", tooltip: "Move-In Date" },
-            { id: 9, type: "checkBox", name: "background_check_consent", x: 45, y: 355, width: 20, height: 20, defaultChecked: true },
+            { id: 9, type: "checkBox", name: "background_check_consent", x: 45, y: 355, width: 20, height: 20, defaultChecked: false },
             { id: 10, type: "signature", name: "applicant_signature", x: 45, y: 430, width: 260, height: 55, borderStyle: "none", fillStyle: "tint" },
             { id: 11, type: "dateField", name: "application_date", x: 325, y: 443, width: 225, height: 30, borderStyle: "solid", fillStyle: "white" }
         ]
