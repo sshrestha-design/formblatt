@@ -397,14 +397,78 @@ body.mode-fill .canvas-docked-footer{display:none !important}
 }
 
 /* Canvas field picking mode highlights */
-body.is-picking-calc-field .field-element {
+body.is-picking-calc-field .field-overlay {
     cursor: crosshair !important;
-    outline: 2px dashed #3b82f6 !important;
-    outline-offset: 1px !important;
+    outline: 2.5px dashed #2563eb !important;
+    outline-offset: 2px !important;
+    animation: calcPickerPulse 1.8s infinite ease-in-out;
 }
 
-body.is-picking-calc-field .field-element:hover {
-    outline: 2px solid #2563eb !important;
-    background: rgba(37, 99, 235, 0.12) !important;
-    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.25) !important;
+@keyframes calcPickerPulse {
+    0%, 100% { outline-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25); }
+    50% { outline-color: #3b82f6; box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12); }
+}
+
+body.is-picking-calc-field .field-overlay:hover {
+    outline: 2.5px solid #1d4ed8 !important;
+    background: rgba(37, 99, 235, 0.18) !important;
+    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.35) !important;
+    transform: scale(1.02);
+    z-index: 500 !important;
+}
+
+.field-overlay.just-picked-flash {
+    animation: justPickedPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
+}
+
+@keyframes justPickedPop {
+    0% { transform: scale(0.96); background: rgba(37, 99, 235, 0.3); }
+    50% { transform: scale(1.06); background: rgba(5, 150, 105, 0.25); }
+    100% { transform: scale(1); background: transparent; }
+}
+
+.calc-picker-hud {
+    position: fixed;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #0f172a;
+    color: #f8fafc;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    padding: 8px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    font-size: 12px;
+    font-weight: 500;
+    pointer-events: auto;
+    animation: slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.calc-picker-hud-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #93c5fd;
+    font-weight: 700;
+}
+
+.calc-picker-hud-done-btn {
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 5px;
+    border: none;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+
+.calc-picker-hud-done-btn:hover {
+    background: #1d4ed8;
 }

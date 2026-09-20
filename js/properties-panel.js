@@ -403,6 +403,29 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         document.body.classList.toggle("is-picking-calc-field", isPickingCalcField);
         calcPickFromCanvasBtn?.classList.toggle("active", isPickingCalcField);
         calcFormulaCanvasPickBtn?.classList.toggle("active", isPickingCalcField);
+
+        let hud = document.getElementById("calcPickerHud");
+        if (isPickingCalcField) {
+            if (!hud) {
+                hud = document.createElement("div");
+                hud.id = "calcPickerHud";
+                hud.className = "calc-picker-hud";
+                hud.innerHTML = `
+                    <span class="calc-picker-hud-badge">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
+                        Pick on Canvas Active
+                    </span>
+                    <span>Click any field on the canvas to add to formula</span>
+                    <button type="button" class="calc-picker-hud-done-btn" id="calcPickerDoneBtn">Done (Esc)</button>
+                `;
+                document.body.appendChild(hud);
+                document.getElementById("calcPickerDoneBtn")?.addEventListener("click", () => setCanvasPickMode(false));
+            } else {
+                hud.style.display = "flex";
+            }
+        } else {
+            if (hud) hud.style.display = "none";
+        }
     };
 
     calcPickFromCanvasBtn?.addEventListener("click", () => setCanvasPickMode(!isPickingCalcField));
@@ -534,21 +557,32 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         updateFormulaLivePreview(getSelectedField());
     };
 
-    // Global canvas picker capture click listener
-    document.addEventListener("click", e => {
+    // Global canvas picker capture mousedown, pointerdown & click listeners
+    const handleCanvasFieldPick = e => {
         if (!isPickingCalcField) return;
-        const fieldEl = e.target.closest(".field-element, .field-overlay");
+        const fieldEl = e.target.closest(".field-overlay");
         if (!fieldEl) return;
 
         e.stopPropagation();
+        e.stopImmediatePropagation();
         e.preventDefault();
 
-        const fieldId = fieldEl.dataset?.fieldId || fieldEl.id?.replace(/^overlay_/, "");
-        const targetField = (state.fields || []).find(f => f.id === fieldId);
-        if (targetField) {
-            handleFieldChipClicked(targetField.name || targetField.id);
+        if (e.type === "mousedown" || (e.type === "pointerdown" && e.pointerType === "touch")) {
+            const fieldId = fieldEl.id?.replace(/^overlay_/, "") || fieldEl.dataset?.id;
+            const targetField = (state.fields || []).find(f => f.id === fieldId);
+            if (targetField) {
+                handleFieldChipClicked(targetField.name || targetField.id);
+                fieldEl.classList.remove("just-picked-flash");
+                void fieldEl.offsetWidth;
+                fieldEl.classList.add("just-picked-flash");
+                setTimeout(() => fieldEl.classList.remove("just-picked-flash"), 400);
+            }
         }
-    }, true);
+    };
+
+    window.addEventListener("mousedown", handleCanvasFieldPick, true);
+    window.addEventListener("pointerdown", handleCanvasFieldPick, true);
+    window.addEventListener("click", handleCanvasFieldPick, true);
 
     fieldCalcType?.addEventListener("change", e => {
         const val = e.target.value;
