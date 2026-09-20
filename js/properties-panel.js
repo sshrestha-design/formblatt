@@ -18,8 +18,10 @@ export function makeScrubbableAndScrollable(inputEl, labelEl = null, { min = 1, 
         labelEl = inputEl.closest(".prop-field")?.querySelector("label") || inputEl.closest(".form-group")?.querySelector("label") || inputEl.previousElementSibling;
     }
 
-    // 1. Mouse Wheel / Trackpad Scroll in Number Input
+    // 1. Mouse Wheel in Number Input: ONLY active when the input is explicitly focused
+    // When unfocused, wheel events pass through cleanly to scroll the inspector sidebar without mutating values.
     inputEl.addEventListener("wheel", e => {
+        if (document.activeElement !== inputEl) return;
         e.preventDefault();
         const currentVal = parseFloat(inputEl.value) || min;
         const multiplier = e.shiftKey ? 10 : (e.altKey ? 0.1 : 1);
@@ -306,6 +308,15 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     makeScrubbableAndScrollable(heightInput, null, { min: 16, max: 1000, step: 1 });
     makeScrubbableAndScrollable(fontSizeInput, null, { min: 6, max: 120, step: 1 });
     makeScrubbableAndScrollable(fieldMaxLength, null, { min: 1, max: 5000, step: 1 });
+
+    // Ensure scrolling the inspector sidebar naturally unfocuses inputs to prevent accidental value mutation
+    document.querySelectorAll(".prop-panel-body").forEach(panel => {
+        panel.addEventListener("scroll", () => {
+            if (document.activeElement && document.activeElement.tagName === "INPUT" && panel.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        }, { passive: true });
+    });
 
     const PRESET_OPTIONS = {
         "yes-no": ["Yes", "No"],
