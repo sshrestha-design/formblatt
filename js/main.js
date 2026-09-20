@@ -233,6 +233,7 @@ if (typeof window !== "undefined") {
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator && typeof window !== "undefined") {
     window.addEventListener("load", () => {
         navigator.serviceWorker.register("./sw.js").then(reg => {
+            reg.update();
             console.log("[PWA] Service Worker registered for offline execution:", reg.scope);
         }).catch(err => {
             console.warn("[PWA] Service Worker registration:", err);
