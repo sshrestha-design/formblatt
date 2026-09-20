@@ -22,10 +22,11 @@ function checkboxAppearanceProvider(mark) {
         } else if (rawBg && typeof rawBg === "object" && "type" in rawBg) {
             backgroundColor = rawBg;
         }
+        // filled: false ensures the unchecked ("off") appearance contains ONLY the box outline and background, never a checkmark
         const outline = PDFLib.drawCheckBox({
             x: borderWidth / 2, y: borderWidth / 2, width, height,
             thickness: 1.5, borderWidth, borderColor, markColor,
-            color: backgroundColor, filled: backgroundColor !== undefined
+            color: backgroundColor, filled: false
         });
         const markOperators = mark === "x"
             ? [
