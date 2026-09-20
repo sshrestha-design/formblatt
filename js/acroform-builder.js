@@ -4,6 +4,7 @@ import { showToast } from "./toast.js";
 import { loadPdfLibraries } from "./pdf-engine.js";
 
 function checkboxAppearanceProvider(mark) {
+    if (mark !== "x") return undefined;
     return (checkBox, widget) => {
         const rectangle = widget.getRectangle();
         const ap = widget.getAppearanceCharacteristics?.();
@@ -28,12 +29,10 @@ function checkboxAppearanceProvider(mark) {
             thickness: 1.5, borderWidth, borderColor, markColor,
             color: backgroundColor, filled: false
         });
-        const markOperators = mark === "x"
-            ? [
-                ...PDFLib.drawLine({ start: { x: width * 0.25, y: height * 0.25 }, end: { x: width * 0.75, y: height * 0.75 }, thickness: 1.5, color: markColor }),
-                ...PDFLib.drawLine({ start: { x: width * 0.25, y: height * 0.75 }, end: { x: width * 0.75, y: height * 0.25 }, thickness: 1.5, color: markColor })
-            ]
-            : PDFLib.drawCheckMark({ x: width / 2, y: height / 2, size: Math.min(width, height) / 2, thickness: 1.5, color: markColor });
+        const markOperators = [
+            ...PDFLib.drawLine({ start: { x: width * 0.22, y: height * 0.22 }, end: { x: width * 0.78, y: height * 0.78 }, thickness: 1.5, color: markColor }),
+            ...PDFLib.drawLine({ start: { x: width * 0.22, y: height * 0.78 }, end: { x: width * 0.78, y: height * 0.22 }, thickness: 1.5, color: markColor })
+        ];
         const on = [...outline, ...markOperators];
         return {
             normal: { on, off: outline },
@@ -445,8 +444,17 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
                 cb.addToPage(page, common);
                 if (f.defaultChecked || f.checked) {
                     try { cb.check(); } catch(e) {}
+                } else {
+                    try { cb.uncheck(); } catch(e) {}
                 }
-                try { cb.updateAppearances(checkboxAppearanceProvider(f.checkboxMark || "check")); } catch(e) {
+                const customProvider = checkboxAppearanceProvider(f.checkboxMark);
+                try {
+                    if (customProvider) {
+                        cb.updateAppearances(customProvider);
+                    } else {
+                        cb.updateAppearances();
+                    }
+                } catch(e) {
                     console.warn("Could not set checkbox appearance:", e);
                 }
 
