@@ -59,6 +59,88 @@ export const GENERIC_PATTERNS = [
     { regex: /संख्या|नं\.?\s*$|नम्बर/, id: "number", type: "textField" }
 ];
 
+export const SEMANTIC_DIMENSIONS = {
+    signature: { width: 200, height: 40, type: "signature" },
+    dateField: { width: 110, height: 22, type: "dateField" },
+    zip: { width: 85, height: 22, type: "textField" },
+    state: { width: 65, height: 22, type: "textField" },
+    phone: { width: 130, height: 22, type: "textField" },
+    email: { width: 220, height: 22, type: "textField" },
+    ssn: { width: 120, height: 22, type: "textField" },
+    currency: { width: 100, height: 22, type: "textField" },
+    multiline: { width: 340, height: 60, type: "textField", multiline: true }
+};
+
+/**
+ * Compute 2D horizontal & vertical projection profiles to detect page margins, column boundaries, and gutters.
+ */
+export function calculateDocumentColumnBoundaries(rawBlocks, pageWidth, pageHeight) {
+    if (!Array.isArray(rawBlocks) || rawBlocks.length === 0) {
+        return { margins: { left: 40, right: pageWidth - 40 }, columns: [{ x: 40, width: pageWidth - 80, right: pageWidth - 40 }] };
+    }
+
+    const sortedLefts = rawBlocks.map(b => b.x).filter(x => x > 15 && x < pageWidth * 0.4).sort((a, b) => a - b);
+    const sortedRights = rawBlocks.map(b => b.x + b.width).filter(x => x > pageWidth * 0.6 && x < pageWidth - 15).sort((a, b) => a - b);
+
+    const marginLeft = sortedLefts.length > 0 ? sortedLefts[Math.floor(sortedLefts.length * 0.1)] : 40;
+    const marginRight = sortedRights.length > 0 ? sortedRights[Math.floor(sortedRights.length * 0.9)] : pageWidth - 40;
+
+    const binSize = 10;
+    const numBins = Math.ceil(pageWidth / binSize);
+    const occupancy = new Uint16Array(numBins);
+
+    for (const b of rawBlocks) {
+        const startBin = Math.max(0, Math.floor(b.x / binSize));
+        const endBin = Math.min(numBins - 1, Math.floor((b.x + b.width) / binSize));
+        for (let bin = startBin; bin <= endBin; bin++) {
+            occupancy[bin]++;
+        }
+    }
+
+    const gutters = [];
+    let inGutter = false;
+    let gutterStart = 0;
+
+    const searchStartBin = Math.floor(marginLeft / binSize) + 2;
+    const searchEndBin = Math.floor(marginRight / binSize) - 2;
+
+    for (let bin = searchStartBin; bin <= searchEndBin; bin++) {
+        const isLowOccupancy = occupancy[bin] <= 1;
+        if (isLowOccupancy && !inGutter) {
+            inGutter = true;
+            gutterStart = bin * binSize;
+        } else if (!isLowOccupancy && inGutter) {
+            inGutter = false;
+            const gutterEnd = bin * binSize;
+            if (gutterEnd - gutterStart >= 20) {
+                gutters.push({ x: gutterStart, width: gutterEnd - gutterStart });
+            }
+        }
+    }
+
+    const columns = [];
+    let curX = marginLeft;
+    for (const g of gutters) {
+        if (g.x - curX >= 100) {
+            columns.push({ x: curX, width: g.x - curX, right: g.x });
+            curX = g.x + g.width;
+        }
+    }
+    if (marginRight - curX >= 100) {
+        columns.push({ x: curX, width: marginRight - curX, right: marginRight });
+    }
+
+    if (columns.length === 0) {
+        columns.push({ x: marginLeft, width: Math.max(100, marginRight - marginLeft), right: marginRight });
+    }
+
+    return {
+        margins: { left: marginLeft, right: marginRight },
+        columns,
+        gutters
+    };
+}
+
 export function resolveSemanticProps(rawLabel, defaultType = "textField", usedNames = new Set()) {
     const clean = (rawLabel || "").trim().replace(/[:_.\s-]+$/, "");
     let baseId = "";
@@ -1398,6 +1480,7 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
     const pageWidth = viewport.width;
     const pageHeight = viewport.height;
     const textLines = clusterIntoLines(rawBlocks);
+    const docLayout = calculateDocumentColumnBoundaries(rawBlocks, pageWidth, pageHeight);
 
     // ------------------------------------------------------------------------
     // AFFORDANCE 1: Standalone & Labelled Checkboxes & Radios (with Fieldset Groups)
@@ -1564,8 +1647,14 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             let targetY = Math.max(0, Math.round(line.y - (isSig ? 6 : 2)));
             let targetH = isSig ? 38 : (isMulti ? 50 : 20);
 
-            // Strict horizontal collision avoidance: clamp available width against ALL text blocks on the page
+            // Strict horizontal collision avoidance: clamp available width against enclosing column and text blocks
             let maxAllowedX = pageWidth - 25;
+            if (docLayout && Array.isArray(docLayout.columns)) {
+                const currentColumn = docLayout.columns.find(col => targetX >= col.x - 15 && targetX < col.right + 15);
+                if (currentColumn && currentColumn.right > targetX + 30) {
+                    maxAllowedX = Math.min(maxAllowedX, currentColumn.right - 4);
+                }
+            }
             for (const tb of rawBlocks) {
                 if (tb.x > targetX + 2) {
                     const vOverlap = Math.max(0, Math.min(targetY + targetH, tb.y + tb.height) - Math.max(targetY, tb.y));
@@ -1595,7 +1684,21 @@ function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existi
             const fieldName = sem.name;
             const isSingleOnLine = (maxAllowedX >= pageWidth - 45);
 
-            let preferredW = isSig ? Math.min(220, availableW) : (isSingleOnLine ? Math.min(260, availableW) : Math.min(180, availableW));
+            let preferredW = isSig
+                ? Math.min(SEMANTIC_DIMENSIONS.signature.width, availableW)
+                : (isDate
+                    ? Math.min(SEMANTIC_DIMENSIONS.dateField.width, availableW)
+                    : (isSingleOnLine ? Math.min(260, availableW) : Math.min(180, availableW)));
+
+            if (fieldName.includes("zip") || fieldName.includes("postal")) {
+                preferredW = Math.min(SEMANTIC_DIMENSIONS.zip.width, availableW);
+            } else if (fieldName.includes("state")) {
+                preferredW = Math.min(SEMANTIC_DIMENSIONS.state.width, availableW);
+            } else if (fieldName.includes("phone") || fieldName.includes("tel")) {
+                preferredW = Math.min(SEMANTIC_DIMENSIONS.phone.width, availableW);
+            } else if (fieldName.includes("ssn") || fieldName.includes("tax_id")) {
+                preferredW = Math.min(SEMANTIC_DIMENSIONS.ssn.width, availableW);
+            }
 
             // Check if an explicit vector underline is present next to or under this prompt
             const matchingUnderline = (vectorShapes?.underlines || []).find(u =>

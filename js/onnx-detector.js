@@ -15,12 +15,59 @@ export const ONNX_CONFIG = {
     classes: [
         { id: 0, type: "textField", label: "Text Input" },
         { id: 1, type: "checkBox", label: "Choice Button" },
-        { id: 2, type: "signature", label: "Signature" }
+        { id: 2, type: "signature", label: "Signature" },
+        { id: 3, type: "dateField", label: "Date Field" },
+        { id: 4, type: "radioGroup", label: "Radio Option" }
     ]
 };
 
 let ortSession = null;
 let isInitializing = false;
+
+/**
+ * Retrieve model binary from IndexedDB cache if available.
+ */
+async function getCachedModelBuffer(modelUrl) {
+    if (typeof window === "undefined" || !window.indexedDB) return null;
+    return new Promise(resolve => {
+        try {
+            const req = indexedDB.open("formblatt_model_cache", 1);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains("models")) {
+                    db.createObjectStore("models");
+                }
+            };
+            req.onsuccess = (e) => {
+                const db = e.target.result;
+                const tx = db.transaction("models", "readonly");
+                const store = tx.objectStore("models");
+                const getReq = store.get(modelUrl);
+                getReq.onsuccess = () => resolve(getReq.result || null);
+                getReq.onerror = () => resolve(null);
+            };
+            req.onerror = () => resolve(null);
+        } catch {
+            resolve(null);
+        }
+    });
+}
+
+/**
+ * Save model binary into IndexedDB cache.
+ */
+async function cacheModelBuffer(modelUrl, buffer) {
+    if (typeof window === "undefined" || !window.indexedDB || !buffer) return;
+    try {
+        const req = indexedDB.open("formblatt_model_cache", 1);
+        req.onsuccess = (e) => {
+            const db = e.target.result;
+            const tx = db.transaction("models", "readwrite");
+            const store = tx.objectStore("models");
+            store.put(buffer, modelUrl);
+        };
+    } catch {}
+}
 
 /**
  * Dynamically load ONNX Runtime Web script if not already present.
@@ -70,6 +117,13 @@ export async function getOnnxSession(modelPath = ONNX_CONFIG.modelUrl) {
         const ort = await loadOnnxRuntime();
         if (!ort) throw new Error("ONNX runtime unavailable in this environment");
 
+        // Check IndexedDB cache for preloaded model buffer
+        let modelSource = modelPath;
+        const cached = await getCachedModelBuffer(modelPath);
+        if (cached) {
+            modelSource = cached;
+        }
+
         // Prefer WebGPU for hardware acceleration if available, fall back to WebAssembly
         const executionProviders = [];
         if (typeof navigator !== "undefined" && navigator.gpu) {
@@ -77,10 +131,16 @@ export async function getOnnxSession(modelPath = ONNX_CONFIG.modelUrl) {
         }
         executionProviders.push("wasm");
 
-        ortSession = await ort.InferenceSession.create(modelPath, {
+        ortSession = await ort.InferenceSession.create(modelSource, {
             executionProviders,
             graphOptimizationLevel: "all"
         });
+
+        // If fetched via network, cache binary array buffer
+        if (typeof modelSource === "string" && typeof fetch !== "undefined") {
+            fetch(modelSource).then(r => r.arrayBuffer()).then(buf => cacheModelBuffer(modelPath, buf)).catch(() => {});
+        }
+
         return ortSession;
     } catch (err) {
         console.warn("Could not initialize local ONNX neural model session:", err);
