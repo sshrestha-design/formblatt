@@ -79,7 +79,7 @@ function createServerOnPort(port) {
                 "Content-Length": stats.size,
                 "Content-Type": contentType,
                 "Accept-Ranges": "bytes",
-                "Cache-Control": ext === ".html" ? "no-cache" : "public, max-age=3600"
+                "Cache-Control": "no-cache, must-revalidate"
             });
 
             const stream = fs.createReadStream(filePath);
