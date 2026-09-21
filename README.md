@@ -1,123 +1,159 @@
-# JustForms
+# Formblatt
 
-[![Live App](https://img.shields.io/badge/Live_App-justforms.vercel.app-2563eb?style=flat-square&logo=vercel&logoColor=white)](https://justforms.vercel.app)
-[![License: MIT](https://img.shields.io/badge/License-MIT-059669?style=flat-square)](https://github.com/sshrestha-design/justforms)
-[![GitHub](https://img.shields.io/badge/GitHub-sshrestha--design%2Fjustforms-0f172a?style=flat-square&logo=github&logoColor=white)](https://github.com/sshrestha-design/justforms)
+[![Production](https://img.shields.io/badge/Production-formblatt.dpdns.org-2563eb?style=flat-square&logo=vercel&logoColor=white)](https://formblatt.dpdns.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-059669?style=flat-square)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-sshrestha--design%2Fformblatt-0f172a?style=flat-square&logo=github&logoColor=white)](https://github.com/sshrestha-design/formblatt)
+[![Tests](https://img.shields.io/badge/Tests-154%20Passing-10b981?style=flat-square)](tests/test_suite.js)
+[![PWA](https://img.shields.io/badge/PWA-Offline-7c3aed?style=flat-square)](site.webmanifest)
 
-> **Client-Side Interactive PDF Form Builder & ISO 32000 AcroForm Compiler**  
-> Designed by Sagar Shrestha © 2026. Released under the MIT License.  
-> Production App: **[justforms.vercel.app](https://justforms.vercel.app)** | Repository: **[github.com/sshrestha-design/justforms](https://github.com/sshrestha-design/justforms)**
+Formblatt is a browser-based PDF editor for creating fillable forms and AcroForms. All document rendering, field detection, and PDF compilation run locally in browser memory without sending files to an external server.
 
----
-
-## 📄 Overview
-
-**JustForms** is a high-performance, 100% client-side web application for designing, editing, and compiling interactive PDF AcroForms. Transform static PDF documents into fillable forms with text fields, date pickers, choice dropdowns, checkboxes, radio groups, and digital signature pads—processed entirely inside your browser with **zero server storage**.
-
-### Key Capabilities
-
-- **Client-Side Privacy**: All processing runs locally in browser memory using PDF.js and PDF-Lib. Documents and form data never touch external servers.
-- **Auto-Detection Engine**: Analyzes underlying vector paths and text boundaries across 4 detection strategies for 1-click automatic form generation.
-- **Dual Signature Modes**: Supports freehand smooth Bezier drawing and real-time cursive handwriting generation.
-- **Canvas Authoring**: Features magnetic alignment snapping, marquee lasso selection, `Alt + Drag` field cloning, and 14×14px precision resize handles.
-- **Workspace Customization**: Includes collapsible sidebars (`Cmd + \` / `Ctrl + \`), 64px edge padding, and transient deletion undo toasts.
-- **ISO 32000 Compliance**: Exports standard AcroForm PDFs compatible with Adobe Acrobat, Apple Preview, Chrome, Edge, and DocuSign.
+- Production: [formblatt.dpdns.org](https://formblatt.dpdns.org)
+- Repository: [github.com/sshrestha-design/formblatt](https://github.com/sshrestha-design/formblatt)
 
 ---
 
-## 🛠️ Architecture
+## Features
 
-Built with native **ES Modules** and modular CSS:
+- **Local Processing**: PDF.js and PDF-Lib render and compile documents directly in the browser.
+- **Formula Builder**: Configure sum, product, tax, and discount calculations using field chips or direct canvas selection. Exports standard AcroForm `/AA` calculation scripts.
+- **Field Detection**: Locate table grids, underlines, checkboxes, and input boxes with 2D geometry analysis, OCR line detection, or local ONNX vision models.
+- **Signatures**: Draw vector signatures, type with cursive web fonts, or upload signature images.
+- **Canvas Tools**: Alignment guides, snapping, box selection, duplicate on drag, and undo history.
+- **Standard AcroForms**: Exports ISO 32000 compliant PDF forms that work in Adobe Acrobat, Apple Preview, and web browsers.
+- **Offline Support**: Caches static assets via Service Worker for offline use.
+
+---
+
+## Directory Structure
 
 ```
 pdf_form_builder_web/
-├── index.html                   # Semantic HTML shell and UI layout
-├── styles/                      # Domain-specific stylesheets
-│   ├── base.css                 # CSS variables, design tokens, and resets
-│   ├── landing.css              # Landing page hero, dropzone, and templates
-│   ├── editor.css               # Workspace layout and panel styles
-│   ├── canvas.css               # Viewport, field overlays, and guides
-│   ├── modals.css               # Live PDF preview and signature pad
-│   └── main.css                 # Master stylesheet import
-├── js/                          # Native ES Module architecture
-│   ├── constants.js             # Default field sizes and schemas
-│   ├── state.js                 # Central application state management
-│   ├── pdf-engine.js            # PDF.js rendering and page scaling
-│   ├── acroform-builder.js      # pdf-lib AcroForm compilation engine
-│   ├── canvas-controller.js     # Drag, resize, snapping, and pan/zoom
-│   ├── overlay-manager.js       # Field overlay rendering and handles
-│   ├── layers-panel.js          # Layer stack management and renaming
-│   ├── properties-panel.js      # Field property inspector and alignment
-│   ├── auto-detector.js         # PDF field auto-detection algorithm
-│   ├── signature-pad.js         # Freehand drawing and cursive engine
-│   ├── templates-engine.js      # Vector document generator presets
-│   ├── landing-controller.js    # View router and dropzone controller
-│   ├── storage-manager.js       # History stack (Undo/Redo) and project I/O
-│   └── main.js                  # Application orchestrator and key bindings
-├── vercel.json                  # Production deployment configuration
-├── .vercelignore                # Vercel ignore rules
-└── README.md                    # Project documentation
+├── index.html                  # Single-page application shell
+├── favicon.svg                 # Application favicon
+├── site.webmanifest            # PWA web app manifest
+├── sw.js                       # Service Worker offline cache manifest
+├── server.cjs                  # Local development server
+├── package.json                # Project manifest and test runner scripts
+├── vercel.json                 # Vercel deployment routes and security headers
+├── robots.txt                  # Search engine crawler directives
+├── sitemap.xml                 # XML sitemap
+├── llms.txt & llms-full.txt    # LLM discovery context documentation
+├── README.md                   # Project overview and instructions
+├── LICENSE                     # MIT license
+│
+├── docs/                       # Project Documentation
+│   ├── DOCUMENTATION.md        # Technical architecture and API specification
+│   └── ROADMAP.md              # Project roadmap and milestone tracker
+│
+├── js/                         # JavaScript Application Modules (ESM)
+│   ├── main.js                 # Application entry point and event wireup
+│   │
+│   ├── core/                   # State, Storage & Data Management
+│   │   ├── state.js            # Reactive application state and formula evaluation
+│   │   ├── constants.js        # Default dimensions, schemas, and enums
+│   │   ├── storage-manager.js  # Undo/redo stack and project serialization
+│   │   └── data-exporter.js    # CSV and JSON form data import/export
+│   │
+│   ├── engines/                # Document & Processing Engines
+│   │   ├── pdf-engine.js       # PDF.js rendering and page navigation
+│   │   ├── acroform-builder.js # PDF-Lib AcroForm and flatten compiler
+│   │   ├── auto-detector.js    # Geometric and typography field detector
+│   │   ├── onnx-detector.js    # In-browser ONNX neural vision detector
+│   │   ├── ocr-engine.js       # Scanned document OCR and line segmenter
+│   │   └── templates-engine.js # Vector starter template generator
+│   │
+│   ├── controllers/            # Workflow & Screen Orchestrators
+│   │   ├── editor-app.js       # Editor workbench and toolbar manager
+│   │   └── landing-controller.js # Landing page UX, dropzone, and templates
+│   │
+│   ├── ui/                     # UI Components & Canvas Controllers
+│   │   ├── canvas-controller.js# Viewport zoom/pan, dragging, and snapping
+│   │   ├── overlay-manager.js  # Interactive field widgets and handles
+│   │   ├── properties-panel.js # Inspector panel and calculation builder
+│   │   ├── layers-panel.js     # Layer hierarchy, grouping, and ordering
+│   │   ├── command-palette.js  # Command palette (Cmd+K / Ctrl+K)
+│   │   ├── signature-pad.js    # Vector signature canvas and cursive engine
+│   │   ├── onboarding-tour.js  # Guided walkthrough tour
+│   │   └── gradient-waves.js   # Hero canvas visual animation
+│   │
+│   └── utils/                  # Utilities
+│       ├── toast.js            # Toast notifications
+│       ├── tooltip.js          # Accessible floating tooltips
+│       └── haptics.js          # Vibration feedback
+│
+├── styles/                     # Modular CSS Stylesheets
+│   ├── base.css                # CSS variables, reset, and layout foundations
+│   ├── fonts.css               # Local font definitions
+│   ├── landing.css             # Landing page styles and template cards
+│   ├── editor.css              # Inspector sidebar and toolbar styles
+│   ├── canvas.css              # Canvas viewport, guides, and field overlays
+│   └── modals.css              # Dialogs, command palette, and modal sheets
+│
+├── assets/                     # Media, screenshots, and video assets
+├── fonts/                      # Self-hosted Carlito WebFonts (.woff2)
+├── vendor/                     # Self-hosted vendor libraries (PDF.js, PDF-Lib, Lucide)
+└── tests/                      # Automated Verification & Benchmarks
+    ├── test_suite.js           # Automated regression test suite (154 tests)
+    ├── benchmark_speed.js      # Latency and throughput benchmark suite
+    ├── evaluate_detector_cli.js# Field detection precision/recall benchmark
+    ├── generate_test_pdfs.js   # Synthetic test form generator
+    └── evaluate.html           # Interactive benchmark evaluation studio
 ```
 
 ---
 
-## 🧩 Subsystem Reference
+## Keyboard Shortcuts
 
-| Subsystem | Primary Responsibility |
+| Shortcut | Action |
 | :--- | :--- |
-| **`js/state.js`** | Single source of truth for reactive state (document bytes, page index, tools, selected fields, zoom). |
-| **`js/pdf-engine.js`** | Manages PDF.js canvas rendering, page navigation, and GPU transform scaling. |
-| **`js/acroform-builder.js`** | Compiles canvas form elements into standard PDF AcroForm fields using `pdf-lib`. |
-| **`js/auto-detector.js`** | Runs 4 detection engines (Native AcroForms, Vector Analysis, Text Pairing, Grid Fallback). |
-| **`js/canvas-controller.js`** | Handles canvas interactions (dragging, cloning, lasso marquee, magnetic snapping). |
-| **`js/overlay-manager.js`** | Renders DOM overlays for placed form elements with live styling. |
-| **`js/layers-panel.js`** | Manages the left layer list and inline field renaming. |
-| **`js/properties-panel.js`** | Manages field properties, autofill tags, required flags, and distribution tools. |
-| **`js/signature-pad.js`** | Controls signature capture with freehand drawing and cursive font generation. |
-| **`js/storage-manager.js`** | Manages undo/redo history stacks and `.jform` project file export/import. |
-| **`js/main.js`** | Central entry point wiring global events, shortcuts, and application initialization. |
+| `V` | Select Tool |
+| `H` or `Space` | Hand Tool (Pan Viewport) |
+| `T` | Text Field Tool |
+| `A` | Static Text / Label Tool |
+| `D` | Dropdown Menu Tool |
+| `C` | Checkbox Tool |
+| `R` | Radio Button Tool |
+| `S` | Digital Signature Tool |
+| `Cmd + K` / `Ctrl + K` | Command Palette |
+| `Cmd + \` / `Ctrl + \` | Toggle Left Layers Sidebar |
+| `Option + Drag` / `Alt + Drag` | Duplicate Selected Field(s) |
+| `Cmd + Z` / `Ctrl + Z` | Undo |
+| `Cmd + Shift + Z` / `Ctrl + Y` | Redo |
+| `Cmd + ;` / `Ctrl + ;` | Toggle Smart Alignment Guides |
+| `Del` / `Backspace` | Delete Selected Field(s) |
+| `[` / `PageUp` | Previous Page |
+| `]` / `PageDown` | Next Page |
+| `?` / `Shift + /` | Open Keyboard Shortcuts Modal |
 
 ---
 
-## ⌨️ Shortcuts Reference
+## Development
 
-| Hotkey | Command |
-| :---: | :--- |
-| `<kbd>V</kbd>` | Select Tool |
-| `<kbd>H</kbd>` or `<kbd>Space</kbd>` | Hand Tool (Pan Viewport) |
-| `<kbd>T</kbd>` | Text Field Tool |
-| `<kbd>D</kbd>` | Dropdown Tool |
-| `<kbd>C</kbd>` | Checkbox Tool |
-| `<kbd>R</kbd>` | Radio Group Tool |
-| `<kbd>S</kbd>` | Digital Signature Tool |
-| `<kbd>Cmd</kbd> / <kbd>Ctrl</kbd> + <kbd>\</kbd>` | Toggle Left Workspace Sidebar |
-| `<kbd>Option</kbd> / <kbd>Alt</kbd> + Drag` | Duplicate Selected Field |
-| `<kbd>Cmd</kbd> / <kbd>Ctrl</kbd> + <kbd>Z</kbd>` | Undo Action |
-| `<kbd>Cmd</kbd> / <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd>` | Redo Action |
-| `<kbd>Del</kbd>` / `<kbd>Backspace</kbd>` | Delete Selected Field(s) |
-| `<kbd>[</kbd>` / `<kbd>PageUp</kbd>` | Previous Document Page |
-| `<kbd>]</kbd>` / `<kbd>PageDown</kbd>` | Next Document Page |
-| `<kbd>?</kbd>` or `<kbd>Shift</kbd> + <kbd>/</kbd>` | Open Shortcuts Help Modal |
-
----
-
-## 🚀 Setup & Deployment
-
-### Local Development
-Run any static HTTP server inside the repository directory:
+### Start Local Server
 
 ```bash
-# Python 3
-python3 -m http.server 3000
-
-# Node.js
-npx serve .
+npm start
 ```
 
-Open `http://localhost:3000` in your web browser.
+Open `http://localhost:3000` in your browser.
 
-### Production Deployment
-Deploy to Vercel production:
+### Run Tests
+
+```bash
+# Automated regression test suite
+npm test
+
+# Performance benchmarks
+npm run bench
+
+# Field detector evaluation
+npm run test:detector
+```
+
+### Deployment
+
+Deploy to Vercel:
 
 ```bash
 npx vercel --prod
@@ -125,6 +161,6 @@ npx vercel --prod
 
 ---
 
-## 📄 License
+## License
 
-Distributed under the **MIT License**. Designed & Developed by **Sagar Shrestha** © 2026.
+MIT
