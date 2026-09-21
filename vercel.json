@@ -90,6 +90,10 @@
       "dest": "/llms.txt"
     },
     {
+      "src": "/.well-known/llms-full.txt",
+      "dest": "/llms-full.txt"
+    },
+    {
       "src": "/site.webmanifest",
       "dest": "/site.webmanifest"
     },
