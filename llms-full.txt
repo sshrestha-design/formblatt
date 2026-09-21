@@ -1,75 +1,112 @@
-# Formblatt (JustForms) - Full Technical Documentation & Architecture Reference
+# Formblatt: Technical Reference and Architecture
 
-> Comprehensive architectural manual, module specifications, data formats, and math models for Formblatt / JustForms — a 100% client-side PDF AcroForm authoring application.
+Formblatt is a client-side PDF editor and ISO 32000-1 AcroForm compiler. It runs in browser memory using native ES Modules, Mozilla PDF.js, and PDF-Lib.
 
-- **Production URL**: [https://justforms.vercel.app](https://justforms.vercel.app)
-- **Repository**: [https://github.com/sshrestha-design/justforms](https://github.com/sshrestha-design/justforms)
-- **Author**: Sagar Shrestha ([https://sagarshrestha23.com.np](https://sagarshrestha23.com.np))
-- **License**: MIT
-
----
-
-## 1. System Philosophy & Architecture
-
-Formblatt is built with a zero-cloud-dependency, pure-client-side execution model. All operations run directly within the user's browser environment using native ES Modules, Mozilla's `pdf.js` for rendering, and `pdf-lib` for AcroForm PDF byte compilation.
-
-### Core Architecture Principles:
-1. **100% In-Browser Execution**: Zero server uploads. Documents never leave the client's device.
-2. **Zero Framework Overhead**: Vanilla JavaScript (ESM) with lightweight DOM rendering and optimized CSS styles.
-3. **ISO 32000-1 Compliance**: Generates standard interactive PDF AcroForms compatible with Adobe Acrobat Reader, Apple Preview, Google Chrome, Microsoft Edge, and DocuSign.
+- Production: https://formblatt.dpdns.org
+- Source Code: https://github.com/sshrestha-design/formblatt
+- License: MIT
 
 ---
 
-## 2. Directory & Module Breakdown
+## 1. System Architecture
+
+Formblatt operates without backend server dependencies. Document parsing, canvas rendering, field auto-detection, calculation evaluation, and binary PDF assembly run directly in the browser.
+
+### Key Dependencies
+
+- PDF.js: Extracts page dimensions, text content items, font metrics, and renders vector page viewports.
+- PDF-Lib: Modifies PDF bytes, constructs AcroForm field dictionaries, generates appearance streams, injects JavaScript calculate actions, and handles PDF flattening.
+- ONNX Runtime Web: Runs local neural vision models for form element classification in browser memory.
+
+---
+
+## 2. Directory and Module Organization
 
 ```
 pdf_form_builder_web/
-├── index.html                   # Semantic HTML shell, critical inlined CSS, UI modals
-├── llms.txt                     # Standard LLM discovery file
-├── llms-full.txt                # Extended architecture reference for LLMs
-├── robots.txt                   # Crawler directions and sitemap reference
-├── sitemap.xml                  # XML sitemap
-├── styles/                      # Modular CSS system
-│   ├── base.css                 # Design tokens, variables, resets, core button styles
-│   ├── landing.css              # Landing page hero, showcase video, reviews, and templates
-│   ├── editor.css               # Editor layout, toolbars, sidebar panels, controls
-│   ├── canvas.css               # PDF canvas viewport, field overlays, alignment guides
-│   ├── modals.css               # Signature pad, preview modal, keyboard shortcuts
-│   └── fonts.css                # Typography declarations
-└── js/                          # Native ES Module architecture
-    ├── state.js                 # Central reactive state manager & selection tracking
-    ├── main.js                  # Landing bootstrap, idle preloading, modal bindings
-    ├── landing-controller.js    # Landing page view manager, history router, file loaders
-    ├── editor-app.js            # Editor subsystems coordinator, panel resizers, menus
-    ├── pdf-engine.js            # PDF.js rendering, page navigation, scale transforms
-    ├── acroform-builder.js      # pdf-lib AcroForm compilation engine & PDF exporter
-    ├── canvas-controller.js     # Drag, resize, magnetic snapping, lasso selection
-    ├── overlay-manager.js       # Field overlay DOM rendering & resize handles
-    ├── layers-panel.js          # Layer hierarchy, ordering, visibility, and renaming
-    ├── properties-panel.js      # Field property inspector, dimensions, styling
-    ├── auto-detector.js         # 4-tier PDF field auto-detection algorithm
-    ├── signature-pad.js         # Freehand Bezier drawing & cursive generation engine
-    ├── templates-engine.js      # Built-in vector document generators (W-9, NDA, Lease, etc.)
-    ├── storage-manager.js       # History stack (Undo/Redo) and .jform JSON export/import
-    ├── gradient-waves.js        # Dynamic interactive canvas background
-    ├── tooltip.js               # Accessible tooltip positioning and keyboard hints
-    ├── toast.js                 # Non-intrusive notification manager
-    └── haptics.js               # Subtle vibration feedback for tactile interactions
+├── index.html                  # Single-page application shell
+├── favicon.svg                 # Application favicon
+├── site.webmanifest            # PWA web app manifest
+├── sw.js                       # Service Worker offline cache manifest
+├── server.cjs                  # Local development server
+├── package.json                # Project manifest and test runner scripts
+├── vercel.json                 # Vercel deployment routes and security headers
+├── robots.txt                  # Search engine crawler directives
+├── sitemap.xml                 # XML sitemap
+├── llms.txt                    # Compact LLM discovery documentation
+├── llms-full.txt               # Full technical manual and schema reference
+├── README.md                   # Project overview and instructions
+├── LICENSE                     # MIT license
+│
+├── docs/                       # Project Documentation
+│   ├── DOCUMENTATION.md        # Technical architecture and API specification
+│   └── ROADMAP.md              # Project roadmap and milestone tracker
+│
+├── js/                         # JavaScript Application Modules (ESM)
+│   ├── main.js                 # Application bootstrap and routing
+│   │
+│   ├── core/                   # State, Storage and Data Management
+│   │   ├── state.js            # Reactive application state, field store, and formula calculations
+│   │   ├── constants.js        # Field schema definitions, dimensions, and default tokens
+│   │   ├── storage-manager.js  # Undo/redo stack and project file serialization
+│   │   └── data-exporter.js    # RFC-4180 CSV and JSON form data import/export
+│   │
+│   ├── engines/                # Document and Processing Engines
+│   │   ├── pdf-engine.js       # PDF.js page rendering and zoom scale transforms
+│   │   ├── acroform-builder.js # PDF-Lib AcroForm compiler, calculate scripts, and flattening
+│   │   ├── auto-detector.js    # Geometric vector path and underline detector
+│   │   ├── onnx-detector.js    # Local ONNX neural vision field detector
+│   │   ├── ocr-engine.js       # Scanned bitmap binarization and contour segmenter
+│   │   └── templates-engine.js # Vector starter template generator (W-9, NDA, Invoices)
+│   │
+│   ├── controllers/            # Workflow Orchestrators
+│   │   ├── editor-app.js       # Editor workbench, tool selection, and menus
+│   │   └── landing-controller.js # Landing page dropzone and template launcher
+│   │
+│   ├── ui/                     # UI Components and Canvas Controllers
+│   │   ├── canvas-controller.js# Viewport panning, drag handles, snapping, and lasso selection
+│   │   ├── overlay-manager.js  # Interactive field widgets and 8-point resize handles
+│   │   ├── properties-panel.js # Inspector sidebar and visual formula builder
+│   │   ├── layers-panel.js     # Layer list, reordering, visibility, and locking
+│   │   ├── command-palette.js  # Command palette (Cmd+K / Ctrl+K)
+│   │   ├── signature-pad.js    # Vector signature canvas and cursive script generator
+│   │   ├── onboarding-tour.js  # Interactive walkthrough tour
+│   │   └── gradient-waves.js   # Background canvas visual animation
+│   │
+│   └── utils/                  # Utilities
+│       ├── toast.js            # Notification alerts
+│       ├── tooltip.js          # Accessible floating tooltips
+│       └── haptics.js          # Vibration feedback
+│
+├── styles/                     # Modular Stylesheets
+│   ├── base.css                # CSS custom properties, resets, and layout grid
+│   ├── fonts.css               # WebFont definitions
+│   ├── landing.css             # Landing page styles and template cards
+│   ├── editor.css              # Inspector sidebar and toolbar styles
+│   ├── canvas.css              # Canvas viewport, guides, and field overlays
+│   └── modals.css              # Dialogs and command palette
+│
+└── tests/                      # Automated Verification
+    ├── test_suite.js           # 154-test automated regression suite
+    ├── benchmark_speed.js      # Latency and throughput benchmarks
+    ├── evaluate_detector_cli.js# Field detection precision and recall benchmark
+    ├── generate_test_pdfs.js   # Synthetic PDF form generator
+    └── evaluate.html           # Interactive benchmark evaluation studio
 ```
 
 ---
 
-## 3. Data Schema & Project File Format (`.jform` / `.formblatt`)
+## 3. Project File Format (`.formblatt` / `.jform`)
 
-Formblatt saves and restores full project sessions as JSON structured data:
+Form sessions serialize to JSON:
 
 ```json
 {
   "version": "1.1.0",
   "appName": "Formblatt",
-  "timestamp": "2026-09-07T09:30:00.000Z",
-  "fileName": "interactive_form.pdf",
-  "originalPdfBytes": "<Base64 Encoded Original PDF Bytes>",
+  "timestamp": "2026-09-21T09:30:00.000Z",
+  "fileName": "sample_form.pdf",
+  "originalPdfBytes": "<Base64 Encoded PDF Bytes>",
   "fields": [
     {
       "id": "field_1788765432100_1",
@@ -84,6 +121,8 @@ Formblatt saves and restores full project sessions as JSON structured data:
       "required": true,
       "readOnly": false,
       "multiline": false,
+      "isComb": false,
+      "maxLength": null,
       "fontSize": 12,
       "fontFamily": "Helvetica",
       "color": "#0f172a",
@@ -94,7 +133,8 @@ Formblatt saves and restores full project sessions as JSON structured data:
       "alignment": "left",
       "defaultValue": "",
       "placeholder": "e.g. Jane Doe",
-      "options": []
+      "options": [],
+      "calculation": null
     }
   ]
 }
@@ -102,40 +142,51 @@ Formblatt saves and restores full project sessions as JSON structured data:
 
 ---
 
-## 4. Supported Form Field Types & PDF Compilation
+## 4. Field Types and PDF Compilation
 
-When the user clicks "Download Interactive PDF", `js/acroform-builder.js` executes the following mapping using `pdf-lib`:
+When exporting interactive PDFs (`js/engines/acroform-builder.js`), fields map to AcroForm specifications:
 
-1. **`text` / `textarea`**:
-   - `pdfDoc.getForm().createTextField(field.name)`
-   - Configures single-line or multi-line (`textField.enableMultiline()`), font size, font family (`StandardFonts.Helvetica`, `Courier`, `TimesRoman`), text alignment, and borders.
-2. **`dropdown`**:
-   - `pdfDoc.getForm().createDropdown(field.name)`
-   - Populates option list via `dropdown.setOptions(field.options)`.
-3. **`checkbox`**:
-   - `pdfDoc.getForm().createCheckBox(field.name)`
-   - Renders standard checked/unchecked states with checkmark glyphs.
-4. **`radio`**:
-   - `pdfDoc.getForm().createRadioGroup(field.group || field.name)`
-   - Adds option buttons linked to the single radio group.
-5. **`signature`**:
-   - Compiles vector path coordinates or cursive handwriting data directly onto the underlying PDF page dictionary or creates interactive signature widget annotations.
+1. `text`: Single-line or multiline `PDFTextField`. Supports comb character spacing (`isComb`, `maxLen`), text alignment, custom font sizing, and `/AA` calculate action scripts.
+2. `staticText`: Non-interactive vector text labels burned directly into the PDF content stream via `page.drawText`.
+3. `dropdown`: `PDFDropdown` with selectable options list.
+4. `checkbox`: `PDFCheckBox` rendering standard checkmark or cross glyphs.
+5. `radio`: `PDFRadioGroup` with grouped option widgets.
+6. `signature`: Embeds vector path coordinates, cursive font paths, or PNG/JPEG image stamps.
 
 ---
 
-## 5. Universal Auto-Detection Pipeline
+## 5. Calculation Engine
 
-Formblatt includes a 4-tier client-side auto-detector (`js/auto-detector.js`):
-1. **Tier 1 - Native AcroForm Ingestion**: Directly extracts existing interactive AcroForm widgets, positions, and field hierarchies.
-2. **Tier 2 - Vector Path Analysis**: Scans page operator streams for horizontal underlines, rectangular stroke bounding boxes, and fill contours.
-3. **Tier 3 - Semantic Text Label Pairing**: Evaluates proximity between text items (e.g., "Name:", "Date:", "Signature:", "Email:") and blank horizontal spaces.
-4. **Tier 4 - Grid Fallback**: Generates aligned bounding boxes based on document layout structure.
+The calculation engine (`js/core/state.js` and `js/engines/acroform-builder.js`) supports:
+
+- Common presets: Sum (`SUM(a, b)`), Product (`PRODUCT(qty, price)`), Tax (`TAX(subtotal, rate)`), and Discount (`DISCOUNT(subtotal, rate)`).
+- Custom math expressions: Arithmetic formulas evaluated in topological order.
+- PDF-Lib compilation: Compiles JavaScript expressions into ISO-compliant `/AA` calculate actions and registers field calculation order in `/CO` catalog arrays for Adobe Acrobat and web PDF readers.
 
 ---
 
-## 6. Accessibility (a11y) & SEO Standards
+## 6. Field Detection Pipeline
 
-- Fully accessible HTML5 elements with appropriate ARIA roles and labels.
-- Keyboard-navigable editor shortcuts (`V`, `H`, `T`, `D`, `C`, `R`, `S`, `Cmd+\`, `Cmd+Z`, `Cmd+Shift+Z`).
-- Structured JSON-LD metadata for `WebApplication` and `FAQPage`.
-- High contrast color ratios conforming to WCAG 2.1 AA standards.
+The field detection engine combines three approaches:
+
+1. Native AcroForm Extraction: Reads existing form dictionaries and widget annotations from input PDFs.
+2. Vector Geometry Analysis (`js/engines/auto-detector.js`): Scans path drawing operators for horizontal underline strokes, comb boxes, and rectangular boundaries.
+3. Optical and Neural Detection (`js/engines/ocr-engine.js` and `js/engines/onnx-detector.js`): Binarizes scanned bitmap pages, extracts contours, and runs local ONNX vision models to detect input boxes and checkboxes.
+
+---
+
+## 7. Development and Testing
+
+```bash
+# Start local development server
+npm start
+
+# Run 154-test automated regression suite
+npm test
+
+# Run throughput and latency benchmarks
+npm run bench
+
+# Run field detection precision and recall evaluation
+npm run test:detector
+```
