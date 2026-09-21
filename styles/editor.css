@@ -477,3 +477,31 @@ body.is-picking-calc-field .field-overlay:hover {
 .calc-picker-hud-done-btn:hover {
     background: #1d4ed8;
 }
+
+@media (max-width: 767px) {
+    .calc-picker-hud {
+        bottom: calc(58px + env(safe-area-inset-bottom, 0px));
+        left: 50%;
+        max-width: calc(100% - 24px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+        padding: 6px 10px;
+    }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+    .toolbar {
+        min-height: 42px;
+        height: auto;
+        padding-top: max(2px, env(safe-area-inset-top, 0px));
+        padding-left: max(12px, env(safe-area-inset-left, 0px));
+        padding-right: max(12px, env(safe-area-inset-right, 0px));
+    }
+    .left-panel, .right-panel {
+        top: max(4px, env(safe-area-inset-top, 0px));
+        bottom: calc(46px + env(safe-area-inset-bottom, 0px));
+    }
+    .canvas-docked-footer {
+        height: calc(36px + env(safe-area-inset-bottom, 0px)) !important;
+        bottom: max(4px, env(safe-area-inset-bottom, 0px));
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    }
+}
