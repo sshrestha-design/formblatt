@@ -1,18 +1,18 @@
-// ── Formblatt Editor Subsystems & Controller (js/editor-app.js) ─
-import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled, sortFieldsByReadingOrder } from "./state.js";
-import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo, loadPdfLibraries } from "./pdf-engine.js";
-import { buildPdf, downloadAcroForm } from "./acroform-builder.js";
-import { renderLayers, updateLayerSelectionDOM } from "./layers-panel.js";
-import { initPropertiesPanel, populateProperties, syncDimensionInputsLive, alignSelectedFields, distributeSelectedFields } from "./properties-panel.js";
-import { renderOverlays, updateOverlayPositionsDirectly } from "./overlay-manager.js";
-import { initCanvasController, handleFieldMouseDown, handleResizeStart, showVernierHud } from "./canvas-controller.js";
+// ── Formblatt Editor Subsystems & Controller (js/controllers/editor-app.js) ─
+import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled, sortFieldsByReadingOrder } from "../core/state.js";
+import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo, loadPdfLibraries } from "../engines/pdf-engine.js";
+import { buildPdf, downloadAcroForm } from "../engines/acroform-builder.js";
+import { renderLayers, updateLayerSelectionDOM } from "../ui/layers-panel.js";
+import { initPropertiesPanel, populateProperties, syncDimensionInputsLive, alignSelectedFields, distributeSelectedFields } from "../ui/properties-panel.js";
+import { renderOverlays, updateOverlayPositionsDirectly } from "../ui/overlay-manager.js";
+import { initCanvasController, handleFieldMouseDown, handleResizeStart, showVernierHud } from "../ui/canvas-controller.js";
 import { loadTemplate } from "./landing-controller.js";
-import { initSignaturePad } from "./signature-pad.js";
-import { autoDetectFields } from "./auto-detector.js";
-import { saveHistory, undo, redo, getUndoActionName, getRedoActionName, exportProjectJson, importProjectJson } from "./storage-manager.js";
-import { exportFormDataAsJson, exportFormDataAsCsv, importFormData } from "./data-exporter.js";
-import { showToast } from "./toast.js";
-import { triggerHaptic } from "./haptics.js";
+import { initSignaturePad } from "../ui/signature-pad.js";
+import { autoDetectFields } from "../engines/auto-detector.js";
+import { saveHistory, undo, redo, getUndoActionName, getRedoActionName, exportProjectJson, importProjectJson } from "../core/storage-manager.js";
+import { exportFormDataAsJson, exportFormDataAsCsv, importFormData } from "../core/data-exporter.js";
+import { showToast } from "../utils/toast.js";
+import { triggerHaptic } from "../utils/haptics.js";
 
 let isEditorInitialized = false;
 

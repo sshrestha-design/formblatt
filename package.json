@@ -7,6 +7,7 @@
   "scripts": {
     "test": "node tests/test_suite.js",
     "bench": "node tests/benchmark_speed.js",
+    "test:detector": "node tests/evaluate_detector_cli.js",
     "start": "node server.cjs"
   },
   "repository": {

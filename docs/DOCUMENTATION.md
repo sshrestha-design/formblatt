@@ -50,25 +50,25 @@ graph TB
         UI[index.html & UI DOM Shell]
         
         subgraph State & Orchestration
-            State[js/state.js Reactive Store]
+            State[js/core/state.js Reactive Store]
             Main[js/main.js Event Hub & Hotkeys]
-            Router[js/landing-controller.js History Router]
+            Router[js/controllers/landing-controller.js History Router]
         end
 
         subgraph Visual Authoring Layer
-            CanvasCtrl[js/canvas-controller.js Drag / Snapping / Multi-Select]
-            OverlayMgr[js/overlay-manager.js Field Overlays & Resize Handles]
-            PropsPanel[js/properties-panel.js Attribute Inspector]
-            LayersPanel[js/layers-panel.js Layer Tree & Reordering]
-            SigPad[js/signature-pad.js Vector & Typed Signature]
+            CanvasCtrl[js/ui/canvas-controller.js Drag / Snapping / Multi-Select]
+            OverlayMgr[js/ui/overlay-manager.js Field Overlays & Resize Handles]
+            PropsPanel[js/ui/properties-panel.js Attribute Inspector]
+            LayersPanel[js/ui/layers-panel.js Layer Tree & Reordering]
+            SigPad[js/ui/signature-pad.js Vector & Typed Signature]
         end
 
         subgraph Core Engines
-            PDFEngine[js/pdf-engine.js Mozilla PDF.js Canvas Renderer]
-            AutoDetect[js/auto-detector.js Lattice & Geometric Engine]
-            Templates[js/templates-engine.js Vector Background Presets]
-            Storage[js/storage-manager.js History Snapshot & .jform I/O]
-            AcroForm[js/acroform-builder.js PDF-Lib ISO Compiler]
+            PDFEngine[js/engines/pdf-engine.js Mozilla PDF.js Canvas Renderer]
+            AutoDetect[js/engines/auto-detector.js Lattice & Geometric Engine]
+            Templates[js/engines/templates-engine.js Vector Background Presets]
+            Storage[js/core/storage-manager.js History Snapshot & .jform I/O]
+            AcroForm[js/engines/acroform-builder.js PDF-Lib ISO Compiler]
         end
     end
 
@@ -88,7 +88,7 @@ graph TB
 
 ## 3. Module & Subsystem Reference (`js/`)
 
-### 1. `js/state.js`
+### 1. `js/core/state.js`
 The single source of truth for global application state:
 - `state.pdfDoc`: Active Mozilla PDF.js proxy document.
 - `state.originalPdfBytes`: Raw `Uint8Array` of the uploaded or generated PDF.
@@ -104,54 +104,54 @@ Central orchestrator initialized on `DOMContentLoaded`:
 - Global keybinding dispatcher (`V`, `T`, `C`, `R`, `D`, `S`, `Cmd+Z`, `Cmd+Y`, `Cmd+;`, `Cmd+A`, `Delete`, `Escape`).
 - Synchronizes properties panel, layers panel, and undo toast notifications.
 
-### 3. `js/canvas-controller.js`
+### 3. `js/ui/canvas-controller.js`
 Interactive viewport and geometric snapping engine:
 - Pointer tracking, multi-element marquee lasso selection, and `Alt + Drag` cloning.
 - Smart alignment guidelines: horizontal/vertical bounding alignment, center-canvas guide (`#ec4899`), and real-time gap distribution badges (`.spacing-badge`).
 - Right-click canvas context menu (`#canvasContextMenu`) for field actions.
 - Interactive Fill & Test mode handling.
 
-### 4. `js/overlay-manager.js`
+### 4. `js/ui/overlay-manager.js`
 Renders and updates DOM element overlays on top of the PDF canvas:
 - Generates 8-point resize handles (`nw`, `n`, `ne`, `e`, `se`, `s`, `sw`, `w`).
 - Dynamic border styles (`solid`, `dashed`, `none`) and fill styles (`white`, `tint`, `transparent`, `yellow`).
 - Required indicator asterisks, label badges, and active selection highlights.
 
-### 5. `js/properties-panel.js`
+### 5. `js/ui/properties-panel.js`
 Right-hand attribute inspector:
 - Field Name, Default Value, Placeholder, Required, Read-Only, and Multiline toggles.
 - Position and Dimensions numeric inputs (`X`, `Y`, `Width`, `Height`) with live two-way canvas sync.
 - Choice Dropdown option list editor.
 - Quick alignment and distribution action buttons.
 
-### 6. `js/layers-panel.js`
+### 6. `js/ui/layers-panel.js`
 Left-hand layers hierarchy and document page thumbnails:
 - Drag-and-drop layer reordering.
 - Field search/filtering and layer locking (`🔒`).
 - Page thumbnail navigation and page indicator.
 
-### 7. `js/signature-pad.js`
+### 7. `js/ui/signature-pad.js`
 Digital signature capture engine:
 - **Draw**: Vector signature canvas with mouse/touch pressure simulation and stroke smoothing.
 - **Type**: Live typography generation with cursive script fonts (`Caveat`, `Cedarville Cursive`).
 - **Upload**: Image upload with automated background luminance thresholding for clean transparency.
 
-### 8. `js/auto-detector.js`
+### 8. `js/engines/auto-detector.js`
 Universal geometric form field extraction algorithm:
 - **Lattice Table Detection**: Renders page to an offscreen canvas at $2\times$ scale to detect physical ruling lines.
 - **Affordance Heuristics**: Extracts standalone checkboxes, colon key-value prompts, multi-line question areas, and table line items.
 - **AcroForm Passthrough**: Reads existing native PDF widgets into editable workspace objects.
 
-### 9. `js/templates-engine.js`
+### 9. `js/engines/templates-engine.js`
 Pre-built starter document builder:
 - In-memory vector PDF generator (`createTemplatePdf`) for Commercial Invoice, Form W-9, Patient Intake & HIPAA Consent, and Rental Application.
 
-### 10. `js/storage-manager.js`
+### 10. `js/core/storage-manager.js`
 Local backup and history engine:
 - Undo/Redo history stack manager (`saveHistory`, `undo`, `redo`).
 - Project file serialization and schema validation (`.jform` JSON format).
 
-### 11. `js/acroform-builder.js`
+### 11. `js/engines/acroform-builder.js`
 ISO 32000 PDF compilation engine:
 - Transforms screen coordinates to PDF bottom-up coordinate space.
 - Compiles text fields, checkboxes, dropdowns, radio groups, and digital signature widgets into standard AcroForms.

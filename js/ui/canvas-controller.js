@@ -1,9 +1,9 @@
-// ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/canvas-controller.js) ─
-import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected } from "./state.js";
-import { DEFAULT_FIELD_SIZES, FIELD_TYPE_LABELS, SNAP_THRESHOLD } from "./constants.js";
-import { setTransformScale, getPageTextBlocks, updateCanvasTransform } from "./pdf-engine.js";
-import { saveHistory } from "./storage-manager.js";
-import { triggerHaptic } from "./haptics.js";
+// ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/ui/canvas-controller.js) ─
+import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected, copySelectedFields, pasteClipboardFields } from "../core/state.js";
+import { DEFAULT_FIELD_SIZES, FIELD_TYPE_LABELS, SNAP_THRESHOLD } from "../core/constants.js";
+import { setTransformScale, getPageTextBlocks, updateCanvasTransform } from "../engines/pdf-engine.js";
+import { saveHistory } from "../core/storage-manager.js";
+import { triggerHaptic } from "../utils/haptics.js";
 
 let hAlignLine, vAlignLine, selectionBox, ghostElement;
 let isDrawingField = false;
@@ -1752,13 +1752,11 @@ export function initContextMenu(handlers) {
             } else if (action === "auto-detect") {
                 document.getElementById("autoDetectBtn")?.click();
             } else if (action === "paste") {
-                import("./clipboard-manager.js").then(mod => {
-                    const pasted = mod.pasteClipboardFields();
-                    if (pasted.length > 0) {
-                        saveHistory();
-                        handlers.onFieldUpdated();
-                    }
-                });
+                const pasted = pasteClipboardFields();
+                if (pasted.length > 0) {
+                    saveHistory();
+                    handlers.onFieldUpdated();
+                }
             } else if (action === "select-all") {
                 const pageFields = state.fields.filter(f => (f.page || 1) === state.currentPageNum);
                 if (pageFields.length > 0) {
@@ -1788,9 +1786,7 @@ export function initContextMenu(handlers) {
                     }
                 }
             } else if (action === "copy-field") {
-                import("./clipboard-manager.js").then(mod => {
-                    mod.copySelectedFields();
-                });
+                copySelectedFields();
             } else if (action === "duplicate-field") {
                 const dups = duplicateSelectedFields();
                 if (dups.length > 0) {

@@ -1,11 +1,11 @@
-// ── Formblatt Command Palette Controller (js/command-palette.js) ─────────────
+// ── Formblatt Command Palette Controller (js/ui/command-palette.js) ─────────────
 // Fast keyboard-first search and action runner (⌘K / Ctrl+K / ⌘⇧P)
 // Active strictly inside the Editor Workbench (not on landing page).
 
-import { state } from "./state.js";
-import { triggerHaptic } from "./haptics.js";
-import { showToast } from "./toast.js";
-import { getUndoActionName, getRedoActionName } from "./storage-manager.js";
+import { state } from "../core/state.js";
+import { triggerHaptic } from "../utils/haptics.js";
+import { showToast } from "../utils/toast.js";
+import { getUndoActionName, getRedoActionName } from "../core/storage-manager.js";
 
 /**
  * Check if the Editor Screen is currently active and visible

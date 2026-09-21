@@ -1,6 +1,6 @@
-// ── Right Properties Inspector & Alignment (js/properties-panel.js) ─
-import { state, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "./state.js";
-import { saveHistory } from "./storage-manager.js";
+// ── Right Properties Inspector & Alignment (js/ui/properties-panel.js) ─
+import { state, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "../core/state.js";
+import { saveHistory } from "../core/storage-manager.js";
 import { openSignatureModal } from "./signature-pad.js";
 
 function updateQuickSizeButtons(size, btnClass = "quick-size-btn") {

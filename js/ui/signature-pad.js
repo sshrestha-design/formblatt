@@ -1,6 +1,6 @@
-// ── Interactive Digital Signature Pad (js/signature-pad.js) ──
-import { state } from "./state.js";
-import { showToast } from "./toast.js";
+// ── Interactive Digital Signature Pad (js/ui/signature-pad.js) ──
+import { state } from "../core/state.js";
+import { showToast } from "../utils/toast.js";
 
 let signatureModal, signatureCanvas, sigCtx, signatureTypeInput;
 let isDrawingSig = false;

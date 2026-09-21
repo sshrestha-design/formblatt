@@ -1,9 +1,9 @@
-// ── Universal Geometric Form Field Auto-Detector (js/auto-detector.js) ──
+// ── Universal Geometric Form Field Auto-Detector (js/engines/auto-detector.js) ──
 // Pure geometric, typographical, and heuristic-based form field extraction.
 // Zero hardcoded document titles, company names, or domain-specific constants.
 
-import { state, generateFieldId } from "./state.js";
-import { saveHistory } from "./storage-manager.js";
+import { state, generateFieldId } from "../core/state.js";
+import { saveHistory } from "../core/storage-manager.js";
 
 // ============================================================================
 // 1. GENERIC SEMANTIC RESOLVER

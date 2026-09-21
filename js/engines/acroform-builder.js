@@ -1,6 +1,6 @@
-// ── pdf-lib AcroForm Compiler & Exporter (js/acroform-builder.js) ─
-import { state, sortFieldsByReadingOrder } from "./state.js";
-import { showToast } from "./toast.js";
+// ── pdf-lib AcroForm Compiler & Exporter (js/engines/acroform-builder.js) ─
+import { state, sortFieldsByReadingOrder } from "../core/state.js";
+import { showToast } from "../utils/toast.js";
 import { loadPdfLibraries } from "./pdf-engine.js";
 
 function checkboxAppearanceProvider(mark) {

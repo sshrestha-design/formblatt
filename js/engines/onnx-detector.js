@@ -1,8 +1,8 @@
-// ── Client-Side Neural Vision Detector (js/onnx-detector.js) ──
+// ── Client-Side Neural Vision Detector (js/engines/onnx-detector.js) ──
 // 100% in-browser, zero-upload neural object detector using onnxruntime-web (WASM / WebGPU).
 // Evaluates FFDNet / FFDetr models locally on user device.
 
-import { generateFieldId } from "./state.js";
+import { generateFieldId } from "../core/state.js";
 
 // Model configuration constants
 export const ONNX_CONFIG = {

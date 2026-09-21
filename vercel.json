@@ -98,6 +98,14 @@
       "dest": "/favicon.svg"
     },
     {
+      "src": "/og-image.png",
+      "dest": "/assets/og-image.png"
+    },
+    {
+      "src": "/evaluate.html",
+      "dest": "/tests/evaluate.html"
+    },
+    {
       "src": "/fonts/(.*)",
       "dest": "/fonts/$1"
     },

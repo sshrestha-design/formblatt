@@ -1,6 +1,6 @@
-// ── History & Project Storage (js/storage-manager.js) ──────────
+// ── History & Project Storage (js/core/storage-manager.js) ──────────
 import { state } from "./state.js";
-import { loadPdfLibraries } from "./pdf-engine.js";
+import { loadPdfLibraries } from "../engines/pdf-engine.js";
 
 export function uint8ArrayToBase64(bytes) {
     if (!bytes || bytes.length === 0) return null;
@@ -236,10 +236,10 @@ export async function importProjectJson(file, onLoaded) {
                 const es = document.getElementById("emptyState");
                 if (es) es.style.display = "none";
 
-                const pdfEngineMod = await import("./pdf-engine.js");
-                await pdfEngineMod.goToPage(1);
-                saveHistory();
-                const landingMod = await import("./landing-controller.js");
+                const pdfEngineMod = await import("../engines/pdf-engine.js");
+                await pdfEngineMod.loadPdfLibraries();
+                await pdfEngineMod.analyzePdfDocument(pdfBytes);
+                const landingMod = await import("../controllers/landing-controller.js");
                 landingMod.showEditorScreen(onLoaded);
                 return;
             }

@@ -1,10 +1,10 @@
-// ── Canvas Overlay Rendering & Visual Elements (js/overlay-manager.js) ─
-import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder, evaluateCalculations } from "./state.js";
-import { FIELD_TYPE_LABELS } from "./constants.js";
+// ── Canvas Overlay Rendering & Visual Elements (js/ui/overlay-manager.js) ─
+import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder, evaluateCalculations } from "../core/state.js";
+import { FIELD_TYPE_LABELS } from "../core/constants.js";
 import { openSignatureModal } from "./signature-pad.js";
 import { makeScrubbableAndScrollable, distributeSelectedFields } from "./properties-panel.js";
-import { saveHistory } from "./storage-manager.js";
-import { goToPage } from "./pdf-engine.js";
+import { saveHistory } from "../core/storage-manager.js";
+import { goToPage } from "../engines/pdf-engine.js";
 
 export function getFieldCssFont(field) {
     let fam = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";

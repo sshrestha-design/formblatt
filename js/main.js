@@ -1,11 +1,11 @@
 // ── Formblatt Application Bootstrap (js/main.js) ───────────────────
-import { state } from "./state.js";
-import { initLandingController, showLandingScreen, renderLandingReviews, loadTemplate } from "./landing-controller.js";
-import { initGradientWaves } from "./gradient-waves.js";
-import { initTooltips } from "./tooltip.js";
-import { showToast } from "./toast.js";
-import { triggerHaptic } from "./haptics.js";
-import { initCommandPalette } from "./command-palette.js";
+import { state } from "./core/state.js";
+import { initLandingController, showLandingScreen, renderLandingReviews, loadTemplate } from "./controllers/landing-controller.js";
+import { initGradientWaves } from "./ui/gradient-waves.js";
+import { initTooltips } from "./utils/tooltip.js";
+import { showToast } from "./utils/toast.js";
+import { triggerHaptic } from "./utils/haptics.js";
+import { initCommandPalette } from "./ui/command-palette.js";
 
 // Initialize Vercel Analytics event queue
 if (typeof window !== "undefined") {
@@ -49,7 +49,7 @@ if (typeof window !== "undefined") {
 function bootstrapApp() {
     // 1. Initialize Landing Page Controller
     initLandingController(() => {
-        import("./editor-app.js").then(editor => editor.refreshUI());
+        import("./controllers/editor-app.js").then(editor => editor.refreshUI());
     });
 
     // 2. Initialize Command Palette (⌘K / Ctrl+K)
@@ -176,7 +176,7 @@ function bootstrapApp() {
         const tplKey = window.location.hash.replace("#template=", "");
         if (tplKey && tplKey !== "blank") {
             loadTemplate(tplKey, () => {
-                import("./editor-app.js").then(editor => editor.refreshUI());
+                import("./controllers/editor-app.js").then(editor => editor.refreshUI());
             });
         }
     } else if (window.location.hash === "#editor" && !state.pdfDoc) {
@@ -246,8 +246,8 @@ let hasPrefetched = false;
 export const prefetchEditorAndLibraries = () => {
     if (hasPrefetched) return;
     hasPrefetched = true;
-    import("./editor-app.js");
-    import("./pdf-engine.js").then(pdf => pdf.loadPdfLibraries?.());
+    import("./controllers/editor-app.js");
+    import("./engines/pdf-engine.js").then(pdf => pdf.loadPdfLibraries?.());
 };
 
 function attachIntentPrefetch() {

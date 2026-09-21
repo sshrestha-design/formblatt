@@ -1,7 +1,7 @@
 // ── Formblatt Offline Service Worker (sw.js) ──────────────────────────
 // Enables 100% client-side offline execution (PWA) — works in Airplane Mode.
 
-const CACHE_NAME = "formblatt-cache-v3.8";
+const CACHE_NAME = "formblatt-cache-v3.9";
 const STATIC_ASSETS = [
     "/",
     "/index.html",
@@ -20,29 +20,29 @@ const STATIC_ASSETS = [
     "/vendor/lucide.min.js",
     "/vendor/fontkit.umd.min.js",
     "/js/main.js",
-    "/js/editor-app.js",
-    "/js/command-palette.js",
-    "/js/state.js",
-    "/js/constants.js",
-    "/js/toast.js",
-    "/js/pdf-engine.js",
-    "/js/canvas-controller.js",
-    "/js/overlay-manager.js",
-    "/js/properties-panel.js",
-    "/js/layers-panel.js",
-    "/js/acroform-builder.js",
-    "/js/auto-detector.js",
-    "/js/templates-engine.js",
-    "/js/storage-manager.js",
-    "/js/signature-pad.js",
-    "/js/landing-controller.js",
-    "/js/onboarding-tour.js",
-    "/js/gradient-waves.js",
-    "/js/haptics.js",
-    "/js/onnx-detector.js",
-    "/js/tooltip.js",
-    "/js/data-exporter.js",
-    "/js/ocr-engine.js"
+    "/js/core/state.js",
+    "/js/core/constants.js",
+    "/js/core/storage-manager.js",
+    "/js/core/data-exporter.js",
+    "/js/engines/pdf-engine.js",
+    "/js/engines/acroform-builder.js",
+    "/js/engines/auto-detector.js",
+    "/js/engines/onnx-detector.js",
+    "/js/engines/ocr-engine.js",
+    "/js/engines/templates-engine.js",
+    "/js/controllers/editor-app.js",
+    "/js/controllers/landing-controller.js",
+    "/js/ui/canvas-controller.js",
+    "/js/ui/overlay-manager.js",
+    "/js/ui/properties-panel.js",
+    "/js/ui/layers-panel.js",
+    "/js/ui/command-palette.js",
+    "/js/ui/signature-pad.js",
+    "/js/ui/onboarding-tour.js",
+    "/js/ui/gradient-waves.js",
+    "/js/utils/toast.js",
+    "/js/utils/tooltip.js",
+    "/js/utils/haptics.js"
 ];
 
 // Install event: cache all core static assets

@@ -1,4 +1,4 @@
-// ── Left Layers Panel Manager (js/layers-panel.js) ───────────
+// ── Left Layers Panel Manager (js/ui/layers-panel.js) ───────────
 import { 
     state, 
     setSelectedField, 
@@ -9,9 +9,9 @@ import {
     selectGroup, 
     deleteGroupAndFields,
     cleanupEmptyGroups
-} from "./state.js";
-import { goToPage } from "./pdf-engine.js";
-import { saveHistory } from "./storage-manager.js";
+} from "../core/state.js";
+import { goToPage } from "../engines/pdf-engine.js";
+import { saveHistory } from "../core/storage-manager.js";
 import { formatFieldDisplayName } from "./overlay-manager.js";
 
 const escapeHtml = (str) => String(str || "")

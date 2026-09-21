@@ -1,10 +1,10 @@
-// ── Formblatt Form Data Export / Import Engine (js/data-exporter.js) ──
+// ── Formblatt Form Data Export / Import Engine (js/core/data-exporter.js) ──
 // 100% Client-side zero-telemetry JSON & CSV Form Data Exporter/Importer.
 
 import { state } from "./state.js";
 import { evaluateCalculations } from "./state.js";
-import { showToast } from "./toast.js";
-import { renderOverlays } from "./overlay-manager.js";
+import { showToast } from "../utils/toast.js";
+import { renderOverlays } from "../ui/overlay-manager.js";
 
 /**
  * Escapes a single CSV value according to RFC-4180 rules.

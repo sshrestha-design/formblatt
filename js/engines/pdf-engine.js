@@ -1,5 +1,5 @@
-// ── PDF.js Rendering & Navigation Pipeline (js/pdf-engine.js) ─
-import { state, updateDocumentTitle } from "./state.js";
+// ── PDF.js Rendering & Navigation Pipeline (js/engines/pdf-engine.js) ─
+import { state, updateDocumentTitle } from "../core/state.js";
 
 let pdfLibsPromise = null;
 
