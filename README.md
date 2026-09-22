@@ -190,6 +190,19 @@ npx vercel --prod
 
 ---
 
+## 🙏 Acknowledgements & Open-Source Foundations
+
+Formblatt stands on the shoulders of fantastic open-source research, datasets, and engine repositories:
+
+* **[jbarrow/commonforms](https://github.com/jbarrow/commonforms)** (*CommonForms / FFDNet*) – Ground-truth schemas, vector form rules, and detection benchmarks that guided Formblatt's field auto-detector heuristics and evaluation pipeline.
+* **[docling-project/docling](https://github.com/docling-project/docling)** (*Docling*) – Document layout analysis concepts and multi-column parsing architectures.
+* **[mozilla/pdf.js](https://github.com/mozilla/pdf.js)** (*PDF.js*) – High-performance client-side PDF canvas rendering and text block extraction.
+* **[Hopding/pdf-lib](https://github.com/Hopding/pdf-lib)** (*pdf-lib*) – ISO 32000 compliant AcroForm compilation and PDF flattening.
+* **[microsoft/onnxruntime-web](https://github.com/microsoft/onnxruntime-web)** (*ONNX Runtime Web*) – Client-side WebGPU & WASM neural vision execution.
+* **[lucide-icons/lucide](https://github.com/lucide-icons/lucide)** (*Lucide*) – Clean, accessible open-source iconography.
+
+---
+
 ## License
 
 MIT
