@@ -163,9 +163,12 @@ export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
                             const isSquare = Math.abs(boxWidth - boxHeight) <= 6 && boxWidth <= 35;
 
                             // Prevent duplicate overlapping detections
-                            const isDuplicate = detectedBoxes.some(b => 
-                                Math.abs(b.x - boxX) < 6 && Math.abs(b.y - boxY) < 6 && Math.abs(b.width - boxWidth) < 8
-                            );
+                            const isDuplicate = detectedBoxes.some(b => {
+                                const iou = (Math.max(0, Math.min(b.x + b.width, boxX + boxWidth) - Math.max(b.x, boxX)) *
+                                             Math.max(0, Math.min(b.y + b.height, boxY + boxHeight) - Math.max(b.y, boxY))) /
+                                            ((b.width * b.height) + (boxWidth * boxHeight) - (Math.max(0, Math.min(b.x + b.width, boxX + boxWidth) - Math.max(b.x, boxX)) * Math.max(0, Math.min(b.y + b.height, boxY + boxHeight) - Math.max(b.y, boxY))));
+                                return iou > 0.45 || (Math.abs(b.x - boxX) < 8 && Math.abs(b.y - boxY) < 8);
+                            });
 
                             if (!isDuplicate) {
                                 detectedBoxes.push({
@@ -192,7 +195,23 @@ export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
         }
     }
 
-    return detectedBoxes;
+    // Perform Non-Maximum Suppression to deduplicate nested table cells
+    const nmsFiltered = [];
+    const sorted = [...detectedBoxes].sort((a, b) => (a.width * a.height) - (b.width * b.height));
+    for (const box of sorted) {
+        const hasOverlap = nmsFiltered.some(existing => {
+            const interX = Math.max(0, Math.min(existing.x + existing.width, box.x + box.width) - Math.max(existing.x, box.x));
+            const interY = Math.max(0, Math.min(existing.y + existing.height, box.y + box.height) - Math.max(existing.y, box.y));
+            const interArea = interX * interY;
+            const boxArea = box.width * box.height;
+            return interArea / boxArea > 0.60;
+        });
+        if (!hasOverlap) {
+            nmsFiltered.push(box);
+        }
+    }
+
+    return nmsFiltered;
 }
 
 /**
