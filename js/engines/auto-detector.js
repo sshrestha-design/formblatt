@@ -1546,7 +1546,7 @@ async function detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, det
     return { fields: allFields, regions };
 }
 
-function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFields) {
+export function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFields = []) {
     const fields = [];
     const horizontalLines = grid?.horizontalLines || [];
     const verticalLines = grid?.verticalLines || [];
@@ -1633,7 +1633,7 @@ function detectUnderlineFields(grid, rawBlocks, pageNum, usedNames, existingFiel
 // ============================================================================
 // 4. DETECTION PIPELINE
 // ============================================================================
-function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = [], preRegisteredTableRegions = [], vectorShapes = null) {
+export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, existingFields = [], preRegisteredTableRegions = [], vectorShapes = null) {
     const fields = [...existingFields];
     const seedCount = existingFields.length;
     const pageWidth = viewport.width;

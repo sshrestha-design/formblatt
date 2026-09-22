@@ -8,6 +8,7 @@
     "test": "node tests/test_suite.js",
     "bench": "node tests/benchmark_speed.js",
     "test:detector": "node tests/evaluate_detector_cli.js",
+    "test:funsd": "node tests/evaluate_funsd.js",
     "start": "node server.cjs"
   },
   "repository": {
