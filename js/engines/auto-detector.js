@@ -1031,7 +1031,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             dataFormat: dataFormat,
             isComb: true,
             maxLength: maxLen,
-            detectedBy: "vector_drawn_comb"
+            detectedBy: "vector_drawn_comb",
+            confidence: 0.98
         };
 
         if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
@@ -1069,7 +1070,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             multiline: false,
             autofill: "",
             dataFormat: "text",
-            detectedBy: "vector_drawn_checkbox"
+            detectedBy: "vector_drawn_checkbox",
+            confidence: 0.98
         };
         if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {
             fields.push(field);
@@ -1120,7 +1122,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             multiline: box.height >= 36 || sem.multiline,
             autofill: sem.autofill || "",
             dataFormat: sem.dataFormat || "text",
-            detectedBy: "vector_drawn_input_box"
+            detectedBy: "vector_drawn_input_box",
+            confidence: 0.98
         };
 
         if (!isOverlapping(field, existingFields, 0.35) && !isOverlapping(field, fields, 0.35)) {

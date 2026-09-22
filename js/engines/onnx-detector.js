@@ -314,3 +314,31 @@ export async function detectNeuralFieldsOnCanvas(pageCanvas, pageNum = 1, viewpo
         return [];
     }
 }
+
+/**
+ * Executes progressive detection: tries ONNX Neural Vision first,
+ * falling back gracefully to vector operator & contour rules if unavailable or empty.
+ */
+export async function detectFieldsWithFallback(page, pageCanvas, rawBlocks = [], viewport = null, usedNames = new Set()) {
+    const pageNum = page?.pageNumber || 1;
+    // 1. Try ONNX Neural Vision if canvas is provided
+    if (pageCanvas) {
+        try {
+            const rawNeuralFields = await detectNeuralFieldsOnCanvas(pageCanvas, pageNum, viewport);
+            if (rawNeuralFields && rawNeuralFields.length > 0) {
+                const { enrichNeuralFieldsWithText } = await import("./auto-detector.js");
+                const enriched = enrichNeuralFieldsWithText(rawNeuralFields, rawBlocks, usedNames, pageNum);
+                if (enriched.length > 0) {
+                    return enriched;
+                }
+            }
+        } catch (visionErr) {
+            console.warn("ONNX neural vision fallback to vector rules:", visionErr);
+        }
+    }
+
+    // 2. Fallback to vector rules
+    const { detectFormFieldsFromDoc } = await import("./auto-detector.js");
+    const docResult = await detectFormFieldsFromDoc(page, { scope: "currentPage", currentPageNum: pageNum });
+    return docResult.fields || [];
+}
