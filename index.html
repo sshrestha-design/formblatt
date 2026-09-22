@@ -119,11 +119,10 @@
     }
     </script>
 
-    <!-- Preconnect & DNS-Prefetch for Fast CDN Asset Loading -->
-    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-    <link rel="preconnect" href="https://unpkg.com" crossorigin>
-    <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
-    <link rel="dns-prefetch" href="https://unpkg.com">
+    <!-- Direct Local Vendor Scripts Preloading for Zero Third-Party Latency -->
+    <link rel="preload" href="/vendor/pdf.min.js" as="script">
+    <link rel="preload" href="/vendor/pdf-lib.min.js" as="script">
+    <link rel="preload" href="/vendor/lucide.min.js" as="script">
 
     <!-- Preload LCP Hero Poster Image for Instant Discovery and High Fetch Priority -->
     <link rel="preload" as="image" href="assets/hero-poster.webp?v=9.0" fetchpriority="high" type="image/webp">
@@ -3085,6 +3084,7 @@
     <script defer src="/vendor/lucide.min.js"></script>
     <script defer src="/vendor/pdf.min.js"></script>
     <script defer src="/vendor/pdf-lib.min.js"></script>
+    <script defer src="/vendor/fontkit.umd.min.js"></script>
 
     <script type="module" src="js/main.js?v=20.0"></script>
 </body>
