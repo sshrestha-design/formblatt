@@ -141,11 +141,48 @@ export function showZoomHud(text) {
     }, 1200);
 }
 
+export function clampPanOffset() {
+    if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+    if (typeof document === "undefined") return state.panOffset;
+
+    const wrapper = document.getElementById("centerCanvas");
+    const container = document.getElementById("canvasContainer");
+    if (!wrapper || !container) return state.panOffset;
+
+    const wrapperW = wrapper.clientWidth;
+    const wrapperH = wrapper.clientHeight;
+    if (!wrapperW || !wrapperH) return state.panOffset;
+
+    const docWidth = (state.pdfViewport && state.pdfViewport.width)
+        ? state.pdfViewport.width
+        : (container.offsetWidth || 595.28);
+    const docHeight = (state.pdfViewport && state.pdfViewport.height)
+        ? state.pdfViewport.height
+        : (container.offsetHeight || 841.89);
+
+    const scaledW = docWidth * (state.currentScale || 1.0);
+    const scaledH = docHeight * (state.currentScale || 1.0);
+
+    const minOverlapX = Math.min(100, scaledW * 0.25);
+    const minOverlapY = Math.min(100, scaledH * 0.25);
+
+    const maxPanX = Math.max(0, (wrapperW / 2) + (scaledW / 2) - minOverlapX);
+    const minPanX = -maxPanX;
+
+    const maxPanY = Math.max(0, (wrapperH / 2) + (scaledH / 2) - minOverlapY);
+    const minPanY = -maxPanY;
+
+    state.panOffset.x = Math.min(Math.max(state.panOffset.x, minPanX), maxPanX);
+    state.panOffset.y = Math.min(Math.max(state.panOffset.y, minPanY), maxPanY);
+
+    return state.panOffset;
+}
+
 export function updateCanvasTransform() {
     if (typeof document === "undefined") return;
     const container = document.getElementById("canvasContainer");
     const centerCanvas = document.getElementById("centerCanvas");
-    if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+    clampPanOffset();
     if (container) {
         container.style.transform = `translate3d(${state.panOffset.x}px, ${state.panOffset.y}px, 0) scale(${state.currentScale})`;
     }
