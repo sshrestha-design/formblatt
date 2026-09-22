@@ -1378,30 +1378,6 @@ export function populateProperties(field) {
         badge.title = fallbackField.name || fieldDisplayName;
     }
 
-    const detBadge = document.getElementById("inspectorDetectionBadge");
-    if (detBadge) {
-        const src = fallbackField.detectedBy || "";
-        const conf = fallbackField.confidence ? Math.round(fallbackField.confidence * 100) + "%" : "";
-        if (src.includes("neural") || src.includes("ffdnet")) {
-            detBadge.textContent = `⚡ FFDNet (${conf})`;
-            detBadge.style.backgroundColor = "#e0e7ff";
-            detBadge.style.color = "#3730a3";
-            detBadge.style.display = "inline-flex";
-        } else if (src.includes("vector")) {
-            detBadge.textContent = `📐 Vector (${conf || "98%"})`;
-            detBadge.style.backgroundColor = "#dcfce7";
-            detBadge.style.color = "#166534";
-            detBadge.style.display = "inline-flex";
-        } else if (src.includes("scanned") || src.includes("ocr")) {
-            detBadge.textContent = `🔍 OCR (${conf || "85%"})`;
-            detBadge.style.backgroundColor = "#fef3c7";
-            detBadge.style.color = "#92400e";
-            detBadge.style.display = "inline-flex";
-        } else {
-            detBadge.style.display = "none";
-        }
-    }
-
     const setVal = (id, val) => { 
         const el = document.getElementById(id); 
         if (el && document.activeElement !== el) el.value = val || ""; 
