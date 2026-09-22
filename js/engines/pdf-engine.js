@@ -164,29 +164,19 @@ export function clampPanOffset() {
     const scaledW = docWidth * scale;
     const scaledH = docHeight * scale;
 
-    // Comfortable margin padding around workbench screen edges
-    const paddingX = 80;
-    const paddingY = 80;
+    const margin = 40;
 
-    let maxPanX, maxPanY;
-
-    if (scaledW > wrapperW) {
-        maxPanX = ((scaledW - wrapperW) / 2) + paddingX;
-    } else {
-        maxPanX = paddingX + ((wrapperW - scaledW) / 4);
-    }
-
-    if (scaledH > wrapperH) {
-        maxPanY = ((scaledH - wrapperH) / 2) + paddingY;
-    } else {
-        maxPanY = paddingY + ((wrapperH - scaledH) / 4);
-    }
+    const maxPanX = scaledW > wrapperW ? ((scaledW - wrapperW) / 2 + margin) : 0;
+    const maxPanY = scaledH > wrapperH ? ((scaledH - wrapperH) / 2 + margin) : 0;
 
     const minPanX = -maxPanX;
     const minPanY = -maxPanY;
 
     state.panOffset.x = Math.min(Math.max(state.panOffset.x, minPanX), maxPanX);
     state.panOffset.y = Math.min(Math.max(state.panOffset.y, minPanY), maxPanY);
+
+    if (Math.abs(state.panOffset.x) < 0.001) state.panOffset.x = 0;
+    if (Math.abs(state.panOffset.y) < 0.001) state.panOffset.y = 0;
 
     return state.panOffset;
 }
