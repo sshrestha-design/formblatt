@@ -3,7 +3,7 @@
 [![Production](https://img.shields.io/badge/Production-formblatt.dpdns.org-2563eb?style=flat-square&logo=vercel&logoColor=white)](https://formblatt.dpdns.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-059669?style=flat-square)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-sshrestha--design%2Fformblatt-0f172a?style=flat-square&logo=github&logoColor=white)](https://github.com/sshrestha-design/formblatt)
-[![Tests](https://img.shields.io/badge/Tests-154%20Passing-10b981?style=flat-square)](tests/test_suite.js)
+[![Tests](https://img.shields.io/badge/Tests-155%20Passing-10b981?style=flat-square)](tests/test_suite.js)
 [![PWA](https://img.shields.io/badge/PWA-Offline-7c3aed?style=flat-square)](site.webmanifest)
 
 Formblatt is a browser-based PDF editor for creating fillable forms and AcroForms. All document rendering, field detection, and PDF compilation run locally in browser memory without sending files to an external server.
@@ -149,9 +149,38 @@ npm run bench
 
 # Field detector evaluation
 npm run test:detector
+
+# Run FUNSD scanned form benchmark
+npm run test:funsd
+
+# Run CommonForms hybrid vector benchmark
+npm run test:commonforms
 ```
 
-### Deployment
+---
+
+## 📊 Form Detection Benchmarks & Ongoing Refinements
+
+Formblatt includes continuous automated evaluation against standard public datasets (such as **FUNSD** - *Form Understanding in Noisy Scanned Documents*) to track and improve client-side field recognition accuracy.
+
+### 🧪 Scanned Form Detection Scorecard (FUNSD Test Suite)
+
+Our hybrid client-side detection pipeline (combining 2D vector analysis, pixel binarization, line segmenting, and ONNX neural vision) is continuously evaluated against **50 real-world noisy scanned forms**:
+
+| Metric | Score / Count | Description |
+| :--- | :--- | :--- |
+| 🎯 **Ground-Truth Fields** | `1,898` | Total annotated form fields in the benchmark dataset |
+| ✅ **True Positives (TP)** | `1,098` | Correctly identified form inputs & choice controls |
+| ⚠️ **False Positives (FP)** | `2,666` | Candidate contours extracted prior to secondary filtering |
+| 🔍 **Recall** | **`57.85%`** | Ratio of ground-truth fields successfully captured |
+| 🎯 **Precision** | **`29.17%`** | Ratio of valid field detections among extracted boxes |
+| ⚡ **Overall F1-Score** | **`38.78%`** | Current baseline scanned detection score |
+
+> 🛠️ **Active Work in Progress**: We are actively refining Non-Maximum Suppression (NMS) thresholds, text-density filters, and WebGPU quantized neural models to eliminate false positives and push F1 precision higher while maintaining **100% private, client-side execution**.
+
+---
+
+## Deployment
 
 Deploy to Vercel:
 
