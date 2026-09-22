@@ -945,6 +945,36 @@ export function clusterCombBoxes(rects) {
     return clusters;
 }
 
+// Returns true if a rectangle already contains significant text inside it,
+// meaning it is a label container, table header, or pre-filled cell — not a blank input.
+function rectContainsSignificantText(rect, textBlocks) {
+    const pad = 3; // small padding tolerance
+    const innerBlocks = textBlocks.filter(tb => {
+        const tbRight = tb.x + tb.width;
+        const tbBottom = tb.y + tb.height;
+        const rRight = rect.x + rect.width;
+        const rBottom = rect.y + rect.height;
+        // Text block center must fall inside the rectangle
+        const cx = tb.x + tb.width / 2;
+        const cy = tb.y + tb.height / 2;
+        return cx >= rect.x - pad && cx <= rRight + pad &&
+               cy >= rect.y - pad && cy <= rBottom + pad;
+    });
+    if (innerBlocks.length === 0) return false;
+    // Calculate how much of the rect width is covered by text
+    const totalTextWidth = innerBlocks.reduce((sum, tb) => sum + tb.width, 0);
+    const coverageRatio = totalTextWidth / rect.width;
+    // If text covers more than 30% of the rect width, or there are 2+ text blocks, it is a label container
+    if (coverageRatio > 0.30) return true;
+    // Single short token inside (like "x" or a checkmark) is OK — don't suppress
+    if (innerBlocks.length === 1 && innerBlocks[0].str.length <= 2) return false;
+    // Multiple text blocks inside a single rect = almost certainly a label/header cell
+    if (innerBlocks.length >= 2) return true;
+    // Single text block that is a meaningful label phrase (>3 chars) inside the rect
+    if (innerBlocks.length === 1 && innerBlocks[0].str.length > 3) return true;
+    return false;
+}
+
 export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, existingFields = []) {
     const fields = [];
     if (!vectorShapes) return fields;
@@ -1013,6 +1043,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
     // 2. Match Vector Checkbox Squares (excluding consumed comb boxes)
     for (const cbox of checkboxRects) {
         if (consumedRects.has(cbox)) continue;
+        // Skip boxes that already contain label text inside (table header cells, etc.)
+        if (rectContainsSignificantText(cbox, rawBlocks)) continue;
 
         // Find text label directly to the right
         const labelBlock = rawBlocks
@@ -1048,6 +1080,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
     for (const box of inputBoxRects) {
         if (consumedRects.has(box)) continue;
         if (box.height > 70 || box.width > 530) continue;
+        // Skip boxes that already contain label text inside (table headers, pre-filled cells)
+        if (rectContainsSignificantText(box, rawBlocks)) continue;
 
         const leftLabel = rawBlocks
             .filter(tb => tb.x + tb.width <= box.x + 8 && (box.x - (tb.x + tb.width)) <= 200 &&
