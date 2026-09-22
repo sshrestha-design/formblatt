@@ -451,55 +451,63 @@ export function enrichNeuralFieldsWithText(rawNeuralFields, rawBlocks, usedNames
 // ============================================================================
 // 4. MAIN AUTO-DETECT CONTROLLER (HYBRID & FAST MODES)
 // ============================================================================
-export async function autoDetectFields(scope = "current", options = {}) {
-    if (!state.pdfDoc) {
-        alert("Please load a PDF document first.");
-        return 0;
-    }
 
-    const pagesToScan = scope === "all"
-        ? Array.from({ length: state.totalPages }, (_, i) => i + 1)
-        : [state.currentPageNum];
+/**
+ * Pure, stateless detection engine that extracts form fields from any PDF.js document proxy.
+ * Can be used standalone in Node.js, Web Workers, or Browser UI.
+ */
+export async function detectFormFieldsFromDoc(pdfDoc, options = {}) {
+    if (!pdfDoc) return { fields: [], totalCount: 0, pages: [] };
+
+    const totalPages = pdfDoc.numPages || options.totalPages || 1;
+    const pagesToScan = options.pageNumber
+        ? (Array.isArray(options.pageNumber) ? options.pageNumber : [options.pageNumber])
+        : (options.scope === "all" ? Array.from({ length: totalPages }, (_, i) => i + 1) : [options.currentPageNum || 1]);
 
     const isHybridMode = options.mode === "hybrid" || options.mode === "deep" || options.useNeural === true;
-    let totalDetected = 0;
-    const newFields = [];
-    const usedNames = new Set(state.fields.map(f => f.name));
+    const existingFields = options.existingFields || [];
+    const usedNames = new Set(existingFields.map(f => f.name));
+    const allDetected = [];
+    const pageSummaries = [];
 
     for (let pageNum of pagesToScan) {
         try {
-            const page = await state.pdfDoc.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 1.0 });
+            const page = await pdfDoc.getPage(pageNum);
+            const viewport = (typeof page.getViewport === "function")
+                ? page.getViewport({ scale: 1.0 })
+                : { width: 612, height: 792 };
 
             // 1. Authoritative AcroForm passthrough — real widgets are trusted as-is
             const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
             const vectorShapes = await extractPdfVectorShapes(page, viewport);
             const boundaryLines = await detectTableGridLines(page);
 
-            const textContent = await page.getTextContent();
-            
-            let rawBlocks = textContent.items.map(item => {
-                const tx = item.transform[4];
-                const ty = item.transform[5];
-                const fontHeight = Math.abs(item.transform[3]) || item.height || 12;
-                return {
-                    x: Math.round(tx),
-                    y: Math.round(viewport.height - ty - fontHeight),
-                    width: Math.round(item.width),
-                    height: Math.round(fontHeight),
-                    str: (item.str || "").trim()
-                };
-            }).filter(tb => tb.str.length > 0);
+            let rawBlocks = [];
+            if (typeof page.getTextContent === "function") {
+                const textContent = await page.getTextContent();
+                rawBlocks = (textContent.items || []).map(item => {
+                    const tx = item.transform ? item.transform[4] : (item.x || 0);
+                    const ty = item.transform ? item.transform[5] : (item.y || 0);
+                    const fontHeight = (item.transform && Math.abs(item.transform[3])) || item.height || 12;
+                    return {
+                        x: Math.round(tx),
+                        y: Math.round((viewport.height || 792) - ty - fontHeight),
+                        width: Math.round(item.width || 0),
+                        height: Math.round(fontHeight),
+                        str: (item.str || "").trim()
+                    };
+                }).filter(tb => tb.str.length > 0);
+            }
 
             // 1.25 Scanned / Flattened PDF Client-Side OCR Fallback
             const isScannedDoc = rawBlocks.length < 5 || (vectorShapes.allRects?.length === 0 && (vectorShapes.paths?.length || 0) < 5);
-            if (isScannedDoc && typeof document !== "undefined") {
+            if (isScannedDoc && typeof document !== "undefined" && options.enableOcr !== false) {
                 try {
                     const { performScannedPageOcr } = await import("./ocr-engine.js");
                     let ocrCanvas = null;
                     const mainCanvas = document.getElementById("pdfCanvas");
                     
-                    if (mainCanvas && mainCanvas.width > 0 && pageNum === state.currentPageNum) {
+                    if (mainCanvas && mainCanvas.width > 0 && pageNum === (options.currentPageNum || 1)) {
                         ocrCanvas = mainCanvas;
                     } else {
                         ocrCanvas = document.createElement("canvas");
@@ -527,12 +535,12 @@ export async function autoDetectFields(scope = "current", options = {}) {
             }
 
             // 1.5 Drawn Vector Rectangles & Checkboxes (Exact vector geometry)
-            const drawnVectorFields = detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields]);
+            const drawnVectorFields = detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, [...existingFields, ...widgetFields]);
 
             // 2. Lattice table detection — find ruling-line grids
             const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, boundaryLines);
             const boundaryFields = boundaryLines[0]
-                ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...state.fields, ...widgetFields, ...drawnVectorFields])
+                ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...existingFields, ...widgetFields, ...drawnVectorFields])
                 : [];
 
             const seedFields = [...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields];
@@ -556,31 +564,66 @@ export async function autoDetectFields(scope = "current", options = {}) {
                 }
             }
 
-            newFields.push(...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields, ...neuralFields);
+            const pageFields = [...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields, ...neuralFields];
+            allDetected.push(...pageFields);
+            pageSummaries.push({
+                pageNumber: pageNum,
+                width: viewport.width,
+                height: viewport.height,
+                fields: pageFields
+            });
         } catch(err) {
             console.error("Auto-detect error on page " + pageNum + ":", err);
         }
     }
 
-    if (newFields.length > 0) {
-        // Keep manually placed/template fields. Only replace fields produced
-        // by an earlier detector run, then use their rectangles as occupied
-        // space so rerunning detection cannot duplicate existing widgets.
+    const finalUnique = [];
+    for (let f of allDetected) {
+        if (!isOverlapping(f, existingFields, 0.35) &&
+            !isOverlapping(f, finalUnique, 0.35)) {
+            finalUnique.push(f);
+        }
+    }
+
+    return {
+        fields: finalUnique,
+        totalCount: finalUnique.length,
+        pages: pageSummaries
+    };
+}
+
+/** Standalone alias for detectFormFieldsFromDoc */
+export const detectFormFields = detectFormFieldsFromDoc;
+
+/**
+ * Formblatt UI Workflow wrapper — connects pure detection results into reactive application state.
+ */
+export async function autoDetectFields(scope = "current", options = {}) {
+    if (!state.pdfDoc) {
+        if (typeof alert === "function") alert("Please load a PDF document first.");
+        return 0;
+    }
+
+    const pagesToScan = scope === "all"
+        ? Array.from({ length: state.totalPages }, (_, i) => i + 1)
+        : [state.currentPageNum];
+
+    const result = await detectFormFieldsFromDoc(state.pdfDoc, {
+        ...options,
+        pageNumber: pagesToScan,
+        totalPages: state.totalPages,
+        currentPageNum: state.currentPageNum,
+        existingFields: state.fields
+    });
+
+    if (result.fields.length > 0) {
         const preservedFields = state.fields.filter(f => {
             const pageIsScanned = pagesToScan.includes(f.page || 1);
             const isDetectorField = Boolean(f.detectedBy || f.sourcedFrom === "acroform");
             return !pageIsScanned || !isDetectorField;
         });
 
-        const finalUnique = [];
-        for (let f of newFields) {
-            if (!isOverlapping(f, preservedFields, 0.35) &&
-                !isOverlapping(f, finalUnique, 0.35)) {
-                finalUnique.push(f);
-            }
-        }
-
-        state.fields = [...preservedFields, ...finalUnique];
+        state.fields = [...preservedFields, ...result.fields];
         state.selectedFieldIds.clear();
         if (state.lastSelectedFieldId === null) {
             state.lastSelectedFieldId = state.fields.find(f => (f.page || 1) === state.currentPageNum)?.id
@@ -588,28 +631,11 @@ export async function autoDetectFields(scope = "current", options = {}) {
                 || null;
         }
         saveHistory();
-        totalDetected = finalUnique.length;
-
-        // Debug aid: which heuristic produced each field. Open devtools
-        // console after running Auto-Detect to see this table — it's the
-        // fastest way to pin down which affordance is generating a
-        // specific stray/misplaced field (match it by x/y against what
-        // you see on the canvas).
-        console.table(finalUnique.map(f => ({
-            id: f.id,
-            type: f.type,
-            name: f.name,
-            page: f.page,
-            x: f.x,
-            y: f.y,
-            width: f.width,
-            height: f.height,
-            detectedBy: f.detectedBy || f.sourcedFrom || "unknown"
-        })));
     }
 
-    return totalDetected;
+    return result.totalCount;
 }
+
 
 // Shared column-keyword vocabulary, used by both the new lattice
 // (ruling-line) table detector and the existing stream (text-position)
@@ -647,23 +673,35 @@ function matchColumnKeyword(text) {
 // ============================================================================
 // 3.5 VECTOR SHAPE EXTRACTION (Drawn Checkboxes, Input Boxes, & Underlines)
 // ============================================================================
-export async function extractPdfVectorShapes(page, viewport) {
+export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 612, height: 792 }) {
     const result = {
         checkboxRects: [],
         inputBoxRects: [],
         allRects: [],
         underlines: []
     };
-    if (!page.getOperatorList) return result;
+    if (!pageOrOpList) return result;
 
     let operatorList;
-    try {
-        operatorList = await page.getOperatorList();
-    } catch (err) {
+    if (pageOrOpList.fnArray && pageOrOpList.argsArray) {
+        operatorList = pageOrOpList;
+    } else if (typeof pageOrOpList.getOperatorList === "function") {
+        try {
+            operatorList = await pageOrOpList.getOperatorList();
+        } catch (err) {
+            return result;
+        }
+    } else {
         return result;
     }
 
-    const OPS = (typeof pdfjsLib !== "undefined" && pdfjsLib.OPS) ? pdfjsLib.OPS : {};
+    const OPS = (typeof pdfjsLib !== "undefined" && pdfjsLib.OPS) ? pdfjsLib.OPS : {
+        save: 1, restore: 2, transform: 3, moveTo: 13, lineTo: 14, curveTo: 15,
+        curveTo2: 16, curveTo3: 17, closePath: 18, rectangle: 19, stroke: 20,
+        closeStroke: 21, fill: 22, eoFill: 23, fillStroke: 24, closeFillStroke: 26,
+        constructPath: 92
+    };
+
     const stack = [];
     let matrix = [1, 0, 0, 1, 0, 0];
     const multiply = (left, right) => [
@@ -679,12 +717,15 @@ export async function extractPdfVectorShapes(page, viewport) {
             matrix[0] * x + matrix[2] * y + matrix[4],
             matrix[1] * x + matrix[3] * y + matrix[5]
         ];
-        const vp = viewport.convertToViewportPoint ? viewport.convertToViewportPoint(...pdfPoint) : [pdfPoint[0], viewport.height - pdfPoint[1]];
-        return { x: vp[0], y: vp[1] };
+        const vp = (viewport && typeof viewport.convertToViewportPoint === "function")
+            ? viewport.convertToViewportPoint(...pdfPoint)
+            : [pdfPoint[0], (viewport?.height || 792) - pdfPoint[1]];
+        return { x: Math.round(vp[0]), y: Math.round(vp[1]) };
     };
 
     let current = null;
     let pathStart = null;
+    let currentPolyline = [];
 
     const addRectCandidate = (minX, minY, w, h) => {
         if (w >= 6 && w <= 540 && h >= 6 && h <= 120) {
@@ -694,6 +735,28 @@ export async function extractPdfVectorShapes(page, viewport) {
             result.checkboxRects.push({ x: minX, y: minY, width: w, height: h });
         } else if (h >= 14 && h <= 80 && w >= 25 && w <= 540) {
             result.inputBoxRects.push({ x: minX, y: minY, width: w, height: h });
+        }
+    };
+
+    const checkClosedPolylineBox = (poly) => {
+        if (!poly || poly.length < 4 || poly.length > 6) return;
+        const xs = poly.map(p => p.x);
+        const ys = poly.map(p => p.y);
+        const minX = Math.min(...xs);
+        const maxX = Math.max(...xs);
+        const minY = Math.min(...ys);
+        const maxY = Math.max(...ys);
+        const w = maxX - minX;
+        const h = maxY - minY;
+        if (w >= 8 && h >= 8) {
+            // Check that all points align near the 4 corners of the bounding box
+            const isNearBox = poly.every(p => 
+                (Math.abs(p.x - minX) <= 3 || Math.abs(p.x - maxX) <= 3) &&
+                (Math.abs(p.y - minY) <= 3 || Math.abs(p.y - maxY) <= 3)
+            );
+            if (isNearBox) {
+                addRectCandidate(minX, minY, w, h);
+            }
         }
     };
 
@@ -708,8 +771,12 @@ export async function extractPdfVectorShapes(page, viewport) {
         } else if (fn === OPS.transform) {
             matrix = multiply(matrix, args);
         } else if (fn === OPS.moveTo) {
+            if (currentPolyline.length >= 4) {
+                checkClosedPolylineBox(currentPolyline);
+            }
             current = point(args[0], args[1]);
             pathStart = current;
+            currentPolyline = [current];
         } else if (fn === OPS.lineTo) {
             const next = point(args[0], args[1]);
             if (current && next) {
@@ -722,8 +789,38 @@ export async function extractPdfVectorShapes(page, viewport) {
                         width: Math.round(dx)
                     });
                 }
+                currentPolyline.push(next);
             }
             current = next;
+        } else if (fn === OPS.curveTo || fn === OPS.curveTo2 || fn === OPS.curveTo3) {
+            // Bezier curve approximation: take the endpoint as next point
+            const endX = args[args.length - 2];
+            const endY = args[args.length - 1];
+            const next = point(endX, endY);
+            if (current && next) {
+                const dx = Math.abs(current.x - next.x);
+                const dy = Math.abs(current.y - next.y);
+                if (dx >= 20 && dy <= 3) {
+                    result.underlines.push({
+                        x: Math.round(Math.min(current.x, next.x)),
+                        y: Math.round((current.y + next.y) / 2),
+                        width: Math.round(dx)
+                    });
+                }
+                currentPolyline.push(next);
+            }
+            current = next;
+        } else if (fn === OPS.closePath || fn === OPS.closeStroke || fn === OPS.closeFillStroke) {
+            if (pathStart && current) {
+                currentPolyline.push(pathStart);
+                checkClosedPolylineBox(currentPolyline);
+            }
+            currentPolyline = [];
+        } else if (fn === OPS.stroke || fn === OPS.fill || fn === OPS.eoFill || fn === OPS.fillStroke) {
+            if (currentPolyline.length >= 4) {
+                checkClosedPolylineBox(currentPolyline);
+            }
+            currentPolyline = [];
         } else if (fn === OPS.rectangle) {
             const [rx, ry, rw, rh] = args;
             const p1 = point(rx, ry);
@@ -737,14 +834,19 @@ export async function extractPdfVectorShapes(page, viewport) {
             addRectCandidate(minX, minY, w, h);
             current = p1;
             pathStart = p1;
+            currentPolyline = [];
         } else if (fn === OPS.constructPath) {
             const [ops, coords] = args;
             if (Array.isArray(ops) && Array.isArray(coords)) {
                 let cIdx = 0;
                 for (let op of ops) {
                     if (op === OPS.moveTo) {
+                        if (currentPolyline.length >= 4) {
+                            checkClosedPolylineBox(currentPolyline);
+                        }
                         current = point(coords[cIdx], coords[cIdx + 1]);
                         pathStart = current;
+                        currentPolyline = [current];
                         cIdx += 2;
                     } else if (op === OPS.lineTo) {
                         const next = point(coords[cIdx], coords[cIdx + 1]);
@@ -758,9 +860,32 @@ export async function extractPdfVectorShapes(page, viewport) {
                                     width: Math.round(dx)
                                 });
                             }
+                            currentPolyline.push(next);
                         }
                         current = next;
                         cIdx += 2;
+                    } else if (op === OPS.curveTo) {
+                        const next = point(coords[cIdx + 4], coords[cIdx + 5]);
+                        if (current && next) {
+                            const dx = Math.abs(current.x - next.x);
+                            const dy = Math.abs(current.y - next.y);
+                            if (dx >= 20 && dy <= 3) {
+                                result.underlines.push({
+                                    x: Math.round(Math.min(current.x, next.x)),
+                                    y: Math.round((current.y + next.y) / 2),
+                                    width: Math.round(dx)
+                                });
+                            }
+                            currentPolyline.push(next);
+                        }
+                        current = next;
+                        cIdx += 6;
+                    } else if (op === OPS.closePath) {
+                        if (pathStart && current) {
+                            currentPolyline.push(pathStart);
+                            checkClosedPolylineBox(currentPolyline);
+                        }
+                        currentPolyline = [];
                     } else if (op === OPS.rectangle) {
                         const rx = coords[cIdx], ry = coords[cIdx + 1], rw = coords[cIdx + 2], rh = coords[cIdx + 3];
                         const p1 = point(rx, ry);
