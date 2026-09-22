@@ -1094,6 +1094,12 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (box.y - (b.y + b.height)) - (box.y - (a.y + a.height)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel;
+        if (!matchedLabel) {
+            // Unlabelled vector boxes larger than standard input fields are decorative section frames or table containers
+            if (box.width > 120 || box.height > 32) {
+                continue;
+            }
+        }
         const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "field";
         const sem = resolveSemanticProps(labelText, "textField", usedNames);
         const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
