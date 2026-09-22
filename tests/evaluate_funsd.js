@@ -4,6 +4,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import zlib from 'zlib';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,6 +30,45 @@ global.document = {
     }),
     querySelectorAll: () => []
 };
+
+// Pure Node.js PNG Grayscale decoder
+function decodePngGrayscale(buf) {
+    const width = buf.readUInt32BE(16);
+    const height = buf.readUInt32BE(20);
+    const idatChunks = [];
+    let pos = 8;
+    while (pos < buf.length) {
+        const len = buf.readUInt32BE(pos);
+        const type = buf.toString('ascii', pos + 4, pos + 8);
+        if (type === 'IDAT') idatChunks.push(buf.slice(pos + 8, pos + 8 + len));
+        pos += 12 + len;
+    }
+    const decompressed = zlib.inflateSync(Buffer.concat(idatChunks));
+    const rawPixels = new Uint8Array(width * height);
+    const bytesPerScanline = 1 + width;
+    let prevRow = new Uint8Array(width);
+    for (let y = 0; y < height; y++) {
+        const filterType = decompressed[y * bytesPerScanline];
+        const row = new Uint8Array(width);
+        const srcOffset = y * bytesPerScanline + 1;
+        for (let x = 0; x < width; x++) {
+            const val = decompressed[srcOffset + x];
+            if (filterType === 0) row[x] = val;
+            else if (filterType === 1) row[x] = (val + (x > 0 ? row[x - 1] : 0)) & 0xff;
+            else if (filterType === 2) row[x] = (val + prevRow[x]) & 0xff;
+            else if (filterType === 3) row[x] = (val + Math.floor(((x > 0 ? row[x - 1] : 0) + prevRow[x]) / 2)) & 0xff;
+            else if (filterType === 4) {
+                const a = x > 0 ? row[x - 1] : 0, b = prevRow[x], c = x > 0 ? prevRow[x - 1] : 0;
+                const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+                let pr = (pa <= pb && pa <= pc) ? a : ((pb <= pc) ? b : c);
+                row[x] = (val + pr) & 0xff;
+            }
+        }
+        rawPixels.set(row, y * width);
+        prevRow = row;
+    }
+    return { width, height, data: rawPixels };
+}
 
 // Helper: Calculate Box Intersection over Union (IoU)
 function calculateBoxIoU(boxA, boxB) {
@@ -64,14 +104,17 @@ async function runFunsdBenchmark() {
     console.log("==========================================================================\n");
 
     const annotationsDir = path.join(DATASET_DIR, 'annotations');
+    const imagesDir = path.join(DATASET_DIR, 'images');
+
     if (!fs.existsSync(annotationsDir)) {
         console.error(`❌ Dataset path not found: ${annotationsDir}`);
         process.exit(1);
     }
 
     const jsonFiles = fs.readdirSync(annotationsDir).filter(f => f.endsWith('.json'));
-    console.log(`📁 Loaded ${jsonFiles.length} ground-truth test annotations from FUNSD.\n`);
+    console.log(`📁 Loaded ${jsonFiles.length} ground-truth test annotations and images from FUNSD.\n`);
 
+    const { binarizeImageData, detectScannedBoxContours, detectScannedHorizontalLines } = await import(path.join(WEB_DIR, 'js', 'engines', 'ocr-engine.js'));
     const { detectVectorDrawnFields, detectUnderlineFields, detectVisualAffordances } = await import(path.join(WEB_DIR, 'js', 'engines', 'auto-detector.js'));
 
     let totalTP = 0;
@@ -82,8 +125,11 @@ async function runFunsdBenchmark() {
 
     for (let idx = 0; idx < jsonFiles.length; idx++) {
         const file = jsonFiles[idx];
-        const filePath = path.join(annotationsDir, file);
-        const rawJson = fs.readFileSync(filePath, 'utf8');
+        const fileId = file.replace('.json', '');
+        const jsonPath = path.join(annotationsDir, file);
+        const imgPath = path.join(imagesDir, `${fileId}.png`);
+
+        const rawJson = fs.readFileSync(jsonPath, 'utf8');
         const data = JSON.parse(rawJson);
 
         const formItems = data.form || [];
@@ -120,18 +166,51 @@ async function runFunsdBenchmark() {
             }
         }
 
-        // 3. Mock page viewport & vector shapes for scanner evaluation
+        // 3. Decode scanned PNG image pixels and perform binarization & contour analysis
+        let scannedBoxes = [];
+        let scannedLines = [];
+        if (fs.existsSync(imgPath)) {
+            const pngBuf = fs.readFileSync(imgPath);
+            const img = decodePngGrayscale(pngBuf);
+            const rgba = new Uint8ClampedArray(img.width * img.height * 4);
+            for (let i = 0; i < img.data.length; i++) {
+                const p = img.data[i];
+                rgba[i * 4] = p;
+                rgba[i * 4 + 1] = p;
+                rgba[i * 4 + 2] = p;
+                rgba[i * 4 + 3] = 255;
+            }
+            const binary = binarizeImageData({ width: img.width, height: img.height, data: rgba });
+            const rawBoxes = detectScannedBoxContours(binary, img.width, img.height);
+            scannedLines = detectScannedHorizontalLines(binary, img.width, img.height);
+
+            // Filter out scanned boxes that are already full of printed text
+            scannedBoxes = rawBoxes.filter(box => {
+                const innerText = rawBlocks.filter(tb => {
+                    const cx = tb.x + tb.width / 2;
+                    const cy = tb.y + tb.height / 2;
+                    return cx >= box.x && cx <= box.x + box.width &&
+                           cy >= box.y && cy <= box.y + box.height;
+                });
+                // If box contains 2+ text words, it's a printed text paragraph/header, not a blank form input
+                return innerText.length < 2;
+            });
+        }
+
+        const checkboxRects = scannedBoxes.filter(b => b.isSquare);
+        const inputBoxRects = scannedBoxes.filter(b => !b.isSquare);
+
         const viewport = { width: 1000, height: 1000 };
         const pageNum = 1;
         const usedNames = new Set();
-        const vectorShapes = { checkboxRects: [], inputBoxRects: [], allRects: [], underlines: [] };
+        const vectorShapes = { checkboxRects, inputBoxRects, allRects: scannedBoxes, underlines: scannedLines };
 
-        // 4. Run Formblatt detector logic
+        // 4. Run Formblatt detector pipeline
         const drawnFields = detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, []);
-        const underlineFields = detectUnderlineFields({ horizontalLines: [], verticalLines: [] }, rawBlocks, pageNum, usedNames, drawnFields);
+        const underlineFields = detectUnderlineFields({ horizontalLines: scannedLines.map(y => ({ start: 0, end: 1000, offset: y * 2 })), verticalLines: [] }, rawBlocks, pageNum, usedNames, drawnFields);
         const visualFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, [...drawnFields, ...underlineFields], [], vectorShapes);
 
-        const detectedFields = visualFields;
+        const detectedFields = [...drawnFields, ...underlineFields, ...visualFields];
 
         // 5. Evaluate Matches (TP, FP, FN)
         let tp = 0;
@@ -184,12 +263,12 @@ async function runFunsdBenchmark() {
     const globalF1 = (globalPrecision + globalRecall) > 0 ? (2 * globalPrecision * globalRecall / (globalPrecision + globalRecall)) : 0;
 
     console.log("==========================================================================");
-    console.log("📈 EVALUATION SCORECARD FOR FORMS (FUNSD TEST SUITE)");
+    console.log("📈 EVALUATION SCORECARD FOR SCANNED FORMS (FUNSD TEST SUITE)");
     console.log("==========================================================================");
     console.table(fileScores.slice(0, 15)); // Show sample of top 15 test files
 
     console.log("\n==========================================================================");
-    console.log("🎯 GLOBAL BENCHMARK METRICS OVER 50 REAL-WORLD FORMS:");
+    console.log("🎯 GLOBAL BENCHMARK METRICS WITH SCANNED CONTOUR OCR PIPELINE:");
     console.log(`   • Total Ground-Truth Fields : ${totalTP + totalFN}`);
     console.log(`   • True Positives (TP)      : ${totalTP}`);
     console.log(`   • False Positives (FP)     : ${totalFP}`);

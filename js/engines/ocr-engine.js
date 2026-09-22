@@ -117,9 +117,9 @@ export function binarizeImageData(imageData, threshold = 205, options = {}) {
  */
 export function detectScannedBoxContours(binary, width, height, scale = 1.0) {
     const detectedBoxes = [];
-    const minSize = Math.round(10 * scale);
+    const minSize = Math.round(14 * scale);
     const maxSize = Math.round(520 * scale);
-    const minHeight = Math.round(10 * scale);
+    const minHeight = Math.round(12 * scale);
     const maxHeight = Math.round(80 * scale);
 
     const visited = new Uint8Array(width * height);
