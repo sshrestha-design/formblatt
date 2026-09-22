@@ -160,16 +160,29 @@ export function clampPanOffset() {
         ? state.pdfViewport.height
         : (container.offsetHeight || 841.89);
 
-    const scaledW = docWidth * (state.currentScale || 1.0);
-    const scaledH = docHeight * (state.currentScale || 1.0);
+    const scale = state.currentScale || 1.0;
+    const scaledW = docWidth * scale;
+    const scaledH = docHeight * scale;
 
-    const minOverlapX = Math.min(100, scaledW * 0.25);
-    const minOverlapY = Math.min(100, scaledH * 0.25);
+    // Comfortable margin padding around workbench screen edges
+    const paddingX = 80;
+    const paddingY = 80;
 
-    const maxPanX = Math.max(0, (wrapperW / 2) + (scaledW / 2) - minOverlapX);
+    let maxPanX, maxPanY;
+
+    if (scaledW > wrapperW) {
+        maxPanX = ((scaledW - wrapperW) / 2) + paddingX;
+    } else {
+        maxPanX = paddingX + ((wrapperW - scaledW) / 4);
+    }
+
+    if (scaledH > wrapperH) {
+        maxPanY = ((scaledH - wrapperH) / 2) + paddingY;
+    } else {
+        maxPanY = paddingY + ((wrapperH - scaledH) / 4);
+    }
+
     const minPanX = -maxPanX;
-
-    const maxPanY = Math.max(0, (wrapperH / 2) + (scaledH / 2) - minOverlapY);
     const minPanY = -maxPanY;
 
     state.panOffset.x = Math.min(Math.max(state.panOffset.x, minPanX), maxPanX);
