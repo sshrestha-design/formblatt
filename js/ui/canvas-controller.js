@@ -5,6 +5,18 @@ import { setTransformScale, getPageTextBlocks, updateCanvasTransform } from "../
 import { saveHistory } from "../core/storage-manager.js";
 import { triggerHaptic } from "../utils/haptics.js";
 
+function safeWindowAddEventListener(event, handler, opts) {
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+        window.addEventListener(event, handler, opts);
+    }
+}
+
+function safeDocumentAddEventListener(event, handler, opts) {
+    if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+        document.addEventListener(event, handler, opts);
+    }
+}
+
 let hAlignLine, vAlignLine, selectionBox, ghostElement;
 let isDrawingField = false;
 let drawStart = null;
@@ -647,7 +659,8 @@ export function initCanvasController(handlers) {
     ghostElement = document.getElementById("fieldPlacementGhost");
 
     // Buttery-smooth Trackpad / Mouse Wheel Zoom & Pan
-    centerCanvas?.addEventListener("wheel", e => {
+    if (centerCanvas && typeof centerCanvas.addEventListener === "function") {
+        centerCanvas.addEventListener("wheel", e => {
         e.preventDefault();
         if (panRafId) {
             cancelAnimationFrame(panRafId);
@@ -672,6 +685,7 @@ export function initCanvasController(handlers) {
             updateCanvasTransform();
         }
     }, { passive: false });
+    }
 
     // Placement Ghost Real-Time Position & Alignment Updater
     function updatePlacementGhost(e) {
@@ -822,16 +836,19 @@ export function initCanvasController(handlers) {
         }
     }
 
-    container?.addEventListener("mouseleave", () => {
-        if (!isDrawingField) {
-            if (ghostElement) ghostElement.style.display = "none";
-            hideGuides();
-        }
-    });
+    if (container && typeof container.addEventListener === "function") {
+        container.addEventListener("mouseleave", () => {
+            if (!isDrawingField) {
+                if (ghostElement) ghostElement.style.display = "none";
+                hideGuides();
+            }
+        });
+    }
 
     // Escape key: cancel current action, switch to Select tool, and deselect
     // V key: switch directly to Select tool
-    window.addEventListener("keydown", e => {
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+        window.addEventListener("keydown", e => {
         const tag = (e.target?.tagName || "").toLowerCase();
         const isEditing = tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable;
 
@@ -882,47 +899,51 @@ export function initCanvasController(handlers) {
             }
         }
     });
+    }
 
     // CenterCanvas Background MouseDown (supports dragging from canvas padding & margins)
-    centerCanvas?.addEventListener("mousedown", e => {
-        if (state.editorMode === "fill") return;
-        if (document.body.classList.contains("is-picking-calc-field")) return;
-        if (e.button === 2) return; // Right-click handled by contextmenu
+    if (centerCanvas && typeof centerCanvas.addEventListener === "function") {
+        centerCanvas.addEventListener("mousedown", e => {
+            if (state.editorMode === "fill") return;
+            if (document.body.classList.contains("is-picking-calc-field")) return;
+            if (e.button === 2) return; // Right-click handled by contextmenu
 
-        if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
-            e.preventDefault();
-            startPanning(e);
-            return;
-        }
-
-        // Deselect if clicking on empty gray background outside document
-        if (e.target === centerCanvas) {
-            if (!e.shiftKey) {
-                setSelectedField(null);
-                handlers.onSelectionChange();
+            if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
+                e.preventDefault();
+                startPanning(e);
+                return;
             }
-        }
-    });
+
+            // Deselect if clicking on empty gray background outside document
+            if (e.target === centerCanvas) {
+                if (!e.shiftKey) {
+                    setSelectedField(null);
+                    handlers.onSelectionChange();
+                }
+            }
+        });
+    }
 
     // Canvas Background MouseDown
-    container?.addEventListener("mousedown", e => {
-        if (state.editorMode === "fill") return;
-        if (document.body.classList.contains("is-picking-calc-field")) return;
-        if (e.button === 2) {
-            // Right click: do nothing on mousedown, contextmenu event handles opening the menu
-            return;
-        }
+    if (container && typeof container.addEventListener === "function") {
+        container.addEventListener("mousedown", e => {
+            if (state.editorMode === "fill") return;
+            if (document.body.classList.contains("is-picking-calc-field")) return;
+            if (e.button === 2) {
+                // Right click: do nothing on mousedown, contextmenu event handles opening the menu
+                return;
+            }
 
-        // Hand tool panning (or middle click / space+drag)
-        if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
-            e.preventDefault();
-            startPanning(e);
-            return;
-        }
+            // Hand tool panning (or middle click / space+drag)
+            if (state.activeTool === "hand" || isSpacePressed || e.button === 1) {
+                e.preventDefault();
+                startPanning(e);
+                return;
+            }
 
-        if (e.target !== container && e.target !== document.getElementById("pdfCanvas") && e.target !== document.getElementById("overlayContainer")) {
-            return;
-        }
+            if (e.target !== container && e.target !== document.getElementById("pdfCanvas") && e.target !== document.getElementById("overlayContainer")) {
+                return;
+            }
 
         const rect = container.getBoundingClientRect();
         const clickX = (e.clientX - rect.left) / state.currentScale;
@@ -951,10 +972,11 @@ export function initCanvasController(handlers) {
             handlers.onSelectionChange();
         }
         startLasso(e, container, handlers);
-    });
+        });
+    }
 
     // Global Mouse Move & Up
-    window.addEventListener("mousemove", e => {
+    safeWindowAddEventListener("mousemove", e => {
         if (state.activeTool !== "select" && state.activeTool !== "hand") {
             if (isDrawingField && drawStart) {
                 handleFieldDrawMove(e, container, handlers);
@@ -977,7 +999,7 @@ export function initCanvasController(handlers) {
         }
     });
 
-    window.addEventListener("mouseup", e => {
+    safeWindowAddEventListener("mouseup", e => {
         if (state.isPanning) stopPanning();
 
         // Finalize Drag-to-Draw Field Creation
@@ -1039,7 +1061,7 @@ export function initCanvasController(handlers) {
         }
     });
 
-    window.addEventListener("pointermove", e => {
+    safeWindowAddEventListener("pointermove", e => {
         if (e.pointerType !== "touch" || (!state.isDragging && !state.isResizing && !isDrawingField && !state.isLassoing)) return;
         e.preventDefault();
         if (isDrawingField && drawStart && state.activeTool !== "select") {
@@ -1053,7 +1075,7 @@ export function initCanvasController(handlers) {
         }
     }, { passive: false });
 
-    window.addEventListener("pointerup", e => {
+    safeWindowAddEventListener("pointerup", e => {
         if (e.pointerType !== "touch") return;
         if (state.isDragging) {
             state.isDragging = false;
@@ -1077,7 +1099,7 @@ export function initCanvasController(handlers) {
     });
 
     // Spacebar temporary pan listener
-    window.addEventListener("keydown", e => {
+    safeWindowAddEventListener("keydown", e => {
         const tag = (e.target?.tagName || "").toLowerCase();
         if (tag === "input" || tag === "textarea" || tag === "select" || e.target?.isContentEditable) return;
         if (e.code === "Space" && !isSpacePressed) {
@@ -1086,7 +1108,7 @@ export function initCanvasController(handlers) {
         }
     });
 
-    window.addEventListener("keyup", e => {
+    safeWindowAddEventListener("keyup", e => {
         if (e.code === "Space") {
             isSpacePressed = false;
             document.body.classList.remove("is-space-panning");
@@ -1108,62 +1130,64 @@ export function initCanvasController(handlers) {
         touches[0].clientY - touches[1].clientY
     );
 
-    centerCanvas?.addEventListener("touchstart", e => {
-        if (panRafId) {
-            cancelAnimationFrame(panRafId);
-            panRafId = null;
-        }
-        if (e.touches.length === 1 && (state.activeTool === "hand" || !e.target.closest(".field-overlay"))) {
-            singleTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            panLastTime = performance.now();
-            panVelocity = { x: 0, y: 0 };
-            return;
-        }
-        if (e.touches.length !== 2) return;
-        e.preventDefault();
-        singleTouchStart = null;
-        pinchStartDistance = getPinchDistance(e.touches);
-        pinchStartScale = state.currentScale;
-        isPinching = pinchStartDistance > 0;
-        centerCanvas.classList.add("is-pinch-zooming");
-    }, { passive: false });
-
-    centerCanvas?.addEventListener("touchmove", e => {
-        if (!isPinching && e.touches.length === 1 && singleTouchStart) {
-            const touch = e.touches[0];
-            const dx = touch.clientX - singleTouchStart.x;
-            const dy = touch.clientY - singleTouchStart.y;
-            if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
-            state.panOffset.x += dx;
-            state.panOffset.y += dy;
-            singleTouchStart = { x: touch.clientX, y: touch.clientY };
-            updateCanvasTransform();
+    if (centerCanvas && typeof centerCanvas.addEventListener === "function") {
+        centerCanvas.addEventListener("touchstart", e => {
+            if (panRafId) {
+                cancelAnimationFrame(panRafId);
+                panRafId = null;
+            }
+            if (e.touches.length === 1 && (state.activeTool === "hand" || !e.target.closest(".field-overlay"))) {
+                singleTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                panLastTime = performance.now();
+                panVelocity = { x: 0, y: 0 };
+                return;
+            }
+            if (e.touches.length !== 2) return;
             e.preventDefault();
-            return;
-        }
-        if (!isPinching || e.touches.length !== 2) return;
-        e.preventDefault();
-        const distance = getPinchDistance(e.touches);
-        if (!distance || !pinchStartDistance) return;
-        const t1 = e.touches[0];
-        const t2 = e.touches[1];
-        const rect = centerCanvas.getBoundingClientRect();
-        const midX = (t1.clientX + t2.clientX) / 2 - rect.left - rect.width / 2;
-        const midY = (t1.clientY + t2.clientY) / 2 - rect.top - rect.height / 2;
-        const nextScale = pinchStartScale * (distance / pinchStartDistance);
-        setTransformScale(nextScale, handlers.onRerender, { x: midX, y: midY });
-    }, { passive: false });
+            singleTouchStart = null;
+            pinchStartDistance = getPinchDistance(e.touches);
+            pinchStartScale = state.currentScale;
+            isPinching = pinchStartDistance > 0;
+            centerCanvas.classList.add("is-pinch-zooming");
+        }, { passive: false });
 
-    const stopPinching = () => {
-        isPinching = false;
-        pinchStartDistance = 0;
-        centerCanvas?.classList.remove("is-pinch-zooming");
-    };
-    centerCanvas?.addEventListener("touchend", e => {
-        if (e.touches.length === 0) singleTouchStart = null;
-        if (e.touches.length < 2) stopPinching();
-    }, { passive: true });
-    centerCanvas?.addEventListener("touchcancel", stopPinching, { passive: true });
+        centerCanvas.addEventListener("touchmove", e => {
+            if (!isPinching && e.touches.length === 1 && singleTouchStart) {
+                const touch = e.touches[0];
+                const dx = touch.clientX - singleTouchStart.x;
+                const dy = touch.clientY - singleTouchStart.y;
+                if (!state.panOffset) state.panOffset = { x: 0, y: 0 };
+                state.panOffset.x += dx;
+                state.panOffset.y += dy;
+                singleTouchStart = { x: touch.clientX, y: touch.clientY };
+                updateCanvasTransform();
+                e.preventDefault();
+                return;
+            }
+            if (!isPinching || e.touches.length !== 2) return;
+            e.preventDefault();
+            const distance = getPinchDistance(e.touches);
+            if (!distance || !pinchStartDistance) return;
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            const rect = centerCanvas.getBoundingClientRect();
+            const midX = (t1.clientX + t2.clientX) / 2 - rect.left - rect.width / 2;
+            const midY = (t1.clientY + t2.clientY) / 2 - rect.top - rect.height / 2;
+            const nextScale = pinchStartScale * (distance / pinchStartDistance);
+            setTransformScale(nextScale, handlers.onRerender, { x: midX, y: midY });
+        }, { passive: false });
+
+        const stopPinching = () => {
+            isPinching = false;
+            pinchStartDistance = 0;
+            centerCanvas.classList.remove("is-pinch-zooming");
+        };
+        centerCanvas.addEventListener("touchend", e => {
+            if (e.touches.length === 0) singleTouchStart = null;
+            if (e.touches.length < 2) stopPinching();
+        }, { passive: true });
+        centerCanvas.addEventListener("touchcancel", stopPinching, { passive: true });
+    }
 }
 
 let isSpacePressed = false;

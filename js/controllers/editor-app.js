@@ -14,6 +14,28 @@ import { exportFormDataAsJson, exportFormDataAsCsv, importFormData } from "../co
 import { showToast } from "../utils/toast.js";
 import { triggerHaptic } from "../utils/haptics.js";
 
+function safeQuerySelector(selector) {
+    if (typeof document === "undefined" || typeof document.querySelector !== "function") return null;
+    return document.querySelector(selector);
+}
+
+function safeQuerySelectorAll(selector) {
+    if (typeof document === "undefined" || typeof document.querySelectorAll !== "function") return [];
+    return document.querySelectorAll(selector);
+}
+
+function safeWindowAddEventListener(type, listener, options) {
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+        window.addEventListener(type, listener, options);
+    }
+}
+
+function safeDocumentAddEventListener(type, listener, options) {
+    if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+        document.addEventListener(type, listener, options);
+    }
+}
+
 let isEditorInitialized = false;
 
 // Full UI Refresh Handler
@@ -95,8 +117,8 @@ export function updateHistoryAndActionButtons() {
 export function updateToolIndicator() {
     if (typeof document === "undefined") return;
     const indicator = document.getElementById("toolIndicator");
-    if (!indicator || !document.body.classList.contains("editor-active")) return;
-    const activeBtn = document.querySelector(".segmented-toolbar .tool-btn.active");
+    if (!indicator || !document.body?.classList?.contains("editor-active")) return;
+    const activeBtn = safeQuerySelector(".segmented-toolbar .tool-btn.active");
     if (activeBtn) {
         const applyIndicator = () => {
             if (!activeBtn.isConnected) return;
@@ -119,8 +141,8 @@ export function updateToolIndicator() {
 export function updateModeIndicator() {
     if (typeof document === "undefined") return;
     const indicator = document.getElementById("modeIndicator");
-    if (!indicator || !document.body.classList.contains("editor-active")) return;
-    const activeBtn = document.querySelector(".mode-segmented-toggle .mode-toggle-btn.active");
+    if (!indicator || !document.body?.classList?.contains("editor-active")) return;
+    const activeBtn = safeQuerySelector(".mode-segmented-toggle .mode-toggle-btn.active");
     if (activeBtn) {
         const applyIndicator = () => {
             if (!activeBtn.isConnected) return;
@@ -223,7 +245,7 @@ const canvasHandlers = {
 };
 
 function ensureEditorStyles() {
-    if (typeof document === "undefined") return;
+    if (typeof document === "undefined" || typeof document.querySelector !== "function" || !document.createElement || !document.head) return;
     ["styles/editor.css?v=18.0", "styles/canvas.css?v=18.0"].forEach(href => {
         const base = href.split("?")[0];
         if (!document.querySelector(`link[href*="${base}"]`)) {
@@ -249,11 +271,14 @@ export function initEditorSubsystems() {
     initCanvasController(canvasHandlers);
 
     let lastMousePos = { clientX: 500, clientY: 400 };
-    window.addEventListener("mousemove", e => {
-        lastMousePos = { clientX: e.clientX, clientY: e.clientY };
-    }, { passive: true });
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+        window.addEventListener("mousemove", e => {
+            lastMousePos = { clientX: e.clientX, clientY: e.clientY };
+        }, { passive: true });
+    }
 
-    document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
+    if (typeof document !== "undefined" && typeof document.querySelectorAll === "function") {
+        document.querySelectorAll(".tool-btn[data-tool]").forEach(btn => {
         btn.addEventListener("click", () => {
             triggerHaptic();
             document.querySelectorAll(".tool-btn[data-tool]").forEach(b => b.classList.remove("active"));
@@ -278,15 +303,18 @@ export function initEditorSubsystems() {
             }
         });
     });
+    }
 
-    window.addEventListener("resize", () => {
-        updateToolIndicator();
-        updateModeIndicator();
-    });
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+        window.addEventListener("resize", () => {
+            updateToolIndicator();
+            updateModeIndicator();
+        });
+    }
 
     // ── Desktop Application Menu Bar Controller ──────────────────
     let isMenuBarActive = false;
-    const menuItems = document.querySelectorAll(".menu-bar-item");
+    const menuItems = typeof document !== "undefined" && typeof document.querySelectorAll === "function" ? document.querySelectorAll(".menu-bar-item") : [];
 
     const closeAllMenus = () => {
         menuItems.forEach(mi => {
@@ -328,17 +356,19 @@ export function initEditorSubsystems() {
         });
     });
 
-    document.addEventListener("click", e => {
-        if (!e.target.closest(".app-menu-bar")) {
-            closeAllMenus();
-        }
-    });
+    if (typeof document !== "undefined" && typeof document.addEventListener === "function") {
+        document.addEventListener("click", e => {
+            if (!e.target.closest(".app-menu-bar")) {
+                closeAllMenus();
+            }
+        });
+    }
 
     // ── File Menu Actions ──────────────────────────────────────────
     document.getElementById("newBlankDocMenuBtn")?.addEventListener("click", () => {
         loadTemplate("blank", () => refreshUI());
     });
-    document.querySelectorAll(".menu-template-item[data-template]").forEach(btn => {
+    safeQuerySelectorAll(".menu-template-item[data-template]").forEach(btn => {
         btn.addEventListener("click", () => {
             const tmpl = btn.dataset.template;
             if (tmpl) loadTemplate(tmpl, () => refreshUI());
@@ -454,11 +484,11 @@ export function initEditorSubsystems() {
     });
 
     // ── Insert Menu Actions ────────────────────────────────────────
-    document.querySelectorAll("[data-menu-insert]").forEach(btn => {
+    safeQuerySelectorAll("[data-menu-insert]").forEach(btn => {
         btn.addEventListener("click", () => {
             const tool = btn.dataset.menuInsert;
             if (tool) {
-                const toolBtn = document.querySelector(`.tool-btn[data-tool="${tool}"]`);
+                const toolBtn = safeQuerySelector(`.tool-btn[data-tool="${tool}"]`);
                 if (toolBtn) toolBtn.click();
             }
         });
@@ -521,13 +551,13 @@ export function initEditorSubsystems() {
 
     // Floating Notice Toast Notification Helper
     function showNoticeToast(msg) {
-        const existing = document.querySelector(".notice-toast");
+        const existing = safeQuerySelector(".notice-toast");
         if (existing) existing.remove();
 
         const toast = document.createElement("div");
         toast.className = "notice-toast";
         toast.innerHTML = `<span>${msg}</span>`;
-        document.body.appendChild(toast);
+        if (document.body) document.body.appendChild(toast);
 
         setTimeout(() => {
             toast.style.opacity = "0";
@@ -564,7 +594,7 @@ export function initEditorSubsystems() {
             if (v) v.style.display = "none";
             if (h) h.style.display = "none";
             if (dot) dot.style.display = "none";
-            document.querySelectorAll(".spacing-badge, .align-line").forEach(el => el.style.display = "none");
+            safeQuerySelectorAll(".spacing-badge, .align-line").forEach(el => el.style.display = "none");
         }
         showNoticeToast(enabled ? "Smart Alignment Guides: ON" : "Smart Alignment Guides: OFF");
     };
@@ -719,8 +749,8 @@ export function initEditorSubsystems() {
     closeExportModalBtn?.addEventListener("click", closeExportModal);
     cancelExportBtn?.addEventListener("click", closeExportModal);
 
-    const acroformRadio = document.querySelector('input[name="exportMode"][value="acroform"]');
-    const flattenRadio = document.querySelector('input[name="exportMode"][value="flatten"]');
+    const acroformRadio = safeQuerySelector('input[name="exportMode"][value="acroform"]');
+    const flattenRadio = safeQuerySelector('input[name="exportMode"][value="flatten"]');
     const labelAcroFormOption = document.getElementById("labelAcroFormOption");
     const labelFlattenOption = document.getElementById("labelFlattenOption");
 
@@ -743,7 +773,7 @@ export function initEditorSubsystems() {
         const rawVal = exportFilenameInput?.value || "";
         const customName = sanitizeFilename(rawVal) || "fillable_document";
 
-        const selectedMode = document.querySelector('input[name="exportMode"]:checked')?.value || "acroform";
+        const selectedMode = safeQuerySelector('input[name="exportMode"]:checked')?.value || "acroform";
         const isFlatten = selectedMode === "flatten";
         const includeJsonBackup = document.getElementById("exportIncludeProjectJson")?.checked || false;
 
@@ -823,8 +853,8 @@ export function initEditorSubsystems() {
     const closeSaveProjectModalBtn = document.getElementById("closeSaveProjectModalBtn");
     const cancelSaveProjectBtn = document.getElementById("cancelSaveProjectBtn");
     const saveReplaceNameDisplay = document.getElementById("saveReplaceNameDisplay");
-    const saveReplaceRadio = document.querySelector('input[name="saveProjectAction"][value="replace"]');
-    const saveNewCopyRadio = document.querySelector('input[name="saveProjectAction"][value="new_copy"]');
+    const saveReplaceRadio = safeQuerySelector('input[name="saveProjectAction"][value="replace"]');
+    const saveNewCopyRadio = safeQuerySelector('input[name="saveProjectAction"][value="new_copy"]');
     const labelSaveReplaceOption = document.getElementById("labelSaveReplaceOption");
     const labelSaveNewCopyOption = document.getElementById("labelSaveNewCopyOption");
     const saveNewCopyInputContainer = document.getElementById("saveNewCopyInputContainer");
@@ -891,7 +921,7 @@ export function initEditorSubsystems() {
     });
 
     // Close Modals on ESC Key or Save Shortcut ⌘S
-    window.addEventListener("keydown", e => {
+    safeWindowAddEventListener("keydown", e => {
         if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
             e.preventDefault();
             openSaveProjectModal();
@@ -989,7 +1019,7 @@ export function initEditorSubsystems() {
     });
 
     // ── Unsaved Changes Protection (Browser Refresh / Close Safety) ────
-    window.addEventListener("beforeunload", e => {
+    safeWindowAddEventListener("beforeunload", e => {
         if (state.fields && state.fields.length > 0) {
             e.preventDefault();
             e.returnValue = "Your form fields are saved in browser storage. Are you sure you want to leave?";
@@ -1024,7 +1054,7 @@ export function initEditorSubsystems() {
     });
 
     // Keyboard Shortcuts
-    window.addEventListener("keydown", e => {
+    safeWindowAddEventListener("keydown", e => {
         const editorScreen = document.getElementById("appEditorScreen");
         if (!editorScreen || editorScreen.style.display === "none") {
             return;
@@ -1246,7 +1276,7 @@ export function initEditorSubsystems() {
         };
         const key = e.key.toLowerCase();
         if (toolKeys[key]) {
-            const btn = document.querySelector(`.tool-btn[data-tool="${toolKeys[key]}"]`);
+            const btn = safeQuerySelector(`.tool-btn[data-tool="${toolKeys[key]}"]`);
             if (btn) btn.click();
         }
     });
@@ -1285,7 +1315,7 @@ export function initEditorSubsystems() {
     document.getElementById("zoomFitWidthBtn")?.addEventListener("click", () => fitToWidth(refreshUI));
     document.getElementById("zoomFitPageBtn")?.addEventListener("click", () => fitToPage(refreshUI));
 
-    document.querySelectorAll(".zoom-preset-item").forEach(btn => {
+    safeQuerySelectorAll(".zoom-preset-item").forEach(btn => {
         btn.addEventListener("click", () => {
             const z = parseFloat(btn.dataset.zoom);
             if (!isNaN(z)) setTransformScale(z, refreshUI);
@@ -1313,9 +1343,9 @@ export function initEditorSubsystems() {
 }
 
 function initPanelResizers() {
-    const leftPanel = document.querySelector(".left-panel");
+    const leftPanel = safeQuerySelector(".left-panel");
     const leftResizer = document.getElementById("leftPanelResizer");
-    const rightPanel = document.querySelector(".right-panel");
+    const rightPanel = safeQuerySelector(".right-panel");
     const rightResizer = document.getElementById("rightPanelResizer");
     const expandBtn = document.getElementById("expandLeftPanelWidthBtn");
 
@@ -1421,13 +1451,13 @@ function initPanelResizers() {
                 }
             };
 
-            window.addEventListener("pointermove", onMove, { passive: false });
-            window.addEventListener("pointerup", onEnd);
-            window.addEventListener("pointercancel", onEnd);
-            window.addEventListener("mousemove", onMove, { passive: false });
-            window.addEventListener("mouseup", onEnd);
-            window.addEventListener("touchmove", onMove, { passive: false });
-            window.addEventListener("touchend", onEnd);
+            safeWindowAddEventListener("pointermove", onMove, { passive: false });
+            safeWindowAddEventListener("pointerup", onEnd);
+            safeWindowAddEventListener("pointercancel", onEnd);
+            safeWindowAddEventListener("mousemove", onMove, { passive: false });
+            safeWindowAddEventListener("mouseup", onEnd);
+            safeWindowAddEventListener("touchmove", onMove, { passive: false });
+            safeWindowAddEventListener("touchend", onEnd);
         };
 
         if (leftResizer) {
@@ -1513,13 +1543,13 @@ function initPanelResizers() {
                 }
             };
 
-            window.addEventListener("pointermove", onMove, { passive: false });
-            window.addEventListener("pointerup", onEnd);
-            window.addEventListener("pointercancel", onEnd);
-            window.addEventListener("mousemove", onMove, { passive: false });
-            window.addEventListener("mouseup", onEnd);
-            window.addEventListener("touchmove", onMove, { passive: false });
-            window.addEventListener("touchend", onEnd);
+            safeWindowAddEventListener("pointermove", onMove, { passive: false });
+            safeWindowAddEventListener("pointerup", onEnd);
+            safeWindowAddEventListener("pointercancel", onEnd);
+            safeWindowAddEventListener("mousemove", onMove, { passive: false });
+            safeWindowAddEventListener("mouseup", onEnd);
+            safeWindowAddEventListener("touchmove", onMove, { passive: false });
+            safeWindowAddEventListener("touchend", onEnd);
         };
 
         if (rightResizer) {
@@ -1561,7 +1591,7 @@ function initPanelResizers() {
 }
 
 export function toggleLeftSidebar() {
-    const leftPanel = document.querySelector(".left-panel");
+    const leftPanel = safeQuerySelector(".left-panel");
     const toggleBtn = document.getElementById("toggleSidebarBtn");
     const resizer = document.getElementById("leftPanelResizer");
     if (!leftPanel) return;
@@ -1588,7 +1618,7 @@ if (typeof window !== "undefined") {
 }
 
 export function toggleRightSidebar() {
-    const rightPanel = document.querySelector(".right-panel");
+    const rightPanel = safeQuerySelector(".right-panel");
     const toggleBtn = document.getElementById("toggleRightSidebarBtn");
     const resizer = document.getElementById("rightPanelResizer");
     if (!rightPanel) return;
@@ -1615,9 +1645,10 @@ if (typeof window !== "undefined") {
 }
 
 function initMobileEditorLayout() {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
     const mediaQuery = window.matchMedia("(max-width: 767px)");
-    const leftPanel = document.querySelector(".left-panel");
-    const rightPanel = document.querySelector(".right-panel");
+    const leftPanel = safeQuerySelector(".left-panel");
+    const rightPanel = safeQuerySelector(".right-panel");
     if (!leftPanel || !rightPanel) return;
 
     document.addEventListener("pointerdown", e => {
@@ -1630,7 +1661,7 @@ function initMobileEditorLayout() {
 
     const applyLayout = (isMobile) => {
         if (isMobile) {
-            if (!document.body.dataset.mobilePanelState) {
+            if (document.body && !document.body.dataset.mobilePanelState) {
                 document.body.dataset.mobilePanelState = JSON.stringify({
                     leftOpen: !leftPanel.classList.contains("collapsed"),
                     rightOpen: !rightPanel.classList.contains("collapsed")
@@ -1639,12 +1670,12 @@ function initMobileEditorLayout() {
             leftPanel.classList.add("collapsed");
             rightPanel.classList.add("collapsed");
         } else {
-            const savedState = document.body.dataset.mobilePanelState;
+            const savedState = document.body?.dataset?.mobilePanelState;
             if (!savedState) return;
             const panelState = JSON.parse(savedState);
             leftPanel.classList.toggle("collapsed", !panelState.leftOpen);
             rightPanel.classList.toggle("collapsed", !panelState.rightOpen);
-            delete document.body.dataset.mobilePanelState;
+            if (document.body) delete document.body.dataset.mobilePanelState;
         }
     };
 
@@ -1659,7 +1690,7 @@ function showUndoToast(msg) {
         toast.id = "transientUndoToast";
         toast.className = "transient-undo-toast";
         toast.style.cssText = "position: fixed; bottom: 24px; right: 24px; z-index: 1100; background: #0f172a; color: #ffffff; padding: 10px 16px; border-radius: 10px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.15); transition: opacity 0.25s ease;";
-        document.body.appendChild(toast);
+        if (document.body) document.body.appendChild(toast);
     }
     toast.innerHTML = `
         <span>${msg}</span>
@@ -1682,11 +1713,11 @@ function showUndoToast(msg) {
 }
 
 function initEdgePeekTabs() {
-    const workspace = document.querySelector(".workspace");
+    const workspace = safeQuerySelector(".workspace");
     const leftTrigger = document.getElementById("leftEdgeTrigger");
     const rightTrigger = document.getElementById("rightEdgeTrigger");
-    const leftPanel = document.querySelector(".left-panel");
-    const rightPanel = document.querySelector(".right-panel");
+    const leftPanel = safeQuerySelector(".left-panel");
+    const rightPanel = safeQuerySelector(".right-panel");
 
     leftTrigger?.addEventListener("click", (e) => {
         e.stopPropagation();

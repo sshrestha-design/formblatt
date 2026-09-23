@@ -1,6 +1,7 @@
 // ── Landing Page View Transitions & Actions (js/controllers/landing-controller.js) ─
 import { state, updateDocumentTitle } from "../core/state.js";
 import { showToast } from "../utils/toast.js";
+import { getRecentProjectMetadata, clearRecentProjectMetadata } from "../core/storage-manager.js";
 
 export function openLeaveEditorModal() {
     const leaveModal = document.getElementById("leaveEditorModal");
@@ -124,20 +125,190 @@ export function showLandingScreen(force = false, skipPush = false) {
     }
 
     // Sync browser history state
-    if (!skipPush) {
-        if (window.location.hash === "#editor" || (history.state && history.state.screen === "editor")) {
-            history.pushState({ screen: "landing" }, "", window.location.pathname);
-        } else {
-            history.replaceState({ screen: "landing" }, "", window.location.pathname);
+    if (!skipPush && typeof window !== "undefined" && typeof window.history?.pushState === "function") {
+        if (window.location?.hash === "#editor" || (window.history.state && window.history.state.screen === "editor")) {
+            window.history.pushState({ screen: "landing" }, "", window.location.pathname);
+        } else if (typeof window.history?.replaceState === "function") {
+            window.history.replaceState({ screen: "landing" }, "", window.location.pathname);
         }
     }
 
+    renderReturningUserHeroCard();
     renderLandingReviews();
     updateDocumentTitle();
     if (typeof lucide !== "undefined") lucide.createIcons();
     if (!skipPush && landing) {
         landing.scrollTop = 0;
     }
+}
+
+function formatRelativeTime(isoString) {
+    if (!isoString) return "";
+    const date = new Date(isoString);
+    if (isNaN(date.getTime())) return "";
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? "s" : ""} ago`;
+    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
+    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+export function closeReturningUserModal() {
+    const modal = document.getElementById("returningUserModal");
+    if (modal) {
+        modal.style.display = "none";
+        modal.classList.remove("active");
+    }
+    document.body.classList.remove("returning-user-modal-open");
+}
+
+export function renderReturningUserHeroCard() {
+    const modal = document.getElementById("returningUserModal");
+    const container = document.getElementById("returningUserHeroContainer");
+
+    const meta = getRecentProjectMetadata();
+    if (!meta || !meta.fileName) {
+        closeReturningUserModal();
+        if (container) {
+            container.style.display = "none";
+            container.innerHTML = "";
+        }
+        return;
+    }
+
+    const escapeHtml = str => String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    const formattedTime = formatRelativeTime(meta.lastEdited);
+    const fieldText = `${meta.fieldCount || 0} field${meta.fieldCount === 1 ? "" : "s"}`;
+    const pageText = `${meta.pageCount || 1} page${meta.pageCount === 1 ? "" : "s"}`;
+
+    const cardHtml = `
+        <div class="returning-user-popin-card">
+            <button type="button" class="returning-user-dismiss-btn" id="returningUserDismissBtn" title="Dismiss dialog" aria-label="Dismiss welcome modal">&times;</button>
+            <div class="returning-user-badge">
+                <i data-lucide="menu"></i>
+                <span>Recent workspace</span>
+            </div>
+            <div class="returning-user-greeting">Welcome back</div>
+            <div class="returning-user-subtext">You left off editing a document ${formattedTime.toLowerCase()}. Pick up where you stopped, or start something new.</div>
+            <div class="returning-user-file-box" id="returningUserFileBox" role="button" tabindex="0" title="Click to continue editing ${escapeHtml(meta.fileName)}">
+                <div class="file-box-icon">
+                    <i data-lucide="file-text"></i>
+                </div>
+                <div class="file-box-details">
+                    <div class="file-box-name">${escapeHtml(meta.fileName)}</div>
+                    <div class="file-box-meta">
+                        <span><i data-lucide="clock"></i> ${formattedTime}</span>
+                        <span class="meta-dot">&bull;</span>
+                        <span>${fieldText}</span>
+                        <span class="meta-dot">&bull;</span>
+                        <span>${pageText}</span>
+                    </div>
+                </div>
+                <div class="file-box-arrow">
+                    <i data-lucide="chevron-right"></i>
+                </div>
+            </div>
+            <div class="returning-user-actions">
+                <button type="button" class="btn-primary returning-user-btn-primary" id="returningUserResumeBtn">
+                    <i data-lucide="folder-open"></i>
+                    <span>Continue recent document</span>
+                </button>
+                <div class="returning-user-secondary-row">
+                    <label for="heroPdfUpload" class="btn-secondary returning-user-btn-secondary" style="cursor: pointer;" id="returningUserNewPdfLabel">
+                        <i data-lucide="plus"></i>
+                        <span>New PDF or image</span>
+                    </label>
+                    <label for="heroOpenProjectUpload" class="btn-secondary returning-user-btn-secondary" style="cursor: pointer;" id="returningUserOpenProjLabel">
+                        <i data-lucide="file"></i>
+                        <span>Open .formblatt</span>
+                    </label>
+                </div>
+            </div>
+            <div class="returning-user-footer-row">
+                <button type="button" class="returning-user-footer-btn clear-history" id="returningUserClearBtn" title="Clear recent project history">Clear history</button>
+                <button type="button" class="returning-user-footer-btn explore-link" id="returningUserExploreBtn">Explore landing page &rarr;</button>
+            </div>
+        </div>
+    `;
+
+    if (modal) {
+        modal.innerHTML = cardHtml;
+        modal.style.display = "flex";
+        modal.classList.add("active");
+        document.body.classList.add("returning-user-modal-open");
+    } else if (container) {
+        container.innerHTML = cardHtml;
+        container.style.display = "block";
+    }
+
+    if (typeof lucide !== "undefined" && lucide.createIcons) {
+        lucide.createIcons();
+    }
+
+    const dismiss = () => {
+        closeReturningUserModal();
+    };
+
+    const dismissBtn = document.getElementById("returningUserDismissBtn");
+    if (dismissBtn) dismissBtn.addEventListener("click", dismiss);
+
+    const exploreBtn = document.getElementById("returningUserExploreBtn");
+    if (exploreBtn) exploreBtn.addEventListener("click", dismiss);
+
+    const clearBtn = document.getElementById("returningUserClearBtn");
+    if (clearBtn) {
+        clearBtn.addEventListener("click", e => {
+            e.stopPropagation();
+            clearRecentProjectMetadata();
+            closeReturningUserModal();
+        });
+    }
+
+    const resumeAction = async () => {
+        closeReturningUserModal();
+        if (state.pdfDoc) {
+            showEditorScreen();
+        } else {
+            try {
+                const { loadRecentProjectSnapshot } = await import("../core/storage-manager.js");
+                const restored = await loadRecentProjectSnapshot();
+                if (!restored) {
+                    const projectUpload = document.getElementById("heroOpenProjectUpload");
+                    if (projectUpload) projectUpload.click();
+                }
+            } catch (err) {
+                console.error("Failed to restore recent workspace:", err);
+                const projectUpload = document.getElementById("heroOpenProjectUpload");
+                if (projectUpload) projectUpload.click();
+            }
+        }
+    };
+
+    const resumeBtn = document.getElementById("returningUserResumeBtn");
+    if (resumeBtn) resumeBtn.addEventListener("click", resumeAction);
+
+    const fileBox = document.getElementById("returningUserFileBox");
+    if (fileBox) {
+        fileBox.addEventListener("click", resumeAction);
+        fileBox.addEventListener("keydown", e => {
+            if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                resumeAction();
+            }
+        });
+    }
+
+    const newPdfLabel = document.getElementById("returningUserNewPdfLabel");
+    if (newPdfLabel) newPdfLabel.addEventListener("click", closeReturningUserModal);
+
+    const openProjLabel = document.getElementById("returningUserOpenProjLabel");
+    if (openProjLabel) openProjLabel.addEventListener("click", closeReturningUserModal);
 }
 
 let currentReviewPageSize = 6;
@@ -375,8 +546,8 @@ export async function showEditorScreen(onReady, skipPush = false) {
     initEditorSubsystems();
 
     // Manage history state so browser Back button returns to landing or prompts to save
-    if (!skipPush) {
-        history.pushState({ screen: "editor" }, "", "#editor");
+    if (!skipPush && typeof window !== "undefined" && typeof window.history?.pushState === "function") {
+        window.history.pushState({ screen: "editor" }, "", "#editor");
     }
 
     closeLeaveEditorModal();
@@ -533,7 +704,9 @@ export function initLandingController(onLoaded) {
             if (landing) landing.style.display = "none";
 
             // Re-push editor state so browser remains in app on #editor
-            history.pushState({ screen: "editor" }, "", "#editor");
+            if (typeof window !== "undefined" && typeof window.history?.pushState === "function") {
+                window.history.pushState({ screen: "editor" }, "", "#editor");
+            }
             openLeaveEditorModal();
         } else {
             showLandingScreen(true, true);
@@ -1132,4 +1305,6 @@ export function initLandingController(onLoaded) {
             import("../ui/onboarding-tour.js").then(tour => tour.startOnboardingTour());
         });
     });
+
+    renderReturningUserHeroCard();
 }

@@ -105,6 +105,194 @@ function commitHistorySnapshot(actionName = null) {
     state.historyIndex++;
     state.history = state.history.slice(0, state.historyIndex);
     state.history.push({ snapshot: rawSnapshot, name: defaultName });
+
+    saveRecentProjectMetadata();
+}
+
+const DB_NAME = "FormblattRecentDB";
+const DB_VERSION = 1;
+const STORE_NAME = "recent_project_store";
+
+function openRecentDb() {
+    return new Promise((resolve, reject) => {
+        if (typeof indexedDB === "undefined") {
+            reject(new Error("IndexedDB not supported"));
+            return;
+        }
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_NAME)) {
+                db.createObjectStore(STORE_NAME);
+            }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = (e) => reject(e.target.error);
+    });
+}
+
+export async function saveRecentProjectMetadata() {
+    if (typeof localStorage === "undefined") return;
+    try {
+        if (!state.pdfDoc && (!state.fields || state.fields.length === 0)) return;
+        const lastEdited = new Date().toISOString();
+        const meta = {
+            fileName: state.fileName || "Untitled_Form.pdf",
+            lastEdited,
+            fieldCount: (state.fields || []).length,
+            pageCount: state.totalPages || 1
+        };
+        localStorage.setItem("formblatt_recent_project", JSON.stringify(meta));
+
+        if (typeof indexedDB !== "undefined") {
+            try {
+                const db = await openRecentDb();
+                const tx = db.transaction(STORE_NAME, "readwrite");
+                const store = tx.objectStore(STORE_NAME);
+                let pdfBuffer = null;
+                if (state.originalPdfBytes && state.originalPdfBytes.byteLength > 0) {
+                    pdfBuffer = state.originalPdfBytes.buffer.slice(
+                        state.originalPdfBytes.byteOffset,
+                        state.originalPdfBytes.byteOffset + state.originalPdfBytes.byteLength
+                    );
+                }
+                const snapshot = {
+                    fileName: meta.fileName,
+                    lastEdited,
+                    fieldCount: meta.fieldCount,
+                    pageCount: meta.pageCount,
+                    fields: state.fields || [],
+                    groups: state.groups || [],
+                    pdfBytes: pdfBuffer
+                };
+                store.put(snapshot, "current_project");
+            } catch (idbErr) {
+                console.warn("Could not save recent project to IndexedDB:", idbErr);
+            }
+        }
+    } catch (e) {}
+}
+
+export async function loadRecentProjectSnapshot() {
+    let snapshot = null;
+    if (typeof indexedDB !== "undefined") {
+        try {
+            const db = await openRecentDb();
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            const req = store.get("current_project");
+            snapshot = await new Promise((resolve, reject) => {
+                req.onsuccess = () => resolve(req.result);
+                req.onerror = () => reject(req.error);
+            });
+        } catch (idbErr) {
+            console.warn("Could not query IndexedDB for recent project:", idbErr);
+        }
+    }
+
+    if (!snapshot) {
+        const meta = getRecentProjectMetadata();
+        if (!meta) return false;
+        snapshot = {
+            fileName: meta.fileName || "interactive_form.pdf",
+            fields: [],
+            groups: [],
+            pdfBytes: null
+        };
+    }
+
+    try {
+        const pdfEngineMod = await import("../engines/pdf-engine.js");
+        const { loadPdfLibraries, analyzePdfDocument, goToPage } = pdfEngineMod;
+        await loadPdfLibraries();
+
+        let pdfBytes = null;
+        if (snapshot.pdfBytes && snapshot.pdfBytes.byteLength > 0) {
+            pdfBytes = new Uint8Array(snapshot.pdfBytes);
+        } else {
+            // Build default blank A4 canvas document if original PDF bytes were not stored
+            let pdfLib = typeof window !== "undefined" ? (window.PDFLib || globalThis.PDFLib) : (typeof PDFLib !== "undefined" ? PDFLib : globalThis.PDFLib);
+            if (!pdfLib) {
+                try {
+                    pdfLib = await import("pdf-lib");
+                } catch (e) {}
+            }
+            if (pdfLib && pdfLib.PDFDocument) {
+                const doc = await pdfLib.PDFDocument.create();
+                doc.addPage([595.28, 841.89]);
+                pdfBytes = await doc.save();
+            }
+        }
+
+        if (!pdfBytes) return false;
+
+        let loadedDoc = null;
+        let pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : (typeof pdfjsLib !== "undefined" ? pdfjsLib : globalThis.pdfjsLib);
+        if (pdfjs && typeof pdfjs.getDocument === "function") {
+            const loadingTask = pdfjs.getDocument({ data: pdfBytes.slice() });
+            loadedDoc = await loadingTask.promise;
+        } else {
+            loadedDoc = { numPages: 1 };
+        }
+
+        state.originalPdfBytes = pdfBytes;
+        state.pdfDoc = loadedDoc;
+        state.totalPages = loadedDoc.numPages;
+        state.currentPageNum = 1;
+        state.fileName = snapshot.fileName || "interactive_form.pdf";
+        state.fields = snapshot.fields || [];
+        state.groups = snapshot.groups || [];
+        state.selectedFieldIds.clear();
+        state.lastSelectedFieldId = state.fields[0]?.id || null;
+
+        await analyzePdfDocument(pdfBytes);
+
+        const fileNameInput = document.getElementById("fileNameInput");
+        if (fileNameInput) fileNameInput.value = state.fileName;
+
+        const es = document.getElementById("emptyState");
+        if (es) es.style.display = "none";
+
+        const landingMod = await import("../controllers/landing-controller.js");
+        await landingMod.showEditorScreen();
+        await goToPage(1);
+
+        return true;
+    } catch (err) {
+        console.error("Failed to restore recent project snapshot:", err);
+        return false;
+    }
+}
+
+export function getRecentProjectMetadata() {
+    if (typeof localStorage === "undefined") return null;
+    try {
+        const raw = localStorage.getItem("formblatt_recent_project");
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === "object" && parsed !== null && parsed.fileName) {
+            return parsed;
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+export async function clearRecentProjectMetadata() {
+    if (typeof localStorage !== "undefined") {
+        try {
+            localStorage.removeItem("formblatt_recent_project");
+        } catch (e) {}
+    }
+    if (typeof indexedDB !== "undefined") {
+        try {
+            const db = await openRecentDb();
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            store.delete("current_project");
+        } catch (e) {}
+    }
 }
 
 export function getUndoActionName() {

@@ -3,9 +3,14 @@ import { state, getSelectedField, setSelectedField, duplicateSelectedFields, cre
 import { saveHistory } from "../core/storage-manager.js";
 import { openSignatureModal } from "./signature-pad.js";
 
+function safeQuerySelectorAll(selector) {
+    if (typeof document === "undefined" || typeof document.querySelectorAll !== "function") return [];
+    return document.querySelectorAll(selector);
+}
+
 function updateQuickSizeButtons(size, btnClass = "quick-size-btn") {
     const s = size ? parseInt(size) : null;
-    document.querySelectorAll(`.${btnClass}`).forEach(btn => {
+    safeQuerySelectorAll(`.${btnClass}`).forEach(btn => {
         const btnSize = parseInt(btn.dataset.size);
         btn.classList.toggle("active", s !== null && btnSize === s);
     });
@@ -551,14 +556,16 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         }
     });
 
-    document.querySelectorAll(".quick-size-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const size = parseInt(btn.dataset.size);
-            if (fontSizeInput) fontSizeInput.value = size;
-            updateQuickSizeButtons(size, "quick-size-btn");
-            syncChange(f => f.fontSize = size, true, `Set Font Size to ${size}pt`);
+    if (typeof document !== "undefined" && typeof document.querySelectorAll === "function") {
+        document.querySelectorAll(".quick-size-btn").forEach(btn => {
+            btn.addEventListener("click", () => {
+                const size = parseInt(btn.dataset.size);
+                if (fontSizeInput) fontSizeInput.value = size;
+                updateQuickSizeButtons(size, "quick-size-btn");
+                syncChange(f => f.fontSize = size, true, `Set Font Size to ${size}pt`);
+            });
         });
-    });
+    }
 
     textAlignmentSelect?.addEventListener("change", e => syncChange(f => f.textAlignment = e.target.value, true, "Change Text Alignment"));
     borderStyleSelect?.addEventListener("change", e => syncChange(f => f.borderStyle = e.target.value, true, "Change Border Style"));
@@ -730,7 +737,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     });
 
     // Operator Buttons
-    document.querySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
+    safeQuerySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
         btn.addEventListener("click", () => {
             const op = btn.dataset.op;
             if (op) insertTokenIntoFormula(op);
@@ -829,7 +836,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     });
 
     // Operator Buttons
-    document.querySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
+    safeQuerySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
         btn.addEventListener("click", () => {
             const op = btn.dataset.op;
             if (op) insertTokenIntoFormula(op);
@@ -870,7 +877,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     makeScrubbableAndScrollable(fieldMaxLength, null, { min: 1, max: 5000, step: 1 });
 
     // Ensure scrolling the inspector sidebar naturally unfocuses inputs to prevent accidental value mutation
-    document.querySelectorAll(".prop-panel-body").forEach(panel => {
+    safeQuerySelectorAll(".prop-panel-body").forEach(panel => {
         panel.addEventListener("scroll", () => {
             if (document.activeElement && document.activeElement.tagName === "INPUT" && panel.contains(document.activeElement)) {
                 document.activeElement.blur();
@@ -1102,7 +1109,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         });
     });
 
-    document.querySelectorAll(".preset-pill-btn[data-preset]").forEach(btn => {
+    safeQuerySelectorAll(".preset-pill-btn[data-preset]").forEach(btn => {
         btn.addEventListener("click", () => {
             const presetKey = btn.dataset.preset;
             const presetList = PRESET_OPTIONS[presetKey];
@@ -1153,7 +1160,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     document.getElementById("deleteFieldBtn")?.addEventListener("click", async () => {
         const field = getSelectedField();
         if (!field) return;
-        const overlay = document.querySelector(`.field-overlay[data-id="${field.id}"]`);
+        const overlay = typeof document !== "undefined" && typeof document.querySelector === "function" ? document.querySelector(`.field-overlay[data-id="${field.id}"]`) : null;
         if (overlay) overlay.classList.add("field-deleting");
         await new Promise(res => setTimeout(res, 120));
         state.fields = state.fields.filter(f => f.id !== field.id);
@@ -1163,7 +1170,7 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     });
 
     // Initialize Collapsible Accordions in Properties Panel
-    document.querySelectorAll(".prop-accordion-header").forEach(header => {
+    safeQuerySelectorAll(".prop-accordion-header").forEach(header => {
         header.addEventListener("click", () => {
             const acc = header.closest(".prop-accordion");
             if (acc) acc.classList.toggle("collapsed");
@@ -1360,8 +1367,8 @@ export function populateProperties(field) {
             "fieldRequired", "fieldReadOnly", "fieldMultiline", "fieldDefaultChecked"
         ].forEach(clearChecked);
 
-        document.querySelectorAll(".quick-size-btn").forEach(btn => btn.classList.remove("active"));
-        document.querySelectorAll(".multi-quick-size-btn").forEach(btn => btn.classList.remove("active"));
+        safeQuerySelectorAll(".quick-size-btn").forEach(btn => btn.classList.remove("active"));
+        safeQuerySelectorAll(".multi-quick-size-btn").forEach(btn => btn.classList.remove("active"));
         return;
     }
 
@@ -1567,7 +1574,7 @@ function initMultiSelectTools(onUpdated) {
         });
     }
 
-    document.querySelectorAll(".multi-type-quick-btn").forEach(btn => {
+    safeQuerySelectorAll(".multi-type-quick-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const targetType = btn.dataset.type;
             if (targetType) convertBatchType(targetType);
@@ -1666,7 +1673,7 @@ function initMultiSelectTools(onUpdated) {
     });
 
     // Preset Height Buttons
-    document.querySelectorAll(".multi-quick-height-btn").forEach(btn => {
+    safeQuerySelectorAll(".multi-quick-height-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const h = parseInt(btn.dataset.height);
             if (multiHInput) multiHInput.value = h;
@@ -1736,7 +1743,7 @@ function initMultiSelectTools(onUpdated) {
         makeScrubbableAndScrollable(multiFsInput, null, { min: 6, max: 120, step: 1 });
     }
 
-    document.querySelectorAll(".multi-quick-size-btn").forEach(btn => {
+    safeQuerySelectorAll(".multi-quick-size-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const size = parseInt(btn.dataset.size);
             const fsInput = document.getElementById("multiFontSize");
@@ -1789,7 +1796,7 @@ function initMultiSelectTools(onUpdated) {
         }
     });
 
-    document.querySelectorAll(".multi-mark-quick-btn").forEach(btn => {
+    safeQuerySelectorAll(".multi-mark-quick-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             const mark = btn.dataset.mark;
             if (mark) {
