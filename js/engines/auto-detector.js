@@ -216,11 +216,23 @@ function isUniversalStaticText(text) {
     const clean = text.trim();
     if (clean.length < 2) return true;
 
-    // 1. Numbered section banners (e.g. "1. SECTION TITLE", "Section A: Requirements", "Abschnitt 1", "Chapitre A", "Sección B")
-    if (/^(?:section|abschnitt|teil|kapitel|partie|chapitre|secci[óo]n|sezione|parte|deel|hoofdstuk|खण्ड|भाग)\s+[a-z0-9]/i.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
+    // 0. Decorative rule lines / separator symbols (e.g. "------", "======", "******", "━━━━━")
+    if (/^[_\-=\*#•·—–─━│┃┌┐└┘├┤┬┴┼░▒▓█\s]+$/.test(clean) && clean.length >= 3) {
         return true;
     }
-    if (/^\d+[.)]\s+[\p{L}\s&()/ -]+$/iu.test(clean) && !clean.includes(":") && !/[_]{2,}/.test(clean)) {
+
+    const cleanNoColon = clean.replace(/[:ः]$/, "").trim();
+
+    // 1. Form metadata, catalog numbers, OMB numbers, revisions, disclaimers
+    if (/^(?:omb\s*no|cat(?:alog)?\.?\s*no|form\s*\d+|rev(?:ision)?\.?|irs\s*use|official\s*use|page\s*\d+|paperwork\s+reduction|privacy\s+act|see\s+instructions?|copyright|all\s+rights\s+reserved)\b/i.test(cleanNoColon)) {
+        return true;
+    }
+
+    // 2. Numbered or named section headings, banners & instructional callouts (e.g. "Section 1: General Info", "Part A: Details", "Note:", "Caution:", "Instructions:")
+    if (/^(?:section|abschnitt|teil|kapitel|partie|chapitre|secci[óo]n|sezione|parte|deel|hoofdstuk|part|step|item|schedule|table|note|notice|instruction|instructions|disclaimer|summary|caution|warning|tip|important|remember|example|refer|attach|send\s+to|mail\s+to|go\s+to|website|url|http|www|for\s+details|see\s+page)\b/i.test(cleanNoColon)) {
+        return true;
+    }
+    if (/^\d+[.)]\s+[\p{L}\s&()/ -]+$/iu.test(cleanNoColon) && cleanNoColon.split(/\s+/).length <= 6) {
         return true;
     }
 
@@ -230,7 +242,7 @@ function isUniversalStaticText(text) {
     }
 
     // 3. Pure instruction in parentheses (e.g. "(Please print clearly)", "(Check all that apply)")
-    if (/^\([^)]+\)$/.test(clean) && !clean.includes(":")) {
+    if (/^\([^)]+\)$/.test(clean)) {
         return true;
     }
 
@@ -479,6 +491,16 @@ export async function detectFormFieldsFromDoc(pdfDoc, options = {}) {
 
             // 1. Authoritative AcroForm passthrough — real widgets are trusted as-is
             const widgetFields = await getExistingWidgetFields(page, viewport, pageNum, usedNames);
+            if (widgetFields.length > 0) {
+                allDetected.push(...widgetFields);
+                pageSummaries.push({
+                    pageNumber: pageNum,
+                    width: viewport.width,
+                    height: viewport.height,
+                    fields: widgetFields
+                });
+                continue;
+            }
             const vectorShapes = await extractPdfVectorShapes(page, viewport);
             const boundaryLines = await detectTableGridLines(page);
 
@@ -537,17 +559,24 @@ export async function detectFormFieldsFromDoc(pdfDoc, options = {}) {
             // 1.5 Drawn Vector Rectangles & Checkboxes (Exact vector geometry)
             const drawnVectorFields = detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNames, [...existingFields, ...widgetFields]);
 
-            // 2. Lattice table detection — find ruling-line grids
-            const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, boundaryLines);
-            const boundaryFields = boundaryLines[0]
-                ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...existingFields, ...widgetFields, ...drawnVectorFields])
-                : [];
+            let pageFields = [];
+            if (drawnVectorFields.length > 0) {
+                // When explicit vector geometry exists, it is authoritative.
+                // Do not pollute real vector forms with synthetic text heuristics (fake table rows, bullet-point radios, etc.)
+                pageFields = [...drawnVectorFields];
+            } else {
+                // Fallback for un-lined, text-only forms without vector boxes
+                const latticeResult = await detectLatticeTableFields(page, rawBlocks, pageNum, usedNames, boundaryLines);
+                const boundaryFields = boundaryLines[0]
+                    ? detectUnderlineFields(boundaryLines[0], rawBlocks, pageNum, usedNames, [...existingFields, ...widgetFields, ...drawnVectorFields])
+                    : [];
 
-            const seedFields = [...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields];
-            const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions, vectorShapes);
+                const seedFields = [...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields];
+                const geometricFields = detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames, seedFields, latticeResult.regions, vectorShapes);
+                pageFields = [...latticeResult.fields, ...boundaryFields, ...geometricFields];
+            }
 
             // 3. Optional In-Browser ONNX Neural Vision Detector (Hybrid Mode)
-            let neuralFields = [];
             if (isHybridMode && typeof document !== "undefined") {
                 try {
                     const { detectNeuralFieldsOnCanvas } = await import("./onnx-detector.js");
@@ -558,13 +587,16 @@ export async function detectFormFieldsFromDoc(pdfDoc, options = {}) {
                     await page.render({ canvasContext: renderCtx, viewport }).promise;
 
                     const rawNeural = await detectNeuralFieldsOnCanvas(renderCanvas, pageNum, viewport);
-                    neuralFields = enrichNeuralFieldsWithText(rawNeural, rawBlocks, usedNames, pageNum);
+                    const neuralFields = enrichNeuralFieldsWithText(rawNeural, rawBlocks, usedNames, pageNum);
+                    for (const nf of neuralFields) {
+                        if (!isOverlapping(nf, pageFields, 0.25)) {
+                            pageFields.push(nf);
+                        }
+                    }
                 } catch (neuralErr) {
                     console.warn("Neural vision inference skipped:", neuralErr);
                 }
             }
-
-            const pageFields = [...widgetFields, ...drawnVectorFields, ...latticeResult.fields, ...boundaryFields, ...geometricFields, ...neuralFields];
             allDetected.push(...pageFields);
             pageSummaries.push({
                 pageNumber: pageNum,
@@ -608,21 +640,21 @@ export async function autoDetectFields(scope = "current", options = {}) {
         ? Array.from({ length: state.totalPages }, (_, i) => i + 1)
         : [state.currentPageNum];
 
+    const preservedFields = state.fields.filter(f => {
+        const pageIsScanned = pagesToScan.includes(f.page || 1);
+        const isDetectorField = Boolean(f.detectedBy || f.sourcedFrom === "acroform");
+        return !pageIsScanned || !isDetectorField;
+    });
+
     const result = await detectFormFieldsFromDoc(state.pdfDoc, {
         ...options,
         pageNumber: pagesToScan,
         totalPages: state.totalPages,
         currentPageNum: state.currentPageNum,
-        existingFields: state.fields
+        existingFields: preservedFields
     });
 
     if (result.fields.length > 0) {
-        const preservedFields = state.fields.filter(f => {
-            const pageIsScanned = pagesToScan.includes(f.page || 1);
-            const isDetectorField = Boolean(f.detectedBy || f.sourcedFrom === "acroform");
-            return !pageIsScanned || !isDetectorField;
-        });
-
         state.fields = [...preservedFields, ...result.fields];
         state.selectedFieldIds.clear();
         if (state.lastSelectedFieldId === null) {
@@ -728,18 +760,18 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
     let currentPolyline = [];
 
     const addRectCandidate = (minX, minY, w, h) => {
-        if (w >= 6 && w <= 540 && h >= 6 && h <= 120) {
+        if (w >= 6 && w <= 545 && h >= 6 && h <= 120) {
             result.allRects.push({ x: minX, y: minY, width: w, height: h });
         }
-        if (w >= 8 && w <= 26 && h >= 8 && h <= 26 && (w / h >= 0.7 && w / h <= 1.45)) {
+        if (w >= 6.5 && w <= 32 && h >= 6.5 && h <= 30 && (w / h >= 0.5 && w / h <= 2.2)) {
             result.checkboxRects.push({ x: minX, y: minY, width: w, height: h });
-        } else if (h >= 14 && h <= 80 && w >= 25 && w <= 540) {
+        } else if (h >= 8 && h <= 85 && w >= 15 && w <= 545) {
             result.inputBoxRects.push({ x: minX, y: minY, width: w, height: h });
         }
     };
 
     const checkClosedPolylineBox = (poly) => {
-        if (!poly || poly.length < 4 || poly.length > 6) return;
+        if (!poly || poly.length < 4 || poly.length > 20) return;
         const xs = poly.map(p => p.x);
         const ys = poly.map(p => p.y);
         const minX = Math.min(...xs);
@@ -749,10 +781,11 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
         const w = maxX - minX;
         const h = maxY - minY;
         if (w >= 8 && h >= 8) {
-            // Check that all points align near the 4 corners of the bounding box
+            // Check that points align near the boundary box (allowing rounded corner arcs up to 8px offset)
+            const maxTolerance = (poly.length > 6) ? 8 : 4;
             const isNearBox = poly.every(p => 
-                (Math.abs(p.x - minX) <= 3 || Math.abs(p.x - maxX) <= 3) &&
-                (Math.abs(p.y - minY) <= 3 || Math.abs(p.y - maxY) <= 3)
+                (Math.abs(p.x - minX) <= maxTolerance || Math.abs(p.x - maxX) <= maxTolerance) ||
+                (Math.abs(p.y - minY) <= maxTolerance || Math.abs(p.y - maxY) <= maxTolerance)
             );
             if (isNearBox) {
                 addRectCandidate(minX, minY, w, h);
@@ -937,7 +970,7 @@ export function clusterCombBoxes(rects) {
             }
         }
 
-        if (currentCluster.length >= 2) {
+        if (currentCluster.length >= 3) {
             usedIndices.add(i);
             clusters.push(currentCluster);
         }
@@ -1081,7 +1114,7 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
     // 3. Match Vector Input Rectangles (excluding consumed comb boxes)
     for (const box of inputBoxRects) {
         if (consumedRects.has(box)) continue;
-        if (box.height > 70 || box.width > 530) continue;
+        if (box.height > 70 || box.width > 545) continue;
         // Skip boxes that already contain label text inside (table headers, pre-filled cells)
         if (rectContainsSignificantText(box, rawBlocks)) continue;
 
@@ -1091,14 +1124,19 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (box.x - (b.x + b.width)) - (box.x - (a.x + a.width)))[0];
 
         const topLabel = !leftLabel ? rawBlocks
-            .filter(tb => tb.y + tb.height <= box.y + 4 && (box.y - (tb.y + tb.height)) <= 26 &&
-                          Math.abs(tb.x - box.x) <= 40)
+            .filter(tb => tb.y + tb.height <= box.y + 6 && (box.y - (tb.y + tb.height)) <= 45 &&
+                          (tb.x >= box.x - 60 && tb.x <= box.x + box.width + 60))
             .sort((a, b) => (box.y - (b.y + b.height)) - (box.y - (a.y + a.height)))[0] : null;
 
-        const matchedLabel = leftLabel || topLabel;
+        const rightLabel = (!leftLabel && !topLabel) ? rawBlocks
+            .filter(tb => tb.x >= box.x + box.width - 4 && (tb.x - (box.x + box.width)) <= 180 &&
+                          Math.abs(tb.y - box.y) <= 18)
+            .sort((a, b) => (a.x - (box.x + box.width)) - (b.x - (box.x + box.width)))[0] : null;
+
+        const matchedLabel = leftLabel || topLabel || rightLabel;
         if (!matchedLabel) {
-            // Unlabelled vector boxes larger than standard input fields are decorative section frames or table containers
-            if (box.width > 120 || box.height > 32) {
+            // Unlabelled vector boxes larger than standard input fields (or full-page section frames) are skipped
+            if (box.width > 550 || box.height > 65 || (box.width > 545 && box.height > 40)) {
                 continue;
             }
         }
@@ -1873,6 +1911,13 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
                 Math.abs(u.y - (line.y + line.height)) <= 14 &&
                 u.x >= promptEndX - 15 && (u.x - promptEndX) <= 50
             );
+
+            // In forms where explicit vector inputs or underlines exist, ignore arbitrary text colons in paragraphs/instructions
+            const hasExplicitVectorElements = (vectorShapes?.inputBoxRects?.length || 0) > 0 || (vectorShapes?.underlines?.length || 0) > 0;
+            if (hasExplicitVectorElements && !matchingUnderline) {
+                continue;
+            }
+
             if (matchingUnderline) {
                 preferredW = matchingUnderline.width;
             }

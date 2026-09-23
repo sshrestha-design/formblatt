@@ -603,6 +603,18 @@ export function initEditorSubsystems() {
     document.getElementById("toggleGuidesMenuBtn")?.addEventListener("click", toggleGuidesAction);
     syncGuidesUI(state.guidesEnabled);
 
+    // Warm up neural vision detector in the background during idle time so 1st click has full inference ready
+    if (typeof window !== "undefined" && typeof document !== "undefined" && typeof document.querySelector === "function") {
+        const warmUpNeural = () => {
+            import("../engines/onnx-detector.js").then(m => m.getOnnxSession?.()).catch(() => {});
+        };
+        if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(warmUpNeural, { timeout: 3000 });
+        } else {
+            setTimeout(warmUpNeural, 1200);
+        }
+    }
+
     // Auto-Detect Fields Action
     const autoDetectBtn = document.getElementById("autoDetectBtn");
     autoDetectBtn?.addEventListener("mouseenter", () => autoDetectBtn.classList.remove("attention-pulse"), { passive: true });
