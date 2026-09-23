@@ -164,19 +164,18 @@ export function clampPanOffset() {
     const scaledW = docWidth * scale;
     const scaledH = docHeight * scale;
 
-    const margin = 40;
+    // Minimum visible document footprint inside workbench (in px)
+    const minVisibleX = Math.min(160, scaledW * 0.4);
+    const minVisibleY = Math.min(160, scaledH * 0.4);
 
-    const maxPanX = scaledW > wrapperW ? ((scaledW - wrapperW) / 2 + margin) : 0;
-    const maxPanY = scaledH > wrapperH ? ((scaledH - wrapperH) / 2 + margin) : 0;
+    const maxPanX = Math.max(0, (wrapperW / 2) + (scaledW / 2) - minVisibleX);
+    const maxPanY = Math.max(0, (wrapperH / 2) + (scaledH / 2) - minVisibleY);
 
     const minPanX = -maxPanX;
     const minPanY = -maxPanY;
 
     state.panOffset.x = Math.min(Math.max(state.panOffset.x, minPanX), maxPanX);
     state.panOffset.y = Math.min(Math.max(state.panOffset.y, minPanY), maxPanY);
-
-    if (Math.abs(state.panOffset.x) < 0.001) state.panOffset.x = 0;
-    if (Math.abs(state.panOffset.y) < 0.001) state.panOffset.y = 0;
 
     return state.panOffset;
 }
