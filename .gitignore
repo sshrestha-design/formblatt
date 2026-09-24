@@ -31,3 +31,8 @@ yarn-error.log*
 assets/frame-*.jpg
 tests/
 evaluate.html
+dataset_*/
+scratch/
+__pycache__/
+*.pyc
+

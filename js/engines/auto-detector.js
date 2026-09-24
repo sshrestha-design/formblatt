@@ -221,23 +221,43 @@ function isUniversalStaticText(text) {
         return true;
     }
 
+    // 0.5 Questions & inquiry prompts are static text, never form fields or field labels
+    if (clean.includes("?")) {
+        return true;
+    }
+
     const cleanNoColon = clean.replace(/[:ः]$/, "").trim();
 
     // 1. Form metadata, catalog numbers, OMB numbers, revisions, disclaimers
-    if (/^(?:omb\s*no|cat(?:alog)?\.?\s*no|form\s*\d+|rev(?:ision)?\.?|irs\s*use|official\s*use|page\s*\d+|paperwork\s+reduction|privacy\s+act|see\s+instructions?|copyright|all\s+rights\s+reserved)\b/i.test(cleanNoColon)) {
+    if (/^(?:omb\s*no|cat(?:alog)?\.?\s*no|form\s*\d+|rev(?:ision)?\.?|irs\s*use|official\s*use|page\s*\d+|paperwork\s+reduction|privacy\s+act|see\s+instructions?|copyright|all\s+rights\s+reserved|department\s+of|internal\s+revenue|keep\s+for\s+your\s+records|for\s+(?:your\s+)?records|records?|record|voucher|receipt|tear\s+here|cut\s+here|detach\s+here|fold\s+here|do\s+not\s+detach)\b/i.test(cleanNoColon)) {
         return true;
     }
 
     // 2. Numbered or named section headings, banners & instructional callouts (e.g. "Section 1: General Info", "Part A: Details", "Note:", "Caution:", "Instructions:")
-    if (/^(?:section|abschnitt|teil|kapitel|partie|chapitre|secci[óo]n|sezione|parte|deel|hoofdstuk|part|step|item|schedule|table|note|notice|instruction|instructions|disclaimer|summary|caution|warning|tip|important|remember|example|refer|attach|send\s+to|mail\s+to|go\s+to|website|url|http|www|for\s+details|see\s+page)\b/i.test(cleanNoColon)) {
+    if (/^(?:section|abschnitt|teil|kapitel|partie|chapitre|secci[óo]n|sezione|parte|deel|hoofdstuk|part|step|item|schedule|table|note|notice|instruction|instructions|disclaimer|summary|caution|warning|tip|important|remember|example|refer|attach|send\s+to|mail\s+to|go\s+to|website|url|http|www|for\s+details|see\s+page|direction|directions|guideline|guidelines|purpose|definition|definitions|future|general|specific|privacy|paperwork|official|requirements|overview|background|penalty|penalties|deadline)\b/i.test(cleanNoColon)) {
         return true;
     }
     if (/^\d+[.)]\s+[\p{L}\s&()/ -]+$/iu.test(cleanNoColon) && cleanNoColon.split(/\s+/).length <= 6) {
         return true;
     }
 
-    // 2. Long sentences, paragraphs, or legal disclaimer text (high word count)
-    if (clean.length > 75 || clean.split(/\s+/).length > 12 || (clean.endsWith(".") && clean.split(/\s+/).length > 5)) {
+    // 2.5 Sentences starting with question auxiliary verbs or wh-question words
+    if (/^(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|may|might|must|shall|what|where|when|which|why|how|who|whom|whose)\b/i.test(cleanNoColon)) {
+        return true;
+    }
+
+    // 2.6 Numbered questions or instructions (e.g. "1. Are you sick today?", "10. In the past year...")
+    if (/^\s*\d+[\s.)-]+\s*(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|what|where|when|which|why|how|if|in|for|during|has|please)\b/i.test(cleanNoColon)) {
+        return true;
+    }
+
+    // 2.7 Instructional conditional clauses and contact modes
+    if (/^(?:if\s+you|please\s+(?:enter|print|check|indicate|select|provide|consult|refer)|for\s+(?:patients|official|healthcare|office)|in\s+the\s+past|in\s+person|en\s+español|by\s+mail|by\s+phone|online|telephone|toll-free)\b/i.test(cleanNoColon)) {
+        return true;
+    }
+
+    // 2.8 Long sentences, paragraphs, or legal disclaimer text (high word count)
+    if (clean.length > 50 || clean.split(/\s+/).length > 8 || (clean.endsWith(".") && clean.split(/\s+/).length > 4)) {
         return true;
     }
 
@@ -760,12 +780,12 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
     let currentPolyline = [];
 
     const addRectCandidate = (minX, minY, w, h) => {
-        if (w >= 6 && w <= 545 && h >= 6 && h <= 120) {
+        if (w >= 6 && w <= 555 && h >= 6 && h <= 120) {
             result.allRects.push({ x: minX, y: minY, width: w, height: h });
         }
         if (w >= 6.5 && w <= 32 && h >= 6.5 && h <= 30 && (w / h >= 0.5 && w / h <= 2.2)) {
             result.checkboxRects.push({ x: minX, y: minY, width: w, height: h });
-        } else if (h >= 8 && h <= 85 && w >= 15 && w <= 545) {
+        } else if (h >= 8 && h <= 85 && w >= 15 && w <= 555) {
             result.inputBoxRects.push({ x: minX, y: minY, width: w, height: h });
         }
     };
@@ -942,12 +962,21 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
 export function clusterCombBoxes(rects) {
     if (!rects || rects.length < 2) return [];
     // Filter to small boxes suitable for character cells (width 8-36, height 10-36)
-    const candidates = rects.filter(r => r.width >= 8 && r.width <= 36 && r.height >= 10 && r.height <= 36)
+    const sorted = rects.filter(r => r.width >= 8 && r.width <= 36 && r.height >= 10 && r.height <= 36)
         .sort((a, b) => {
             const yDiff = a.y - b.y;
             if (Math.abs(yDiff) > 4) return yDiff;
             return a.x - b.x;
         });
+
+    // Deduplicate candidate boxes that share essentially the same origin (multiple vector strokes for same box)
+    const candidates = [];
+    for (const cand of sorted) {
+        const isDupe = candidates.some(d => Math.abs(d.x - cand.x) <= 6 && Math.abs(d.y - cand.y) <= 4);
+        if (!isDupe) {
+            candidates.push(cand);
+        }
+    }
 
     const clusters = [];
     const usedIndices = new Set();
@@ -963,7 +992,14 @@ export function clusterCombBoxes(rects) {
             if (Math.abs(nextBox.y - lastBox.y) > 4) break;
             if (Math.abs(nextBox.height - lastBox.height) > 4 || Math.abs(nextBox.width - lastBox.width) > 6) continue;
             const gap = nextBox.x - (lastBox.x + lastBox.width);
-            if (gap >= -2 && gap <= 16) {
+            
+            // Character comb cells can be tall/narrow character slots (w/h < 0.85) or square cells (e.g. 14x14).
+            // Allow up to 11.5pt gap between contiguous character slots (e.g. EIN or PIN spacing).
+            // (Note: square clusters without comb keywords will be preserved as checkboxes in detectVectorDrawnFields).
+            const isSquareOption = (lastBox.width / lastBox.height >= 0.85 && lastBox.width >= 10);
+            const maxAllowedGap = isSquareOption ? 11.5 : 8.0;
+
+            if (gap >= -2 && gap <= maxAllowedGap) {
                 currentCluster.push(nextBox);
                 usedIndices.add(j);
                 lastBox = nextBox;
@@ -979,32 +1015,78 @@ export function clusterCombBoxes(rects) {
 }
 
 // Returns true if a rectangle already contains significant text inside it,
-// meaning it is a label container, table header, or pre-filled cell — not a blank input.
+// meaning it is a label container, line badge, table header, or pre-filled cell — not a blank input.
 function rectContainsSignificantText(rect, textBlocks) {
+    if (!textBlocks || textBlocks.length === 0) return false;
     const pad = 3; // small padding tolerance
+    const rRight = rect.x + rect.width;
+    const rBottom = rect.y + rect.height;
+
+    // Find all text blocks that fall inside, start inside, or significantly overlap the rectangle
     const innerBlocks = textBlocks.filter(tb => {
         const tbRight = tb.x + tb.width;
         const tbBottom = tb.y + tb.height;
-        const rRight = rect.x + rect.width;
-        const rBottom = rect.y + rect.height;
-        // Text block center must fall inside the rectangle
         const cx = tb.x + tb.width / 2;
         const cy = tb.y + tb.height / 2;
-        return cx >= rect.x - pad && cx <= rRight + pad &&
-               cy >= rect.y - pad && cy <= rBottom + pad;
+
+        // 1. Center of text block is inside rect
+        const centerInside = cx >= rect.x - pad && cx <= rRight + pad &&
+                             cy >= rect.y - pad && cy <= rBottom + pad;
+        if (centerInside) return true;
+
+        // 2. Text block starts inside rect (handles multi-word blocks like "Part I Taxpayer...")
+        const startsInside = tb.x >= rect.x - pad && tb.x <= rect.x + Math.max(12, rect.width * 0.7) &&
+                             tb.y >= rect.y - pad && tb.y <= rBottom + pad;
+        if (startsInside) return true;
+
+        // 3. Significant physical intersection
+        const interX = Math.max(0, Math.min(rRight, tbRight) - Math.max(rect.x, tb.x));
+        const interY = Math.max(0, Math.min(rBottom, tbBottom) - Math.max(rect.y, tb.y));
+        const interArea = interX * interY;
+        const tbArea = tb.width * tb.height;
+        if (tbArea > 0 && interArea / tbArea >= 0.5) return true;
+
+        return false;
     });
+
     if (innerBlocks.length === 0) return false;
-    // Calculate how much of the rect width is covered by text
-    const totalTextWidth = innerBlocks.reduce((sum, tb) => sum + tb.width, 0);
-    const coverageRatio = totalTextWidth / rect.width;
-    // If text covers more than 30% of the rect width, or there are 2+ text blocks, it is a label container
-    if (coverageRatio > 0.30) return true;
-    // Single short token inside (like "x" or a checkmark) is OK — don't suppress
-    if (innerBlocks.length === 1 && innerBlocks[0].str.length <= 2) return false;
-    // Multiple text blocks inside a single rect = almost certainly a label/header cell
-    if (innerBlocks.length >= 2) return true;
-    // Single text block that is a meaningful label phrase (>3 chars) inside the rect
-    if (innerBlocks.length === 1 && innerBlocks[0].str.length > 3) return true;
+
+    const allText = innerBlocks.map(tb => (tb.str || "").trim()).filter(Boolean).join(" ");
+    if (!allText) return false;
+
+    // Is it a genuine checked checkbox? (e.g. pre-filled "X", "✓" in a small checkbox)
+    const isSmallBox = rect.width <= 24 && rect.height <= 24;
+    if (isSmallBox && /^[xX✓✔☑■●•]$/.test(allText.trim())) {
+        return false; // Valid checked checkbox!
+    }
+
+    // A: Line number badges: e.g. "1", "1a", "2b", "10", "12a", "Line 1", "1.", "(a)", "b"
+    if (/^(?:line\s*)?\(?\d{1,3}[a-z]?\)?[\.\:\)]?$/i.test(allText)) {
+        return true; // Line number badge! Suppress!
+    }
+    if (rect.width <= 36 && rect.height <= 24 && /^[a-z][\.\)]?$/i.test(allText)) {
+        return true; // Alphabetical line badge! Suppress!
+    }
+
+    // B: Section / Part / Table / Step badges: e.g. "Part I", "Section A", "Schedule 1", "Step 1"
+    if (/\b(?:part|section|sec|schedule|step|table|item|box)\b/i.test(allText)) {
+        return true; // Section badge! Suppress!
+    }
+
+    // C: Static label / heading words inside rect (>2 chars or multiple blocks)
+    if (innerBlocks.length >= 2 || allText.length >= 3) {
+        return true;
+    }
+
+    // D: Single short token (1-2 chars) that is not a checkmark symbol in a small box
+    // (e.g. "1", "2", "3", "a", "b", "e")
+    if (allText.length <= 2 && !isSmallBox) {
+        return true;
+    }
+    if (isSmallBox && !/^[xX✓✔☑■●•]$/.test(allText)) {
+        return true;
+    }
+
     return false;
 }
 
@@ -1030,8 +1112,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         // Find label directly to the left or directly above
         const leftLabel = rawBlocks
             .filter(tb => tb.x + tb.width <= minX + 8 && (minX - (tb.x + tb.width)) <= 220 &&
-                          Math.abs(tb.y - minY) <= 16)
-            .sort((a, b) => (minX - (b.x + b.width)) - (minX - (a.x + a.width)))[0];
+                          Math.abs(tb.y - minY) <= 16 && !/^[—–\-:\._\s]+$/.test(tb.str))
+            .sort((a, b) => (b.x + b.width) - (a.x + a.width))[0];
 
         const topLabel = !leftLabel ? rawBlocks
             .filter(tb => tb.y + tb.height <= minY + 4 && (minY - (tb.y + tb.height)) <= 28 &&
@@ -1039,7 +1121,27 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (minY - (b.y + b.height)) - (minY - (a.y + a.height)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel;
-        const labelText = matchedLabel?.str || "comb_field";
+        if (!matchedLabel || isUniversalStaticText(matchedLabel.str)) {
+            // Comb fields must have an associated prompt or be in the body of the form
+            if (minY < 95 || cluster[0].width <= 15) {
+                continue;
+            }
+        }
+        const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "comb_field";
+
+        const isCombKeyword = /\b(ssn|social\s*sec|tin|ein|tax\s*id|routing|account|pin|zip|postal|date|birth|dob)\b/i.test(labelText);
+        const isSquareCell = (cluster[0].width / cluster[0].height >= 0.85 && cluster[0].width >= 13);
+        // Square cell clusters (e.g. 18x18 checkboxes) must have explicit comb keywords to be treated as combs.
+        // Otherwise, they are checkbox grids (e.g. OSHA 300 outcome columns) and should remain individual checkboxes.
+        if (isSquareCell && !isCombKeyword) {
+            continue;
+        }
+
+        // Skip if the entire comb box contains significant static text or column headers
+        if (rectContainsSignificantText({ x: minX, y: minY, width: combWidth, height: combHeight }, rawBlocks)) {
+            continue;
+        }
+
         const sem = resolveSemanticProps(labelText, "textField", usedNames);
 
         let dataFormat = sem.dataFormat || "text";
@@ -1047,6 +1149,8 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         else if (/date|dob|birth/i.test(labelText)) dataFormat = "date";
         else if (/tin|ein|tax\s*id/i.test(labelText)) dataFormat = "tin";
         else if (/zip|postal/i.test(labelText)) dataFormat = "zip";
+        else if (/routing/i.test(labelText)) dataFormat = "routingNumber";
+        else if (/account/i.test(labelText)) dataFormat = "accountNumber";
 
         const field = {
             id: generateFieldId(),
@@ -1081,12 +1185,28 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         if (rectContainsSignificantText(cbox, rawBlocks)) continue;
 
         // Find text label directly to the right
-        const labelBlock = rawBlocks
+        const rightLabel = rawBlocks
             .filter(tb => tb.x >= cbox.x + cbox.width - 2 && (tb.x - (cbox.x + cbox.width)) <= 180 &&
                           Math.abs(tb.y - cbox.y) <= 14)
             .sort((a, b) => a.x - b.x)[0];
-        
-        const label = labelBlock?.str || "";
+
+        // Find text label directly to the left if none to the right (must be in close proximity <= 45 pt)
+        const leftLabel = !rightLabel ? rawBlocks
+            .filter(tb => tb.x + tb.width <= cbox.x + 2 && (cbox.x - (tb.x + tb.width)) <= 45 &&
+                          Math.abs(tb.y - cbox.y) <= 14 && !/^[—–\-:\._\s]+$/.test(tb.str))
+            .sort((a, b) => (b.x + b.width) - (a.x + a.width))[0] : null;
+
+        const matchedLabel = rightLabel || leftLabel;
+        // Skip checkboxes labelled with universal static text (section headings, instructions, disclaimers)
+        if (matchedLabel && isUniversalStaticText(matchedLabel.str)) {
+            continue;
+        }
+        // Suppress unlabelled checkboxes in the top header/seal area or far page margins
+        if (!matchedLabel && (cbox.y < 95 || cbox.x >= 545 || cbox.x <= 25)) {
+            continue;
+        }
+
+        const label = matchedLabel?.str || "";
         const sem = resolveSemanticProps(label || "checkbox", "checkBox", usedNames);
         const field = {
             id: generateFieldId(),
@@ -1114,14 +1234,30 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
     // 3. Match Vector Input Rectangles (excluding consumed comb boxes)
     for (const box of inputBoxRects) {
         if (consumedRects.has(box)) continue;
-        if (box.height > 70 || box.width > 545) continue;
+        if (box.height > 70 || box.width > 555) continue;
+        // Skip horizontal divider bars and shaded section separators
+        if (box.height <= 14 && box.width >= 240) continue;
+        // Skip top header banners and form title boxes
+        if (box.y < 90 && box.width >= 120 && box.height <= 35) continue;
+        // Skip narrow column spacers (e.g. 21.6 pt spacers between columns)
+        if (box.width <= 25) continue;
         // Skip boxes that already contain label text inside (table headers, pre-filled cells)
         if (rectContainsSignificantText(box, rawBlocks)) continue;
 
+        // Skip multi-cell composite boxes that contain 2 or more checkboxes inside
+        const innerCbs = checkboxRects.filter(cb => 
+            cb.x >= box.x - 2 && cb.x + cb.width <= box.x + box.width + 2 &&
+            cb.y >= box.y - 2 && cb.y + cb.height <= box.y + box.height + 2
+        );
+        if (innerCbs.length >= 2) continue;
+
+        const maxLeftReach = box.width <= 85 ? 90 : 200;
         const leftLabel = rawBlocks
-            .filter(tb => tb.x + tb.width <= box.x + 8 && (box.x - (tb.x + tb.width)) <= 200 &&
-                          Math.abs(tb.y - box.y) <= 16)
-            .sort((a, b) => (box.x - (b.x + b.width)) - (box.x - (a.x + a.width)))[0];
+            .filter(tb => tb.x + tb.width <= box.x + 8 && (box.x - (tb.x + tb.width)) <= maxLeftReach &&
+                          Math.abs(tb.y - box.y) <= 16 && !/^[—–\-:\._\s]+$/.test(tb.str) &&
+                          // Do not steal labels that belong directly to an adjacent checkbox
+                          !checkboxRects.some(cb => Math.abs(cb.y - tb.y) <= 8 && tb.x >= cb.x && (tb.x - (cb.x + cb.width)) <= 25))
+            .sort((a, b) => (b.x + b.width) - (a.x + a.width))[0];
 
         const topLabel = !leftLabel ? rawBlocks
             .filter(tb => tb.y + tb.height <= box.y + 6 && (box.y - (tb.y + tb.height)) <= 45 &&
@@ -1134,13 +1270,17 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (a.x - (box.x + box.width)) - (b.x - (box.x + box.width)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel || rightLabel;
+        // If matched label is universal static text (e.g. section title, instructions, OMB), this is a static container, not an input!
+        if (matchedLabel && isUniversalStaticText(matchedLabel.str)) {
+            continue;
+        }
         if (!matchedLabel) {
-            // Unlabelled vector boxes larger than standard input fields (or full-page section frames) are skipped
-            if (box.width > 550 || box.height > 65 || (box.width > 545 && box.height > 40)) {
+            // Unlabelled vector boxes in calculation columns or banner areas are skipped
+            if (box.y < 95 || box.width <= 85 || (box.width >= 200 && box.height <= 30) || box.width > 560 || box.height > 65 || (box.width > 555 && box.height > 40)) {
                 continue;
             }
         }
-        const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "field";
+        const labelText = matchedLabel ? matchedLabel.str : "field";
         const sem = resolveSemanticProps(labelText, "textField", usedNames);
         const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
         const isDate = sem.type === "dateField" || /date/i.test(labelText);
@@ -1179,11 +1319,29 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         const uH = 20;
         const fieldY = Math.max(0, uY - 18);
 
+        // Skip underline if text is already written inside or on the field area
+        if (rectContainsSignificantText({ x: uX, y: fieldY, width: uW, height: uH }, rawBlocks)) continue;
+
+        // Skip underline if text rests directly on or intersects the underline baseline (e.g. hyperlinks or underlined prose)
+        const textOnLine = rawBlocks.filter(tb => 
+            tb.x >= uX - 6 && (tb.x + tb.width) <= uX + uW + 6 &&
+            Math.abs((tb.y + tb.height) - uY) <= 6
+        );
+        if (textOnLine.length > 0) continue;
+
+        // Skip underline if near text matches a URL
+        const isUrl = rawBlocks.some(tb => 
+            Math.abs(tb.y - uY) <= 12 && 
+            Math.max(0, Math.min(uX + uW, tb.x + tb.width) - Math.max(uX, tb.x)) > 0 &&
+            /https?:\/\/|www\.|\.gov|\.org|\.com|\.html|\.pdf/i.test(tb.str)
+        );
+        if (isUrl) continue;
+
         // Find label directly to the left or directly above
         const leftLabel = rawBlocks
             .filter(tb => tb.x + tb.width <= uX + 12 && (uX - (tb.x + tb.width)) <= 240 &&
-                          Math.abs(tb.y - (uY - 10)) <= 18)
-            .sort((a, b) => (uX - (b.x + b.width)) - (uX - (a.x + a.width)))[0];
+                          Math.abs(tb.y - (uY - 10)) <= 18 && !/^[—–\-:\._\s]+$/.test(tb.str))
+            .sort((a, b) => (b.x + b.width) - (a.x + a.width))[0];
 
         const topLabel = !leftLabel ? rawBlocks
             .filter(tb => tb.y + tb.height <= uY && (uY - (tb.y + tb.height)) <= 30 &&
@@ -1191,7 +1349,10 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (uY - (b.y + b.height)) - (uY - (a.y + a.height)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel;
-        const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "field";
+        if (matchedLabel && isUniversalStaticText(matchedLabel.str)) {
+            continue;
+        }
+        const labelText = matchedLabel ? matchedLabel.str : "field";
         const sem = resolveSemanticProps(labelText, "textField", usedNames);
         const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
         const isDate = sem.type === "dateField" || /date/i.test(labelText);
@@ -1812,6 +1973,11 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
             const cleanLabel = m[1].trim();
             if (isUniversalStaticText(cleanLabel)) continue;
 
+            // Skip questions, instructional clauses, and long phrases before colons
+            if (cleanLabel.includes("?") || cleanLabel.length > 40 || cleanLabel.split(/\s+/).length > 5) continue;
+            if (/^(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|may|what|where|when|which|why|how|if|please|note|notice|caution|warning|section|part|step|item|for|to)\b/i.test(cleanLabel)) continue;
+            if (/^\s*\d+[\s.)]/.test(cleanLabel)) continue;
+
             const textAfterColon = text.slice(m.index + m[0].length).trim();
 
             // 1. Skip if choices (checkboxes/radios) immediately follow
@@ -1972,55 +2138,11 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
     }
 
     // ------------------------------------------------------------------------
-    // AFFORDANCE 3: Multi-Line Open Questions & Feedback Prompts (Question?)
+    // AFFORDANCE 3: (Disabled) Open Questions & Inquiries
     // ------------------------------------------------------------------------
-    for (const line of textLines) {
-        const text = line.str.trim();
-        if (isUniversalStaticText(text)) continue;
-
-        if (/\?$/.test(text) && !text.includes(":") && !/(\[\s*\]|\(\s*\)|[☐□✓✔☑○●■])/.test(text)) {
-            // Skip if question is followed by choice markers anywhere on or below
-            const hasRatingScaleBelow = rawBlocks.some(tb => {
-                return tb.y > line.y && tb.y <= line.y + 40 && (/^[(\[]|☐|□|✓|✔|☑|○|●|■/.test(tb.str));
-            });
-            if (hasRatingScaleBelow) continue;
-
-            const targetAreaY = Math.max(10, Math.round(line.y + line.height + 2));
-
-            // Clamp height against the next text block below
-            let nextBlockY = viewport.height - 35;
-            for (const tb of rawBlocks) {
-                if (tb.y > targetAreaY + 2) {
-                    nextBlockY = Math.min(nextBlockY, tb.y);
-                }
-            }
-
-            const availH = Math.round(nextBlockY - targetAreaY - 6);
-            if (availH < 18) continue; // Not enough vertical room without overlapping next question
-
-            const sem = resolveSemanticProps(text.slice(0, 30), "textField", usedNames);
-            const areaField = {
-                id: generateFieldId(),
-                type: "textField",
-                name: sem.name,
-                x: Math.max(10, line.x),
-                y: targetAreaY,
-                width: Math.round(pageWidth - line.x - 45),
-                height: Math.min(45, Math.max(22, availH)),
-                page: pageNum,
-                borderStyle: "solid",
-                fillStyle: "white",
-                multiline: true,
-                autofill: "",
-                dataFormat: "text",
-                detectedBy: "affordance3_open_question"
-            };
-
-            if (!isOverlapping(areaField, fields, 0.35)) {
-                fields.push(areaField);
-            }
-        }
-    }
+    // Arbitrary questions ending in '?' in questionnaires, clinical forms, or
+    // surveys are static text and must NOT synthesize phantom text fields.
+    // Genuine open input areas require physical vector lines/underlines/boxes.
 
     // ------------------------------------------------------------------------
     // AFFORDANCE 4: Table Grid Line Items (Invoices, POs, Estimates, Orders)
@@ -2042,12 +2164,23 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
         const text = line.str.toLowerCase();
         if (line.items.length < 2) continue;
 
+        // Skip lines that are sentences, questions, or paragraphs
+        if (/[?!;]/.test(line.str) || line.str.trim().endsWith(".")) continue;
+        if (isUniversalStaticText(line.str)) continue;
+        const words = line.str.trim().split(/\s+/);
+        if (words.length > 8) continue;
+        if (/^\s*\d+[\s.)]/.test(line.str)) continue;
+        if (/^(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|what|where|when|which|why|how|if|in|for|to|please)\b/i.test(line.str)) continue;
+
         const tableColDefs = TABLE_COL_DEFS;
 
         const matchedCols = [];
         for (const item of line.items) {
+            const itemTrim = item.str.trim();
+            // A column header must be a short phrase (<= 3 words, <= 25 chars)
+            if (itemTrim.length > 25 || itemTrim.split(/\s+/).length > 3) continue;
             for (const col of tableColDefs) {
-                if (col.regex.test(item.str) && !matchedCols.some(m => m.id === col.id)) {
+                if (col.regex.test(itemTrim) && !matchedCols.some(m => m.id === col.id)) {
                     matchedCols.push({ ...col, x: item.x, width: item.width, y: item.y, height: item.height });
                     break;
                 }
