@@ -768,7 +768,7 @@ export function renderContextualQuickBar(container, selectedFieldsOnPage, handle
             const reqBtn = document.createElement("button");
             reqBtn.className = "quick-bar-btn" + (primaryField.required ? " active" : "");
             reqBtn.title = "Toggle Required (*)";
-            reqBtn.innerHTML = `<span class="req-star">*</span><span>Required</span>`;
+            reqBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="req-icon"><path d="M12 6v12m5.2-9-10.4 6m0-6 10.4 6"/></svg><span>Required</span>`;
             reqBtn.addEventListener("click", e => {
                 e.stopPropagation();
                 primaryField.required = !primaryField.required;

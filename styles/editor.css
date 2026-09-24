@@ -862,6 +862,42 @@ body:not(.editor-active) #calcPickerHud {
     font-family: inherit;
 }
 
+/* ── Editor Brand Mark ────────────────────────────── */
+.editor-brand-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 3px 6px;
+    border-radius: 6px;
+    transition: background 0.12s ease;
+}
+.editor-brand-logo:hover {
+    background: #f1f5f9;
+}
+.editor-brand-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 1px 3px rgba(11, 99, 206, 0.22), 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease;
+}
+.editor-brand-logo:hover .editor-brand-icon {
+    transform: scale(1.05);
+}
+.editor-brand-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
 @media (max-width: 767px) {
     .calc-picker-hud {
         bottom: calc(58px + env(safe-area-inset-bottom, 0px));

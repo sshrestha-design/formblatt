@@ -607,4 +607,6 @@ body.is-panning,body.is-panning *{cursor:grabbing !important;user-select:none !i
 .contextual-quick-bar .quick-bar-btn.active{background:#2563eb;color:#ffffff}
 .contextual-quick-bar .quick-bar-btn-danger:hover{background:rgba(239,68,68,0.3);color:#fca5a5}
 .contextual-quick-bar .quick-bar-divider{width:1px;height:14px;background:rgba(255,255,255,0.2);margin:0 2px}
-.contextual-quick-bar .req-star{color:#ef4444;font-weight:700;font-size:13px;line-height:1}
+.contextual-quick-bar .req-icon{opacity:0.75;transition:opacity 0.12s ease,transform 0.12s ease;flex-shrink:0}
+.contextual-quick-bar .quick-bar-btn:hover .req-icon{opacity:1}
+.contextual-quick-bar .quick-bar-btn.active .req-icon{opacity:1}
