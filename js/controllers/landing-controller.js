@@ -88,6 +88,17 @@ export function showLandingScreen(force = false, skipPush = false) {
     const fillBanner = document.getElementById("fillModeBanner");
     if (fillBanner) fillBanner.style.display = "none";
 
+    // Dismiss calculation formula picker HUD and reset canvas pick mode
+    const calcPickerHud = document.getElementById("calcPickerHud");
+    if (calcPickerHud) {
+        calcPickerHud.style.display = "none";
+        calcPickerHud.remove();
+    }
+    document.body.classList.remove("is-picking-calc-field");
+    try {
+        import("../ui/properties-panel.js").then(p => p.setCanvasPickMode?.(false)).catch(() => {});
+    } catch(e) {}
+
     // Ensure all landing sections are immediately visible and interactive
     document.querySelectorAll(".reveal").forEach(el => el.classList.add("in-view"));
 

@@ -429,12 +429,28 @@ export const insertTokenIntoFormula = (token) => {
 
 function renderPickerHud(currentField, pickedNames) {
     if (typeof document === "undefined") return;
+    const editorScreen = document.getElementById("appEditorScreen");
+    const isEditorActive = Boolean(
+        document.body?.classList?.contains?.("editor-active") ||
+        (editorScreen && editorScreen.style.display !== "none") ||
+        (!editorScreen && typeof window === "undefined")
+    );
+    if (!isEditorActive) {
+        const existingHud = document.getElementById("calcPickerHud");
+        if (existingHud) existingHud.style.display = "none";
+        return;
+    }
+
     let hud = document.getElementById("calcPickerHud");
     if (!hud) {
         hud = document.createElement("div");
         hud.id = "calcPickerHud";
         hud.className = "calc-picker-hud";
-        document.body?.appendChild?.(hud);
+        if (editorScreen) {
+            editorScreen.appendChild(hud);
+        } else {
+            document.body?.appendChild?.(hud);
+        }
     }
     hud.style.display = "flex";
 

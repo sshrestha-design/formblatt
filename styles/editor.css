@@ -673,6 +673,11 @@ body.is-picking-calc-field .field-overlay.calc-non-calculable {
 }
 
 /* Sleek Native Desktop Formula Bar (Zero Pills, Zero Rainbow Badges) */
+body:not(.editor-active) .calc-picker-hud,
+body:not(.editor-active) #calcPickerHud {
+    display: none !important;
+}
+
 .calc-picker-hud {
     position: fixed;
     bottom: 64px;
