@@ -1,5 +1,5 @@
 // ── Formblatt Editor Subsystems & Controller (js/controllers/editor-app.js) ─
-import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled, sortFieldsByReadingOrder } from "../core/state.js";
+import { state, getSelectedField, setSelectedField, getFieldsForCurrentPage, copySelectedFields, pasteClipboardFields, duplicateSelectedFields, createGroupForSelected, ungroupSelected, setEditorMode, clearAllTestValues, toggleGuides, setGuidesEnabled, sortFieldsByReadingOrder, copyFormulaRecipe, pasteFormulaRecipeToFields, evaluateCalculations } from "../core/state.js";
 import { renderPage, goToPage, setTransformScale, fitToWidth, fitToPage, updateTopBarDocInfo, loadPdfLibraries } from "../engines/pdf-engine.js";
 import { buildPdf, downloadAcroForm } from "../engines/acroform-builder.js";
 import { renderLayers, updateLayerSelectionDOM } from "../ui/layers-panel.js";
@@ -196,6 +196,9 @@ export function switchEditorMode(mode = "design") {
     }
     setEditorMode(mode);
     const isFill = (mode === "fill");
+    if (isFill) {
+        try { evaluateCalculations(); } catch(e) {}
+    }
     document.body.classList.toggle("mode-fill", isFill);
 
     const modeDesignBtn = document.getElementById("modeDesignBtn");
@@ -1126,15 +1129,37 @@ export function initEditorSubsystems() {
             return;
         }
 
-        // Copy (Ctrl+C / Cmd+C)
+        // Copy (Ctrl+C / Cmd+C) & Copy Formula Recipe (Ctrl+Alt+C / Cmd+Option+C)
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "c") {
+            if (e.altKey) {
+                e.preventDefault();
+                const field = getSelectedField();
+                if (field && field.calculationType && field.calculationType !== "none") {
+                    copyFormulaRecipe(field);
+                    showToast("Calculation recipe copied", "info");
+                }
+                return;
+            }
             e.preventDefault();
             copySelectedFields();
             return;
         }
 
-        // Paste (Ctrl+V / Cmd+V)
+        // Paste (Ctrl+V / Cmd+V) & Paste Formula Recipe (Ctrl+Alt+V / Cmd+Option+V)
         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+            if (e.altKey) {
+                e.preventDefault();
+                const selectedFields = (state.fields || []).filter(f => state.selectedFieldIds && state.selectedFieldIds.has(f.id));
+                if (selectedFields.length > 0 && state.formulaClipboard) {
+                    const count = pasteFormulaRecipeToFields(selectedFields, state.fields || []);
+                    if (count > 0) {
+                        saveHistory(true, `Paste Formula Recipe (${count} fields)`);
+                        refreshUI();
+                        showToast(`Formula pasted to ${count} field${count > 1 ? "s" : ""}`, "success");
+                    }
+                }
+                return;
+            }
             e.preventDefault();
             const pasted = pasteClipboardFields();
             if (pasted.length > 0) {

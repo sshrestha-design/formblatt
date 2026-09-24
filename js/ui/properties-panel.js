@@ -1,5 +1,5 @@
 // ── Right Properties Inspector & Alignment (js/ui/properties-panel.js) ─
-import { state, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected } from "../core/state.js";
+import { state, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, getRadioGroupName, getRadioGroupFields, selectRadioOption, setRadioGroupMode, generateFieldId, getVerticallyAlignedColumnSiblings, fillFormulaDownColumn, copyFormulaRecipe, pasteFormulaRecipeToFields, evaluateCalculations } from "../core/state.js";
 import { saveHistory } from "../core/storage-manager.js";
 import { openSignatureModal } from "./signature-pad.js";
 
@@ -237,6 +237,7 @@ export function syncFieldChange(updater, immediate = false, actionName = null) {
     const field = getSelectedField();
     if (!field) return;
     updater(field);
+    try { evaluateCalculations(); } catch(e) {}
     saveHistory(immediate, actionName);
     if (panelOnFieldUpdated) panelOnFieldUpdated(field);
 }
@@ -249,6 +250,7 @@ export const updateCalcVisibility = (calcType) => {
     const calcOperatorsGroup = document.getElementById("calcOperatorsGroup");
     const calcFieldChipsGroup = document.getElementById("calcFieldChipsGroup");
     const calcPreviewCard = document.getElementById("calcPreviewCard");
+    const calcActionsGroup = document.getElementById("calcActionsGroup");
 
     if (calcFieldsGroup) calcFieldsGroup.style.display = (calcType === "sum" || calcType === "prod") ? "block" : "none";
     if (calcTaxGroup) calcTaxGroup.style.display = (calcType === "tax") ? "flex" : "none";
@@ -257,7 +259,42 @@ export const updateCalcVisibility = (calcType) => {
     if (calcOperatorsGroup) calcOperatorsGroup.style.display = (calcType === "custom") ? "flex" : "none";
     if (calcFieldChipsGroup) calcFieldChipsGroup.style.display = (calcType !== "none") ? "flex" : "none";
     if (calcPreviewCard) calcPreviewCard.style.display = (calcType !== "none") ? "flex" : "none";
+    if (calcActionsGroup) calcActionsGroup.style.display = (calcType !== "none") ? "flex" : "none";
 };
+
+export function updateCalcActionsGroup(field) {
+    if (typeof document === "undefined") return;
+    const calcActionsGroup = document.getElementById("calcActionsGroup");
+    const fillDownBtn = document.getElementById("calcFillDownBtn");
+    const fillDownBtnText = document.getElementById("calcFillDownBtnText");
+    const copyBtn = document.getElementById("calcCopyFormulaBtn");
+    const pasteBtn = document.getElementById("calcPasteFormulaBtn");
+    if (!calcActionsGroup) return;
+
+    const hasCalc = field && field.calculationType && field.calculationType !== "none";
+    calcActionsGroup.style.display = hasCalc ? "flex" : "none";
+    if (!hasCalc) return;
+
+    const siblings = getVerticallyAlignedColumnSiblings(field, state.fields || []);
+    if (fillDownBtn && fillDownBtnText) {
+        if (siblings.length > 0) {
+            fillDownBtn.disabled = false;
+            fillDownBtnText.textContent = `Fill Down Column (↓ ${siblings.length} ${siblings.length === 1 ? "row" : "rows"})`;
+            fillDownBtn.title = `Apply this calculation recipe down to ${siblings.length} vertically aligned row(s) below`;
+        } else {
+            fillDownBtn.disabled = true;
+            fillDownBtnText.textContent = "Fill Down Column (↓ 0 rows)";
+            fillDownBtn.title = "No vertically aligned fields found directly below this field in the column";
+        }
+    }
+
+    if (copyBtn) {
+        copyBtn.disabled = false;
+    }
+    if (pasteBtn) {
+        pasteBtn.disabled = !state.formulaClipboard;
+    }
+}
 
 export const populateBaseFieldOptions = (currentField) => {
     if (!currentField) return;
@@ -323,6 +360,11 @@ export const handleFieldChipClicked = (fieldName) => {
         const fieldCalcType = document.getElementById("fieldCalcType");
         if (fieldCalcType) fieldCalcType.value = "sum";
         updateCalcVisibility("sum");
+        if (!field.textAlignment || field.textAlignment === "left") {
+            field.textAlignment = "right";
+            const alignSel = document.getElementById("textAlignment");
+            if (alignSel) alignSel.value = "right";
+        }
     }
 
     const fieldCalcTargetFields = document.getElementById("fieldCalcTargetFields");
@@ -385,35 +427,236 @@ export const insertTokenIntoFormula = (token) => {
     updateFormulaLivePreview(getSelectedField());
 };
 
+function renderPickerHud(currentField, pickedNames) {
+    if (typeof document === "undefined") return;
+    let hud = document.getElementById("calcPickerHud");
+    if (!hud) {
+        hud = document.createElement("div");
+        hud.id = "calcPickerHud";
+        hud.className = "calc-picker-hud";
+        document.body?.appendChild?.(hud);
+    }
+    hud.style.display = "flex";
+
+    const targetName = currentField ? (currentField.name || currentField.id || "Field") : "Field";
+    const pickedCount = pickedNames ? pickedNames.size : 0;
+    const cType = currentField ? (currentField.calculationType || "sum") : "sum";
+    const typeLabel = cType === "sum" ? "Sum Total" : cType === "prod" ? "Product" : cType === "tax" ? "Tax" : cType === "discount" ? "Discount" : "Formula";
+    const typeIcon = cType === "sum" ? "∑" : cType === "prod" ? "×" : cType === "tax" ? "%" : cType === "discount" ? "−%" : "ƒx";
+
+    let exprText = "";
+    if (cType === "sum") {
+        exprText = pickedCount > 0 ? Array.from(pickedNames).join(" + ") : "";
+    } else if (cType === "prod") {
+        exprText = pickedCount > 0 ? Array.from(pickedNames).join(" × ") : "";
+    } else if (cType === "tax") {
+        exprText = currentField.calculationTaxBaseField ? `${currentField.calculationTaxRate || 10}% of ${currentField.calculationTaxBaseField}` : "";
+    } else if (cType === "discount") {
+        exprText = currentField.calculationDiscountBaseField ? `-${currentField.calculationDiscountRate || 10}% of ${currentField.calculationDiscountBaseField}` : "";
+    } else {
+        exprText = currentField.calculationFormula || "";
+    }
+
+    const pickedSummary = pickedCount === 0 && !exprText
+        ? `<span class="calc-hud-empty">Click numbers on the form to include</span>`
+        : `
+            <span class="calc-hud-count">${pickedCount} selected:</span>
+            <code class="calc-hud-mono calc-hud-expr-text" title="${escapeHtml(exprText || Array.from(pickedNames).join(', '))}">${escapeHtml(exprText || Array.from(pickedNames).join(', '))}</code>
+        `;
+
+    hud.innerHTML = `
+        <div class="calc-hud-left">
+            <div class="calc-hud-mode">
+                <span class="calc-hud-mode-icon" aria-hidden="true">${typeIcon}</span>
+                <span>${escapeHtml(typeLabel)}</span>
+            </div>
+            <span class="calc-hud-divider" aria-hidden="true"></span>
+            <div class="calc-hud-target">
+                <span class="calc-hud-target-label">Target:</span>
+                <code class="calc-hud-mono">${escapeHtml(targetName)}</code>
+            </div>
+            <span class="calc-hud-divider" aria-hidden="true"></span>
+            <div class="calc-hud-selection">
+                ${pickedSummary}
+            </div>
+        </div>
+        <div class="calc-hud-actions">
+            ${pickedCount > 0 ? `<button type="button" class="calc-hud-btn-clear" id="calcPickerClearBtn">Clear</button>` : ""}
+            <button type="button" class="calc-hud-btn-done" id="calcPickerDoneBtn">Done <kbd class="calc-hud-kbd">Esc</kbd></button>
+        </div>
+    `;
+
+    document.getElementById("calcPickerDoneBtn")?.addEventListener("click", () => setCanvasPickMode(false));
+    document.getElementById("calcPickerClearBtn")?.addEventListener("click", () => {
+        if (!currentField) return;
+        if (currentField.calculationType === "sum" || currentField.calculationType === "prod") {
+            currentField.calculationFields = [];
+            const input = document.getElementById("fieldCalcTargetFields");
+            if (input) input.value = "";
+        } else if (currentField.calculationType === "tax") {
+            currentField.calculationTaxBaseField = "";
+            const sel = document.getElementById("calcTaxBaseField");
+            if (sel) sel.value = "";
+        } else if (currentField.calculationType === "discount") {
+            currentField.calculationDiscountBaseField = "";
+            const sel = document.getElementById("calcDiscountBaseField");
+            if (sel) sel.value = "";
+        } else if (currentField.calculationType === "custom") {
+            currentField.calculationFormula = "";
+            const input = document.getElementById("fieldCalcFormula");
+            if (input) input.value = "";
+        }
+        syncFieldChange(f => {
+            f.calculationFields = currentField.calculationFields;
+            f.calculationTaxBaseField = currentField.calculationTaxBaseField;
+            f.calculationDiscountBaseField = currentField.calculationDiscountBaseField;
+            f.calculationFormula = currentField.calculationFormula;
+        }, true, "Clear Calculation Fields");
+        renderFormulaFieldChips(currentField);
+        updateFormulaLivePreview(currentField);
+        updateCanvasPickModeUI();
+    });
+}
+
+export function isFieldCalculable(f) {
+    if (!f) return false;
+    // Explicit non-calculable types
+    if (f.type === "signature" || f.type === "staticText" || f.type === "checkBox" || f.type === "radioGroup") {
+        return false;
+    }
+    // Dropdowns are categorical text options unless explicitly numeric
+    if (f.type === "dropdown" && (!f.dataFormat || f.dataFormat === "text")) {
+        return false;
+    }
+    // Date fields are not arithmetic inputs
+    if (f.type === "dateField" || f.dataFormat === "date") {
+        return false;
+    }
+    // Multiline text boxes (notes, terms, bank instructions)
+    if (f.multiline) {
+        return false;
+    }
+    // Explicit number types or formats
+    if (f.type === "number" || f.dataFormat === "number" || f.dataFormat === "currency" || f.dataFormat === "percent") {
+        return true;
+    }
+    // Already has an active calculation recipe
+    if (f.calculationType && f.calculationType !== "none") {
+        return true;
+    }
+    // Value check: if the value or default value is a parseable number (e.g. "40", "150.00", "$6,000.00")
+    const rawVal = String(f.value ?? f.defaultValue ?? "").trim().replace(/^[\$€£¥\s]+/, "").replace(/,/g, "");
+    if (rawVal !== "" && !isNaN(Number(rawVal)) && isFinite(Number(rawVal))) {
+        return true;
+    }
+    // Semantic name check for common math/numeric terms in form fields
+    const nameLower = (f.name || "").toLowerCase();
+    if (/(qty|quantity|amount|price|total|subtotal|tax|discount|fee|cost|rate|hours|hrs|units|balance|sum|calc|num|count)/i.test(nameLower)) {
+        return true;
+    }
+    // If it has typical text keywords, treat as non-calculable
+    if (/desc|note|comment|address|name|email|phone|street|city|zip|state|company|vendor|client|buyer|seller|title|terms|bank|routing/i.test(nameLower)) {
+        return false;
+    }
+    // Short blank fields could be empty numeric table cells
+    return (f.width === undefined || (f.width < 140 && (f.height === undefined || f.height < 36)));
+}
+
+export function updateCanvasPickModeUI() {
+    if (typeof document === "undefined") return;
+    const overlays = safeQuerySelectorAll(".field-overlay");
+    if (!isPickingCalcField) {
+        overlays.forEach(el => {
+            el.classList.remove("calc-target-result-field", "calc-field-picked", "calc-field-candidate", "calc-non-calculable");
+            el.querySelectorAll(".calc-corner-badge, .calc-hover-tooltip, .calc-pick-pill").forEach(p => p.remove());
+        });
+        const hud = document.getElementById("calcPickerHud");
+        if (hud) hud.style.display = "none";
+        return;
+    }
+
+    const currentField = getSelectedField();
+    if (!currentField) return;
+
+    // Determine currently picked field names
+    const pickedNames = new Set();
+    const cType = currentField.calculationType || "sum";
+    if (cType === "sum" || cType === "prod") {
+        const targets = Array.isArray(currentField.calculationFields)
+            ? currentField.calculationFields
+            : (currentField.calculationFields ? String(currentField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+        targets.forEach(t => pickedNames.add(t));
+    } else if (cType === "tax" && currentField.calculationTaxBaseField) {
+        pickedNames.add(currentField.calculationTaxBaseField);
+    } else if (cType === "discount" && currentField.calculationDiscountBaseField) {
+        pickedNames.add(currentField.calculationDiscountBaseField);
+    } else if (cType === "custom" && currentField.calculationFormula) {
+        (state.fields || []).forEach(f => {
+            const name = f.name || f.id;
+            if (name && currentField.calculationFormula.includes(name)) {
+                pickedNames.add(name);
+            }
+        });
+    }
+
+    overlays.forEach(el => {
+        el.classList.remove("calc-target-result-field", "calc-field-picked", "calc-field-candidate", "calc-non-calculable");
+        el.querySelectorAll(".calc-corner-badge, .calc-hover-tooltip, .calc-pick-pill").forEach(p => p.remove());
+
+        const fieldId = el.id?.replace(/^overlay_/, "") || el.dataset?.id;
+        const f = (state.fields || []).find(field => String(field.id) === String(fieldId));
+        if (!f) return;
+
+        const fieldName = f.name || f.id;
+        const valStr = f.value ? ` <span class="tip-val">(${escapeHtml(String(f.value))})</span>` : "";
+
+        if (f.id === currentField.id) {
+            el.classList.add("calc-target-result-field");
+            const badge = document.createElement("span");
+            badge.className = "calc-corner-badge badge-target";
+            badge.innerHTML = `⚡`;
+            badge.title = `Result Field: ${fieldName}`;
+            el.appendChild(badge);
+
+            const tip = document.createElement("span");
+            tip.className = "calc-hover-tooltip tip-target";
+            tip.innerHTML = `⚡ Result: <strong>${escapeHtml(fieldName)}</strong>`;
+            el.appendChild(tip);
+        } else if (pickedNames.has(fieldName)) {
+            el.classList.add("calc-field-picked");
+            const badge = document.createElement("span");
+            badge.className = "calc-corner-badge badge-picked";
+            badge.innerHTML = `✓`;
+            badge.title = `Included in formula: ${fieldName}`;
+            el.appendChild(badge);
+
+            const tip = document.createElement("span");
+            tip.className = "calc-hover-tooltip tip-picked";
+            tip.innerHTML = `✓ <strong>${escapeHtml(fieldName)}</strong>${valStr} <span class="tip-action">• Click to remove</span>`;
+            el.appendChild(tip);
+        } else if (!isFieldCalculable(f)) {
+            el.classList.add("calc-non-calculable");
+        } else {
+            el.classList.add("calc-field-candidate");
+            const tip = document.createElement("span");
+            tip.className = "calc-hover-tooltip tip-candidate";
+            tip.innerHTML = `+ <strong>${escapeHtml(fieldName)}</strong>${valStr} <span class="tip-action">• Click to add</span>`;
+            el.appendChild(tip);
+        }
+    });
+
+    renderPickerHud(currentField, pickedNames);
+}
+
 export const setCanvasPickMode = (active) => {
     isPickingCalcField = !!active;
-    document.body.classList.toggle("is-picking-calc-field", isPickingCalcField);
-    const calcPickFromCanvasBtn = document.getElementById("calcPickFromCanvasBtn");
-    const calcFormulaCanvasPickBtn = document.getElementById("calcFormulaCanvasPickBtn");
-    calcPickFromCanvasBtn?.classList.toggle("active", isPickingCalcField);
-    calcFormulaCanvasPickBtn?.classList.toggle("active", isPickingCalcField);
-
-    let hud = document.getElementById("calcPickerHud");
-    if (isPickingCalcField) {
-        if (!hud) {
-            hud = document.createElement("div");
-            hud.id = "calcPickerHud";
-            hud.className = "calc-picker-hud";
-            hud.innerHTML = `
-                <span class="calc-picker-hud-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="22" x2="12" y2="18"/></svg>
-                    Pick on Canvas Active
-                </span>
-                <span>Click any field on the canvas to add to calculation</span>
-                <button type="button" class="calc-picker-hud-done-btn" id="calcPickerDoneBtn">Done (Esc)</button>
-            `;
-            document.body.appendChild(hud);
-            document.getElementById("calcPickerDoneBtn")?.addEventListener("click", () => setCanvasPickMode(false));
-        } else {
-            hud.style.display = "flex";
-        }
-    } else {
-        if (hud) hud.style.display = "none";
+    if (typeof document !== "undefined") {
+        document.body.classList.toggle("is-picking-calc-field", isPickingCalcField);
+        const calcPickFromCanvasBtn = document.getElementById("calcPickFromCanvasBtn");
+        const calcFormulaCanvasPickBtn = document.getElementById("calcFormulaCanvasPickBtn");
+        calcPickFromCanvasBtn?.classList.toggle("active", isPickingCalcField);
+        calcFormulaCanvasPickBtn?.classList.toggle("active", isPickingCalcField);
+        updateCanvasPickModeUI();
     }
 };
 
@@ -432,8 +675,16 @@ export const handleCanvasFieldPick = e => {
 
     const fieldId = fieldEl.id?.replace(/^overlay_/, "") || fieldEl.dataset?.id;
     const targetField = (state.fields || []).find(f => String(f.id) === String(fieldId));
-    if (targetField) {
+    const currentField = getSelectedField();
+
+    if (targetField && currentField && targetField.id === currentField.id) {
+        // Prevent selecting the formula field itself to avoid circular dependency
+        return;
+    }
+
+    if (targetField && targetField.type !== "signature" && targetField.type !== "staticText") {
         handleFieldChipClicked(targetField.name || targetField.id);
+        updateCanvasPickModeUI();
         fieldEl.classList.remove("just-picked-flash");
         void fieldEl.offsetWidth;
         fieldEl.classList.add("just-picked-flash");
@@ -504,6 +755,108 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         if (onFieldUpdated) onFieldUpdated(field);
     });
 
+    // ── Data Format & Currency Event Handlers ──
+    const fieldDataFormatSelect = document.getElementById("fieldDataFormat");
+    const currencySettingsGroup = document.getElementById("currencySettingsGroup");
+    const fieldCurrencySymbolSelect = document.getElementById("fieldCurrencySymbol");
+    const customCurrencySymbolRow = document.getElementById("customCurrencySymbolRow");
+    const fieldCustomCurrencySymbolInput = document.getElementById("fieldCustomCurrencySymbol");
+    const fieldCurrencyPositionSelect = document.getElementById("fieldCurrencyPosition");
+    const fieldCurrencyDecimalsSelect = document.getElementById("fieldCurrencyDecimals");
+
+    fieldDataFormatSelect?.addEventListener("change", e => {
+        const newFormat = e.target.value;
+        const field = getSelectedField();
+        if (!field) return;
+
+        field.dataFormat = newFormat;
+        if (newFormat === "currency") {
+            field.currencySymbol = field.currencySymbol || "$";
+            field.currencyPosition = field.currencyPosition || (field.currencySymbol === "€" ? "suffix" : "prefix");
+            field.currencyDecimals = field.currencyDecimals !== undefined ? field.currencyDecimals : 2;
+            if (!field.textAlignment || field.textAlignment === "left") {
+                field.textAlignment = "right";
+                const ta = document.getElementById("textAlignment");
+                if (ta) ta.value = "right";
+            }
+            if (currencySettingsGroup) currencySettingsGroup.style.display = "block";
+        } else {
+            if (currencySettingsGroup) currencySettingsGroup.style.display = "none";
+            if (newFormat === "number" && (!field.textAlignment || field.textAlignment === "left")) {
+                field.textAlignment = "right";
+                const ta = document.getElementById("textAlignment");
+                if (ta) ta.value = "right";
+            }
+        }
+
+        saveHistory(true, `Change Data Format to ${newFormat}`);
+        populateProperties(field);
+        if (onFieldUpdated) onFieldUpdated(field);
+    });
+
+    fieldCurrencySymbolSelect?.addEventListener("change", e => {
+        const val = e.target.value;
+        const field = getSelectedField();
+        if (!field) return;
+
+        if (val === "custom") {
+            if (customCurrencySymbolRow) customCurrencySymbolRow.style.display = "block";
+            if (fieldCustomCurrencySymbolInput) {
+                fieldCustomCurrencySymbolInput.value = field.customCurrencySymbol || "";
+                fieldCustomCurrencySymbolInput.focus();
+            }
+        } else {
+            if (customCurrencySymbolRow) customCurrencySymbolRow.style.display = "none";
+            field.currencySymbol = val;
+            if (val === "€" && (!field.currencyPosition || field.currencyPosition === "prefix")) {
+                field.currencyPosition = "suffix";
+                if (fieldCurrencyPositionSelect) fieldCurrencyPositionSelect.value = "suffix";
+            }
+            saveHistory(true, `Set Currency Symbol to ${val}`);
+            populateProperties(field);
+            if (onFieldUpdated) onFieldUpdated(field);
+        }
+    });
+
+    fieldCustomCurrencySymbolInput?.addEventListener("input", e => {
+        const val = e.target.value.trim();
+        const field = getSelectedField();
+        if (!field) return;
+        field.currencySymbol = val || "$";
+        field.customCurrencySymbol = val;
+        if (onFieldUpdated) onFieldUpdated(field);
+    });
+
+    fieldCustomCurrencySymbolInput?.addEventListener("change", e => {
+        const val = e.target.value.trim();
+        const field = getSelectedField();
+        if (!field) return;
+        field.currencySymbol = val || "$";
+        field.customCurrencySymbol = val;
+        saveHistory(true, `Set Custom Currency Symbol to ${val}`);
+        if (onFieldUpdated) onFieldUpdated(field);
+    });
+
+    fieldCurrencyPositionSelect?.addEventListener("change", e => {
+        const val = e.target.value;
+        const field = getSelectedField();
+        if (!field) return;
+        field.currencyPosition = val;
+        saveHistory(true, `Set Currency Position to ${val}`);
+        populateProperties(field);
+        if (onFieldUpdated) onFieldUpdated(field);
+    });
+
+    fieldCurrencyDecimalsSelect?.addEventListener("change", e => {
+        const val = parseInt(e.target.value);
+        const field = getSelectedField();
+        if (!field) return;
+        field.currencyDecimals = isNaN(val) ? 2 : val;
+        saveHistory(true, `Set Currency Decimals to ${val}`);
+        populateProperties(field);
+        if (onFieldUpdated) onFieldUpdated(field);
+    });
+
     const fieldAutofill = document.getElementById("fieldAutofill");
     fieldAutofill?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true, "Set Autofill Token"));
 
@@ -528,12 +881,14 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     });
     fieldDefaultVal?.addEventListener("input", e => syncChange(f => {
         f.defaultValue = e.target.value;
+        f.value = e.target.value;
         if (f.type === "staticText" || f.type === "label") {
             f.label = e.target.value;
         }
     }, false));
     fieldDefaultVal?.addEventListener("change", e => syncChange(f => {
         f.defaultValue = e.target.value;
+        f.value = e.target.value;
         if (f.type === "staticText" || f.type === "label") {
             f.label = e.target.value;
         }
@@ -600,8 +955,109 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
     fieldTooltip?.addEventListener("input", e => syncChange(f => f.tooltip = e.target.value, false));
     fieldTooltip?.addEventListener("change", e => syncChange(f => f.tooltip = e.target.value, true, "Set Tooltip"));
     autofillType?.addEventListener("change", e => syncChange(f => f.autofill = e.target.value, true, "Set Autofill"));
-    fieldDefaultChecked?.addEventListener("change", e => syncChange(f => f.defaultChecked = e.target.checked, true, "Toggle Checked"));
+    fieldDefaultChecked?.addEventListener("change", e => {
+        const field = getSelectedField();
+        if (field && (field.type === "radioGroup" || field.type === "radio")) {
+            if (e.target.checked) {
+                selectRadioOption(field, state.fields);
+            } else {
+                field.defaultChecked = false;
+                field.checked = false;
+            }
+            saveHistory(true, "Toggle Radio Choice");
+            populateProperties(field);
+            if (panelOnFieldUpdated) panelOnFieldUpdated(field);
+            return;
+        }
+        syncChange(f => f.defaultChecked = e.target.checked, true, "Toggle Checked");
+    });
     fieldCheckboxMark?.addEventListener("change", e => syncChange(f => f.checkboxMark = e.target.value, true, "Set Checkbox Style"));
+
+    // ── Radio Group & Choice Relation Listeners ───────────────────────────
+    const fieldRadioGroup = document.getElementById("fieldRadioGroup");
+    fieldRadioGroup?.addEventListener("input", e => {
+        const clean = sanitizePdfFieldName(e.target.value);
+        syncChange(f => {
+            f.radioGroup = clean;
+            f.name = clean;
+        }, false);
+    });
+    fieldRadioGroup?.addEventListener("change", e => {
+        const clean = sanitizePdfFieldName(e.target.value) || "radio_group_1";
+        e.target.value = clean;
+        syncChange(f => {
+            f.radioGroup = clean;
+            f.name = clean;
+        }, true, "Change Radio Group");
+        populateProperties(getSelectedField());
+    });
+
+    const fieldRadioExportValue = document.getElementById("fieldRadioExportValue");
+    fieldRadioExportValue?.addEventListener("input", e => {
+        syncChange(f => {
+            f.exportValue = e.target.value;
+            f.radioValue = e.target.value;
+            f.value = e.target.value;
+        }, false);
+    });
+    fieldRadioExportValue?.addEventListener("change", e => {
+        const val = e.target.value.trim() || `Option_${getSelectedField()?.id || 1}`;
+        e.target.value = val;
+        syncChange(f => {
+            f.exportValue = val;
+            f.radioValue = val;
+            f.value = val;
+        }, true, "Change Choice Value");
+        populateProperties(getSelectedField());
+    });
+
+    const radioGroupSelectMode = document.getElementById("radioGroupSelectMode");
+    radioGroupSelectMode?.addEventListener("change", e => {
+        const field = getSelectedField();
+        if (!field || (field.type !== "radioGroup" && field.type !== "radio")) return;
+        setRadioGroupMode(field, e.target.value, state.fields);
+        saveHistory(true, `Set Selection Mode: ${e.target.value}`);
+        populateProperties(field);
+        if (panelOnFieldUpdated) panelOnFieldUpdated(field);
+    });
+
+    const addRadioChoiceOptionBtn = document.getElementById("addRadioChoiceOptionBtn");
+    addRadioChoiceOptionBtn?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (!field || (field.type !== "radioGroup" && field.type !== "radio")) return;
+        const groupName = getRadioGroupName(field);
+        const siblings = getRadioGroupFields(field, state.fields);
+        const nextIndex = siblings.length + 1;
+
+        const lastSibling = siblings[siblings.length - 1] || field;
+        const newX = lastSibling.x;
+        const newY = Math.min((document.getElementById("canvasContainer")?.offsetHeight || 800) - 20, lastSibling.y + lastSibling.height + 14);
+
+        const newChoice = {
+            id: generateFieldId(),
+            type: "radioGroup",
+            radioGroup: groupName,
+            name: groupName,
+            exportValue: `Option ${nextIndex}`,
+            radioValue: `Option ${nextIndex}`,
+            value: `Option ${nextIndex}`,
+            defaultChecked: false,
+            checked: false,
+            x: newX,
+            y: newY,
+            width: field.width || 14,
+            height: field.height || 14,
+            page: field.page || state.currentPageNum,
+            borderStyle: field.borderStyle || "solid",
+            fillStyle: field.fillStyle || "white"
+        };
+
+        state.fields.push(newChoice);
+        setSelectedField(newChoice.id);
+        saveHistory(true, `Add Choice to ${groupName}`);
+        populateProperties(newChoice);
+        if (panelOnFieldUpdated) panelOnFieldUpdated(newChoice);
+    });
 
     // ── Visual Formula & Calculation Builder Listeners ───────────────────────
     const fieldCalcType = document.getElementById("fieldCalcType");
@@ -657,11 +1113,17 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
                     if (other) field.calculationDiscountBaseField = other.name || other.id;
                 }
             }
+            if (val !== "none" && (!field.textAlignment || field.textAlignment === "left")) {
+                field.textAlignment = "right";
+                const alignSel = document.getElementById("textAlignment");
+                if (alignSel) alignSel.value = "right";
+            }
             populateBaseFieldOptions(field);
             renderFormulaFieldChips(field);
             updateFormulaLivePreview(field);
             syncChange(f => {
                 f.calculationType = val;
+                if (field.textAlignment) f.textAlignment = field.textAlignment;
                 if (field.calculationTaxRate !== undefined) f.calculationTaxRate = field.calculationTaxRate;
                 if (field.calculationTaxBaseField) f.calculationTaxBaseField = field.calculationTaxBaseField;
                 if (field.calculationDiscountRate !== undefined) f.calculationDiscountRate = field.calculationDiscountRate;
@@ -769,103 +1231,65 @@ export function initPropertiesPanel(onFieldUpdated, onFieldDeleted) {
         updateFormulaLivePreview(getSelectedField());
     });
 
-    fieldCalcTargetFields?.addEventListener("input", e => {
-        syncChange(f => {
-            f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
-            renderFormulaFieldChips(f);
-            updateFormulaLivePreview(f);
-        }, false);
-    });
-    fieldCalcTargetFields?.addEventListener("change", e => {
-        syncChange(f => {
-            f.calculationFields = e.target.value.split(",").map(s => s.trim()).filter(Boolean);
-            renderFormulaFieldChips(f);
-            updateFormulaLivePreview(f);
-        }, true, "Set Calculation Fields");
-    });
-
-    calcTaxBaseField?.addEventListener("change", e => {
-        syncChange(f => {
-            f.calculationTaxBaseField = e.target.value;
-            updateFormulaLivePreview(f);
-        }, true, "Set Tax Base Field");
-    });
-    calcTaxRateInput?.addEventListener("input", e => {
-        syncChange(f => {
-            f.calculationTaxRate = parseFloat(e.target.value) || 0;
-            updateFormulaLivePreview(f);
-        }, false);
-    });
-    calcTaxRateInput?.addEventListener("change", e => {
-        syncChange(f => {
-            f.calculationTaxRate = parseFloat(e.target.value) || 0;
-            updateFormulaLivePreview(f);
-        }, true, "Set Tax Rate");
-    });
-
-    calcDiscountBaseField?.addEventListener("change", e => {
-        syncChange(f => {
-            f.calculationDiscountBaseField = e.target.value;
-            updateFormulaLivePreview(f);
-        }, true, "Set Discount Base Field");
-    });
-    calcDiscountRateInput?.addEventListener("input", e => {
-        syncChange(f => {
-            f.calculationDiscountRate = parseFloat(e.target.value) || 0;
-            updateFormulaLivePreview(f);
-        }, false);
-    });
-    calcDiscountRateInput?.addEventListener("change", e => {
-        syncChange(f => {
-            f.calculationDiscountRate = parseFloat(e.target.value) || 0;
-            updateFormulaLivePreview(f);
-        }, true, "Set Discount Rate");
-    });
-
-    fieldCalcFormula?.addEventListener("input", e => {
-        syncChange(f => {
-            f.calculationFormula = e.target.value;
-            updateFormulaLivePreview(f);
-        }, false);
-    });
-    fieldCalcFormula?.addEventListener("change", e => {
-        syncChange(f => {
-            f.calculationFormula = e.target.value;
-            updateFormulaLivePreview(f);
-        }, true, "Set Calculation Formula");
-    });
-
-    // Operator Buttons
-    safeQuerySelectorAll(".calc-op-btn[data-op]").forEach(btn => {
-        btn.addEventListener("click", () => {
-            const op = btn.dataset.op;
-            if (op) insertTokenIntoFormula(op);
+    // Fill Down Column Actions
+    const calcFillDownBtn = document.getElementById("calcFillDownBtn");
+    calcFillDownBtn?.addEventListener("mouseenter", () => {
+        const field = getSelectedField();
+        if (!field) return;
+        const siblings = getVerticallyAlignedColumnSiblings(field, state.fields || []);
+        siblings.forEach(s => {
+            const ov = document.getElementById(`field-${s.id}`);
+            if (ov) ov.classList.add("calc-fill-down-preview");
         });
     });
-
-    document.getElementById("calcOpBackspace")?.addEventListener("click", () => {
-        if (!fieldCalcFormula) return;
-        const input = fieldCalcFormula;
-        const start = input.selectionStart;
-        const end = input.selectionEnd;
-        if (start !== end) {
-            input.value = input.value.substring(0, start) + input.value.substring(end);
-            input.setSelectionRange(start, start);
-        } else if (start > 0) {
-            input.value = input.value.substring(0, start - 1) + input.value.substring(start);
-            input.setSelectionRange(start - 1, start - 1);
+    calcFillDownBtn?.addEventListener("mouseleave", () => {
+        safeQuerySelectorAll(".calc-fill-down-preview").forEach(el => el.classList.remove("calc-fill-down-preview"));
+    });
+    calcFillDownBtn?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (!field) return;
+        safeQuerySelectorAll(".calc-fill-down-preview").forEach(el => el.classList.remove("calc-fill-down-preview"));
+        const siblings = fillFormulaDownColumn(field, state.fields || []);
+        if (siblings.length > 0) {
+            saveHistory(true, `Fill Formula Down Column (${siblings.length} rows)`);
+            if (panelOnFieldUpdated) panelOnFieldUpdated(field);
+            populateProperties(field);
         }
-        input.focus();
-        syncChange(f => f.calculationFormula = input.value, true, "Backspace Formula");
-        updateFormulaLivePreview(getSelectedField());
     });
 
-    document.getElementById("calcOpClear")?.addEventListener("click", () => {
-        if (!fieldCalcFormula) return;
-        fieldCalcFormula.value = "";
-        fieldCalcFormula.focus();
-        syncChange(f => f.calculationFormula = "", true, "Clear Formula");
-        updateFormulaLivePreview(getSelectedField());
+    // Copy Formula Recipe
+    const calcCopyFormulaBtn = document.getElementById("calcCopyFormulaBtn");
+    calcCopyFormulaBtn?.addEventListener("click", () => {
+        const field = getSelectedField();
+        if (!field) return;
+        const clip = copyFormulaRecipe(field);
+        if (clip) {
+            calcCopyFormulaBtn.classList.add("copied-flash");
+            const span = calcCopyFormulaBtn.querySelector("span");
+            const originalText = span ? span.textContent : "Copy Formula";
+            if (span) span.textContent = "Copied!";
+            setTimeout(() => {
+                calcCopyFormulaBtn.classList.remove("copied-flash");
+                if (span) span.textContent = originalText;
+            }, 1200);
+            const pasteBtn = document.getElementById("calcPasteFormulaBtn");
+            if (pasteBtn) pasteBtn.disabled = false;
+        }
+    });
+
+    // Paste Formula Recipe
+    const calcPasteFormulaBtn = document.getElementById("calcPasteFormulaBtn");
+    calcPasteFormulaBtn?.addEventListener("click", () => {
+        const field = getSelectedField();
+        const targetFields = state.selectedFieldIds && state.selectedFieldIds.size > 0
+            ? (state.fields || []).filter(f => state.selectedFieldIds.has(f.id))
+            : (field ? [field] : []);
+        const count = pasteFormulaRecipeToFields(targetFields, state.fields || []);
+        if (count > 0) {
+            saveHistory(true, `Paste Formula Recipe (${count} fields)`);
+            if (panelOnFieldUpdated) panelOnFieldUpdated(field);
+            if (field) populateProperties(field);
+        }
     });
 
     // Enable Scrubbing and Scrolling on Number Inputs
@@ -1360,8 +1784,14 @@ export function populateProperties(field) {
             "fieldType", "fieldName", "fieldDefaultValue", "fieldFontFamily", "fontSize",
             "textAlignment", "fieldTooltip", "autofillType", "fieldAutofill",
             "fieldBorderStyle", "borderStyleSelect", "fieldFillStyle", "fillStyleSelect",
-            "posX", "posY", "width", "height", "dropdownOptions"
+            "posX", "posY", "width", "height", "dropdownOptions",
+            "fieldDataFormat", "fieldCurrencySymbol", "fieldCustomCurrencySymbol", "fieldCurrencyPosition", "fieldCurrencyDecimals"
         ].forEach(clearText);
+
+        const curGrp = document.getElementById("currencySettingsGroup");
+        if (curGrp) curGrp.style.display = "none";
+        const customCurRow = document.getElementById("customCurrencySymbolRow");
+        if (customCurRow) customCurRow.style.display = "none";
 
         [
             "fieldRequired", "fieldReadOnly", "fieldMultiline", "fieldDefaultChecked"
@@ -1392,7 +1822,7 @@ export function populateProperties(field) {
     const setChecked = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
 
     setVal("fieldType", fallbackField.type);
-    setVal("fieldName", fallbackField.name || "");
+    setVal("fieldName", (fallbackField.type === "radioGroup" || fallbackField.type === "radio") ? getRadioGroupName(fallbackField) : (fallbackField.name || ""));
     setVal("fieldDefaultValue", fallbackField.defaultValue || (fallbackField.type === "staticText" || fallbackField.type === "label" ? fallbackField.label : "") || "");
     setVal("fieldFontFamily", fallbackField.fontFamily || "helvetica");
     setVal("fontSize", fallbackField.fontSize || "");
@@ -1417,8 +1847,36 @@ export function populateProperties(field) {
     setChecked("fieldMultiline", fallbackField.multiline);
     setChecked("fieldIsComb", fallbackField.isComb);
     setVal("fieldMaxLength", fallbackField.maxLength || "");
-    setChecked("fieldDefaultChecked", fallbackField.defaultChecked);
+    setChecked("fieldDefaultChecked", Boolean(fallbackField.defaultChecked || fallbackField.checked));
     setVal("fieldCheckboxMark", fallbackField.checkboxMark || "check");
+
+    // Data Format & Currency Properties
+    setVal("fieldDataFormat", fallbackField.dataFormat || (fallbackField.type === "number" ? "number" : "text"));
+    const fieldFormatGroup = document.getElementById("fieldFormatGroup");
+    if (fieldFormatGroup) {
+        fieldFormatGroup.style.display = (fallbackField.type === "textField" || fallbackField.type === "number") ? "block" : "none";
+    }
+
+    const currencySettingsGroup = document.getElementById("currencySettingsGroup");
+    const customCurrencySymbolRow = document.getElementById("customCurrencySymbolRow");
+    if (fallbackField.dataFormat === "currency") {
+        if (currencySettingsGroup) currencySettingsGroup.style.display = "block";
+        const sym = fallbackField.currencySymbol || "$";
+        const known = ["$", "€", "£", "¥", "₹", "CHF", "kr", "R$"];
+        if (known.includes(sym)) {
+            setVal("fieldCurrencySymbol", sym);
+            if (customCurrencySymbolRow) customCurrencySymbolRow.style.display = "none";
+        } else {
+            setVal("fieldCurrencySymbol", "custom");
+            setVal("fieldCustomCurrencySymbol", sym);
+            if (customCurrencySymbolRow) customCurrencySymbolRow.style.display = "block";
+        }
+        setVal("fieldCurrencyPosition", fallbackField.currencyPosition || (sym === "€" ? "suffix" : "prefix"));
+        setVal("fieldCurrencyDecimals", String(fallbackField.currencyDecimals !== undefined ? fallbackField.currencyDecimals : 2));
+    } else {
+        if (currencySettingsGroup) currencySettingsGroup.style.display = "none";
+        if (customCurrencySymbolRow) customCurrencySymbolRow.style.display = "none";
+    }
 
     // Calculation properties
     setVal("fieldCalcType", fallbackField.calculationType || "none");
@@ -1467,6 +1925,7 @@ export function populateProperties(field) {
     populateBaseFieldOptions(fallbackField);
     renderFormulaFieldChips(fallbackField);
     updateFormulaLivePreview(fallbackField);
+    updateCalcActionsGroup(fallbackField);
 
     // Signature controls visibility
     const sigGroup = document.getElementById("signatureActionsGroup");
@@ -1516,6 +1975,23 @@ export function populateProperties(field) {
     const checkboxMarkGroup = document.getElementById("checkboxMarkGroup");
     if (checkboxMarkGroup) {
         checkboxMarkGroup.style.display = fallbackField.type === "checkBox" ? "flex" : "none";
+    }
+
+    // Radio group settings visibility and population
+    const radioSettingsGroup = document.getElementById("radioGroupSettingsGroup");
+    if (radioSettingsGroup) {
+        const isRadio = (fallbackField.type === "radioGroup" || fallbackField.type === "radio");
+        radioSettingsGroup.style.display = isRadio ? "block" : "none";
+        if (isRadio) {
+            const grpName = getRadioGroupName(fallbackField);
+            setVal("fieldRadioGroup", grpName);
+            setVal("fieldRadioExportValue", fallbackField.exportValue || fallbackField.radioValue || fallbackField.value || "");
+            const choiceCount = document.getElementById("radioGroupChoiceCount");
+            const siblings = getRadioGroupFields(fallbackField, state.fields);
+            if (choiceCount) choiceCount.textContent = `${siblings.length} choice${siblings.length !== 1 ? "s" : ""}`;
+            const isMulti = siblings.some(s => s.radioGroupMulti === true);
+            setVal("radioGroupSelectMode", isMulti ? "multi" : "single");
+        }
     }
 
     if (typeof lucide !== "undefined") lucide.createIcons();

@@ -391,35 +391,275 @@ body.mode-fill .canvas-docked-footer{display:none !important}
     font-weight: 700;
 }
 
-.calc-preview-val {
-    font-weight: 700;
+.calc-actions-group {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.calc-fill-down-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    height: 28px;
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.calc-fill-down-btn:hover:not(:disabled) {
+    background: #dcfce7;
+    border-color: #86efac;
+    color: #166534;
+    box-shadow: 0 1px 3px rgba(22, 101, 52, 0.12);
+}
+
+.calc-fill-down-btn:disabled {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
+    opacity: 0.65;
+}
+
+.calc-clipboard-row {
+    display: flex;
+    gap: 6px;
+}
+
+.calc-copy-btn,
+.calc-paste-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    height: 26px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    font-family: inherit;
+}
+
+.calc-copy-btn:hover:not(:disabled),
+.calc-paste-btn:hover:not(:disabled) {
+    background: #f8fafc;
+    border-color: #cbd5e1;
     color: #0f172a;
 }
 
-/* Canvas field picking mode highlights */
+.calc-copy-btn:disabled,
+.calc-paste-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.calc-copy-btn.copied-flash {
+    background: #ecfdf5 !important;
+    border-color: #a7f3d0 !important;
+    color: #059669 !important;
+}
+
+.field-overlay.calc-fill-down-preview {
+    outline: 2px dashed #059669 !important;
+    outline-offset: 2px !important;
+    background: rgba(16, 185, 129, 0.15) !important;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2) !important;
+    transition: all 0.15s ease !important;
+    z-index: 55 !important;
+}
+
+.contextual-quick-bar .quick-bar-btn-accent {
+    color: #86efac;
+}
+
+.contextual-quick-bar .quick-bar-btn-accent:hover {
+    background: rgba(16, 185, 129, 0.25);
+    color: #bbf7d0;
+}
+
+/* Canvas field picking mode: eliminate UI overload and clearly differentiate field states */
+body.is-picking-calc-field #contextualQuickBar,
+body.is-picking-calc-field .resize-handle,
+body.is-picking-calc-field .group-resize-handle,
+body.is-picking-calc-field .field-locked-badge,
+body.is-picking-calc-field .field-floating-badge {
+    display: none !important;
+}
+
 body.is-picking-calc-field .field-overlay {
     cursor: crosshair !important;
-    outline: 2.5px dashed #2563eb !important;
-    outline-offset: 2px !important;
     pointer-events: auto !important;
-    animation: calcPickerPulse 1.8s infinite ease-in-out;
+    transition: outline-color 0.15s ease, background-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 body.is-picking-calc-field .field-overlay * {
     pointer-events: none !important;
 }
 
-@keyframes calcPickerPulse {
-    0%, 100% { outline-color: #2563eb; box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25); }
-    50% { outline-color: #3b82f6; box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.12); }
+/* Candidate fields: Clean, calm hairline by default (Excel style) - no bright blue boxes! */
+body.is-picking-calc-field .field-overlay.calc-field-candidate {
+    outline: 1px solid rgba(148, 163, 184, 0.4) !important;
+    outline-offset: 1px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    z-index: 20;
 }
 
-body.is-picking-calc-field .field-overlay:hover {
-    outline: 2.5px solid #1d4ed8 !important;
-    background: rgba(37, 99, 235, 0.18) !important;
-    box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.35) !important;
-    transform: scale(1.02);
-    z-index: 500 !important;
+/* Hover Spotlight: Lights up bright blue ONLY on hover */
+body.is-picking-calc-field .field-overlay.calc-field-candidate:hover {
+    outline: 2px solid #2563eb !important;
+    outline-offset: 2px !important;
+    background: rgba(37, 99, 235, 0.12) !important;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.22) !important;
+    transform: scale(1.015);
+    z-index: 60 !important;
+}
+
+/* Already-picked fields included in the active formula */
+body.is-picking-calc-field .field-overlay.calc-field-picked {
+    outline: 2px solid #059669 !important;
+    outline-offset: 2px !important;
+    background: rgba(16, 185, 129, 0.12) !important;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25) !important;
+    cursor: pointer !important;
+    z-index: 30;
+}
+
+body.is-picking-calc-field .field-overlay.calc-field-picked:hover {
+    outline-color: #dc2626 !important;
+    background: rgba(239, 68, 68, 0.12) !important;
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.28) !important;
+    z-index: 60 !important;
+}
+
+/* Target field (the field being calculated) - distinctly highlighted in purple */
+body.is-picking-calc-field .field-overlay.calc-target-result-field {
+    outline: 2.5px solid #8b5cf6 !important;
+    outline-offset: 2px !important;
+    background: rgba(139, 92, 246, 0.09) !important;
+    box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.22) !important;
+    cursor: not-allowed !important;
+    z-index: 40 !important;
+}
+
+/* Dim non-calculable fields (signatures, addresses, notes) so only numbers stand out */
+body.is-picking-calc-field .field-overlay.calc-non-calculable {
+    opacity: 0.28 !important;
+    pointer-events: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    filter: grayscale(0.85);
+}
+
+/* Corner status badges for target & picked fields (tiny, non-overlapping, leaves numbers 100% visible) */
+.calc-corner-badge {
+    position: absolute;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 65;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    font-size: 10px;
+    font-weight: 800;
+    transition: transform 0.15s ease;
+}
+
+.calc-corner-badge.badge-target {
+    top: -8px;
+    left: -8px;
+    background: #7c3aed;
+    color: #ffffff;
+    border: 1.5px solid #ffffff;
+}
+
+.calc-corner-badge.badge-picked {
+    top: -8px;
+    right: -8px;
+    background: #059669;
+    color: #ffffff;
+    border: 1.5px solid #ffffff;
+}
+
+.field-overlay.calc-field-picked:hover .calc-corner-badge.badge-picked {
+    background: #dc2626;
+    transform: scale(1.15);
+}
+
+/* Floating hover tooltip for field details: appears ONLY on hover! */
+.calc-hover-tooltip {
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%) translateY(3px);
+    background: #0f172a;
+    color: #f8fafc;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-size: 10.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 80;
+    opacity: 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.field-overlay:hover .calc-hover-tooltip {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.calc-hover-tooltip.tip-picked {
+    background: #064e3b;
+    border: 1px solid #059669;
+}
+
+.field-overlay.calc-field-picked:hover .calc-hover-tooltip.tip-picked {
+    background: #7f1d1d;
+    border-color: #dc2626;
+}
+
+.calc-hover-tooltip.tip-candidate {
+    background: #1e3a8a;
+    border: 1px solid #2563eb;
+}
+
+.calc-hover-tooltip.tip-target {
+    background: #4c1d95;
+    border: 1px solid #7c3aed;
+}
+
+.calc-hover-tooltip .tip-val {
+    color: #93c5fd;
+    font-weight: 500;
+}
+
+.calc-hover-tooltip .tip-action {
+    opacity: 0.75;
+    font-size: 9px;
+    margin-left: 3px;
 }
 
 .field-overlay.just-picked-flash {
@@ -428,54 +668,193 @@ body.is-picking-calc-field .field-overlay:hover {
 
 @keyframes justPickedPop {
     0% { transform: scale(0.96); background: rgba(37, 99, 235, 0.3); }
-    50% { transform: scale(1.06); background: rgba(5, 150, 105, 0.25); }
+    50% { transform: scale(1.05); background: rgba(5, 150, 105, 0.28); }
     100% { transform: scale(1); background: transparent; }
 }
 
+/* Sleek Native Desktop Formula Bar (Zero Pills, Zero Rainbow Badges) */
 .calc-picker-hud {
     position: fixed;
-    bottom: 60px;
+    bottom: 64px;
     left: 50%;
     transform: translateX(-50%);
-    background: #0f172a;
-    color: #f8fafc;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
     border-radius: 8px;
-    padding: 8px 14px;
+    padding: 0 6px 0 14px;
+    height: 40px;
     display: flex;
     align-items: center;
-    gap: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
+    gap: 0;
+    box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.12), 0 2px 6px -1px rgba(15, 23, 42, 0.06);
     z-index: 9999;
     font-size: 12px;
-    font-weight: 500;
+    color: #0f172a;
     pointer-events: auto;
-    animation: slideUpFade 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: slideUpFade 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
 }
 
-.calc-picker-hud-badge {
+.calc-hud-left {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: nowrap;
+    overflow: hidden;
+}
+
+/* 1. Mode: Clean label with math glyph (no background, no pill) */
+.calc-hud-mode {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #93c5fd;
-    font-weight: 700;
+    font-weight: 600;
+    color: #0f172a;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.calc-picker-hud-done-btn {
-    height: 26px;
+.calc-hud-mode-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+    line-height: 1;
+}
+
+/* Hairline dividers between segments */
+.calc-hud-divider {
+    width: 1px;
+    height: 16px;
+    background: #e2e8f0;
+    margin: 0 12px;
+    flex-shrink: 0;
+}
+
+/* 2. Target: Subtle label + monospace field name (no background, no pill) */
+.calc-hud-target {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    color: #64748b;
+    font-size: 12px;
+}
+
+.calc-hud-target-label {
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* 3. Monospace Code Styling for Field Names & Formulas */
+.calc-hud-mono {
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 11.5px;
+    color: #0f172a;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+}
+
+/* 4. Selection & Equation Preview */
+.calc-hud-selection {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.calc-hud-empty {
+    color: #94a3b8;
+    font-size: 12px;
+    font-style: normal;
+}
+
+.calc-hud-count {
+    color: #64748b;
+    font-size: 11.5px;
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.calc-hud-expr-text {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #0f172a;
+}
+
+/* 5. Right Action Buttons */
+.calc-hud-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-left: 16px;
+    flex-shrink: 0;
+}
+
+.calc-hud-btn-clear,
+.calc-picker-hud-clear-btn {
+    height: 28px;
     padding: 0 10px;
-    border-radius: 5px;
+    border-radius: 6px;
     border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+    font-family: inherit;
+}
+
+.calc-hud-btn-clear:hover,
+.calc-picker-hud-clear-btn:hover {
+    background: #f1f5f9;
+    color: #dc2626;
+}
+
+.calc-hud-btn-done,
+.calc-picker-hud-done-btn {
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 6px;
+    border: 1px solid #1d4ed8;
     background: #2563eb;
     color: #ffffff;
-    font-size: 11px;
-    font-weight: 700;
+    font-size: 12px;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.12s ease;
+    transition: all 0.12s ease;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
+.calc-hud-btn-done:hover,
 .calc-picker-hud-done-btn:hover {
     background: #1d4ed8;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.3);
+}
+
+.calc-hud-kbd {
+    display: inline-block;
+    padding: 1px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    font-family: inherit;
 }
 
 @media (max-width: 767px) {

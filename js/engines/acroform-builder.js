@@ -1,5 +1,5 @@
 // ── pdf-lib AcroForm Compiler & Exporter (js/engines/acroform-builder.js) ─
-import { state, sortFieldsByReadingOrder } from "../core/state.js";
+import { state, sortFieldsByReadingOrder, evaluateCalculations } from "../core/state.js";
 import { showToast } from "../utils/toast.js";
 import { loadPdfLibraries } from "./pdf-engine.js";
 
@@ -81,24 +81,24 @@ export function compileFormulaToAcroJs(field, allFields = []) {
 
     if (calcType === "sum") {
         const fieldList = targets.map(fn => JSON.stringify(fn.replace(/[^a-zA-Z0-9_-]/g, "_"))).join(", ");
-        return `var s = 0; [${fieldList}].forEach(function(fn){ var f = this.getField(fn); if(f && f.value !== "" && !isNaN(Number(f.value))) s += Number(f.value); }.bind(this)); event.value = s;`;
+        return `if (typeof AFSimple_Calculate === "function") { AFSimple_Calculate("SUM", new Array(${fieldList})); } else { var s = 0; var flds = [${fieldList}]; for (var i = 0; i < flds.length; i++) { var f = this.getField(flds[i]); if (f && f.value !== null && f.value !== undefined && f.value !== "") { var v = parseFloat(("" + f.value).replace(/[^0-9.-]/g, "")); if (!isNaN(v)) s += v; } } event.value = s; }`;
     }
 
     if (calcType === "prod") {
         const fieldList = targets.map(fn => JSON.stringify(fn.replace(/[^a-zA-Z0-9_-]/g, "_"))).join(", ");
-        return `var p = 1, found = false; [${fieldList}].forEach(function(fn){ var f = this.getField(fn); if(f && f.value !== "" && !isNaN(Number(f.value))){ p *= Number(f.value); found = true; } }.bind(this)); event.value = found ? p : 0;`;
+        return `if (typeof AFSimple_Calculate === "function") { AFSimple_Calculate("PRD", new Array(${fieldList})); } else { var p = 1, found = false; var flds = [${fieldList}]; for (var i = 0; i < flds.length; i++) { var f = this.getField(flds[i]); if (f && f.value !== null && f.value !== undefined && f.value !== "") { var v = parseFloat(("" + f.value).replace(/[^0-9.-]/g, "")); if (!isNaN(v)) { p *= v; found = true; } } } event.value = found ? p : 0; }`;
     }
 
     if (calcType === "tax") {
         const baseField = (field.calculationTaxBaseField || targets[0] || "").replace(/[^a-zA-Z0-9_-]/g, "_");
         const rate = parseFloat(field.calculationTaxRate) || 0;
-        return `var f = this.getField("${baseField}"); var v = (f && f.value !== "" && !isNaN(Number(f.value))) ? Number(f.value) : 0; event.value = v * (${rate} / 100);`;
+        return `var f = this.getField("${baseField}"); var v = 0; if (f && f.value !== null && f.value !== undefined && f.value !== "") { var num = parseFloat(("" + f.value).replace(/[^0-9.-]/g, "")); if (!isNaN(num)) v = num; } event.value = Math.round(v * (${rate} / 100) * 100) / 100;`;
     }
 
     if (calcType === "discount") {
         const baseField = (field.calculationDiscountBaseField || targets[0] || "").replace(/[^a-zA-Z0-9_-]/g, "_");
         const rate = parseFloat(field.calculationDiscountRate) || 0;
-        return `var f = this.getField("${baseField}"); var v = (f && f.value !== "" && !isNaN(Number(f.value))) ? Number(f.value) : 0; event.value = v * (${rate} / 100);`;
+        return `var f = this.getField("${baseField}"); var v = 0; if (f && f.value !== null && f.value !== undefined && f.value !== "") { var num = parseFloat(("" + f.value).replace(/[^0-9.-]/g, "")); if (!isNaN(num)) v = num; } event.value = Math.round(v * (${rate} / 100) * 100) / 100;`;
     }
 
     if (calcType === "custom" && field.calculationFormula) {
@@ -110,7 +110,7 @@ export function compileFormulaToAcroJs(field, allFields = []) {
         let jsPre = "";
         uniqueTokens.forEach(tok => {
             const sanitizedTok = tok.replace(/[^a-zA-Z0-9_-]/g, "_");
-            jsPre += `var ${sanitizedTok} = (function(th){ var f = th.getField("${sanitizedTok}"); return (f && f.value !== "" && !isNaN(Number(f.value))) ? Number(f.value) : 0; })(this);\n`;
+            jsPre += `var ${sanitizedTok} = (function(th){ var f = th.getField("${sanitizedTok}"); if(!f || f.value === null || f.value === undefined || f.value === "") return 0; var num = parseFloat(("" + f.value).replace(/[^0-9.-]/g, "")); return !isNaN(num) ? num : 0; })(this);\n`;
         });
         return `${jsPre}try { event.value = (${expr}); } catch(e) { event.value = 0; }`;
     }
@@ -118,7 +118,7 @@ export function compileFormulaToAcroJs(field, allFields = []) {
     return "";
 }
 
-function applyTextFieldAppearance(fieldObj, font, fontSize) {
+function applyTextFieldAppearance(fieldObj, font, fontSize, textAlignment = "left") {
     if (!fieldObj || !font) return;
 
     // PDF /DA formatting must be: "0 0 0 rg /FontName size Tf"
@@ -136,8 +136,12 @@ function applyTextFieldAppearance(fieldObj, font, fontSize) {
 
     try { fieldObj.setFontSize(fontSize); } catch (e) {}
 
+    // PDF 1.7 / ISO 32000-1 §12.7.4.3: Quadding /Q
+    // 0 = Left-justified, 1 = Centered, 2 = Right-justified
+    const qVal = textAlignment === "right" ? 2 : (textAlignment === "center" ? 1 : 0);
+
     try {
-        fieldObj.acroField?.dict?.set?.(PDFLib.PDFName.of("Q"), PDFLib.PDFNumber.of(0));
+        fieldObj.acroField?.dict?.set?.(PDFLib.PDFName.of("Q"), PDFLib.PDFNumber.of(qVal));
     } catch (e) {}
 
     try {
@@ -145,7 +149,7 @@ function applyTextFieldAppearance(fieldObj, font, fontSize) {
         widgets.forEach(widget => {
             try { widget.setDefaultAppearance(appearance); } catch (e) {}
             try { widget.dict.set(PDFLib.PDFName.of("DA"), PDFLib.PDFString.of(appearance)); } catch (e) {}
-            try { widget.dict.set(PDFLib.PDFName.of("Q"), PDFLib.PDFNumber.of(0)); } catch (e) {}
+            try { widget.dict.set(PDFLib.PDFName.of("Q"), PDFLib.PDFNumber.of(qVal)); } catch (e) {}
         });
     } catch (err) {
         console.warn("Could not set widget appearance explicitly:", err);
@@ -165,6 +169,15 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
         opts = pdfBytesOrOptions;
         if (opts.pdfBytes) sourceBytes = opts.pdfBytes;
         if (Array.isArray(opts.fields)) targetFields = opts.fields;
+    }
+
+    // Pre-evaluate calculations to ensure current field values are computed before PDF export
+    try {
+        if (Array.isArray(targetFields)) {
+            evaluateCalculations(targetFields);
+        }
+    } catch(e) {
+        console.warn("Could not pre-evaluate calculations before PDF export:", e);
     }
 
     if (!sourceBytes) throw new Error("No PDF loaded.");
@@ -287,6 +300,7 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     }
 
     const calcOrderRefs = [];
+    const calcOrderMap = new Map();
     const fieldsToCompile = (opts && opts.preserveExplicitOrder) ? targetFields : sortFieldsByReadingOrder(targetFields);
     for (let f of fieldsToCompile) {
         const pageIdx = Math.max(0, Math.min(pages.length - 1, (f.page || 1) - 1));
@@ -411,17 +425,60 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
                             tf.acroField.dict.set(PDFLib.PDFName.of("AA"), aaDict);
                             if (tf.acroField.ref) {
                                 calcOrderRefs.push(tf.acroField.ref);
+                                calcOrderMap.set(nm, { ref: tf.acroField.ref, field: f });
                             }
+                            f._aaDict = aaDict;
                         }
                     } catch (calcErr) {
                         console.warn("Could not attach calculation script to field:", calcErr);
                     }
                 }
                 
+                // Attach Currency Formatting Action (/F) & Keystroke Action (/K)
+                if (f.dataFormat === "currency") {
+                    try {
+                        const sym = f.currencySymbol || "$";
+                        const pos = f.currencyPosition || (sym === "€" ? "suffix" : "prefix");
+                        const dec = f.currencyDecimals !== undefined ? Number(f.currencyDecimals) : 2;
+                        const isPrepend = (pos === "prefix");
+
+                        const formatScript = `if (typeof AFNumber_Format === "function") { AFNumber_Format(${dec}, 0, 0, 0, ${JSON.stringify(sym)}, ${isPrepend}); } else if (event.value !== null && event.value !== "") { var n = parseFloat(("" + event.value).replace(/[^0-9.-]/g, "")); if (!isNaN(n)) { var formatted = n.toFixed(${dec}); event.value = ${isPrepend} ? (${JSON.stringify(sym)} + formatted) : (formatted + " " + ${JSON.stringify(sym)}); } }`;
+                        const formatAction = doc.context.obj({
+                            S: PDFLib.PDFName.of("JavaScript"),
+                            JS: PDFLib.PDFString.of(formatScript)
+                        });
+
+                        const keystrokeScript = `if (typeof AFNumber_Keystroke === "function") { AFNumber_Keystroke(${dec}, 0, 0, 0, ${JSON.stringify(sym)}, ${isPrepend}); }`;
+                        const keystrokeAction = doc.context.obj({
+                            S: PDFLib.PDFName.of("JavaScript"),
+                            JS: PDFLib.PDFString.of(keystrokeScript)
+                        });
+
+                        let aaDict = f._aaDict;
+                        if (!aaDict) {
+                            aaDict = doc.context.obj({});
+                            tf.acroField.dict.set(PDFLib.PDFName.of("AA"), aaDict);
+                            f._aaDict = aaDict;
+                        }
+                        aaDict.set(PDFLib.PDFName.of("F"), formatAction);
+                        aaDict.set(PDFLib.PDFName.of("K"), keystrokeAction);
+                    } catch (fmtErr) {
+                        console.warn("Could not attach format script to field:", fmtErr);
+                    }
+                }
+
                 // Enhanced PDF Viewer Autofill Descriptor (/TU)
                 const autoFillTooltip = resolveAutofillTooltip(f);
                 try { tf.setToolTip(autoFillTooltip || f.name.replace(/_/g, " ")); } catch(e) {}
-                if (!f.textAlignment) f.textAlignment = "left";
+                let align = f.textAlignment;
+                if (!align) {
+                    if (f.dataFormat === "currency" || f.dataFormat === "number" || (f.calculationType && f.calculationType !== "none")) {
+                        align = "right";
+                    } else {
+                        align = "left";
+                    }
+                }
+                f.textAlignment = align;
 
                 // Select font & font size
                 const font = resolveFont(f.fontFamily);
@@ -430,22 +487,39 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
 
                 try {
                     if (PDFLib.TextAlignment && tf.setAlignment) {
-                        if (f.textAlignment === "center") tf.setAlignment(PDFLib.TextAlignment.Center);
-                        else if (f.textAlignment === "right") tf.setAlignment(PDFLib.TextAlignment.Right);
-                        else if (f.textAlignment === "left") tf.setAlignment(PDFLib.TextAlignment.Left);
+                        if (align === "center") tf.setAlignment(PDFLib.TextAlignment.Center);
+                        else if (align === "right") tf.setAlignment(PDFLib.TextAlignment.Right);
+                        else tf.setAlignment(PDFLib.TextAlignment.Left);
                     }
                 } catch(e) {}
 
                 // Set text value if present
-                const textVal = (f.value !== undefined && f.value !== "") ? f.value : f.defaultValue;
+                let textVal = (f.value !== undefined && f.value !== "") ? f.value : f.defaultValue;
                 if (textVal !== undefined && textVal !== "") {
+                    if (f.dataFormat === "currency") {
+                        const sym = f.currencySymbol || "$";
+                        const pos = f.currencyPosition || (sym === "€" ? "suffix" : "prefix");
+                        const dec = f.currencyDecimals !== undefined ? Number(f.currencyDecimals) : 2;
+                        const isPrepend = (pos === "prefix");
+                        const raw = String(textVal).trim();
+                        if (!raw.includes(sym) && !isNaN(Number(raw.replace(/,/g, "")))) {
+                            const n = Number(raw.replace(/,/g, ""));
+                            textVal = isPrepend ? `${sym}${n.toFixed(dec)}` : `${n.toFixed(dec)} ${sym}`;
+                        }
+                    }
                     try { tf.setText(String(textVal)); } catch(e) {}
                 }
 
                 // Add to page and compile vector appearance
                 tf.addToPage(page, common);
+                if (f._aaDict) {
+                    const widgets = tf.acroField.getWidgets() || [];
+                    widgets.forEach(w => {
+                        try { w.dict.set(PDFLib.PDFName.of("AA"), f._aaDict); } catch(e) {}
+                    });
+                }
                 try { tf.updateAppearances(font); } catch(e) {}
-                applyTextFieldAppearance(tf, font, fontSize);
+                applyTextFieldAppearance(tf, font, fontSize, align);
 
             } else if (f.type === "checkBox") {
                 let cb;
@@ -499,7 +573,7 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
                 } catch(e) {}
 
                 try { dd.updateAppearances(font); } catch(e) {}
-                applyTextFieldAppearance(dd, font, fontSize);
+                applyTextFieldAppearance(dd, font, fontSize, f.textAlignment || "left");
 
             } else if (f.type === "radioGroup" || f.type === "radio") {
                 let rg;
@@ -573,8 +647,62 @@ export async function buildPdf(pdfBytesOrOptions = {}, maybeFields = null, maybe
     // Attach Calculation Order Array (/CO) to AcroForm Catalog Dictionary
     if (calcOrderRefs.length > 0) {
         try {
+            // Topologically sort calculated fields so upstream calculations evaluate before downstream dependencies
+            const sortedCalcRefs = [];
+            const visited = new Set();
+            const visiting = new Set();
+
+            function getFieldDeps(f) {
+                if (!f) return [];
+                const targets = Array.isArray(f.calculationFields)
+                    ? f.calculationFields
+                    : (f.calculationFields ? String(f.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+                if (f.calculationType === "sum" || f.calculationType === "prod") {
+                    return targets.map(t => t.replace(/[^a-zA-Z0-9_-]/g, "_"));
+                }
+                if (f.calculationType === "tax" && f.calculationTaxBaseField) {
+                    return [f.calculationTaxBaseField.replace(/[^a-zA-Z0-9_-]/g, "_")];
+                }
+                if (f.calculationType === "discount" && f.calculationDiscountBaseField) {
+                    return [f.calculationDiscountBaseField.replace(/[^a-zA-Z0-9_-]/g, "_")];
+                }
+                if (f.calculationType === "custom" && f.calculationFormula) {
+                    const tokens = f.calculationFormula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+                    return tokens.map(t => t.replace(/[^a-zA-Z0-9_-]/g, "_"));
+                }
+                return [];
+            }
+
+            function visitField(name) {
+                if (visited.has(name) || visiting.has(name)) return;
+                visiting.add(name);
+                const item = calcOrderMap.get(name);
+                if (item) {
+                    const deps = getFieldDeps(item.field);
+                    for (const dep of deps) {
+                        if (calcOrderMap.has(dep)) {
+                            visitField(dep);
+                        }
+                    }
+                    visited.add(name);
+                    sortedCalcRefs.push(item.ref);
+                }
+                visiting.delete(name);
+            }
+
+            for (const name of calcOrderMap.keys()) {
+                visitField(name);
+            }
+
+            const finalOrderRefs = sortedCalcRefs.length === calcOrderRefs.length ? sortedCalcRefs : calcOrderRefs;
             const acroForm = doc.catalog.getOrCreateAcroForm();
-            acroForm.dict.set(PDFLib.PDFName.of("CO"), doc.context.obj(calcOrderRefs));
+            acroForm.dict.set(PDFLib.PDFName.of("CO"), doc.context.obj(finalOrderRefs));
+            // Trigger calculation engine initialization on document open
+            const openJsAction = doc.context.obj({
+                S: PDFLib.PDFName.of("JavaScript"),
+                JS: PDFLib.PDFString.of("this.calculate = true; try { this.calculateNow(); } catch(e) {}")
+            });
+            doc.catalog.set(PDFLib.PDFName.of("OpenAction"), openJsAction);
         } catch(coErr) {
             console.warn("Could not set calculation order array /CO:", coErr);
         }

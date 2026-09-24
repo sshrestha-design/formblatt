@@ -352,6 +352,12 @@ export async function getExistingWidgetFields(page, viewport, pageNum, usedNames
             name: fieldName || sem.name,
             value: w.buttonValue || w.fieldValue || "",
             ...(type === "dropdown" ? { options, defaultValue } : {}),
+            ...(isRadio ? {
+                radioGroup: sourceName,
+                exportValue: w.buttonValue || w.fieldValue || "",
+                radioValue: w.buttonValue || w.fieldValue || "",
+                defaultChecked: !!(w.fieldValue && w.fieldValue !== "Off")
+            } : {}),
             x: Math.max(0, Math.round(left)),
             y: Math.max(0, Math.round(top)),
             width: Math.max(10, Math.round(right - left)),
@@ -2248,6 +2254,11 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
                 type: isRadio ? "radioGroup" : "checkBox",
                 name: sem.name,
                 value: optLabel,
+                ...(isRadio ? {
+                    radioGroup: linePrompt || sem.name || "radio_group_1",
+                    exportValue: optLabel,
+                    radioValue: optLabel
+                } : {}),
                 x: Math.max(10, markerX),
                 y: Math.max(10, markerY),
                 width: 15,

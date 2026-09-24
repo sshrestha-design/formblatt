@@ -1,5 +1,5 @@
 // ── Canvas Interaction, Drag, Resize, Snap & Zoom (js/ui/canvas-controller.js) ─
-import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected, copySelectedFields, pasteClipboardFields } from "../core/state.js";
+import { state, setSelectedField, getSelectedField, getFieldsForCurrentPage, generateFieldId, createGroupForSelected, ungroupSelected, copySelectedFields, pasteClipboardFields, getRadioGroupName } from "../core/state.js";
 import { DEFAULT_FIELD_SIZES, FIELD_TYPE_LABELS, SNAP_THRESHOLD } from "../core/constants.js";
 import { setTransformScale, getPageTextBlocks, updateCanvasTransform } from "../engines/pdf-engine.js";
 import { saveHistory } from "../core/storage-manager.js";
@@ -400,10 +400,37 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
 
     const smartMeta = await inferSmartFieldName(type, targetX, targetY, width, height);
 
+    let radioGroupName = undefined;
+    let radioExportValue = undefined;
+    let radioDefaultChecked = undefined;
+
+    if (type === "radioGroup" || type === "radio") {
+        const selected = getSelectedField();
+        const prevRadio = (selected && (selected.type === "radioGroup" || selected.type === "radio"))
+            ? selected
+            : state.fields.slice().reverse().find(f => f.type === "radioGroup" || f.type === "radio");
+
+        const isNearby = prevRadio && Math.abs(prevRadio.x - targetX) < 250 && Math.abs(prevRadio.y - targetY) < 250;
+        if (isNearby) {
+            radioGroupName = getRadioGroupName(prevRadio);
+        } else {
+            const rawName = (typeof smartMeta === "object" ? smartMeta.name : smartMeta) || "radio_group";
+            radioGroupName = rawName.replace(/_\d+$/, "");
+        }
+
+        const siblings = state.fields.filter(f => (f.type === "radioGroup" || f.type === "radio") && getRadioGroupName(f) === radioGroupName);
+        radioExportValue = `Option ${siblings.length + 1}`;
+        radioDefaultChecked = (siblings.length === 0);
+    }
+
+    const fieldName = (type === "radioGroup" || type === "radio")
+        ? radioGroupName
+        : (typeof smartMeta === "object" ? smartMeta.name : smartMeta);
+
     const field = {
         id: generateFieldId(),
         type: type,
-        name: typeof smartMeta === "object" ? smartMeta.name : smartMeta,
+        name: fieldName,
         x: targetX,
         y: targetY,
         width: width,
@@ -413,6 +440,14 @@ async function createFieldAt(type, x, y, handlers, customWidth, customHeight, cu
         fillStyle: type === "staticText" ? "transparent" : "white",
         fontSize: detectedFontSize,
         textAlignment: "left",
+        ...(type === "radioGroup" || type === "radio" ? {
+            radioGroup: radioGroupName,
+            exportValue: radioExportValue,
+            radioValue: radioExportValue,
+            value: radioExportValue,
+            defaultChecked: radioDefaultChecked,
+            checked: radioDefaultChecked
+        } : {}),
         ...(smartMeta?.autofill ? { autofill: smartMeta.autofill } : {}),
         ...(smartMeta?.tooltip ? { tooltip: smartMeta.tooltip } : {}),
         ...(type === "staticText" ? { defaultValue: smartMeta?.label || "Heading Text", label: smartMeta?.label || "Heading Text", fontFamily: "helvetica", color: "#0f172a" } : {}),
@@ -1469,7 +1504,19 @@ function duplicateSelectedFields() {
         if (orig) {
             const clone = JSON.parse(JSON.stringify(orig));
             clone.id = generateFieldId();
-            clone.name = (orig.name || "field") + "_copy";
+            if (orig.type === "radioGroup" || orig.type === "radio") {
+                const groupName = getRadioGroupName(orig);
+                clone.radioGroup = groupName;
+                clone.name = groupName;
+                const siblings = state.fields.filter(f => (f.type === "radioGroup" || f.type === "radio") && getRadioGroupName(f) === groupName);
+                clone.exportValue = `Option ${siblings.length + 1}`;
+                clone.radioValue = clone.exportValue;
+                clone.value = clone.exportValue;
+                clone.defaultChecked = false;
+                clone.checked = false;
+            } else {
+                clone.name = (orig.name || "field") + "_copy";
+            }
             clone.x += 15;
             clone.y += 15;
             state.fields.push(clone);

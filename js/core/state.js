@@ -27,6 +27,7 @@ export const state = {
     activeTool: "select",
     editorMode: "design", // "design" | "fill"
     clipboard: [],
+    formulaClipboard: null,
 
     // History (Undo / Redo)
     history: [],
@@ -167,13 +168,90 @@ export function copySelectedFields() {
     state.clipboard = JSON.parse(JSON.stringify(sel));
 }
 
+/**
+ * Resolves the effective group identifier for a radio button.
+ * Radios sharing the same group name form a single mutually exclusive choice set.
+ */
+export function getRadioGroupName(field) {
+    if (!field) return "radio_group_1";
+    return (field.radioGroup || field.name || "").trim() || "radio_group_1";
+}
+
+/**
+ * Returns all fields in the document that belong to the same radio group as the target field.
+ */
+export function getRadioGroupFields(field, allFields = state.fields) {
+    if (!field || (field.type !== "radioGroup" && field.type !== "radio")) return [];
+    const groupName = getRadioGroupName(field);
+    return allFields.filter(f => (f.type === "radioGroup" || f.type === "radio") && getRadioGroupName(f) === groupName);
+}
+
+/**
+ * Selects a specific radio button choice.
+ * In single mode (default): deselects all other choices in the SAME radio group.
+ * In multi mode: just toggles the clicked choice independently.
+ * Strictly preserves the selection state of all OTHER radio groups.
+ */
+export function selectRadioOption(field, allFields = state.fields) {
+    if (!field || (field.type !== "radioGroup" && field.type !== "radio")) return;
+    const groupName = getRadioGroupName(field);
+    if (!field.radioGroup) field.radioGroup = groupName;
+    if (!field.name) field.name = groupName;
+
+    const groupFields = allFields.filter(f => (f.type === "radioGroup" || f.type === "radio") && getRadioGroupName(f) === groupName);
+
+    // Check if this group is in multi-select mode
+    const isMulti = groupFields.some(f => f.radioGroupMulti === true);
+
+    if (isMulti) {
+        // Multi mode: just toggle this one field
+        field.defaultChecked = !field.defaultChecked;
+        field.checked = field.defaultChecked;
+    } else {
+        // Single mode: exclusive — deselect all siblings, select only clicked
+        groupFields.forEach(f => {
+            const isTarget = (f.id === field.id);
+            f.defaultChecked = isTarget;
+            f.checked = isTarget;
+            if (isTarget) {
+                f.value = f.exportValue || f.radioValue || f.value || "Yes";
+            }
+        });
+    }
+}
+
+/**
+ * Sets the selection mode for an entire radio group.
+ * mode: "single" (default, exclusive) or "multi" (allow multiple).
+ */
+export function setRadioGroupMode(field, mode, allFields = state.fields) {
+    if (!field) return;
+    const groupName = getRadioGroupName(field);
+    const isMulti = (mode === "multi");
+    allFields
+        .filter(f => (f.type === "radioGroup" || f.type === "radio") && getRadioGroupName(f) === groupName)
+        .forEach(f => { f.radioGroupMulti = isMulti; });
+}
+
 export function pasteClipboardFields() {
     if (!state.clipboard || state.clipboard.length === 0) return [];
     const newIds = [];
     state.clipboard.forEach(orig => {
         const clone = JSON.parse(JSON.stringify(orig));
         clone.id = generateFieldId();
-        clone.name = (orig.name || "field") + "_copy";
+        if (orig.type === "radioGroup" || orig.type === "radio") {
+            const groupName = getRadioGroupName(orig);
+            clone.radioGroup = groupName;
+            clone.name = groupName;
+            const siblings = state.fields.filter(f => (f.type === "radioGroup" || f.type === "radio") && getRadioGroupName(f) === groupName);
+            clone.exportValue = `Option ${siblings.length + 1}`;
+            clone.radioValue = clone.exportValue;
+            clone.value = clone.exportValue;
+            clone.defaultChecked = false;
+            clone.checked = false;
+        } else {
+            clone.name = (orig.name || "field") + "_copy";
+        }
         clone.x = Math.max(0, orig.x + 15);
         clone.y = Math.max(0, orig.y + 15);
         clone.page = state.currentPageNum;
@@ -325,10 +403,177 @@ export function evaluateCalculations(fields = state.fields) {
                     if (overlayInput && overlayInput.value !== strRes && document.activeElement !== overlayInput) {
                         overlayInput.value = strRes;
                     }
+                    const overlayLabel = document.querySelector(`#overlay_${f.id} .overlay-label`);
+                    if (overlayLabel) {
+                        overlayLabel.textContent = strRes;
+                        overlayLabel.style.color = "#0f172a";
+                        overlayLabel.style.opacity = "1.0";
+                    }
                 }
             }
         }
         if (!changed) break;
     }
+}
+
+/**
+ * Finds fields in the same column positioned vertically below the source field.
+ */
+export function getVerticallyAlignedColumnSiblings(sourceField, allFields = state.fields) {
+    if (!sourceField) return [];
+    const page = sourceField.page || 1;
+    return allFields
+        .filter(f => {
+            if (f.id === sourceField.id) return false;
+            if ((f.page || 1) !== page) return false;
+            // Vertically below
+            if (f.y <= sourceField.y + 4) return false;
+            // Horizontally aligned (same column) within 8px tolerance
+            if (Math.abs(f.x - sourceField.x) > 8) return false;
+            // Similar width within 16px tolerance
+            if (Math.abs(f.width - sourceField.width) > 16) return false;
+            return true;
+        })
+        .sort((a, b) => a.y - b.y);
+}
+
+/**
+ * Propagates the calculation recipe from sourceField to targetField with smart relative mapping.
+ */
+export function propagateFormulaToField(sourceField, targetField, allFields = state.fields) {
+    if (!sourceField || !targetField || !sourceField.calculationType || sourceField.calculationType === "none") {
+        return false;
+    }
+
+    targetField.calculationType = sourceField.calculationType;
+    if (sourceField.calculationTaxRate !== undefined) targetField.calculationTaxRate = sourceField.calculationTaxRate;
+    if (sourceField.calculationDiscountRate !== undefined) targetField.calculationDiscountRate = sourceField.calculationDiscountRate;
+    if (sourceField.dataFormat) targetField.dataFormat = sourceField.dataFormat;
+    if (sourceField.textAlignment) targetField.textAlignment = sourceField.textAlignment;
+    targetField.readOnly = true;
+
+    // Helper to find relative mapped dependency field name
+    const mapDependency = (srcDepName) => {
+        if (!srcDepName) return "";
+        const srcDepField = allFields.find(f => (f.name || f.id) === srcDepName);
+
+        // Strategy 1: Number substitution (e.g. item_qty_1 -> item_qty_2)
+        const srcNameMatch = (sourceField.name || "").match(/(\d+)/);
+        const tgtNameMatch = (targetField.name || "").match(/(\d+)/);
+        if (srcNameMatch && tgtNameMatch) {
+            const srcIdx = srcNameMatch[1];
+            const tgtIdx = tgtNameMatch[1];
+            if (srcDepName.includes(srcIdx)) {
+                const candidateName = srcDepName.replace(new RegExp(`(?<=^|[^0-9])${srcIdx}(?=[^0-9]|$)`, "g"), tgtIdx);
+                const found = allFields.find(f => (f.name || f.id) === candidateName);
+                if (found) return found.name || found.id;
+            }
+        }
+
+        // Strategy 2: Spatial relative offset matching (same relative column on target row)
+        if (srcDepField) {
+            const relDx = srcDepField.x - sourceField.x;
+            const targetY = targetField.y;
+            const targetPage = targetField.page || 1;
+            // Find field on the target's row with matching relative dx
+            const rowFields = allFields.filter(f => (f.page || 1) === targetPage && Math.abs(f.y - targetY) < Math.max(24, targetField.height + 6));
+            const bestMatch = rowFields.find(f => Math.abs((f.x - targetField.x) - relDx) < 12);
+            if (bestMatch) return bestMatch.name || bestMatch.id;
+        }
+
+        // Strategy 3: Row-index offset matching
+        if (srcDepField) {
+            const depColSiblings = allFields
+                .filter(f => (f.page || 1) === (srcDepField.page || 1) && Math.abs(f.x - srcDepField.x) < 8)
+                .sort((a, b) => a.y - b.y);
+            const srcRowIdx = allFields
+                .filter(f => (f.page || 1) === (sourceField.page || 1) && Math.abs(f.x - sourceField.x) < 8)
+                .sort((a, b) => a.y - b.y)
+                .findIndex(f => f.id === sourceField.id);
+            const tgtRowIdx = allFields
+                .filter(f => (f.page || 1) === (targetField.page || 1) && Math.abs(f.x - targetField.x) < 8)
+                .sort((a, b) => a.y - b.y)
+                .findIndex(f => f.id === targetField.id);
+
+            if (srcRowIdx !== -1 && tgtRowIdx !== -1 && depColSiblings[tgtRowIdx]) {
+                return depColSiblings[tgtRowIdx].name || depColSiblings[tgtRowIdx].id;
+            }
+        }
+
+        return srcDepName;
+    };
+
+    // Apply mapping according to calculation type
+    if (sourceField.calculationType === "sum" || sourceField.calculationType === "prod") {
+        const srcTargets = Array.isArray(sourceField.calculationFields)
+            ? sourceField.calculationFields
+            : (sourceField.calculationFields ? String(sourceField.calculationFields).split(",").map(s => s.trim()).filter(Boolean) : []);
+        targetField.calculationFields = srcTargets.map(mapDependency);
+    } else if (sourceField.calculationType === "tax") {
+        targetField.calculationTaxBaseField = mapDependency(sourceField.calculationTaxBaseField);
+    } else if (sourceField.calculationType === "discount") {
+        targetField.calculationDiscountBaseField = mapDependency(sourceField.calculationDiscountBaseField);
+    } else if (sourceField.calculationType === "custom") {
+        let formula = sourceField.calculationFormula || "";
+        const tokens = formula.match(/[a-zA-Z_][a-zA-Z0-9_]*/g) || [];
+        const uniqueTokens = Array.from(new Set(tokens));
+        uniqueTokens.forEach(tok => {
+            const mapped = mapDependency(tok);
+            if (mapped && mapped !== tok) {
+                const regex = new RegExp(`\\b${tok}\\b`, "g");
+                formula = formula.replace(regex, mapped);
+            }
+        });
+        targetField.calculationFormula = formula;
+    }
+
+    return true;
+}
+
+/**
+ * Fills formula from sourceField down to all aligned column siblings below it.
+ */
+export function fillFormulaDownColumn(sourceField, allFields = state.fields) {
+    if (!sourceField) return [];
+    const siblings = getVerticallyAlignedColumnSiblings(sourceField, allFields);
+    if (siblings.length === 0) return [];
+
+    siblings.forEach(targetField => {
+        propagateFormulaToField(sourceField, targetField, allFields);
+    });
+
+    evaluateCalculations(allFields);
+    return siblings;
+}
+
+/**
+ * Copies the calculation formula recipe to state.formulaClipboard.
+ */
+export function copyFormulaRecipe(sourceField) {
+    if (!sourceField || !sourceField.calculationType || sourceField.calculationType === "none") {
+        return null;
+    }
+    state.formulaClipboard = JSON.parse(JSON.stringify(sourceField));
+    return state.formulaClipboard;
+}
+
+/**
+ * Pastes formula recipe from state.formulaClipboard to target fields.
+ */
+export function pasteFormulaRecipeToFields(targetFields, allFields = state.fields) {
+    if (!state.formulaClipboard || !Array.isArray(targetFields) || targetFields.length === 0) {
+        return 0;
+    }
+    let count = 0;
+    targetFields.forEach(targetField => {
+        if (targetField.id === state.formulaClipboard.id) return;
+        if (propagateFormulaToField(state.formulaClipboard, targetField, allFields)) {
+            count++;
+        }
+    });
+    if (count > 0) {
+        evaluateCalculations(allFields);
+    }
+    return count;
 }
 

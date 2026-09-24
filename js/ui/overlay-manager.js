@@ -1,8 +1,8 @@
 // ── Canvas Overlay Rendering & Visual Elements (js/ui/overlay-manager.js) ─
-import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder, evaluateCalculations } from "../core/state.js";
+import { state, getFieldsForCurrentPage, getSelectedField, setSelectedField, duplicateSelectedFields, createGroupForSelected, ungroupSelected, sortFieldsByReadingOrder, evaluateCalculations, getRadioGroupName, getRadioGroupFields, selectRadioOption, getVerticallyAlignedColumnSiblings, fillFormulaDownColumn, pasteFormulaRecipeToFields } from "../core/state.js";
 import { FIELD_TYPE_LABELS } from "../core/constants.js";
 import { openSignatureModal } from "./signature-pad.js";
-import { makeScrubbableAndScrollable, distributeSelectedFields } from "./properties-panel.js";
+import { makeScrubbableAndScrollable, distributeSelectedFields, isPickingCalcField, updateCanvasPickModeUI } from "./properties-panel.js";
 import { saveHistory } from "../core/storage-manager.js";
 import { goToPage } from "../engines/pdf-engine.js";
 
@@ -107,7 +107,7 @@ export function renderOverlays(handlers) {
                 return;
             }
 
-            const isChoice = (f.type === "checkBox" || f.type === "radioGroup");
+            const isChoice = (f.type === "checkBox" || f.type === "radioGroup" || f.type === "radio");
             if (isChoice) {
                 div.style.border = "none";
                 div.style.background = "transparent";
@@ -134,18 +134,23 @@ export function renderOverlays(handlers) {
                     saveHistory();
                 });
                 div.appendChild(cb);
-            } else if (f.type === "radioGroup") {
+            } else if (f.type === "radioGroup" || f.type === "radio") {
+                const grpName = getRadioGroupName(f);
+                const groupSiblings = getRadioGroupFields(f, state.fields);
+                const isMulti = groupSiblings.some(s => s.radioGroupMulti === true);
+
                 const rb = document.createElement("input");
-                rb.type = "radio";
-                rb.name = f.name || "radiogroup";
-                rb.className = "fill-input-radio";
-                rb.value = f.radioValue || f.value || `option_${f.id}`;
-                rb.checked = !!f.defaultChecked;
+                rb.type = isMulti ? "checkbox" : "radio";
+                if (!isMulti) rb.name = `rg_${grpName}`;
+                rb.className = isMulti ? "fill-input-checkbox" : "fill-input-radio";
+                rb.value = f.exportValue || f.radioValue || f.value || `option_${f.id}`;
+                rb.checked = !!(f.defaultChecked || f.checked);
                 rb.style.cssText = "width: 14px; height: 14px; margin: 0; cursor: pointer; accent-color: #2563eb;";
                 rb.addEventListener("change", () => {
-                    const groupFields = state.fields.filter(item => item.name === f.name);
-                    groupFields.forEach(item => { item.defaultChecked = (item.id === f.id); });
-                    saveHistory();
+                    selectRadioOption(f, state.fields);
+                    saveHistory(true, `Select ${rb.value}`);
+                    if (handlers.onUpdated) handlers.onUpdated(f);
+                    renderOverlays(handlers);
                 });
                 div.appendChild(rb);
             } else if (f.type === "dropdown") {
@@ -235,13 +240,26 @@ export function renderOverlays(handlers) {
                 inp.placeholder = f.placeholder || "";
                 const inputFontSize = getFillInputFontSize(f, Math.min(12, Math.max(8, f.height - 4)));
                 const { fam, weight, style: fontStyle } = getFieldCssFont(f);
-                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${inputFontSize}px; font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; padding: 0 5px; outline: none; box-sizing: border-box; text-align: ${f.textAlignment || 'left'}; color: #0f172a; appearance: none; -webkit-appearance: none;`;
+                const defaultAlign = (f.dataFormat === "currency" || f.dataFormat === "number" || (f.calculationType && f.calculationType !== "none")) ? "right" : "left";
+                const resolvedAlign = f.textAlignment || defaultAlign;
+                inp.style.cssText = `width: 100%; height: 100%; border: none; background: transparent; font-size: ${inputFontSize}px; font-family: ${fam}; font-weight: ${weight}; font-style: ${fontStyle}; padding: 0 5px; outline: none; box-sizing: border-box; text-align: ${resolvedAlign}; color: #0f172a; appearance: none; -webkit-appearance: none;`;
+
+                const isReadOnly = !!f.readOnly || (f.calculationType && f.calculationType !== "none");
+                if (isReadOnly) {
+                    inp.readOnly = true;
+                    inp.style.cursor = "default";
+                    inp.title = f.calculationType && f.calculationType !== "none" ? "Calculated formula field" : "Read-only field";
+                }
 
                 if (f.dataFormat === "currency") {
+                    const sym = f.currencySymbol || "$";
+                    const pos = f.currencyPosition || (sym === "€" ? "suffix" : "prefix");
+                    const dec = f.currencyDecimals !== undefined ? Number(f.currencyDecimals) : 2;
                     inp.addEventListener("blur", () => {
                         let val = inp.value.trim().replace(/[^0-9.-]/g, "");
                         if (val && !isNaN(Number(val))) {
-                            inp.value = "$" + Number(val).toFixed(2);
+                            const formattedNum = Number(val).toFixed(dec);
+                            inp.value = pos === "suffix" ? `${formattedNum} ${sym}` : `${sym}${formattedNum}`;
                             f.value = inp.value;
                             f.defaultValue = inp.value;
                             evaluateCalculations();
@@ -386,13 +404,14 @@ export function renderOverlays(handlers) {
             } else {
                 div.innerHTML = "";
             }
-        } else if (f.type === "radioGroup") {
+        } else if (f.type === "radioGroup" || f.type === "radio") {
             div.innerHTML = f.defaultChecked ? `<div class="animated-radio-dot"></div>` : "";
         } else {
             const label = document.createElement("span");
             label.className = "overlay-label";
             label.style.width = "100%";
-            label.style.textAlign = f.textAlignment || "left";
+            const defaultLabelAlign = (f.dataFormat === "currency" || f.dataFormat === "number" || (f.calculationType && f.calculationType !== "none")) ? "right" : "left";
+            label.style.textAlign = f.textAlignment || defaultLabelAlign;
 
             let { fam, weight, style, letterSpacing } = getFieldCssFont(f);
 
@@ -611,6 +630,11 @@ export function renderOverlays(handlers) {
                     f.defaultChecked = !f.defaultChecked;
                     renderOverlays(handlers);
                     if (handlers.onUpdated) handlers.onUpdated(f);
+                } else if (f.type === "radioGroup" || f.type === "radio") {
+                    e.preventDefault();
+                    selectRadioOption(f, state.fields);
+                    renderOverlays(handlers);
+                    if (handlers.onUpdated) handlers.onUpdated(f);
                 }
             }
         });
@@ -629,7 +653,7 @@ export function renderOverlays(handlers) {
 
     // Multi-Selection Bounding Frame with unified Figma/Canva-style resize handles
     const selectedFieldsOnPage = pageFields.filter(f => state.selectedFieldIds.has(f.id));
-    if (selectedFieldsOnPage.length > 1) {
+    if (state.editorMode !== "fill" && selectedFieldsOnPage.length > 1) {
         const minX = Math.min(...selectedFieldsOnPage.map(f => f.x));
         const minY = Math.min(...selectedFieldsOnPage.map(f => f.y));
         const maxX = Math.max(...selectedFieldsOnPage.map(f => f.x + f.width));
@@ -787,6 +811,52 @@ export function renderContextualQuickBar(container, selectedFieldsOnPage, handle
             else renderOverlays(handlers);
         });
         bar.appendChild(lockBtn);
+
+        // Fill Down Column quick action if field has formula and siblings exist below
+        if (primaryField.calculationType && primaryField.calculationType !== "none") {
+            const siblings = getVerticallyAlignedColumnSiblings(primaryField, state.fields || []);
+            if (siblings.length > 0) {
+                const fillDownBtn = document.createElement("button");
+                fillDownBtn.className = "quick-bar-btn quick-bar-btn-accent";
+                fillDownBtn.title = `Fill formula down column (${siblings.length} row${siblings.length > 1 ? "s" : ""})`;
+                fillDownBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 21h16"/></svg><span>Fill Down (↓${siblings.length})</span>`;
+
+                fillDownBtn.addEventListener("mouseenter", () => {
+                    siblings.forEach(s => {
+                        const ov = document.getElementById(`field-${s.id}`);
+                        if (ov) ov.classList.add("calc-fill-down-preview");
+                    });
+                });
+                fillDownBtn.addEventListener("mouseleave", () => {
+                    document.querySelectorAll(".calc-fill-down-preview").forEach(el => el.classList.remove("calc-fill-down-preview"));
+                });
+                fillDownBtn.addEventListener("click", e => {
+                    e.stopPropagation();
+                    document.querySelectorAll(".calc-fill-down-preview").forEach(el => el.classList.remove("calc-fill-down-preview"));
+                    fillFormulaDownColumn(primaryField, state.fields || []);
+                    saveHistory(true, `Fill Formula Down Column (${siblings.length} rows)`);
+                    if (handlers?.onUpdated) handlers.onUpdated(primaryField);
+                    else renderOverlays(handlers);
+                });
+                bar.appendChild(fillDownBtn);
+            }
+        } else if (state.formulaClipboard) {
+            // Paste formula recipe quick button
+            const pasteFormulaBtn = document.createElement("button");
+            pasteFormulaBtn.className = "quick-bar-btn quick-bar-btn-accent";
+            pasteFormulaBtn.title = "Paste copied formula recipe to this field";
+            pasteFormulaBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg><span>Paste Formula</span>`;
+            pasteFormulaBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                const count = pasteFormulaRecipeToFields([primaryField], state.fields || []);
+                if (count > 0) {
+                    saveHistory(true, "Paste Formula Recipe");
+                    if (handlers?.onUpdated) handlers.onUpdated(primaryField);
+                    else renderOverlays(handlers);
+                }
+            });
+            bar.appendChild(pasteFormulaBtn);
+        }
     } else {
         // Multi-Select Specifics: Group/Ungroup & Distribute Spacing (for >= 3)
         const allSameGroup = selectedFieldsOnPage.every(f => f.groupId && f.groupId === selectedFieldsOnPage[0].groupId);
@@ -823,6 +893,24 @@ export function renderContextualQuickBar(container, selectedFieldsOnPage, handle
                 else renderOverlays(handlers);
             });
             bar.appendChild(markBtn);
+        }
+
+        // Multi-select Paste Formula Recipe if formula clipboard is active
+        if (state.formulaClipboard) {
+            const pasteFormulaBtn = document.createElement("button");
+            pasteFormulaBtn.className = "quick-bar-btn quick-bar-btn-accent";
+            pasteFormulaBtn.title = `Paste copied formula recipe to ${selectedFieldsOnPage.length} selected fields`;
+            pasteFormulaBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg><span>Paste Formula (${selectedFieldsOnPage.length})</span>`;
+            pasteFormulaBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                const count = pasteFormulaRecipeToFields(selectedFieldsOnPage, state.fields || []);
+                if (count > 0) {
+                    saveHistory(true, `Paste Formula Recipe (${count} fields)`);
+                    if (handlers?.onUpdated) handlers.onUpdated();
+                    else renderOverlays(handlers);
+                }
+            });
+            bar.appendChild(pasteFormulaBtn);
         }
 
         if (selectedFieldsOnPage.length >= 3) {
@@ -897,15 +985,27 @@ export function updateOverlayPositionsDirectly() {
             quickBar.style.top = topY + "px";
         }
     }
+
+    if (isPickingCalcField && typeof updateCanvasPickModeUI === "function") {
+        updateCanvasPickModeUI();
+    }
 }
 
 export function startInlineTextEdit(fieldId, handlers = {}) {
     const field = state.fields.find(f => f.id === fieldId);
     if (!field || field.locked || field.hidden) return;
 
-    if (field.type === "checkBox" || field.type === "radioGroup" || field.type === "radio") {
+    if (field.type === "checkBox") {
         field.defaultChecked = !field.defaultChecked;
-        saveHistory(true);
+        saveHistory(true, "Toggle Checkbox");
+        if (handlers?.onUpdated) handlers.onUpdated(field);
+        renderOverlays(handlers);
+        return;
+    }
+
+    if (field.type === "radioGroup" || field.type === "radio") {
+        selectRadioOption(field, state.fields);
+        saveHistory(true, "Select Radio Option");
         if (handlers?.onUpdated) handlers.onUpdated(field);
         renderOverlays(handlers);
         return;
