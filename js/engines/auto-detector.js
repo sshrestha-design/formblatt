@@ -227,8 +227,9 @@ function isUniversalStaticText(text) {
         return true;
     }
 
-    // 0.5 Questions & inquiry prompts are static text, never form fields or field labels
-    if (clean.includes("?")) {
+    // 0.5 Long questions & inquiry sentences (>2 words or >15 chars) are static text, never form fields or field labels.
+    // Short 1-2 word column headers (e.g. "Sick?", "Active?", "Yes?", "No?") are valid checkbox/column prompts.
+    if (clean.includes("?") && (clean.split(/\s+/).length > 2 || clean.length > 15)) {
         return true;
     }
 
@@ -728,6 +729,76 @@ function matchColumnKeyword(text) {
     return null;
 }
 
+export function reconstructTableGridBoxes(hLines, vLines) {
+    if (!hLines || !vLines || hLines.length < 2 || vLines.length < 2) return [];
+
+    const cells = [];
+    const yMap = new Map();
+    hLines.forEach(l => {
+        const roundedY = Math.round(l.y);
+        let matchY = null;
+        for (const existingY of yMap.keys()) {
+            if (Math.abs(existingY - roundedY) <= 2) {
+                matchY = existingY;
+                break;
+            }
+        }
+        if (matchY === null) {
+            yMap.set(roundedY, [l]);
+        } else {
+            yMap.get(matchY).push(l);
+        }
+    });
+
+    const xMap = new Map();
+    vLines.forEach(v => {
+        const roundedX = Math.round(v.x);
+        let matchX = null;
+        for (const existingX of xMap.keys()) {
+            if (Math.abs(existingX - roundedX) <= 3) {
+                matchX = existingX;
+                break;
+            }
+        }
+        if (matchX === null) {
+            xMap.set(roundedX, [v]);
+        } else {
+            xMap.get(matchX).push(v);
+        }
+    });
+
+    const uniqueYs = Array.from(yMap.keys()).sort((a, b) => a - b);
+    const uniqueXs = Array.from(xMap.keys()).sort((a, b) => a - b);
+
+    for (let i = 0; i < uniqueYs.length - 1; i++) {
+        const yTop = uniqueYs[i];
+        const yBottom = uniqueYs[i + 1];
+        const h = yBottom - yTop;
+        if (h < 8 || h > 45) continue;
+
+        const colXs = uniqueXs.filter(x => {
+            return vLines.some(vl => Math.abs(Math.round(vl.x) - x) <= 3 && vl.y1 <= yTop + 4 && vl.y2 >= yBottom - 4);
+        });
+
+        if (colXs.length >= 2) {
+            for (let j = 0; j < colXs.length - 1; j++) {
+                const xLeft = colXs[j];
+                const xRight = colXs[j + 1];
+                const w = xRight - xLeft;
+                if (w >= 12 && w <= 450) {
+                    cells.push({
+                        x: xLeft,
+                        y: yTop,
+                        width: w,
+                        height: h
+                    });
+                }
+            }
+        }
+    }
+    return cells;
+}
+
 // ============================================================================
 // 3.5 VECTOR SHAPE EXTRACTION (Drawn Checkboxes, Input Boxes, & Underlines)
 // ============================================================================
@@ -739,6 +810,9 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
         underlines: []
     };
     if (!pageOrOpList) return result;
+
+    const hLines = [];
+    const vLines = [];
 
     let operatorList;
     if (pageOrOpList.fnArray && pageOrOpList.argsArray) {
@@ -841,11 +915,22 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
             if (current && next) {
                 const dx = Math.abs(current.x - next.x);
                 const dy = Math.abs(current.y - next.y);
-                if (dx >= 20 && dy <= 3) {
+                if (dx >= 15 && dy <= 3) {
                     result.underlines.push({
                         x: Math.round(Math.min(current.x, next.x)),
                         y: Math.round((current.y + next.y) / 2),
                         width: Math.round(dx)
+                    });
+                    hLines.push({
+                        x1: Math.min(current.x, next.x),
+                        x2: Math.max(current.x, next.x),
+                        y: (current.y + next.y) / 2
+                    });
+                } else if (dy >= 8 && dx <= 3) {
+                    vLines.push({
+                        x: (current.x + next.x) / 2,
+                        y1: Math.min(current.y, next.y),
+                        y2: Math.max(current.y, next.y)
                     });
                 }
                 currentPolyline.push(next);
@@ -891,6 +976,14 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
             const w = maxX - minX;
             const h = maxY - minY;
             addRectCandidate(minX, minY, w, h);
+            if (w <= 2.5 && h >= 10) {
+                vLines.push({ x: (minX + maxX) / 2, y1: minY, y2: maxY });
+            } else if (h <= 2.5 && w >= 20) {
+                hLines.push({ x1: minX, x2: maxX, y: (minY + maxY) / 2 });
+            } else if (h >= 8 && h <= 30 && w >= 180) {
+                hLines.push({ x1: minX, x2: maxX, y: minY });
+                hLines.push({ x1: minX, x2: maxX, y: maxY });
+            }
             current = p1;
             pathStart = p1;
             currentPolyline = [];
@@ -912,11 +1005,22 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
                         if (current && next) {
                             const dx = Math.abs(current.x - next.x);
                             const dy = Math.abs(current.y - next.y);
-                            if (dx >= 20 && dy <= 3) {
+                            if (dx >= 15 && dy <= 3) {
                                 result.underlines.push({
                                     x: Math.round(Math.min(current.x, next.x)),
                                     y: Math.round((current.y + next.y) / 2),
                                     width: Math.round(dx)
+                                });
+                                hLines.push({
+                                    x1: Math.min(current.x, next.x),
+                                    x2: Math.max(current.x, next.x),
+                                    y: (current.y + next.y) / 2
+                                });
+                            } else if (dy >= 8 && dx <= 3) {
+                                vLines.push({
+                                    x: (current.x + next.x) / 2,
+                                    y1: Math.min(current.y, next.y),
+                                    y2: Math.max(current.y, next.y)
                                 });
                             }
                             currentPolyline.push(next);
@@ -956,11 +1060,23 @@ export async function extractPdfVectorShapes(pageOrOpList, viewport = { width: 6
                         const w = maxX - minX;
                         const h = maxY - minY;
                         addRectCandidate(minX, minY, w, h);
+                        if (w <= 2.5 && h >= 10) {
+                            vLines.push({ x: (minX + maxX) / 2, y1: minY, y2: maxY });
+                        } else if (h <= 2.5 && w >= 20) {
+                            hLines.push({ x1: minX, x2: maxX, y: (minY + maxY) / 2 });
+                        } else if (h >= 8 && h <= 30 && w >= 180) {
+                            hLines.push({ x1: minX, x2: maxX, y: minY });
+                            hLines.push({ x1: minX, x2: maxX, y: maxY });
+                        }
                         cIdx += 4;
                     }
                 }
             }
         }
+    }
+    const gridBoxes = reconstructTableGridBoxes(hLines, vLines);
+    for (const gBox of gridBoxes) {
+        addRectCandidate(gBox.x, gBox.y, gBox.width, gBox.height);
     }
     return result;
 }
@@ -1306,16 +1422,33 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
 
         const maxLeftReach = box.width <= 85 ? 90 : 200;
         const leftLabel = rawBlocks
-            .filter(tb => tb.x + tb.width <= box.x + 8 && (box.x - (tb.x + tb.width)) <= maxLeftReach &&
-                          Math.abs(tb.y - box.y) <= 16 && !/^[—–\-:\._\s]+$/.test(tb.str) &&
-                          // Do not steal labels that belong directly to an adjacent checkbox
-                          !checkboxRects.some(cb => Math.abs(cb.y - tb.y) <= 8 && tb.x >= cb.x && (tb.x - (cb.x + cb.width)) <= 25))
+            .filter(tb => {
+                if (tb.x + tb.width > box.x + 8 || (box.x - (tb.x + tb.width)) > maxLeftReach) return false;
+                const vOverlap = Math.max(0, Math.min(box.y + box.height, tb.y + tb.height) - Math.max(box.y, tb.y));
+                if (vOverlap < 2) return false;
+                if (/^[—–\-:\._\s]+$/.test(tb.str)) return false;
+                // Do not steal labels that belong directly to an adjacent checkbox
+                if (checkboxRects.some(cb => Math.abs(cb.y - tb.y) <= 8 && tb.x >= cb.x && (tb.x - (cb.x + cb.width)) <= 25)) return false;
+                return true;
+            })
             .sort((a, b) => (b.x + b.width) - (a.x + a.width))[0];
 
         const topLabel = !leftLabel ? rawBlocks
             .filter(tb => tb.y + tb.height <= box.y + 6 && (box.y - (tb.y + tb.height)) <= 45 &&
                           (tb.x >= box.x - 60 && tb.x <= box.x + box.width + 60))
-            .sort((a, b) => (box.y - (b.y + b.height)) - (box.y - (a.y + a.height)) || Math.abs(a.x - box.x) - Math.abs(b.x - box.x))[0] : null;
+            .sort((a, b) => {
+                const aOverlap = Math.max(0, Math.min(box.x + box.width, a.x + a.width) - Math.max(box.x, a.x));
+                const bOverlap = Math.max(0, Math.min(box.x + box.width, b.x + b.width) - Math.max(box.x, b.x));
+                if ((aOverlap > 0) !== (bOverlap > 0)) return bOverlap - aOverlap;
+
+                const aDistX = aOverlap > 0 ? 0 : Math.min(Math.abs(a.x - box.x), Math.abs(a.x + a.width - (box.x + box.width)));
+                const bDistX = bOverlap > 0 ? 0 : Math.min(Math.abs(b.x - box.x), Math.abs(b.x + b.width - (box.x + box.width)));
+                if (Math.abs(aDistX - bDistX) > 2) return aDistX - bDistX;
+
+                const aDistY = Math.abs(box.y - (a.y + a.height));
+                const bDistY = Math.abs(box.y - (b.y + b.height));
+                return aDistY - bDistY;
+            })[0] : null;
 
         const rightLabel = (!leftLabel && !topLabel) ? rawBlocks
             .filter(tb => tb.x >= box.x + box.width - 4 && (tb.x - (box.x + box.width)) <= 180 &&
@@ -1335,9 +1468,23 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         } else {
             // Check column inheritance for table grid rows (stacked boxes in same column)
             const upperColField = fields
-                .filter(f => f.page === pageNum && Math.abs(f.x - box.x) <= 4 && Math.abs(f.width - box.width) <= 6 &&
-                             box.y > f.y && (box.y - (f.y + f.height)) <= 35 && (box.y - (f.y + f.height)) >= -2)
-                .sort((a, b) => (box.y - (b.y + b.height)) - (box.y - (a.y + a.height)))[0];
+                .filter(f => {
+                    if (f.page !== pageNum) return false;
+                    const fLeft = f.originalBox?.x ?? f.x;
+                    const fWidth = f.originalBox?.width ?? f.width;
+                    const fTop = f.originalBox?.y ?? f.y;
+                    const fHeight = f.originalBox?.height ?? f.height;
+                    const fBottom = fTop + fHeight;
+
+                    const hOverlap = Math.max(0, Math.min(box.x + box.width, fLeft + fWidth) - Math.max(box.x, fLeft));
+                    if (hOverlap < Math.min(box.width, fWidth) * 0.6) return false;
+                    return box.y > fTop && (box.y - fBottom) <= 35 && (box.y - fBottom) >= -2;
+                })
+                .sort((a, b) => {
+                    const aBottom = (a.originalBox?.y ?? a.y) + (a.originalBox?.height ?? a.height);
+                    const bBottom = (b.originalBox?.y ?? b.y) + (b.originalBox?.height ?? b.height);
+                    return (box.y - bBottom) - (box.y - aBottom);
+                })[0];
             if (upperColField) {
                 inheritedCol = upperColField;
                 labelText = upperColField.columnLabel || upperColField.name;
@@ -1358,24 +1505,49 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         const sem = resolveSemanticProps(labelText, "textField", usedNames);
         const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
         const isDate = sem.type === "dateField" || /date/i.test(labelText);
-        const type = isSig ? "signature" : (isDate ? "dateField" : (inheritedCol?.type || sem.type));
+        const isQuestionOrCheckbox = sem.type === "checkBox" || /\?$/.test(labelText) || /\b(sick\??|absent\??|yes\??|no\??)\b/i.test(labelText);
+        const type = isSig ? "signature" : (isDate ? "dateField" : (isQuestionOrCheckbox || inheritedCol?.type === "checkBox" ? "checkBox" : (inheritedCol?.type || sem.type)));
         const dataFormat = inheritedCol?.dataFormat || sem.dataFormat || "text";
+
+        let fx = box.x;
+        let fy = box.y;
+        let fw = box.width;
+        let fh = box.height;
+        if (type === "checkBox" && box.width > 24) {
+            fw = 15;
+            fh = 15;
+            fx = Math.round(box.x + (box.width - fw) / 2);
+            fy = Math.round(box.y + (box.height - fh) / 2);
+        }
+
+        const dayMatch = rawBlocks.find(tb => 
+            tb.y + tb.height <= box.y && (box.y - (tb.y + tb.height)) <= 85 &&
+            /^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/i.test(tb.str.trim())
+        );
+        let fieldName = sem.name;
+        if (dayMatch) {
+            const prefix = dayMatch.str.trim().slice(0, 3).toLowerCase() + "_";
+            if (!fieldName.startsWith(prefix)) {
+                fieldName = prefix + fieldName;
+            }
+        }
 
         const field = {
             id: generateFieldId(),
             type: type,
-            name: sem.name,
-            x: box.x,
-            y: box.y,
-            width: box.width,
-            height: box.height,
+            name: fieldName,
+            x: fx,
+            y: fy,
+            width: fw,
+            height: fh,
             page: pageNum,
             borderStyle: "solid",
             fillStyle: "white",
-            multiline: box.height >= 36 || sem.multiline || Boolean(inheritedCol?.multiline),
+            multiline: type !== "checkBox" && (box.height >= 36 || sem.multiline || Boolean(inheritedCol?.multiline)),
             autofill: sem.autofill || "",
             dataFormat: dataFormat,
             columnLabel: labelText,
+            originalBox: { x: box.x, y: box.y, width: box.width, height: box.height },
             detectedBy: inheritedCol ? "vector_drawn_table_grid_row" : "vector_drawn_input_box",
             confidence: 0.98
         };
@@ -1422,7 +1594,19 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         const topLabel = !leftLabel ? rawBlocks
             .filter(tb => tb.y + tb.height <= uY && (uY - (tb.y + tb.height)) <= 30 &&
                           (tb.x >= uX - 40 && tb.x <= uX + uW + 40))
-            .sort((a, b) => (uY - (b.y + b.height)) - (uY - (a.y + a.height)) || Math.abs(a.x - uX) - Math.abs(b.x - uX))[0] : null;
+            .sort((a, b) => {
+                const aOverlap = Math.max(0, Math.min(uX + uW, a.x + a.width) - Math.max(uX, a.x));
+                const bOverlap = Math.max(0, Math.min(uX + uW, b.x + b.width) - Math.max(uX, b.x));
+                if ((aOverlap > 0) !== (bOverlap > 0)) return bOverlap - aOverlap;
+
+                const aDistX = aOverlap > 0 ? 0 : Math.min(Math.abs(a.x - uX), Math.abs(a.x + a.width - (uX + uW)));
+                const bDistX = bOverlap > 0 ? 0 : Math.min(Math.abs(b.x - uX), Math.abs(b.x + b.width - (uX + uW)));
+                if (Math.abs(aDistX - bDistX) > 2) return aDistX - bDistX;
+
+                const aDistY = Math.abs(uY - (a.y + a.height));
+                const bDistY = Math.abs(uY - (b.y + b.height));
+                return aDistY - bDistY;
+            })[0] : null;
 
         let labelText = "";
         let inheritedCol = null;
@@ -1453,21 +1637,45 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         const sem = resolveSemanticProps(labelText, "textField", usedNames);
         const isSig = sem.type === "signature" || /signature|sign\s*here/i.test(labelText);
         const isDate = sem.type === "dateField" || /date/i.test(labelText);
-        const type = isSig ? "signature" : (isDate ? "dateField" : (inheritedCol?.type || sem.type));
+        const isQuestionOrCheckbox = sem.type === "checkBox" || /\?$/.test(labelText) || /\b(sick\??|absent\??|yes\??|no\??)\b/i.test(labelText);
+        const type = isSig ? "signature" : (isDate ? "dateField" : (isQuestionOrCheckbox || inheritedCol?.type === "checkBox" ? "checkBox" : (inheritedCol?.type || sem.type)));
         const dataFormat = inheritedCol?.dataFormat || sem.dataFormat || "text";
+
+        let fx = uX;
+        let fy = fieldY;
+        let fw = uW;
+        let fh = uH;
+        if (type === "checkBox" && uW > 24) {
+            fw = 15;
+            fh = 15;
+            fx = Math.round(uX + (uW - fw) / 2);
+            fy = Math.round(fieldY + (uH - fh) / 2);
+        }
+
+        const dayMatch = rawBlocks.find(tb => 
+            tb.y + tb.height <= uY && (uY - (tb.y + tb.height)) <= 85 &&
+            /^(monday|tuesday|wednesday|thursday|friday|saturday|sunday)$/i.test(tb.str.trim())
+        );
+        let fieldName = sem.name;
+        if (dayMatch) {
+            const prefix = dayMatch.str.trim().slice(0, 3).toLowerCase() + "_";
+            if (!fieldName.startsWith(prefix)) {
+                fieldName = prefix + fieldName;
+            }
+        }
 
         const field = {
             id: generateFieldId(),
             type: type,
-            name: sem.name,
-            x: uX,
-            y: fieldY,
-            width: uW,
-            height: uH,
+            name: fieldName,
+            x: fx,
+            y: fy,
+            width: fw,
+            height: fh,
             page: pageNum,
             borderStyle: "none",
             fillStyle: "transparent",
-            multiline: sem.multiline || Boolean(inheritedCol?.multiline) || false,
+            multiline: type !== "checkBox" && (sem.multiline || Boolean(inheritedCol?.multiline) || false),
             autofill: sem.autofill || "",
             dataFormat: dataFormat,
             columnLabel: labelText,
@@ -2213,7 +2421,9 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
             // Column-aware next line check: only consider lines that share horizontal column overlap
             let nextLineY = null;
             for (const otherLine of textLines) {
-                const hOverlap = Math.max(0, Math.min(targetX + targetW, otherLine.x + otherLine.width) - Math.max(targetX, otherLine.x));
+                const lineLeft = Math.min(line.x, targetX);
+                const lineRight = Math.max(line.x + line.width, targetX + targetW);
+                const hOverlap = Math.max(0, Math.min(lineRight, otherLine.x + otherLine.width) - Math.max(lineLeft, otherLine.x));
                 if (hOverlap > 6 && otherLine.y > line.y + 2 && (nextLineY === null || otherLine.y < nextLineY)) {
                     nextLineY = otherLine.y;
                 }
