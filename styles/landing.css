@@ -76,9 +76,9 @@ nav.landing-nav-bar{
 .brand-name-primary{font-weight:900;color:var(--ink);letter-spacing:-0.03em;line-height:1}
 .brand-name-accent{font-weight:900;font-style:normal;color:var(--blue);letter-spacing:-0.03em;display:inline-block;line-height:1}
 .brand-mark{
-  width:26px;
-  height:26px;
-  border-radius:6px;
+  width:32px;
+  height:32px;
+  border-radius:8px;
   display:flex;
   align-items:center;
   justify-content:center;
@@ -507,9 +507,9 @@ footer.landing-footer{
 .foot-brand .brand-name-primary{font-weight:900;color:#ffffff;letter-spacing:-0.03em;line-height:1}
 .foot-brand .brand-name-accent{font-weight:900;font-style:normal;color:#60a5fa;letter-spacing:-0.03em;display:inline-block;line-height:1}
 .foot-brand .brand-mark{
-  width:26px;
-  height:26px;
-  border-radius:6px;
+  width:32px;
+  height:32px;
+  border-radius:8px;
   box-shadow:0 2px 8px rgba(0,0,0,0.4);
 }
 footer.landing-footer p.desc{font-size:14px;line-height:1.6;color:#CBD5E1;max-width:280px}

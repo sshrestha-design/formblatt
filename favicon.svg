@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- Bauhaus Monolith Formblatt App Icon -->
   <rect width="512" height="512" rx="116" fill="#0B63CE"/>
-  <path d="M133 112 H379 V194 H225 V246 H338 V318 H225 V400 H133 Z" fill="#FFFFFF"/>
+  <path d="M112 92 H400 V184 H215 V240 H358 V322 H215 V420 H112 Z" fill="#FFFFFF"/>
 </svg>
