@@ -1188,6 +1188,11 @@ function rectContainsSignificantText(rect, textBlocks) {
         return false; // Valid checked checkbox!
     }
 
+    // Allow comb formatting separator masks (e.g. "/" in mm/dd/yy or "-" in phone/zip/ssn)
+    if (/^[\/\-\—\–\.\s]+$/.test(allText)) {
+        return false;
+    }
+
     // A: Line number badges: e.g. "1", "1a", "2b", "10", "12a", "Line 1", "1.", "(a)", "b"
     if (/^(?:line\s*)?\(?\d{1,3}[a-z]?\)?[\.\:\)]?$/i.test(allText)) {
         return true; // Line number badge! Suppress!
@@ -1291,13 +1296,13 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
 
         const topLabel = !leftLabel ? rawBlocks
             .filter(tb => tb.y + tb.height <= minY + 4 && (minY - (tb.y + tb.height)) <= 28 &&
-                          (tb.x >= minX - 30 && tb.x <= maxX + 30))
+                          (tb.x >= minX - 30 && tb.x <= maxX + 30) && !/^[—–\-:\._\s\/]+$/.test(tb.str))
             .sort((a, b) => (minY - (b.y + b.height)) - (minY - (a.y + a.height)))[0] : null;
 
         const matchedLabel = leftLabel || topLabel;
         if (!matchedLabel || isUniversalStaticText(matchedLabel.str)) {
             // Comb fields must have an associated prompt or be in the body of the form
-            if (minY < 95 || cluster[0].width <= 15) {
+            if (minY < 95 || cluster[0].width < 8) {
                 continue;
             }
         }
