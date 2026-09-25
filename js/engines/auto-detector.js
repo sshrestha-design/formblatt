@@ -242,6 +242,10 @@ function isUniversalStaticText(text) {
 
     // 2. Numbered or named section headings, banners & instructional callouts (e.g. "Section 1: General Info", "Part A: Details", "Note:", "Caution:", "Instructions:")
     if (/^(?:section|abschnitt|teil|kapitel|partie|chapitre|secci[óo]n|sezione|parte|deel|hoofdstuk|part|step|item|schedule|table|note|notice|instruction|instructions|disclaimer|summary|caution|warning|tip|important|remember|example|refer|attach|send\s+to|mail\s+to|go\s+to|website|url|http|www|for\s+details|see\s+page|direction|directions|guideline|guidelines|purpose|definition|definitions|future|general|specific|privacy|paperwork|official|requirements|overview|background|penalty|penalties|deadline)\b/i.test(cleanNoColon)) {
+        // Exception: Itemized table column/prompt labels such as "Item Description", "Item 1 Description", "Item Name", "Item No."
+        if (/^item\s*(?:\d+)?\s*(?:description|name|details|number|no\.?|code|price|amount|qty|quantity|rate|unit)\b/i.test(cleanNoColon)) {
+            return false;
+        }
         return true;
     }
     if (/^\d+[.)]\s+[\p{L}\s&()/ -]+$/iu.test(cleanNoColon) && cleanNoColon.split(/\s+/).length <= 6) {
@@ -429,8 +433,11 @@ function isOverlapping(field, list, threshold = 0.35) {
             field.height / existing.height > 0.65 &&
             field.height / existing.height < 1.5;
 
+        const areaRatio = Math.max(fieldArea, existingArea) / minArea;
+        const effectiveRatio = areaRatio > 3 ? (overlapArea / fieldArea) : (overlapArea / minArea);
+
         return minArea > 0 && (
-            (overlapArea / minArea) > threshold ||
+            effectiveRatio > threshold ||
             (iou >= 0.15 && similarSize) ||
             (centerDistance <= 6 && similarSize)
         );
@@ -1330,6 +1337,11 @@ function rectContainsSignificantText(rect, textBlocks) {
 
     // Find all text blocks that fall inside, start inside, or significantly overlap the rectangle
     const innerBlocks = textBlocks.filter(tb => {
+        // Ignore text blocks starting in the far right margin of wide boxes (encroachment from adjacent columns/prompts)
+        if (rect.width >= 70 && tb.x >= rect.x + rect.width * 0.75) {
+            return false;
+        }
+
         const tbRight = tb.x + tb.width;
         const tbBottom = tb.y + tb.height;
         const cx = tb.x + tb.width / 2;
@@ -1568,9 +1580,17 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
             .sort((a, b) => (b.x + b.width) - (a.x + a.width))[0] : null;
 
         const matchedLabel = rightLabel || leftLabel;
-        // Skip checkboxes labelled with universal static text (section headings, instructions, disclaimers)
+        // Skip checkboxes labelled with universal static text (section headings, instructions, disclaimers).
+        // However, allow single-word sentence starters like "I", "We", "The" that begin a certify/agree phrase
+        // (these appear as single words because our word-by-word text block extraction splits them).
         if (matchedLabel && isUniversalStaticText(matchedLabel.str)) {
-            continue;
+            // Exception: single pronoun/article that starts a right-side certify/agree sentence
+            const isSentenceStarter = /^(i|we|the|by|this|he|she|they)$/i.test(matchedLabel.str.trim())
+                && rightLabel != null
+                && rawBlocks.some(tb => tb.x > cbox.x + cbox.width + 2 && tb.x <= cbox.x + cbox.width + 200
+                    && Math.abs(tb.y - cbox.y) <= 14
+                    && /^(certify|agree|acknowledge|confirm|authorize|consent|declare|verify|attest|accept|understand|permit|authorize)$/i.test(tb.str.trim()));
+            if (!isSentenceStarter) continue;
         }
         // Suppress unlabelled checkboxes in the top header/seal area or far page margins
         if (!matchedLabel && (cbox.y < 95 || cbox.x >= 545 || cbox.x <= 25)) {
@@ -2654,10 +2674,17 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
             }
 
             // Check if an explicit vector underline is present next to or under this prompt
-            const matchingUnderline = (vectorShapes?.underlines || []).find(u =>
-                Math.abs(u.y - (line.y + line.height)) <= 14 &&
-                u.x >= promptEndX - 15 && (u.x - promptEndX) <= 50
-            );
+            // (excluding horizontal strokes that are top/bottom edges of drawn rectangles)
+            const matchingUnderline = (vectorShapes?.underlines || []).find(u => {
+                if (Math.abs(u.y - (line.y + line.height)) > 14) return false;
+                if (u.x < promptEndX - 15 || (u.x - promptEndX) > 50) return false;
+                const isRectEdge = [...(vectorShapes?.inputBoxRects || []), ...(vectorShapes?.checkboxRects || [])].some(box => {
+                    const xMatch = Math.abs(u.x - box.x) <= 8 && Math.abs((u.x + u.width) - (box.x + box.width)) <= 8;
+                    if (!xMatch) return false;
+                    return Math.abs(u.y - box.y) <= 4 || Math.abs(u.y - (box.y + box.height)) <= 4;
+                });
+                return !isRectEdge;
+            });
 
             const hasTextPlaceholder = /_{2,}|[\.]{3,}/.test(valueChunk) || Boolean(placeholderItem);
 
@@ -2719,7 +2746,7 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
                 detectedBy: "affordance2_colon_prompt"
             };
 
-            if (!isOverlapping(newField, fields, 0.35)) {
+            if (!isOverlapping(newField, fields, 0.20)) {
                 fields.push(newField);
             }
         }
