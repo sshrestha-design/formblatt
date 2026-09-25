@@ -180,7 +180,7 @@ async function runBenchmark() {
     console.log("🏛️ REAL-WORLD IRS FLATTENED PDF BENCHMARK RUNNER");
     console.log("=================================================\n");
 
-    const { detectVectorDrawnFields } = await import(path.join(ROOT_DIR, 'js', 'engines', 'auto-detector.js'));
+    const { detectVectorDrawnFields, detectVisualAffordances } = await import(path.join(ROOT_DIR, 'js', 'engines', 'auto-detector.js'));
 
     const irsFiles = fs.readdirSync(IRS_DIR).filter(f => f.endsWith('.pdf'));
     const results = [];
@@ -254,9 +254,13 @@ async function runBenchmark() {
             const pageData = extractedPageData[pNum - 1];
             const shapes = pageData?.shapes || parsePdfPageVectorShapes(flatPages[pNum - 1]);
             const rawBlocks = pageData?.textBlocks || [];
+            const usedNames = new Set(detectedFields.map(f => f.name));
+            const p = flatPages[pNum - 1];
+            const viewport = { width: p.getWidth(), height: p.getHeight() };
 
-            const pDetections = detectVectorDrawnFields(shapes, rawBlocks, pNum, new Set(), []);
-            detectedFields.push(...pDetections);
+            const pDetections = detectVectorDrawnFields(shapes, rawBlocks, pNum, usedNames, [], { clusterRadios: true });
+            const pAffordances = detectVisualAffordances(rawBlocks, viewport, pNum, usedNames, pDetections, [], shapes);
+            detectedFields.push(...pDetections, ...pAffordances);
         }
 
         // 3.5 Export detected fields to .jform project file and reload to verify round-trip

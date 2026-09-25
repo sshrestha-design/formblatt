@@ -1334,6 +1334,11 @@ function rectContainsSignificantText(rect, textBlocks) {
         return false;
     }
 
+    // Allow currency prefix symbols inside input boxes (e.g. "$", "€", "£", "¥")
+    if (/^[$\u20AC\u00A3\u00A5\s]+$/.test(allText)) {
+        return false;
+    }
+
     // A: Line number badges: e.g. "1", "1a", "2b", "10", "12a", "Line 1", "1.", "(a)", "b"
     if (/^(?:line\s*)?\(?\d{1,3}[a-z]?\)?[\.\:\)]?$/i.test(allText)) {
         return true; // Line number badge! Suppress!
@@ -1345,6 +1350,15 @@ function rectContainsSignificantText(rect, textBlocks) {
     // B: Section / Part / Table / Step badges: e.g. "Part I", "Section A", "Schedule 1", "Step 1"
     if (/\b(?:part|section|sec|schedule|step|table|item|box)\b/i.test(allText)) {
         return true; // Section badge! Suppress!
+    }
+
+    // Top-anchored internal prompt labels in government/IRS form boxes with clear fillable height below
+    if (rect.height >= 18 && rect.width >= 50) {
+        const maxTextBottom = Math.max(...innerBlocks.map(tb => tb.y + tb.height));
+        const spaceBelow = (rect.y + rect.height) - maxTextBottom;
+        if (spaceBelow >= 9 && maxTextBottom <= rect.y + rect.height * 0.65) {
+            return false;
+        }
     }
 
     // C: Static label / heading words inside rect (>2 chars or multiple blocks)
@@ -1609,15 +1623,33 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
 
         let labelText = "";
         let inheritedCol = null;
+        let adjustedBoxY = box.y;
+        let adjustedBoxHeight = box.height;
 
-        if (leftLabel) {
+        // Check for in-box top prompt label (common in IRS and government tax forms)
+        const inBoxLabels = rawBlocks.filter(tb => 
+            tb.x >= box.x - 2 && tb.x + tb.width <= box.x + box.width + 4 &&
+            tb.y >= box.y - 2 && tb.y + tb.height <= box.y + box.height * 0.65
+        );
+        let hasInBoxTopLabel = false;
+        if (inBoxLabels.length > 0 && box.height >= 18) {
+            const maxTextBottom = Math.max(...inBoxLabels.map(tb => tb.y + tb.height));
+            if ((box.y + box.height) - maxTextBottom >= 9) {
+                labelText = inBoxLabels.map(tb => tb.str).join(" ").replace(/^(?:\([a-z0-9]+\)|\d+[a-z]?[\.\:]?)\s*/i, "").trim();
+                adjustedBoxY = Math.round(maxTextBottom + 1);
+                adjustedBoxHeight = Math.round((box.y + box.height) - adjustedBoxY);
+                hasInBoxTopLabel = true;
+            }
+        }
+
+        if (leftLabel && !hasInBoxTopLabel) {
             labelText = reconstructLinePhrase(leftLabel, rawBlocks, "left");
-        } else if (topLabel) {
+        } else if (topLabel && !hasInBoxTopLabel) {
             labelText = reconstructLinePhrase(topLabel, rawBlocks, "right");
             if (labelText.length < topLabel.str.length) labelText = topLabel.str;
-        } else if (rightLabel) {
+        } else if (rightLabel && !hasInBoxTopLabel) {
             labelText = reconstructLinePhrase(rightLabel, rawBlocks, "right");
-        } else {
+        } else if (!hasInBoxTopLabel) {
             // Check column inheritance for table grid rows (stacked boxes in same column)
             const upperColField = fields
                 .filter(f => {
@@ -1660,18 +1692,18 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         const isQuestionOrCheckbox = sem.type === "checkBox" || /\?$/.test(labelText) || /\b(sick\??|absent\??|yes\??|no\??)\b/i.test(labelText);
         const type = isSig ? "signature" : (isDate ? "dateField" : (isQuestionOrCheckbox || inheritedCol?.type === "checkBox" ? "checkBox" : (inheritedCol?.type || sem.type)));
         
-        // Currency symbol proximity ($ € £ ¥ directly left of box)
+        // Currency symbol proximity ($ € £ ¥ directly left of box or inside left edge)
         const hasCurrencySymbol = rawBlocks.some(tb => 
             /^[$\u20AC\u00A3\u00A5]$/.test(tb.str.trim()) &&
-            tb.x + tb.width <= box.x + 4 && (box.x - (tb.x + tb.width)) <= 20 &&
-            Math.abs(tb.y - box.y) <= 12
+            ((tb.x + tb.width <= box.x + 4 && (box.x - (tb.x + tb.width)) <= 20 && Math.abs(tb.y - box.y) <= 12) ||
+             (tb.x >= box.x - 2 && tb.x <= box.x + 18 && tb.y >= box.y - 2 && tb.y <= box.y + box.height + 2))
         );
         const dataFormat = hasCurrencySymbol ? "currency" : (inheritedCol?.dataFormat || sem.dataFormat || "text");
 
         let fx = box.x;
-        let fy = box.y;
+        let fy = adjustedBoxY;
         let fw = box.width;
-        let fh = box.height;
+        let fh = adjustedBoxHeight;
         if (type === "checkBox" && box.width > 24) {
             fw = 15;
             fh = 15;
@@ -2459,11 +2491,14 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
             if (isUniversalStaticText(cleanLabel)) continue;
 
             // Skip questions, instructional clauses, and long phrases before colons
-            if (cleanLabel.includes("?") || cleanLabel.length > 40 || cleanLabel.split(/\s+/).length > 5) continue;
+            const textAfterColon = text.slice(m.index + m[0].length).trim();
+            const hasExplicitPlaceholder = /_{2,}|[\.]{3,}/.test(textAfterColon);
+            const labelWithoutParentheticals = cleanLabel.replace(/\s*\([^)]*\)\s*/g, ' ').trim();
+            const maxLabelLen = hasExplicitPlaceholder ? 65 : 40;
+            const maxLabelWords = hasExplicitPlaceholder ? 9 : 5;
+            if (cleanLabel.includes("?") || labelWithoutParentheticals.length > maxLabelLen || labelWithoutParentheticals.split(/\s+/).length > maxLabelWords) continue;
             if (/^(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|may|what|where|when|which|why|how|if|please|note|notice|caution|warning|section|part|step|item|for|to)\b/i.test(cleanLabel)) continue;
             if (/^\s*\d+[\s.)]/.test(cleanLabel)) continue;
-
-            const textAfterColon = text.slice(m.index + m[0].length).trim();
 
             // 1. Skip if choices (checkboxes/radios) immediately follow
             if (CHECKBOX_REGEX.test(textAfterColon)) {
@@ -2514,6 +2549,7 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
                 }
             }
             for (const tb of rawBlocks) {
+                if (/^[_.\s]+$/.test(tb.str)) continue;
                 if (tb.x > targetX + 2) {
                     const sameLine = Math.abs(tb.y - line.y) <= Math.max(4, (line.height || 10) * 0.5);
                     if (sameLine) {

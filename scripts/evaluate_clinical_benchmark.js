@@ -181,7 +181,7 @@ async function runClinicalBenchmark() {
     console.log("🏥 REAL-WORLD CLINICAL & HEALTHCARE BENCHMARK");
     console.log("=================================================\n");
 
-    const { detectVectorDrawnFields } = await import('../js/engines/auto-detector.js');
+    const { detectVectorDrawnFields, detectVisualAffordances } = await import('../js/engines/auto-detector.js');
 
     const files = fs.readdirSync(CLINICAL_DIR).filter(f => f.endsWith('.pdf')).sort();
     const benchmarkResults = [];
@@ -260,9 +260,13 @@ async function runClinicalBenchmark() {
             const pageData = extractedPageData[pNum - 1];
             const shapes = pageData?.shapes || parsePdfPageVectorShapes(flatPages[pNum - 1]);
             const rawBlocks = pageData?.textBlocks || [];
+            const usedNames = new Set(detectedFields.map(f => f.name));
+            const p = flatPages[pNum - 1];
+            const viewport = { width: p.getWidth(), height: p.getHeight() };
 
-            const pDetections = detectVectorDrawnFields(shapes, rawBlocks, pNum, new Set(), []);
-            detectedFields.push(...pDetections);
+            const pDetections = detectVectorDrawnFields(shapes, rawBlocks, pNum, usedNames, [], { clusterRadios: true });
+            const pAffordances = detectVisualAffordances(rawBlocks, viewport, pNum, usedNames, pDetections, [], shapes);
+            detectedFields.push(...pDetections, ...pAffordances);
         }
 
         // 4. Export detected fields to .jform project file
