@@ -59,6 +59,8 @@ for pno, page in enumerate(doc):
     inputs = []
     all_rects = []
     underlines = []
+    h_lines = []
+    v_lines = []
 
     for d in page.get_drawings():
         fill = d.get('fill')
@@ -80,6 +82,21 @@ for pno, page in enumerate(doc):
             inputs.append(item)
         elif h <= 3 and 25 <= w <= 380:
             underlines.append(item)
+            h_lines.append({'x1': round(r.x0, 1), 'x2': round(r.x1, 1), 'y': round((r.y0 + r.y1) / 2, 1)})
+        elif w <= 3 and 8 <= h <= 120:
+            v_lines.append({'x': round((r.x0 + r.x1) / 2, 1), 'y1': round(r.y0, 1), 'y2': round(r.y1, 1)})
+
+        for it in d.get('items', []):
+            if it[0] == 'l':
+                p1, p2 = it[1], it[2]
+                dx = abs(p1.x - p2.x)
+                dy = abs(p1.y - p2.y)
+                if dy <= 2.0 and dx >= 18:
+                    h_lines.append({'x1': round(min(p1.x, p2.x), 1), 'x2': round(max(p1.x, p2.x), 1), 'y': round((p1.y + p2.y) / 2, 1)})
+                    if dx <= 380:
+                        underlines.append({'x': round(min(p1.x, p2.x), 1), 'y': round((p1.y + p2.y) / 2, 1), 'width': round(dx, 1), 'height': 2})
+                elif dx <= 2.0 and dy >= 8:
+                    v_lines.append({'x': round((p1.x + p2.x) / 2, 1), 'y1': round(min(p1.y, p2.y), 1), 'y2': round(max(p1.y, p2.y), 1)})
 
     words = []
     for w in page.get_text('words'):
@@ -97,7 +114,9 @@ for pno, page in enumerate(doc):
             'checkboxRects': checkboxes,
             'inputBoxRects': inputs,
             'allRects': all_rects,
-            'underlines': underlines
+            'underlines': underlines,
+            'hLines': h_lines,
+            'vLines': v_lines
         },
         'textBlocks': words
     })
@@ -180,7 +199,7 @@ async function runBenchmark() {
     console.log("🏛️ REAL-WORLD IRS FLATTENED PDF BENCHMARK RUNNER");
     console.log("=================================================\n");
 
-    const { detectVectorDrawnFields, detectVisualAffordances } = await import(path.join(ROOT_DIR, 'js', 'engines', 'auto-detector.js'));
+    const { detectVectorDrawnFields, detectVisualAffordances, reconstructTableGridBoxes } = await import(path.join(ROOT_DIR, 'js', 'engines', 'auto-detector.js'));
 
     const irsFiles = fs.readdirSync(IRS_DIR).filter(f => f.endsWith('.pdf'));
     const results = [];
@@ -253,6 +272,11 @@ async function runBenchmark() {
         for (let pNum = 1; pNum <= flatPages.length; pNum++) {
             const pageData = extractedPageData[pNum - 1];
             const shapes = pageData?.shapes || parsePdfPageVectorShapes(flatPages[pNum - 1]);
+            if (shapes.hLines && shapes.hLines.length >= 2 && shapes.inputBoxRects.length <= 2) {
+                const gridBoxes = reconstructTableGridBoxes(shapes.hLines, shapes.vLines || []);
+                shapes.inputBoxRects.push(...gridBoxes);
+                shapes.allRects.push(...gridBoxes);
+            }
             const rawBlocks = pageData?.textBlocks || [];
             const usedNames = new Set(detectedFields.map(f => f.name));
             const p = flatPages[pNum - 1];

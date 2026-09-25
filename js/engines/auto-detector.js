@@ -263,6 +263,11 @@ function isUniversalStaticText(text) {
         return true;
     }
 
+    // 2.75 Instructional list headers, directions, and report sections (e.g. "include the following", "case if it", "select one column", "check only one", "choose one", "report:", "submit to:")
+    if (/\b(?:include\s+the\s+following|includes?|including|as\s+follows|such\s+as|case\s+if|select\s+one|check\s+only\s+one|choose\s+one|report|reporting|reports|submit|submitting|provide|providing)\b/i.test(cleanNoColon)) {
+        return true;
+    }
+
     // 2.8 Long sentences, paragraphs, or legal disclaimer text (high word count)
     if (clean.length > 50 || clean.split(/\s+/).length > 8 || (clean.endsWith(".") && clean.split(/\s+/).length > 4)) {
         return true;
@@ -735,8 +740,8 @@ function matchColumnKeyword(text) {
     return null;
 }
 
-export function reconstructTableGridBoxes(hLines, vLines) {
-    if (!hLines || !vLines || hLines.length < 2 || vLines.length < 2) return [];
+export function reconstructTableGridBoxes(hLines, vLines = []) {
+    if (!hLines || hLines.length < 2) return [];
 
     const cells = [];
     const yMap = new Map();
@@ -756,53 +761,85 @@ export function reconstructTableGridBoxes(hLines, vLines) {
         }
     });
 
-    const xMap = new Map();
-    vLines.forEach(v => {
-        const roundedX = Math.round(v.x);
-        let matchX = null;
-        for (const existingX of xMap.keys()) {
-            if (Math.abs(existingX - roundedX) <= 3) {
-                matchX = existingX;
-                break;
-            }
-        }
-        if (matchX === null) {
-            xMap.set(roundedX, [v]);
-        } else {
-            xMap.get(matchX).push(v);
-        }
-    });
-
     const uniqueYs = Array.from(yMap.keys()).sort((a, b) => a - b);
-    const uniqueXs = Array.from(xMap.keys()).sort((a, b) => a - b);
 
     for (let i = 0; i < uniqueYs.length - 1; i++) {
         const yTop = uniqueYs[i];
         const yBottom = uniqueYs[i + 1];
         const h = yBottom - yTop;
-        if (h < 8 || h > 45) continue;
+        if (h < 8 || h > 75) continue;
 
-        const colXs = uniqueXs.filter(x => {
-            return vLines.some(vl => Math.abs(Math.round(vl.x) - x) <= 3 && vl.y1 <= yTop + 4 && vl.y2 >= yBottom - 4);
+        const topH = yMap.get(yTop) || [];
+        const botH = yMap.get(yBottom) || [];
+
+        // Only generate cells for rows that are part of a genuine table grid.
+        // A real table grid has ≥2 additional rows at a similar x-span and similar row height.
+        // This prevents isolated section-header hLine pairs from producing phantom input cells.
+        const rowH = h;
+        const consistentRows = uniqueYs.filter((y, idx) => {
+            if (y === yTop) return false;
+            const nextY = uniqueYs[idx + 1];
+            if (nextY === undefined) return false;
+            const candidateH = nextY - y;
+            if (candidateH < 8 || candidateH > 75) return false;
+            // Height within 30% of current row
+            if (Math.abs(candidateH - rowH) > rowH * 0.4) return false;
+            // x-span must match within 12pt on each side for at least one line pair
+            const cTopH = yMap.get(y) || [];
+            const cBotH = yMap.get(nextY) || [];
+            return topH.some(tl =>
+                cTopH.some(cl => Math.abs(cl.x1 - tl.x1) <= 14 && Math.abs(cl.x2 - tl.x2) <= 14) ||
+                cBotH.some(cl => Math.abs(cl.x1 - tl.x1) <= 14 && Math.abs(cl.x2 - tl.x2) <= 14)
+            );
         });
+        if (consistentRows.length < 1) continue;
 
-        if (colXs.length >= 2) {
-            for (let j = 0; j < colXs.length - 1; j++) {
-                const xLeft = colXs[j];
-                const xRight = colXs[j + 1];
-                const w = xRight - xLeft;
-                if (w >= 12 && w <= 450) {
-                    cells.push({
-                        x: xLeft,
-                        y: yTop,
-                        width: w,
-                        height: h
-                    });
+        for (const tLine of topH) {
+            for (const bLine of botH) {
+                const x1 = Math.max(tLine.x1, bLine.x1);
+                const x2 = Math.min(tLine.x2, bLine.x2);
+                if (x2 - x1 < 25) continue;
+
+                // Find vertical divider lines spanning between yTop and yBottom
+                const dividers = [x1];
+                if (vLines && vLines.length > 0) {
+                    for (const vl of vLines) {
+                        if (vl.y1 <= yTop + 4 && vl.y2 >= yBottom - 4) {
+                            if (vl.x >= x1 + 10 && vl.x <= x2 - 10) {
+                                dividers.push(Math.round(vl.x));
+                            }
+                        }
+                    }
+                }
+                dividers.push(x2);
+                const sortedDividers = Array.from(new Set(dividers)).sort((a, b) => a - b);
+
+                for (let d = 0; d < sortedDividers.length - 1; d++) {
+                    const cellLeft = sortedDividers[d];
+                    const cellRight = sortedDividers[d + 1];
+                    const w = cellRight - cellLeft;
+                    if (w >= 15 && w <= 555) {
+                        cells.push({
+                            x: Math.round(cellLeft),
+                            y: Math.round(yTop),
+                            width: Math.round(w),
+                            height: Math.round(h)
+                        });
+                    }
                 }
             }
         }
     }
-    return cells;
+
+    // Deduplicate any cells that share essentially the same bounding box
+    const uniqueCells = [];
+    for (const c of cells) {
+        if (!uniqueCells.some(u => Math.abs(u.x - c.x) <= 3 && Math.abs(u.y - c.y) <= 3 && Math.abs(u.width - c.width) <= 4 && Math.abs(u.height - c.height) <= 4)) {
+            uniqueCells.push(c);
+        }
+    }
+
+    return uniqueCells;
 }
 
 // ============================================================================
@@ -1463,7 +1500,7 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         }
         const labelText = (matchedLabel && !isUniversalStaticText(matchedLabel.str)) ? matchedLabel.str : "comb_field";
 
-        const isCombKeyword = /\b(ssn|social\s*sec|tin|ein|tax\s*id|routing|account|pin|zip|postal|date|birth|dob)\b/i.test(labelText);
+        const isCombKeyword = /\b(ssn|social\s*sec|tin|ein|tax\s*id|routing|account|pin|zip|postal|date|birth|dob|id\b|ref(?:erence)?|number|no\.|no\b|num|code|case|member|policy|claim|invoice|order|ticket|serial|tracking|confirm|applic|regist|patient|employee|student|vendor|permit|license|licence)\b/i.test(labelText);
         const isSquareCell = (cluster[0].width / cluster[0].height >= 0.85 && cluster[0].width >= 13);
         // Square cell clusters (e.g. 18x18 checkboxes) must have explicit comb keywords to be treated as combs.
         // Otherwise, they are checkbox grids (e.g. OSHA 300 outcome columns) and should remain individual checkboxes.
@@ -1576,6 +1613,15 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         if (box.y < 70 && box.width >= 120 && box.height <= 35) continue;
         // Skip narrow column spacers (e.g. 21.6 pt spacers between columns)
         if (box.width <= 25) continue;
+        // Skip wide section-header/label bands: thin rows spanning ≥350pt that contain any text
+        // (e.g. "1. GENERAL INFORMATION", "2. FORM SPECIFIC PARAMETERS" — coloured label rows)
+        if (box.height <= 22 && box.width >= 350) {
+            const hasHeaderText = rawBlocks.some(tb =>
+                tb.x >= box.x - 4 && tb.x <= box.x + box.width + 4 &&
+                tb.y >= box.y - 4 && tb.y <= box.y + box.height + 4
+            );
+            if (hasHeaderText) continue;
+        }
         // Skip boxes that already contain label text inside (table headers, pre-filled cells)
         if (rectContainsSignificantText(box, rawBlocks)) continue;
 
@@ -2497,7 +2543,8 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
             const maxLabelLen = hasExplicitPlaceholder ? 65 : 40;
             const maxLabelWords = hasExplicitPlaceholder ? 9 : 5;
             if (cleanLabel.includes("?") || labelWithoutParentheticals.length > maxLabelLen || labelWithoutParentheticals.split(/\s+/).length > maxLabelWords) continue;
-            if (/^(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|may|what|where|when|which|why|how|if|please|note|notice|caution|warning|section|part|step|item|for|to)\b/i.test(cleanLabel)) continue;
+            if (/^(?:are|is|was|were|do|does|did|have|has|had|can|could|will|would|should|may|what|where|when|which|why|how|if|please|note|notice|caution|warning|section|part|step|item|for|to|include|includes|including|such|case|report|submit|provide)\b/i.test(cleanLabel)) continue;
+            if (/\b(?:include\s+the\s+following|includes?|including|as\s+follows|such\s+as|case\s+if|for\s+example|select\s+one|check\s+only\s+one|choose\s+one)\b/i.test(cleanLabel)) continue;
             if (/^\s*\d+[\s.)]/.test(cleanLabel)) continue;
 
             // 1. Skip if choices (checkboxes/radios) immediately follow
@@ -2807,11 +2854,7 @@ export function detectVisualAffordances(rawBlocks, viewport, pageNum, usedNames,
                 }
 
                 if (rowYs.length === 0) {
-                    const rowCount = Math.min(8, Math.max(2, Math.floor(tableHeight / 24)));
-                    const rowHeight = tableHeight / rowCount;
-                    for (let r = 0; r < rowCount; r++) {
-                        rowYs.push(Math.round(tableTopY + r * rowHeight));
-                    }
+                    continue;
                 }
 
                 let cellHeight = 18;
