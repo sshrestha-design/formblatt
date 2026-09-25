@@ -519,70 +519,17 @@ function renderExampleReviewsSection() {
 }
 
 export function activateStudioCurtain(label = "Opening Studio...") {
-    if (typeof document === "undefined") return () => {};
-    const curtain = document.getElementById("studioCurtain");
-    const prog = document.getElementById("studioCurtainProgress");
-    const lbl = document.getElementById("studioCurtainLabel");
-    if (!curtain) return () => {};
-
-    const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReducedMotion) {
-        return function dismissStudioCurtain(onComplete) {
-            if (onComplete) onComplete();
-        };
+    if (typeof document !== "undefined") {
+        const curtain = document.getElementById("studioCurtain");
+        if (curtain) {
+            curtain.style.display = "none";
+            curtain.classList.remove("active");
+        }
     }
-
-    if (lbl) lbl.textContent = label;
-    if (prog) {
-        prog.style.opacity = "1";
-        prog.style.width = "0%";
-    }
-    curtain.style.display = "flex";
-    curtain.classList.remove("active");
-    void curtain.offsetWidth;
-    curtain.classList.add("active");
-
-    const stageTimers = [];
-
-    if (prog) {
-        requestAnimationFrame(() => {
-            prog.style.width = "38%";
-        });
-        stageTimers.push(setTimeout(() => {
-            if (prog && curtain.classList.contains("active")) prog.style.width = "72%";
-        }, 650));
-        stageTimers.push(setTimeout(() => {
-            if (prog && curtain.classList.contains("active")) prog.style.width = "90%";
-        }, 1300));
-    }
-
-    const startTime = Date.now();
-    let dismissed = false;
-
     return function dismissStudioCurtain(onComplete) {
-        if (dismissed) return;
-        dismissed = true;
-
-        const elapsed = Date.now() - startTime;
-        const minDisplay = 2000; // 2 seconds minimum display duration
-        const remaining = Math.max(0, minDisplay - elapsed);
-
-        setTimeout(() => {
-            stageTimers.forEach(clearTimeout);
-            if (prog) {
-                prog.style.width = "100%";
-            }
-            setTimeout(() => {
-                curtain.classList.remove("active");
-                if (prog) prog.style.opacity = "0";
-
-                setTimeout(() => {
-                    curtain.style.display = "none";
-                    if (prog) prog.style.width = "0%";
-                    if (onComplete) onComplete();
-                }, 320);
-            }, 100);
-        }, remaining);
+        if (typeof onComplete === "function") {
+            try { onComplete(); } catch (err) { console.error(err); }
+        }
     };
 }
 

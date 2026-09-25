@@ -119,26 +119,24 @@ svg[data-lucide],.lucide{display:inline-block;vertical-align:middle;flex-shrink:
   .screen-transition-home-out,.screen-transition-editor-in,.screen-transition-editor-out,.screen-transition-home-in{animation:none !important;transform:none !important;opacity:1 !important;position:static !important}
 }
 
-/* ── Minimalist Studio Curtain (Linear / Apple Style) ────────── */
+/* ── Minimalist Studio Curtain (Disabled / Removed) ────────── */
 .studio-curtain {
+  display: none !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
   position: fixed !important;
   inset: 0 !important;
   z-index: 10000 !important;
   background: rgba(248, 250, 252, 0.72);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.32s ease, -webkit-backdrop-filter 0.32s ease;
-  will-change: opacity, backdrop-filter;
+  opacity: 0 !important;
 }
 .studio-curtain.active {
-  opacity: 1;
-  pointer-events: all;
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 .studio-curtain-progress {
   position: absolute;
