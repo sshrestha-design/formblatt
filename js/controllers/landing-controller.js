@@ -542,10 +542,18 @@ export function activateStudioCurtain(label = "Opening Studio...") {
     void curtain.offsetWidth;
     curtain.classList.add("active");
 
+    const stageTimers = [];
+
     if (prog) {
         requestAnimationFrame(() => {
-            prog.style.width = "75%";
+            prog.style.width = "38%";
         });
+        stageTimers.push(setTimeout(() => {
+            if (prog && curtain.classList.contains("active")) prog.style.width = "72%";
+        }, 650));
+        stageTimers.push(setTimeout(() => {
+            if (prog && curtain.classList.contains("active")) prog.style.width = "90%";
+        }, 1300));
     }
 
     const startTime = Date.now();
@@ -556,10 +564,11 @@ export function activateStudioCurtain(label = "Opening Studio...") {
         dismissed = true;
 
         const elapsed = Date.now() - startTime;
-        const minDisplay = 260; // Snappy Linear-style minimum duration to avoid strobe
+        const minDisplay = 2000; // 2 seconds minimum display duration
         const remaining = Math.max(0, minDisplay - elapsed);
 
         setTimeout(() => {
+            stageTimers.forEach(clearTimeout);
             if (prog) {
                 prog.style.width = "100%";
             }
@@ -571,8 +580,8 @@ export function activateStudioCurtain(label = "Opening Studio...") {
                     curtain.style.display = "none";
                     if (prog) prog.style.width = "0%";
                     if (onComplete) onComplete();
-                }, 280);
-            }, 80);
+                }, 320);
+            }, 100);
         }, remaining);
     };
 }

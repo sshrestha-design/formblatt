@@ -133,7 +133,7 @@ svg[data-lucide],.lucide{display:inline-block;vertical-align:middle;flex-shrink:
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.28s ease, -webkit-backdrop-filter 0.28s ease;
+  transition: opacity 0.32s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.32s ease, -webkit-backdrop-filter 0.32s ease;
   will-change: opacity, backdrop-filter;
 }
 .studio-curtain.active {
@@ -148,7 +148,7 @@ svg[data-lucide],.lucide{display:inline-block;vertical-align:middle;flex-shrink:
   width: 0%;
   background: linear-gradient(90deg, #0B63CE 0%, #2563eb 50%, #38bdf8 100%);
   box-shadow: 0 0 12px rgba(11, 99, 206, 0.55), 0 0 2px rgba(37, 99, 235, 0.8);
-  transition: width 0.32s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+  transition: width 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
   z-index: 2;
   will-change: width, opacity;
 }
