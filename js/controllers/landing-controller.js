@@ -518,12 +518,79 @@ function renderExampleReviewsSection() {
     `;
 }
 
+export function activateStudioCurtain(label = "Opening Studio...") {
+    if (typeof document === "undefined") return () => {};
+    const curtain = document.getElementById("studioCurtain");
+    const prog = document.getElementById("studioCurtainProgress");
+    const lbl = document.getElementById("studioCurtainLabel");
+    if (!curtain) return () => {};
+
+    const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) {
+        return function dismissStudioCurtain(onComplete) {
+            if (onComplete) onComplete();
+        };
+    }
+
+    if (lbl) lbl.textContent = label;
+    if (prog) {
+        prog.style.opacity = "1";
+        prog.style.width = "0%";
+    }
+    curtain.style.display = "flex";
+    curtain.classList.remove("active");
+    void curtain.offsetWidth;
+    curtain.classList.add("active");
+
+    if (prog) {
+        requestAnimationFrame(() => {
+            prog.style.width = "75%";
+        });
+    }
+
+    const startTime = Date.now();
+    let dismissed = false;
+
+    return function dismissStudioCurtain(onComplete) {
+        if (dismissed) return;
+        dismissed = true;
+
+        const elapsed = Date.now() - startTime;
+        const minDisplay = 260; // Snappy Linear-style minimum duration to avoid strobe
+        const remaining = Math.max(0, minDisplay - elapsed);
+
+        setTimeout(() => {
+            if (prog) {
+                prog.style.width = "100%";
+            }
+            setTimeout(() => {
+                curtain.classList.remove("active");
+                if (prog) prog.style.opacity = "0";
+
+                setTimeout(() => {
+                    curtain.style.display = "none";
+                    if (prog) prog.style.width = "0%";
+                    if (onComplete) onComplete();
+                }, 280);
+            }, 80);
+        }, remaining);
+    };
+}
+
 export async function showEditorScreen(onReady, skipPush = false) {
     const landing = document.getElementById("landingScreen");
     const editor = document.getElementById("appEditorScreen");
 
     const prefersReducedMotion = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const isLandingVisible = Boolean(landing && (landing.style.display !== "none" && !landing.hidden));
+
+    const curtain = document.getElementById("studioCurtain");
+    const wasCurtainActive = Boolean(curtain && curtain.classList.contains("active"));
+    let localDismissCurtain = null;
+
+    if (!wasCurtainActive && !prefersReducedMotion && isLandingVisible) {
+        localDismissCurtain = activateStudioCurtain("Opening Studio...");
+    }
 
     if (editor) {
         editor.style.display = "flex";
@@ -564,7 +631,21 @@ export async function showEditorScreen(onReady, skipPush = false) {
     closeLeaveEditorModal();
 
     if (typeof lucide !== "undefined") lucide.createIcons();
-    if (onReady) onReady();
+
+    if (onReady) {
+        try {
+            const res = onReady();
+            if (res && typeof res.then === "function") {
+                await res;
+            }
+        } catch (e) {
+            console.warn("Error in showEditorScreen onReady callback:", e);
+        }
+    }
+
+    if (localDismissCurtain) {
+        localDismissCurtain();
+    }
 }
 
 export function isSupportedUploadFile(file) {
@@ -582,6 +663,8 @@ export async function loadPdfFile(file, onLoaded) {
         importProjectJson(file, onLoaded);
         return;
     }
+
+    const dismissCurtain = activateStudioCurtain("Loading Document...");
 
     try {
         const { loadPdfLibraries, analyzePdfDocument, goToPage } = await import("../engines/pdf-engine.js");
@@ -638,27 +721,35 @@ export async function loadPdfFile(file, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        await showEditorScreen(() => {
-            goToPage(1).then(() => {
+        await showEditorScreen(async () => {
+            try {
+                await goToPage(1);
                 saveHistory();
                 pulseAutoDetectButton();
+            } finally {
+                dismissCurtain();
                 if (onLoaded) onLoaded();
-            });
+            }
         });
     } catch(err) {
+        dismissCurtain();
         console.error("Failed to load PDF:", err);
         showToast("Failed to load PDF: " + (err.message || err), "error");
     }
 }
 
 export async function loadTemplate(key, onLoaded) {
+    const dismissCurtain = activateStudioCurtain("Preparing Template...");
     try {
         const { STARTER_TEMPLATES, createTemplatePdf } = await import("../engines/templates-engine.js");
         const { loadPdfLibraries, analyzePdfDocument, goToPage } = await import("../engines/pdf-engine.js");
         const { saveHistory } = await import("../core/storage-manager.js");
 
         const tpl = STARTER_TEMPLATES[key];
-        if (!tpl) return;
+        if (!tpl) {
+            dismissCurtain();
+            return;
+        }
 
         await loadPdfLibraries();
         const pdfjs = typeof window !== "undefined" ? (window.pdfjsLib || globalThis.pdfjsLib) : (typeof pdfjsLib !== "undefined" ? pdfjsLib : null);
@@ -679,13 +770,17 @@ export async function loadTemplate(key, onLoaded) {
         const es = document.getElementById("emptyState");
         if (es) es.style.display = "none";
 
-        await showEditorScreen(() => {
-            goToPage(1).then(() => {
+        await showEditorScreen(async () => {
+            try {
+                await goToPage(1);
                 saveHistory();
+            } finally {
+                dismissCurtain();
                 if (onLoaded) onLoaded();
-            });
+            }
         });
     } catch(err) {
+        dismissCurtain();
         console.error("Failed to generate template PDF:", err);
         showToast("Failed to load template: " + (err.message || err), "error");
     }
