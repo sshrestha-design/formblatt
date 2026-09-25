@@ -1822,7 +1822,19 @@ export function detectVectorDrawnFields(vectorShapes, rawBlocks, pageNum, usedNa
         );
         if (isUrl) continue;
 
-        // Find label directly to the left or directly above
+        // Skip underlines that are the top or bottom border stroke of a known inputBoxRect or checkboxRect.
+        // These are rectangle edges, not standalone fill-in underlines.
+        const isRectEdge = [...(vectorShapes.inputBoxRects || []), ...(vectorShapes.checkboxRects || [])].some(box => {
+            // Same x-span (within 8pt) and y is near top or bottom of the box
+            const xMatch = Math.abs(uX - box.x) <= 8 && Math.abs((uX + uW) - (box.x + box.width)) <= 8;
+            if (!xMatch) return false;
+            const nearTop    = Math.abs(uY - box.y) <= 4;
+            const nearBottom = Math.abs(uY - (box.y + box.height)) <= 4;
+            return nearTop || nearBottom;
+        });
+        if (isRectEdge) continue;
+
+
         const leftLabel = rawBlocks
             .filter(tb => tb.x + tb.width <= uX + 12 && (uX - (tb.x + tb.width)) <= 240 &&
                           Math.abs(tb.y - (uY - 10)) <= 18 && !/^[—–\-:\._\s]+$/.test(tb.str))
