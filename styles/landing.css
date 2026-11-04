@@ -32,6 +32,47 @@
 @media (prefers-reduced-motion:reduce){
   .landing-page{scroll-behavior:auto}
   .landing-page *{animation:none !important;transition:none !important}
+  nav.landing-nav-bar,
+  .hero-eyebrow,
+  .hero h1,
+  .sub,
+  .cta-row,
+  .trusted,
+  .hero-video-card,
+  .hero-showcase,
+  .reveal {
+    opacity:1 !important;
+    transform:none !important;
+  }
+}
+@media (prefers-reduced-motion:no-preference){
+  nav.landing-nav-bar{
+    animation:fadeUp .5s ease both;
+  }
+  .hero-eyebrow{
+    animation:fadeUp .6s ease both;
+    animation-delay:.15s;
+  }
+  .hero h1{
+    animation:fadeUp .7s ease both;
+    animation-delay:.28s;
+  }
+  .sub{
+    animation:fadeUp .6s ease both;
+    animation-delay:.44s;
+  }
+  .cta-row{
+    animation:fadeUp .6s ease both;
+    animation-delay:.56s;
+  }
+  .trusted{
+    animation:fadeUp .6s ease both;
+    animation-delay:.68s;
+  }
+  .hero-video-card{
+    animation:dashIn .8s cubic-bezier(.16,1,.3,1) both;
+    animation-delay:.32s;
+  }
 }
 @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes dashIn{from{opacity:0;transform:translateY(26px) scale(0.98)}to{opacity:1;transform:translateY(0) scale(1)}}
@@ -57,8 +98,6 @@ nav.landing-nav-bar{
   padding:18px max(24px, env(safe-area-inset-right, 0px)) 18px max(24px, env(safe-area-inset-left, 0px));
   position:relative;
   z-index:20;
-  opacity:0;
-  animation:fadeUp .5s ease forwards;
 }
 @media (max-width:768px){
   nav.landing-nav-bar{
@@ -178,9 +217,6 @@ nav.landing-nav-bar{
   color:var(--blue-deep);
   text-transform:uppercase;
   margin-bottom:16px;
-  opacity:0;
-  animation:fadeUp .6s ease forwards;
-  animation-delay:.15s;
 }
 .hero h1{
   font-family:var(--font-ui);
@@ -190,9 +226,6 @@ nav.landing-nav-bar{
   letter-spacing:-0.025em;
   max-width:600px;
   color:var(--ink);
-  opacity:0;
-  animation:fadeUp .7s ease forwards;
-  animation-delay:.28s;
 }
 .sub{
   margin-top:20px;
@@ -201,9 +234,6 @@ nav.landing-nav-bar{
   letter-spacing:-0.005em;
   color:var(--ink-soft);
   max-width:480px;
-  opacity:0;
-  animation:fadeUp .6s ease forwards;
-  animation-delay:.44s;
 }
 .cta-row{
   display:flex;
@@ -211,9 +241,6 @@ nav.landing-nav-bar{
   gap:14px;
   margin-top:32px;
   flex-wrap:wrap;
-  opacity:0;
-  animation:fadeUp .6s ease forwards;
-  animation-delay:.56s;
 }
 .landing-page .btn-primary,
 .landing-page label.btn-primary,
@@ -288,7 +315,7 @@ nav.landing-nav-bar{
   cursor:pointer;
 }
 .landing-page .btn-inverse:hover{transform:translateY(-2px);box-shadow:0 16px 30px -10px rgba(0,0,0,0.35)}
-.trusted{margin-top:56px;padding-bottom:44px;opacity:0;animation:fadeUp .6s ease forwards;animation-delay:.68s}
+.trusted{margin-top:56px;padding-bottom:44px;}
 .trusted-label{font-size:12px;font-weight:600;letter-spacing:0.1em;color:var(--mist);text-transform:uppercase;margin-bottom:18px}
 .logo-row{display:flex;align-items:center;gap:28px;flex-wrap:wrap}
 .logo-row .lg{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:#475569;letter-spacing:-0.01em;transition:color .2s ease,transform .2s ease;user-select:none}
@@ -317,9 +344,6 @@ nav.landing-nav-bar{
   border:1px solid rgba(226,232,240,0.9);
   box-shadow:0 20px 50px -15px rgba(15,23,42,0.10),0 10px 20px -8px rgba(15,23,42,0.06),0 0 0 1px rgba(15,23,42,0.04);
   overflow:hidden;
-  opacity:0;
-  animation:dashIn .8s cubic-bezier(.16,1,.3,1) forwards;
-  animation-delay:.32s;
   cursor:pointer;
   pointer-events:auto;
   user-select:none;
